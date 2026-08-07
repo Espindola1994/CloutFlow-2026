@@ -75,30 +75,17 @@ export async function getInstagramUserByUsername(input: string): Promise<Instagr
   }
 
   try {
-    // A lot of HikerAPI plans default strictly to the /a1/ endpoints or /v1/ endpoints
-    // For universal compatibility, we will try the /v1/ url but strictly with 'v' parameter which Hiker often enforces
-    let response = await fetchWithTimeout(`https://api.hikerapi.com/v1/user/by/username?v=${username}`, {
+    // Current definitive HikerAPI v1 endpoint
+    let response = await fetchWithTimeout(`https://api.hikerapi.com/v1/user/by/username?username=${username}`, {
       headers: {
         'x-access-key': HIKERAPI_KEY,
         'Accept': 'application/json'
       }
     });
 
-    // If 422, try another popular hiker endpoint structure
     if (!response.ok) {
-      console.log(`HikerAPI v1 failed with ${response.status}. Trying v2...`);
+      console.log(`HikerAPI standard endpoint failed with ${response.status}. Trying v2 legacy format...`);
       response = await fetchWithTimeout(`https://api.hikerapi.com/v2/user/by/username?v=${username}`, {
-        headers: {
-          'x-access-key': HIKERAPI_KEY,
-          'Accept': 'application/json'
-        }
-      });
-    }
-    
-    // If STILL failing, try the raw endpoint format often used by basic plans
-    if (!response.ok) {
-      console.log(`HikerAPI v2 failed with ${response.status}. Trying raw endpoint...`);
-      response = await fetchWithTimeout(`https://api.hikerapi.com/v1/user/by/username?username=${username}`, {
         headers: {
           'x-access-key': HIKERAPI_KEY,
           'Accept': 'application/json'
@@ -113,8 +100,8 @@ export async function getInstagramUserByUsername(input: string): Promise<Instagr
 
     const data = await response.json();
     
-    // Safety check for dynamic HikerAPI response structure
-    const userObj = data.user || data.data || data;
+    // Fallback parsing (HikerAPI often wraps inside user or data)
+    const userObj = data.user || data.data || data.graphql?.user || data;
     
     if (!userObj || (!userObj.username && !userObj.full_name)) {
       console.error('Invalid HikerAPI response structure', data);
@@ -127,9 +114,9 @@ export async function getInstagramUserByUsername(input: string): Promise<Instagr
       full_name: String(userObj.full_name || userObj.username || username),
       is_private: Boolean(userObj.is_private),
       profile_pic_url: String(userObj.profile_pic_url || userObj.profile_pic_url_hd || `https://ui-avatars.com/api/?name=${userObj.username || username}`),
-      follower_count: Number(userObj.follower_count || 0),
-      following_count: Number(userObj.following_count || 0),
-      media_count: Number(userObj.media_count || 0)
+      follower_count: Number(userObj.follower_count || userObj.edge_followed_by?.count || 0),
+      following_count: Number(userObj.following_count || userObj.edge_follow?.count || 0),
+      media_count: Number(userObj.media_count || userObj.edge_owner_to_timeline_media?.count || 0)
     };
   } catch (error) {
     console.error('Error fetching Instagram user:', error);
@@ -164,7 +151,6 @@ export async function getInstagramUserMedias(userId: string): Promise<InstagramM
     }
 
     const data = await response.json();
-    // Normalize response based on actual HikerAPI structure
     return data.items || data.data || [];
   } catch (error) {
     console.error('Error fetching Instagram medias:', error);
