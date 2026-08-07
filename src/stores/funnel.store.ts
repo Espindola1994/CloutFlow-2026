@@ -4,6 +4,7 @@ import { persist } from 'zustand/middleware';
 interface FunnelState {
   platformSlug: string | null;
   serviceSlug: string | null;
+  followerType: 'real' | 'niche' | null;
   username: string | null;
   profileData: Record<string, unknown> | null;
   nicheId: string | null;
@@ -13,6 +14,7 @@ interface FunnelState {
   
   setPlatform: (slug: string) => void;
   setService: (slug: string) => void;
+  setFollowerType: (type: 'real' | 'niche' | null) => void;
   setUsername: (username: string) => void;
   setProfileData: (data: Record<string, unknown>) => void;
   setNiche: (nicheId: string, custom?: string) => void;
@@ -26,6 +28,7 @@ export const useFunnelStore = create<FunnelState>()(
     (set) => ({
       platformSlug: null,
       serviceSlug: null,
+      followerType: null,
       username: null,
       profileData: null,
       nicheId: null,
@@ -33,8 +36,9 @@ export const useFunnelStore = create<FunnelState>()(
       selectedMedia: null,
       planId: null,
 
-      setPlatform: (slug) => set({ platformSlug: slug, serviceSlug: null, username: null, profileData: null, planId: null }),
+      setPlatform: (slug) => set({ platformSlug: slug, serviceSlug: null, followerType: null, username: null, profileData: null, planId: null }),
       setService: (slug) => set({ serviceSlug: slug, planId: null }),
+      setFollowerType: (type) => set({ followerType: type }),
       setUsername: (username) => set({ username, profileData: null }),
       setProfileData: (data) => set({ profileData: data }),
       setNiche: (nicheId, custom) => set({ nicheId, customNiche: custom || null }),
@@ -43,6 +47,7 @@ export const useFunnelStore = create<FunnelState>()(
       reset: () => set({
         platformSlug: null,
         serviceSlug: null,
+        followerType: null,
         username: null,
         profileData: null,
         nicheId: null,

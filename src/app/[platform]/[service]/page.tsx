@@ -6,17 +6,16 @@ import { useFunnelStore } from "@/stores/funnel.store";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { ProfileInput } from "@/components/funnel/profile-input";
+import { FollowerTypeSelector } from "@/components/funnel/follower-type-selector";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function PlatformServicePage() {
   const router = useRouter();
   const params = useParams() as { platform: string, service: string };
-  const { setPlatform, setService } = useFunnelStore();
+  const { setPlatform, setService, followerType } = useFunnelStore();
 
-  // We are resolving params properly for React 19 / Next.js 15
   useEffect(() => {
-    // We would normally fetch the service from the DB here to validate it
     setPlatform(params.platform);
     setService(params.service);
   }, [params.platform, params.service, setPlatform, setService]);
@@ -32,9 +31,18 @@ export default function PlatformServicePage() {
           <Button 
             variant="ghost" 
             className="mb-8 pl-0 hover:bg-transparent hover:text-primary"
-            onClick={() => router.push(`/${params.platform}`)}
+            onClick={() => {
+              if (followerType) {
+                // If they picked a type, back button clears the type selection first
+                useFunnelStore.getState().setFollowerType(null);
+              } else {
+                // If no type picked yet, go back to platforms
+                router.push(`/${params.platform}`);
+              }
+            }}
           >
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Services
+            <ArrowLeft className="mr-2 h-4 w-4" /> 
+            {followerType ? "Back to Follower Types" : "Back to Services"}
           </Button>
 
           <div className="max-w-3xl mx-auto text-center mb-12">
@@ -45,22 +53,32 @@ export default function PlatformServicePage() {
               {params.platform} {params.service.replace('-', ' ')}
             </h1>
             <p className="text-lg text-muted-foreground">
-              Enter your profile details below to see the available packages and get started immediately.
+              {followerType 
+                ? "Enter your profile details below to see the available packages and get started immediately."
+                : "What type of followers do you want? Choose below and see the difference each option makes on your profile."
+              }
             </p>
           </div>
 
-          <ProfileInput />
-          
-          <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-6 text-muted-foreground text-sm">
-            <div className="flex items-center bg-card/50 px-4 py-2 rounded-full border border-border/40">
-              <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-500" /> 
-              No passwords needed
-            </div>
-            <div className="flex items-center bg-card/50 px-4 py-2 rounded-full border border-border/40">
-              <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-500" /> 
-              Instant Start
-            </div>
-          </div>
+          {/* If it's Instagram Followers, we show the Type Selector first */}
+          {params.platform === 'instagram' && params.service === 'followers' && !followerType ? (
+            <FollowerTypeSelector />
+          ) : (
+            <>
+              <ProfileInput />
+              <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-6 text-muted-foreground text-sm">
+                <div className="flex items-center bg-card/50 px-4 py-2 rounded-full border border-border/40">
+                  <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-500" /> 
+                  No passwords needed
+                </div>
+                <div className="flex items-center bg-card/50 px-4 py-2 rounded-full border border-border/40">
+                  <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-500" /> 
+                  Instant Start
+                </div>
+              </div>
+            </>
+          )}
+
         </div>
       </main>
       
