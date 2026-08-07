@@ -88,7 +88,25 @@ export async function getInstagramUserByUsername(input: string): Promise<Instagr
     }
 
     const data = await response.json();
-    return data;
+    
+    // Safety check for dynamic HikerAPI response structure (v1 vs v2)
+    const userObj = data.user || data.data || data;
+    
+    if (!userObj || !userObj.username) {
+      console.error('Invalid HikerAPI response structure', data);
+      return null;
+    }
+
+    return {
+      pk: String(userObj.pk || userObj.id || ''),
+      username: String(userObj.username),
+      full_name: String(userObj.full_name || userObj.username),
+      is_private: Boolean(userObj.is_private),
+      profile_pic_url: String(userObj.profile_pic_url || userObj.profile_pic_url_hd || `https://ui-avatars.com/api/?name=${userObj.username}`),
+      follower_count: Number(userObj.follower_count || 0),
+      following_count: Number(userObj.following_count || 0),
+      media_count: Number(userObj.media_count || 0)
+    };
   } catch (error) {
     console.error('Error fetching Instagram user:', error);
     return null;
@@ -123,7 +141,7 @@ export async function getInstagramUserMedias(userId: string): Promise<InstagramM
 
     const data = await response.json();
     // Normalize response based on actual HikerAPI structure
-    return data.items || [];
+    return data.items || data.data || [];
   } catch (error) {
     console.error('Error fetching Instagram medias:', error);
     return [];
