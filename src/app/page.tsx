@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2, Users, Zap } from "lucide-react";
@@ -6,6 +8,13 @@ import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 
 export default function Home() {
+  const scrollToPlatforms = () => {
+    const platformsSection = document.getElementById('platforms-section');
+    if (platformsSection) {
+      platformsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
@@ -35,7 +44,12 @@ export default function Home() {
                   Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto text-lg px-8 rounded-full">
+              <Button 
+                onClick={scrollToPlatforms}
+                size="lg" 
+                variant="outline" 
+                className="w-full sm:w-auto text-lg px-8 rounded-full"
+              >
                 View Services
               </Button>
             </div>
@@ -49,7 +63,7 @@ export default function Home() {
         </section>
 
         {/* Platforms */}
-        <section className="w-full py-20 bg-muted/30">
+        <section id="platforms-section" className="w-full py-20 bg-muted/30">
           <div className="container px-4 md:px-6 mx-auto">
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold tracking-tight mb-4">Choose Your Platform</h2>
