@@ -75,50 +75,39 @@ export async function getInstagramUserByUsername(input: string): Promise<Instagr
   }
 
   try {
-    // Some versions of HikerAPI require the parameter to be "user" instead of "v",
-    // or they strictly require "https://api.hikerapi.com/v1/user/by/username?username="
-    // We will use the standard v1 endpoint which is more stable.
-    const response = await fetchWithTimeout(`https://api.hikerapi.com/v1/user/by/username?username=${username}`, {
+    // A lot of HikerAPI plans default strictly to the /a1/ endpoints or /v1/ endpoints
+    // For universal compatibility, we will try the /v1/ url but strictly with 'v' parameter which Hiker often enforces
+    let response = await fetchWithTimeout(`https://api.hikerapi.com/v1/user/by/username?v=${username}`, {
       headers: {
         'x-access-key': HIKERAPI_KEY,
         'Accept': 'application/json'
       }
     });
 
+    // If 422, try another popular hiker endpoint structure
     if (!response.ok) {
-      console.error(`HikerAPI error: ${response.status} ${response.statusText}`);
-      
-      // If v1 fails, fallback to v2 with 'v=' param immediately
-      if (response.status === 422 || response.status === 404) {
-        console.log('Falling back to HikerAPI v2 endpoint...');
-        const fallbackResponse = await fetchWithTimeout(`https://api.hikerapi.com/v2/user/by/username?v=${username}`, {
-          headers: {
-            'x-access-key': HIKERAPI_KEY,
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (!fallbackResponse.ok) {
-           return null;
+      console.log(`HikerAPI v1 failed with ${response.status}. Trying v2...`);
+      response = await fetchWithTimeout(`https://api.hikerapi.com/v2/user/by/username?v=${username}`, {
+        headers: {
+          'x-access-key': HIKERAPI_KEY,
+          'Accept': 'application/json'
         }
-        
-        const fallbackData = await fallbackResponse.json();
-        const userObj = fallbackData.user || fallbackData.data || fallbackData;
-        
-        if (!userObj || !userObj.username) return null;
+      });
+    }
+    
+    // If STILL failing, try the raw endpoint format often used by basic plans
+    if (!response.ok) {
+      console.log(`HikerAPI v2 failed with ${response.status}. Trying raw endpoint...`);
+      response = await fetchWithTimeout(`https://api.hikerapi.com/v1/user/by/username?username=${username}`, {
+        headers: {
+          'x-access-key': HIKERAPI_KEY,
+          'Accept': 'application/json'
+        }
+      });
+    }
 
-        return {
-          pk: String(userObj.pk || userObj.id || ''),
-          username: String(userObj.username),
-          full_name: String(userObj.full_name || userObj.username),
-          is_private: Boolean(userObj.is_private),
-          profile_pic_url: String(userObj.profile_pic_url || userObj.profile_pic_url_hd || `https://ui-avatars.com/api/?name=${userObj.username}`),
-          follower_count: Number(userObj.follower_count || 0),
-          following_count: Number(userObj.following_count || 0),
-          media_count: Number(userObj.media_count || 0)
-        };
-      }
-      
+    if (!response.ok) {
+      console.error(`HikerAPI all endpoints failed. Final status: ${response.status} ${response.statusText}`);
       return null;
     }
 
@@ -127,17 +116,17 @@ export async function getInstagramUserByUsername(input: string): Promise<Instagr
     // Safety check for dynamic HikerAPI response structure
     const userObj = data.user || data.data || data;
     
-    if (!userObj || !userObj.username) {
+    if (!userObj || (!userObj.username && !userObj.full_name)) {
       console.error('Invalid HikerAPI response structure', data);
       return null;
     }
 
     return {
       pk: String(userObj.pk || userObj.id || ''),
-      username: String(userObj.username),
-      full_name: String(userObj.full_name || userObj.username),
+      username: String(userObj.username || username),
+      full_name: String(userObj.full_name || userObj.username || username),
       is_private: Boolean(userObj.is_private),
-      profile_pic_url: String(userObj.profile_pic_url || userObj.profile_pic_url_hd || `https://ui-avatars.com/api/?name=${userObj.username}`),
+      profile_pic_url: String(userObj.profile_pic_url || userObj.profile_pic_url_hd || `https://ui-avatars.com/api/?name=${userObj.username || username}`),
       follower_count: Number(userObj.follower_count || 0),
       following_count: Number(userObj.following_count || 0),
       media_count: Number(userObj.media_count || 0)
