@@ -4,7 +4,7 @@ import { useFunnelStore } from "@/stores/funnel.store";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2, Target, Users } from "lucide-react";
 
-export function FollowerTypeSelector() {
+export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: string }) {
   const { setFollowerType } = useFunnelStore();
 
   return (
@@ -92,6 +92,13 @@ export function FollowerTypeSelector() {
                 <div>
                   <strong className="block text-foreground">Audience That Buys</strong>
                   <span className="text-muted-foreground">Followers ready to become your clients</span>
+                </div>
+              </li>
+              <li className="flex items-start gap-2 text-sm">
+                <CheckCircle2 className="h-4 w-4 text-pink-500 mt-0.5" />
+                <div>
+                  <strong className="block text-foreground">Explore Page Reach</strong>
+                  <span className="text-muted-foreground">{platform.charAt(0).toUpperCase() + platform.slice(1)} delivers more to your niche</span>
                 </div>
               </li>
             </ul>

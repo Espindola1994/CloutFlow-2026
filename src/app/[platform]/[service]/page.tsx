@@ -20,6 +20,10 @@ export default function PlatformServicePage() {
     setService(params.service);
   }, [params.platform, params.service, setPlatform, setService]);
 
+  const showTypeSelector = (params.platform === 'instagram' || params.platform === 'tiktok') 
+                           && params.service === 'followers' 
+                           && !followerType;
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
@@ -53,16 +57,16 @@ export default function PlatformServicePage() {
               {params.platform} {params.service.replace('-', ' ')}
             </h1>
             <p className="text-lg text-muted-foreground">
-              {followerType 
+              {followerType || !showTypeSelector
                 ? "Enter your profile details below to see the available packages and get started immediately."
                 : "What type of followers do you want? Choose below and see the difference each option makes on your profile."
               }
             </p>
           </div>
 
-          {/* If it's Instagram Followers, we show the Type Selector first */}
-          {params.platform === 'instagram' && params.service === 'followers' && !followerType ? (
-            <FollowerTypeSelector />
+          {/* Show Type Selector if it's IG/TikTok Followers and they haven't picked a type yet */}
+          {showTypeSelector ? (
+            <FollowerTypeSelector platform={params.platform} />
           ) : (
             <>
               <ProfileInput />
