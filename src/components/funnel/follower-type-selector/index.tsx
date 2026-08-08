@@ -195,5 +195,4 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
       </button>
     </div>
   );
-}/ *   T r i g g e r   B u i l d   S y n c   3   * /  
- 
+}
