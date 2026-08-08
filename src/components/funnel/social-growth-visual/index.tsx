@@ -500,3 +500,5 @@ export function SocialGrowthVisual({ platform }: Props) {
     </div>
   );
 }
+/ *   T r i g g e r   V e r c e l   R e s t a r t   F i n a l   F i x   1 2   * /  
+ 
