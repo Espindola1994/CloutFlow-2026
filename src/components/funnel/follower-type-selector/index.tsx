@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useFunnelStore } from "@/stores/funnel.store";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ArrowRight, Zap, CheckCircle2, CircleDollarSign, ShieldCheck, Flame, Wallet, BarChart, Target, Star } from "lucide-react";
 import { FaInstagram, FaTiktok, FaTwitter, FaFacebook } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 
 export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: string }) {
   const { setFollowerType } = useFunnelStore();
@@ -20,7 +21,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
     IconComponent = FaTiktok;
     startPrice = "$9.90";
   } else if (isTwitter) {
-    IconComponent = FaTwitter;
+    IconComponent = FaXTwitter;
     startPrice = "$9.90";
   } else if (isFacebook) {
     IconComponent = FaFacebook;
@@ -83,7 +84,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <ShieldCheck className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong className="block text-foreground">Zero account risk</strong>
-                  <span className="text-muted-foreground">No password Â· 100% safe</span>
+                  <span className="text-muted-foreground">No password, 100% safe</span>
                 </div>
               </li>
             </ul>
@@ -145,7 +146,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Followers from your specific niche — people who <strong className="text-foreground">genuinely care</strong> about what you post, comment, like and buy your products.
+              Followers from your specific niche - people who <strong className="text-foreground">genuinely care</strong> about what you post, comment, like and buy your products.
             </p>
             <ul className="space-y-3 pt-2">
               <li className="flex items-start gap-3 text-sm">
@@ -163,7 +164,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm">
-                <BarChart className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-500' : 'text-pink-500'}`} />
+                <BarChart className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-400' : 'text-pink-400'}`} />
                 <div>
                   <strong className="block text-foreground">Explore Page Reach</strong>
                   <span className="text-muted-foreground">{platformName} delivers more to your niche</span>
@@ -197,5 +198,3 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
     </div>
   );
 }
-/ *   T r i g g e r   V e r c e l   S y n c   5   * /  
- 
