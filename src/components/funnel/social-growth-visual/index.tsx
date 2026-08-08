@@ -20,7 +20,7 @@ export function SocialGrowthVisual({ platform }: Props) {
     instagram: {
       gradient: "from-pink-500/20 via-purple-500/10 to-orange-500/10",
       accent: "text-pink-500",
-      bgAccent: "bg-pink-500",
+      bgAccent: "bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500",
       logo: FaInstagram,
       mockup: {
         avatarBg: "bg-gradient-to-tr from-orange-400 via-pink-500 to-purple-500",
@@ -37,7 +37,7 @@ export function SocialGrowthVisual({ platform }: Props) {
     tiktok: {
       gradient: "from-cyan-500/20 via-black to-pink-500/10",
       accent: "text-cyan-400",
-      bgAccent: "bg-pink-600",
+      bgAccent: "bg-gradient-to-r from-cyan-400 to-pink-500",
       logo: FaTiktok,
       mockup: {
         avatarBg: "bg-gradient-to-tr from-cyan-400 to-pink-500",
@@ -70,7 +70,7 @@ export function SocialGrowthVisual({ platform }: Props) {
     facebook: {
       gradient: "from-blue-500/20 to-blue-800/10",
       accent: "text-blue-500",
-      bgAccent: "bg-blue-600",
+      bgAccent: "bg-blue-500",
       logo: FaFacebook,
       mockup: {
         avatarBg: "bg-gradient-to-br from-blue-400 to-blue-700 border-2 border-white",
@@ -78,7 +78,7 @@ export function SocialGrowthVisual({ platform }: Props) {
           { label: "Likes", val: "17K", highlight: true },
           { label: "Followers", val: "18K" }
         ],
-        btn1: "+ Follow",
+        btn1: "Follow",
         btn2: "Message"
       },
       bottom: { text: "Engagement growing in real time", baseCount: 17832, icon: BarChart3 }
@@ -352,7 +352,7 @@ export function SocialGrowthVisual({ platform }: Props) {
   };
 
   return (
-    <div className="relative w-full max-w-[850px] mx-auto min-h-[450px] md:min-h-[520px] flex items-center justify-center my-6 overflow-visible px-2 py-8">
+    <div className="relative w-full max-w-[850px] mx-auto min-h-[450px] md:min-h-[550px] flex items-center justify-center my-6 overflow-visible px-2 py-8">
       
       {/* Glow / Gradient de Fundo - Preservando efeito da plataforma */}
       <div className={cn(
@@ -374,7 +374,7 @@ export function SocialGrowthVisual({ platform }: Props) {
           {renderPhoneScreen()}
         </div>
 
-        {/* Dynamic Floating Notifications */}
+        {/* Dynamic Floating Notifications baseadas na estrutura Premium do Facebook */}
         <FloatingNotification 
           platform={platformType} 
           type="followers" 
@@ -399,11 +399,11 @@ export function SocialGrowthVisual({ platform }: Props) {
 
       {/* Advanced Bottom Growth Bar */}
       <div className={cn(
-        "absolute bottom-[-10px] md:bottom-2 left-1/2 -translate-x-1/2 w-[90%] md:w-[480px] backdrop-blur-xl border rounded-2xl p-4 shadow-2xl z-40 transition-all duration-300",
-        platformType === 'instagram' ? "bg-[#110e15]/90 border-pink-500/20" :
+        "absolute bottom-[-10px] md:bottom-2 left-1/2 -translate-x-1/2 w-[90%] md:w-[460px] backdrop-blur-xl border rounded-[18px] p-4 shadow-2xl z-40 transition-all duration-300",
+        platformType === 'facebook' ? "bg-[#050c1c]/90 border-blue-500/20" :
         platformType === 'tiktok' ? "bg-[#0a0a0a]/90 border-cyan-500/20" :
-        platformType === 'facebook' ? "bg-[#061022]/90 border-blue-500/20" :
-        "bg-[#080808]/90 border-white/10"
+        platformType === 'twitter' ? "bg-[#080808]/90 border-white/10" :
+        "bg-[#0a0a0a]/90 border-pink-500/20" // Instagram changed to dark graphite
       )}>
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
@@ -414,7 +414,7 @@ export function SocialGrowthVisual({ platform }: Props) {
             <span className="text-white font-bold text-sm tabular-nums">
               {count.toLocaleString('en-US')}
             </span>
-            <ArrowUpRight className={cn("w-3 h-3 ml-1", platformType === 'facebook' ? 'text-blue-400' : platformType === 'twitter' ? 'text-neutral-400' : 'text-emerald-400')} />
+            <ArrowUpRight className={cn("w-3 h-3 md:w-4 md:h-4 stroke-[3]", platformType === 'facebook' ? 'text-blue-400' : platformType === 'twitter' ? 'text-neutral-400' : platformType === 'tiktok' ? 'text-cyan-400' : 'text-pink-400')} />
           </div>
         </div>
         
@@ -423,10 +423,7 @@ export function SocialGrowthVisual({ platform }: Props) {
           <div 
             className={cn(
               "h-full transition-all duration-700 ease-in-out rounded-full relative",
-              platformType === 'instagram' ? "bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500" :
-              platformType === 'tiktok' ? "bg-gradient-to-r from-cyan-400 to-pink-500" :
-              platformType === 'facebook' ? "bg-gradient-to-r from-blue-500 to-blue-400" :
-              "bg-gradient-to-r from-neutral-500 to-white"
+              current.bgAccent
             )}
             style={{ width: `${progress}%` }} 
           >

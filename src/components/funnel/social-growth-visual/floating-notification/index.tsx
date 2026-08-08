@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { UserPlus, Heart, CheckCircle, Play, Eye, Repeat2, Users, ThumbsUp, TrendingUp, ShieldCheck, Activity, CheckCircle2 } from "lucide-react";
+import { UserPlus, Heart, CheckCircle, Play, Eye, Repeat2, Users, ThumbsUp, TrendingUp, ShieldCheck, Activity, CheckCircle2, ArrowUpRight, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface FloatingNotificationProps {
@@ -19,9 +19,9 @@ export function FloatingNotification({ platform, type, position, initialCount = 
 
   // Position configurations
   const posClasses = {
-    'top-left': 'top-[2%] md:top-[12%] left-1/2 md:left-[5%] -translate-x-1/2 md:-translate-x-0 z-30',
-    'middle-right': 'top-[25%] md:top-[35%] right-[-10px] md:right-[2%] z-30',
-    'bottom-left': 'hidden md:flex bottom-[18%] left-[2%] z-30'
+    'top-left': 'top-[18%] left-[8%] md:top-[22%] md:left-[10%] z-30',
+    'middle-right': 'top-[42%] right-[6%] md:top-[45%] md:right-[8%] z-30',
+    'bottom-left': 'bottom-[18%] left-[5%] md:bottom-[22%] md:left-[10%] z-30'
   };
 
   // Organic floating animations
@@ -75,45 +75,9 @@ export function FloatingNotification({ platform, type, position, initialCount = 
   // Platform Specific Styles & Content
   const getPlatformConfig = () => {
     switch (platform) {
-      case 'instagram':
-        return {
-          bg: 'bg-[#0c0a0e]/90 backdrop-blur-md',
-          border: 'border border-pink-500/20 shadow-[0_4px_24px_rgba(236,72,153,0.08)] relative',
-          pseudoBorder: 'after:absolute after:inset-0 after:rounded-2xl after:p-[1px] after:bg-gradient-to-br after:from-pink-500/50 after:via-purple-500/20 after:to-orange-500/30 after:-z-10 after:[mask-image:linear-gradient(black,black)] after:pointer-events-none',
-          iconWrap: 'bg-[#1a1118] border border-pink-500/30 relative overflow-hidden',
-          iconGradient: 'absolute inset-0 bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-600 opacity-20',
-          iconColor: 'text-white',
-          numberColor: 'text-white',
-          textColor: 'text-white/70',
-          badgeColor: 'text-pink-400 bg-pink-500/10'
-        };
-      case 'tiktok':
-        return {
-          bg: 'bg-[#090909]/95 backdrop-blur-md',
-          border: 'border border-[#222] shadow-[0_4px_20px_rgba(0,0,0,0.5)]',
-          pseudoBorder: 'shadow-[-1px_0_4px_rgba(105,201,208,0.15),1px_0_4px_rgba(254,44,85,0.15)]',
-          iconWrap: 'bg-[#111] border border-[#333] shadow-[-1px_1px_3px_rgba(105,201,208,0.2),1px_-1px_3px_rgba(254,44,85,0.2)]',
-          iconGradient: '',
-          iconColor: type === 'likes' ? 'text-[#FE2C55]' : 'text-[#69C9D0]',
-          numberColor: 'text-white',
-          textColor: 'text-white/65',
-          badgeColor: 'text-[#69C9D0]'
-        };
-      case 'twitter':
-        return {
-          bg: 'bg-[#080808]',
-          border: 'border border-white/10 shadow-2xl',
-          pseudoBorder: '',
-          iconWrap: 'bg-[#161616] border border-white/5',
-          iconGradient: '',
-          iconColor: 'text-neutral-300',
-          numberColor: 'text-white',
-          textColor: 'text-neutral-400',
-          badgeColor: 'text-blue-400' // subtle cold blue accent
-        };
       case 'facebook':
         return {
-          bg: 'bg-[#050c1c]/95 backdrop-blur-md',
+          bg: 'bg-[#050c1c]/92 backdrop-blur-md',
           border: 'border border-blue-500/20 shadow-[0_4px_20px_rgba(24,119,242,0.1)]',
           pseudoBorder: '',
           iconWrap: 'bg-blue-600 border border-blue-400/30 shadow-[inset_0_2px_4px_rgba(255,255,255,0.2)]',
@@ -122,6 +86,45 @@ export function FloatingNotification({ platform, type, position, initialCount = 
           numberColor: 'text-white',
           textColor: 'text-blue-100/70',
           badgeColor: 'text-blue-300'
+        };
+      case 'instagram':
+        // Updated to use the Facebook base layout but Instagram accents
+        return {
+          bg: 'bg-[#0a0a0a]/92 backdrop-blur-md',
+          border: 'border border-pink-500/20 shadow-[0_4px_24px_rgba(236,72,153,0.08)]',
+          pseudoBorder: 'relative after:absolute after:inset-0 after:rounded-2xl after:p-[1px] after:bg-gradient-to-br after:from-pink-500/40 after:via-purple-500/20 after:to-orange-500/20 after:-z-10 after:[mask-image:linear-gradient(black,black)] after:pointer-events-none',
+          iconWrap: 'bg-[#111] border border-pink-500/30 relative overflow-hidden',
+          iconGradient: 'absolute inset-0 bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-600 opacity-20',
+          iconColor: 'text-white',
+          numberColor: 'text-white',
+          textColor: 'text-white/70',
+          badgeColor: 'text-pink-400'
+        };
+      case 'tiktok':
+        // Updated to use the Facebook base layout but TikTok accents
+        return {
+          bg: 'bg-[#070707]/95 backdrop-blur-md',
+          border: 'border border-[#222] shadow-[0_4px_20px_rgba(0,0,0,0.5)]',
+          pseudoBorder: 'shadow-[-1px_0_4px_rgba(105,201,208,0.15),1px_0_4px_rgba(254,44,85,0.15)]',
+          iconWrap: 'bg-[#111] border border-[#333] shadow-[-1px_1px_3px_rgba(105,201,208,0.2),1px_-1px_3px_rgba(254,44,85,0.2)]',
+          iconGradient: '',
+          iconColor: type === 'likes' ? 'text-pink-500' : 'text-cyan-400',
+          numberColor: 'text-white',
+          textColor: 'text-white/65',
+          badgeColor: 'text-cyan-400'
+        };
+      case 'twitter':
+        // Minimalist X layout
+        return {
+          bg: 'bg-[#050505]',
+          border: 'border border-white/10 shadow-2xl',
+          pseudoBorder: '',
+          iconWrap: 'bg-[#1a1a1a] border border-white/5',
+          iconGradient: '',
+          iconColor: 'text-white',
+          numberColor: 'text-white',
+          textColor: 'text-neutral-400',
+          badgeColor: 'text-blue-400' // subtle cold blue accent
         };
     }
   };
@@ -132,28 +135,28 @@ export function FloatingNotification({ platform, type, position, initialCount = 
         return {
           icon: platform === 'twitter' || platform === 'facebook' ? UserPlus : Users,
           label: "New Followers",
-          badge: platform === 'facebook' ? 'this week' : 'right now',
+          badge: platform === 'facebook' ? 'THIS WEEK' : 'RIGHT NOW',
           prefix: '+'
         };
       case 'likes':
         return {
           icon: platform === 'facebook' ? ThumbsUp : Heart,
           label: platform === 'facebook' ? "New Likes" : "Likes",
-          badge: platform === 'facebook' ? 'on your page' : platform === 'tiktok' ? 'on your videos' : 'on your posts',
+          badge: platform === 'facebook' ? 'ON YOUR PAGE' : platform === 'tiktok' ? 'ON YOUR VIDEOS' : 'ON YOUR POSTS',
           prefix: '+'
         };
       case 'views':
         return {
           icon: Play,
           label: "New Views",
-          badge: "right now",
+          badge: "RIGHT NOW",
           prefix: '+'
         };
       case 'reposts':
         return {
           icon: Repeat2,
           label: "Reposts",
-          badge: "on your post",
+          badge: "ON YOUR POST",
           prefix: '+'
         };
       case 'status':
@@ -174,29 +177,29 @@ export function FloatingNotification({ platform, type, position, initialCount = 
   const getPulseEffect = () => {
     if (!pulse) return '';
     if (type === 'reposts') return 'translate-x-[2px]';
-    return 'scale-[1.15]';
+    return 'scale-[1.12]';
   };
 
   return (
     <div className={cn(
-      "absolute w-[200px] md:w-[220px] rounded-2xl p-3 flex items-center gap-3 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
+      "absolute w-[185px] md:w-[220px] rounded-[18px] p-3 md:p-4 flex items-center gap-3 md:gap-4 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
       posClasses[position],
       floatAnim[position],
       pConfig.bg,
       pConfig.border,
       pConfig.pseudoBorder,
-      mounted ? "opacity-100 translate-y-0 scale-100 blur-0" : "opacity-0 translate-y-2 scale-[0.94] blur-[2px]"
+      mounted ? "opacity-100 translate-y-0 scale-100 blur-0" : "opacity-0 translate-y-2 scale-[0.96] blur-[2px]"
     )}>
       
       {/* Icon Container */}
-      <div className={cn("w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 relative", pConfig.iconWrap)}>
+      <div className={cn("w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center flex-shrink-0 relative", pConfig.iconWrap)}>
         {pConfig.iconGradient && <div className={pConfig.iconGradient} />}
-        <Icon className={cn("w-5 h-5 relative z-10 transition-transform duration-300", pConfig.iconColor, getPulseEffect())} />
+        <Icon className={cn("w-5 h-5 relative z-10 transition-transform duration-250", pConfig.iconColor, getPulseEffect())} />
         
-        {/* Temporary Reaction Particle */}
+        {/* Temporary Reaction Particle (Only SVG to avoid Unicode Mojibake) */}
         {particle && (type === 'likes' || type === 'views') && (
           <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-[10px] animate-[slide-up-fade_800ms_ease-out_forwards]">
-            {type === 'likes' && platform === 'facebook' ? 'ðŸ‘' : type === 'likes' ? 'â¤ï¸' : 'âœ¨'}
+            {type === 'likes' && platform === 'facebook' ? <ThumbsUp className="w-3 h-3 text-blue-500 fill-blue-500" /> : type === 'likes' ? <Heart className="w-3 h-3 text-pink-500 fill-pink-500" /> : <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
           </div>
         )}
       </div>
@@ -205,20 +208,20 @@ export function FloatingNotification({ platform, type, position, initialCount = 
       <div className="flex-1 min-w-0">
         {type === 'status' ? (
           <>
-            <div className={cn("font-bold text-[13px] md:text-sm truncate", pConfig.numberColor)}>{mConfig.title}</div>
-            <div className={cn("text-[11px] md:text-xs font-medium", pConfig.textColor)}>{mConfig.label}</div>
+            <div className={cn("font-bold text-[13px] md:text-[15px] truncate leading-tight", pConfig.numberColor)}>{mConfig.title}</div>
+            <div className={cn("text-[11px] md:text-[12px] font-medium mt-0.5", pConfig.textColor)}>{mConfig.label}</div>
           </>
         ) : (
           <>
             <div className="flex items-baseline gap-1">
-              <div className={cn("font-bold text-base md:text-lg tabular-nums tracking-tight", pConfig.numberColor)}>
+              <div className={cn("font-bold text-base md:text-xl tabular-nums tracking-tight leading-none", pConfig.numberColor)}>
                 {mConfig.prefix}{(count).toLocaleString('en-US')}
               </div>
-              <span className={cn("text-[10px] font-bold opacity-80", pConfig.badgeColor)}>â†‘</span>
+              <ArrowUpRight className={cn("w-3 h-3 md:w-4 md:h-4 stroke-[3]", pConfig.badgeColor)} />
             </div>
-            <div className={cn("text-[12px] font-semibold tracking-tight -mt-0.5", pConfig.textColor)}>{mConfig.label}</div>
-            <div className={cn("text-[9px] md:text-[10px] font-bold tracking-wider mt-0.5 uppercase", pConfig.badgeColor)}>
-              {platform === 'tiktok' || platform === 'twitter' ? `â— ${mConfig.badge}` : mConfig.badge}
+            <div className={cn("text-[11px] md:text-[13px] font-medium tracking-tight mt-1", pConfig.textColor)}>{mConfig.label}</div>
+            <div className={cn("text-[9px] md:text-[10px] font-bold tracking-wider mt-1 uppercase", pConfig.badgeColor)}>
+              {mConfig.badge}
             </div>
           </>
         )}
