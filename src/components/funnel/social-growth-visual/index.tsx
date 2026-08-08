@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Heart, MessageCircle, BarChart3, Repeat2, Play, CheckCircle2, Star, ArrowRight, ShieldCheck } from "lucide-react";
+import { User, Heart, MessageCircle, BarChart3, Repeat2, Play, Users, CheckCircle2, ArrowRight, ArrowLeft, ShieldCheck, Star, ArrowUpRight } from "lucide-react";
 import { FaInstagram, FaTiktok, FaTwitter, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { FloatingNotification } from "./floating-notification";
@@ -15,7 +15,7 @@ export function SocialGrowthVisual({ platform }: Props) {
   // Cast platform to specific types for safety
   const platformType = (['instagram', 'tiktok', 'twitter', 'facebook'].includes(platform) ? platform : 'instagram') as 'instagram' | 'tiktok' | 'twitter' | 'facebook';
 
-  // ConfiguraÃ§Ãµes DinÃ¢micas por Plataforma (Base para o Mockup do Celular)
+  // Configs
   const config = {
     instagram: {
       gradient: "from-pink-500/20 via-purple-500/10 to-orange-500/10",
@@ -25,9 +25,9 @@ export function SocialGrowthVisual({ platform }: Props) {
       mockup: {
         avatarBg: "bg-gradient-to-tr from-orange-400 via-pink-500 to-purple-500",
         stats: [
-          { label: "posts", val: "48" },
-          { label: "followers", val: "13.2K", highlight: true },
-          { label: "following", val: "243" }
+          { label: "Posts", val: "48" },
+          { label: "Followers", val: "13.2K", highlight: true },
+          { label: "Following", val: "243" }
         ],
         btn1: "Follow",
         btn2: "Message"
@@ -75,8 +75,8 @@ export function SocialGrowthVisual({ platform }: Props) {
       mockup: {
         avatarBg: "bg-gradient-to-br from-blue-400 to-blue-700 border-2 border-white",
         stats: [
-          { label: "followers", val: "17K", highlight: true },
-          { label: "likes", val: "12K" }
+          { label: "Likes", val: "17K", highlight: true },
+          { label: "Followers", val: "18K" }
         ],
         btn1: "+ Follow",
         btn2: "Message"
@@ -89,7 +89,6 @@ export function SocialGrowthVisual({ platform }: Props) {
   const Logo = current.logo;
   const BottomIcon = current.bottom.icon;
 
-  // LÃ³gica da Barra Inferior (Live Counter Progress)
   const [count, setCount] = useState(current.bottom.baseCount);
   const [progress, setProgress] = useState(48);
 
@@ -100,7 +99,6 @@ export function SocialGrowthVisual({ platform }: Props) {
       const increment = Math.floor(Math.random() * 5) + 1;
       setCount(prev => prev + increment);
       
-      // Simulate non-linear progress bar logic
       setProgress(prev => {
         if (prev > 75) return prev - (Math.random() * 10);
         return prev + (Math.random() * 5);
@@ -114,17 +112,14 @@ export function SocialGrowthVisual({ platform }: Props) {
     return () => clearTimeout(timeout);
   }, []);
 
-  // Telas internas por plataforma
   const renderPhoneScreen = () => {
     if (platform === 'twitter') {
       return (
         <div className="w-full h-full flex flex-col relative text-white bg-black">
-          {/* Twitter Cover */}
           <div className="h-[80px] bg-gradient-to-r from-neutral-800 to-neutral-700 w-full relative">
-            <div className="absolute top-4 left-4"><ArrowRight className="w-5 h-5 text-white rotate-180" /></div>
+            <div className="absolute top-4 left-4"><ArrowLeft className="w-5 h-5 text-white" /></div>
           </div>
           
-          {/* Avatar and Profile */}
           <div className="px-4 relative pb-4 border-b border-white/10">
             <div className={`w-[68px] h-[68px] rounded-full ${current.mockup.avatarBg} -mt-8 mb-2 flex items-center justify-center`}>
                <User className="text-white/50 w-8 h-8" />
@@ -140,23 +135,21 @@ export function SocialGrowthVisual({ platform }: Props) {
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="flex border-b border-white/10 px-4">
             <div className="flex-1 py-3 text-center border-b-2 border-blue-500 font-bold text-sm">Posts</div>
             <div className="flex-1 py-3 text-center text-white/50 font-medium text-sm">Replies</div>
             <div className="flex-1 py-3 text-center text-white/50 font-medium text-sm">Media</div>
           </div>
 
-          {/* Feed Mockup */}
           <div className="flex-1 overflow-hidden px-4 pt-4 flex flex-col gap-4">
             <div className="flex gap-3">
               <div className="w-10 h-10 rounded-full bg-neutral-800 flex-shrink-0" />
               <div className="flex-1">
                 <div className="flex items-center gap-1 text-xs mb-1">
                   <span className="font-bold">Your Brand</span>
-                  <span className="text-white/50">@yourbrand â€¢ 2h</span>
+                  <span className="text-white/50">@yourbrand - 2h</span>
                 </div>
-                <p className="text-xs mb-2">Content that connects.<br/>Growth that lasts. ðŸš€</p>
+                <p className="text-xs mb-2">Content that connects.<br/>Growth that lasts.</p>
                 <div className="flex justify-between text-white/50 text-[10px]">
                   <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> 24</span>
                   <span className="flex items-center gap-1"><Repeat2 className="w-3 h-3" /> 67</span>
@@ -173,16 +166,14 @@ export function SocialGrowthVisual({ platform }: Props) {
     if (platform === 'facebook') {
       return (
         <div className="w-full h-full flex flex-col relative text-black bg-[#f0f2f5]">
-          {/* FB Cover */}
           <div className="h-[90px] bg-gradient-to-r from-blue-600 to-blue-400 w-full relative"></div>
           
-          {/* Avatar and Profile */}
           <div className="bg-white px-4 relative pb-4 border-b border-gray-300 flex flex-col items-center shadow-sm z-10">
             <div className={`w-[80px] h-[80px] rounded-full ${current.mockup.avatarBg} -mt-10 mb-2 flex items-center justify-center`}>
                <User className="text-white/70 w-8 h-8" />
             </div>
             <h3 className="font-bold text-xl leading-tight flex items-center gap-1">Your Brand <CheckCircle2 className="w-4 h-4 text-white fill-blue-500" /></h3>
-            <p className="text-gray-500 text-xs mb-4">Page â€¢ Digital Creator</p>
+            <p className="text-gray-500 text-xs mb-4">Page - Digital Creator</p>
             
             <div className="flex gap-3 text-sm font-bold text-gray-700 mb-4">
               <div>17K <span className="font-normal text-gray-500">Likes</span></div>
@@ -192,11 +183,9 @@ export function SocialGrowthVisual({ platform }: Props) {
             <div className="flex gap-2 w-full">
               <button className="flex-1 bg-blue-600 text-white font-bold text-sm py-2 rounded-md flex items-center justify-center gap-1"><Heart className="w-4 h-4 fill-white" /> Like</button>
               <button className="flex-1 bg-gray-200 text-black font-semibold text-sm py-2 rounded-md flex items-center justify-center gap-1"><MessageCircle className="w-4 h-4" /> Message</button>
-              <button className="bg-gray-200 text-black font-bold text-sm px-3 rounded-md">...</button>
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="flex bg-white border-b border-gray-300 px-2 mb-2 shadow-sm">
             <div className="flex-1 py-3 text-center border-b-2 border-blue-600 text-blue-600 font-bold text-xs">Home</div>
             <div className="flex-1 py-3 text-center text-gray-500 font-bold text-xs">About</div>
@@ -204,21 +193,20 @@ export function SocialGrowthVisual({ platform }: Props) {
             <div className="flex-1 py-3 text-center text-gray-500 font-bold text-xs">Videos</div>
           </div>
 
-          {/* Feed Mockup */}
           <div className="flex-1 overflow-hidden px-2 flex flex-col gap-4">
             <div className="bg-white rounded-lg p-3 shadow-sm border border-gray-200">
               <div className="flex items-center gap-2 mb-2">
                 <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex-shrink-0" />
                 <div>
                   <div className="font-bold text-xs">Your Brand</div>
-                  <div className="text-gray-500 text-[10px]">2h â€¢ ðŸŒ</div>
+                  <div className="text-gray-500 text-[10px]">2h - Public</div>
                 </div>
               </div>
-              <p className="text-xs mb-2 text-gray-800">We deliver real results.<br/>Grow your brand with us. ðŸš€</p>
+              <p className="text-xs mb-2 text-gray-800">We deliver real results.<br/>Grow your brand with us.</p>
               <div className="h-[100px] bg-gray-100 rounded-md border border-gray-200 mb-2"></div>
               <div className="flex justify-between items-center text-gray-500 text-[10px] pb-2 border-b border-gray-200 mb-2">
-                <span className="flex items-center gap-1">ðŸ‘ â¤ï¸ 312</span>
-                <span>47 Comments â€¢ 89 Shares</span>
+                <span className="flex items-center gap-1">312 reactions</span>
+                <span>47 comments - 89 shares</span>
               </div>
               <div className="flex justify-between text-gray-600 text-xs font-bold px-2">
                 <span>Like</span>
@@ -235,7 +223,7 @@ export function SocialGrowthVisual({ platform }: Props) {
       return (
         <div className="w-full h-full flex flex-col relative text-white bg-black">
           <div className="flex justify-between items-center w-full px-4 pt-4 pb-2">
-            <span className="text-white/80"><ArrowRight className="w-5 h-5 rotate-180" /></span>
+            <span className="text-white/80"><ArrowLeft className="w-5 h-5" /></span>
             <span className="font-bold text-sm">@yourbrand</span>
             <span className="text-white/80"><Repeat2 className="w-5 h-5" /></span>
           </div>
@@ -267,15 +255,15 @@ export function SocialGrowthVisual({ platform }: Props) {
             <div className="flex gap-2 w-full mb-4 px-4">
               <button className="flex-1 bg-[#FE2C55] text-white font-bold text-sm py-2.5 rounded-sm">Follow</button>
               <button className="px-4 bg-white/10 text-white font-bold text-sm py-2.5 rounded-sm"><FaInstagram /></button>
-              <button className="px-3 bg-white/10 text-white font-bold text-sm py-2.5 rounded-sm">â–¾</button>
             </div>
 
-            <p className="text-white/80 text-xs text-center">Digital Creator<br/>Building audience ðŸš€<br/>Link in bio â†“</p>
+            <p className="text-white/80 text-xs text-center">Digital Creator<br/>Building your audience<br/>Link in bio</p>
           </div>
 
           <div className="flex border-b border-white/10">
             <div className="flex-1 py-3 flex justify-center border-b-2 border-white"><BarChart3 className="w-5 h-5 text-white" /></div>
             <div className="flex-1 py-3 flex justify-center"><Heart className="w-5 h-5 text-white/40" /></div>
+            <div className="flex-1 py-3 flex justify-center"><ShieldCheck className="w-5 h-5 text-white/40" /></div>
           </div>
 
           <div className="grid grid-cols-3 gap-0.5 w-full flex-1 overflow-hidden">
@@ -320,14 +308,13 @@ export function SocialGrowthVisual({ platform }: Props) {
         </div>
 
         <div className="px-4 mb-4">
-          <h3 className="text-white font-bold text-sm">Your Brand âœ¨</h3>
-          <p className="text-white/80 text-xs mt-0.5">Digital Creator<br/>Helping brands grow online ðŸš€<br/>Link in bio â†“</p>
+          <h3 className="text-white font-bold text-sm">Your Brand</h3>
+          <p className="text-white/80 text-xs mt-0.5">Digital Creator<br/>Helping brands grow online<br/>Link in bio</p>
         </div>
 
         <div className="flex gap-2 w-full px-4 mb-4">
           <button className="flex-1 bg-blue-500 text-white font-bold text-xs py-2 rounded-md">Follow</button>
           <button className="flex-1 bg-neutral-800 text-white font-bold text-xs py-2 rounded-md">Message</button>
-          <button className="bg-neutral-800 text-white font-bold text-xs px-3 rounded-md">â–¾</button>
         </div>
 
         {/* Story Highlights */}
@@ -375,10 +362,6 @@ export function SocialGrowthVisual({ platform }: Props) {
         platformType === 'facebook' ? "bg-blue-600" :
         "bg-neutral-600"
       )} />
-
-      {/* PartÃ­culas flutuantes ultra-discretas */}
-      <div className="hidden md:block absolute top-[10%] left-[20%] text-white/10 animate-[float_6s_ease-in-out_infinite_alternate]"><Heart size={16} /></div>
-      <div className="hidden md:block absolute bottom-[25%] right-[18%] text-white/5 animate-[float_7s_ease-in-out_infinite_alternate-reverse]"><User size={20} /></div>
 
       <div className="relative z-10 w-full flex flex-col items-center justify-center gap-6">
         
@@ -431,9 +414,7 @@ export function SocialGrowthVisual({ platform }: Props) {
             <span className="text-white font-bold text-sm tabular-nums">
               {count.toLocaleString('en-US')}
             </span>
-            <span className={cn("text-[10px] font-bold", platformType === 'facebook' ? 'text-blue-400' : platformType === 'twitter' ? 'text-neutral-400' : 'text-emerald-400')}>
-              â†‘
-            </span>
+            <ArrowUpRight className={cn("w-3 h-3 ml-1", platformType === 'facebook' ? 'text-blue-400' : platformType === 'twitter' ? 'text-neutral-400' : 'text-emerald-400')} />
           </div>
         </div>
         
