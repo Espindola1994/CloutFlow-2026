@@ -17,15 +17,15 @@ export function FloatingNotification({ platform, type, position, initialCount = 
   const [mounted, setMounted] = useState(false);
   const [particle, setParticle] = useState(false);
 
-  // Position configurations
-  // Reduzidos e aproximados para compor melhor ao redor do smartphone
+  // Position configurations - SHARED EXTREMELY STRICT FACEBOOK TEMPLATE
+  // These absolute coordinates apply perfectly over the master Absolute wrapper container.
   const posClasses = {
-    'top-left': 'top-[18%] left-[10%] md:top-[20%] md:left-[14%] z-30',
-    'middle-right': 'top-[42%] right-[8%] md:top-[42%] md:right-[12%] z-30',
-    'bottom-left': 'bottom-[18%] left-[8%] md:bottom-[22%] md:left-[12%] z-30'
+    'top-left': 'top-[16%] left-[6%] md:top-[18%] md:left-[10%] z-30',
+    'middle-right': 'top-[42%] right-[4%] md:top-[44%] md:right-[6%] z-30',
+    'bottom-left': 'bottom-[15%] left-[5%] md:bottom-[20%] md:left-[8%] z-30'
   };
 
-  // Organic floating animations
+  // Organic floating animations wrapper class logic. Kept structurally the same for all.
   const floatAnim = {
     'top-left': 'animate-[float_5.8s_ease-in-out_infinite_alternate-reverse]',
     'middle-right': 'animate-[float_6.7s_ease-in-out_infinite_alternate]',
@@ -59,7 +59,6 @@ export function FloatingNotification({ platform, type, position, initialCount = 
 
       setTimeout(() => setPulse(false), 300);
 
-      // Random next interval
       const minBase = type === 'views' ? 2000 : 3000;
       const nextDelay = minBase + Math.random() * 2500;
       timeout = setTimeout(updateTick, nextDelay);
@@ -73,7 +72,7 @@ export function FloatingNotification({ platform, type, position, initialCount = 
     };
   }, [type, platform, position]);
 
-  // Platform Specific Styles & Content
+  // Unified visual architectural model based off Facebook's dark UI block approach.
   const getPlatformConfig = () => {
     switch (platform) {
       case 'facebook':
@@ -89,20 +88,19 @@ export function FloatingNotification({ platform, type, position, initialCount = 
           badgeColor: 'text-blue-300'
         };
       case 'instagram':
-        // Updated to use the Facebook base layout but Instagram accents
+        // PERFECT COPY of Facebook's structure but keeping the Instagram accenting context
         return {
           bg: 'bg-[#0a0a0a]/92 backdrop-blur-md',
-          border: 'border border-pink-500/20 shadow-[0_4px_24px_rgba(236,72,153,0.08)]',
-          pseudoBorder: 'relative after:absolute after:inset-0 after:rounded-2xl after:p-[1px] after:bg-gradient-to-br after:from-pink-500/40 after:via-purple-500/20 after:to-orange-500/20 after:-z-10 after:[mask-image:linear-gradient(black,black)] after:pointer-events-none',
+          border: 'border border-[#222] shadow-[0_4px_24px_rgba(0,0,0,0.4)]',
+          pseudoBorder: '',
           iconWrap: 'bg-[#111] border border-pink-500/30 relative overflow-hidden',
-          iconGradient: 'absolute inset-0 bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-600 opacity-20',
+          iconGradient: 'absolute inset-0 bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-600 opacity-30',
           iconColor: 'text-white',
           numberColor: 'text-white',
           textColor: 'text-white/70',
           badgeColor: 'text-pink-400'
         };
       case 'tiktok':
-        // Updated to use the Facebook base layout but TikTok accents
         return {
           bg: 'bg-[#070707]/95 backdrop-blur-md',
           border: 'border border-[#222] shadow-[0_4px_20px_rgba(0,0,0,0.5)]',
@@ -115,7 +113,6 @@ export function FloatingNotification({ platform, type, position, initialCount = 
           badgeColor: 'text-cyan-400'
         };
       case 'twitter':
-        // Minimalist X layout
         return {
           bg: 'bg-[#050505]',
           border: 'border border-white/10 shadow-2xl',
@@ -125,7 +122,7 @@ export function FloatingNotification({ platform, type, position, initialCount = 
           iconColor: 'text-white',
           numberColor: 'text-white',
           textColor: 'text-neutral-400',
-          badgeColor: 'text-blue-400' // subtle cold blue accent
+          badgeColor: 'text-blue-400'
         };
     }
   };
@@ -183,7 +180,7 @@ export function FloatingNotification({ platform, type, position, initialCount = 
 
   return (
     <div className={cn(
-      "absolute w-[150px] md:w-[190px] rounded-[16px] p-2.5 md:p-3 flex items-center gap-2 md:gap-3 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
+      "absolute w-[160px] md:w-[200px] rounded-[16px] p-2.5 md:p-3 flex items-center gap-3 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
       posClasses[position],
       floatAnim[position],
       pConfig.bg,
@@ -192,12 +189,12 @@ export function FloatingNotification({ platform, type, position, initialCount = 
       mounted ? "opacity-100 translate-y-0 scale-100 blur-0" : "opacity-0 translate-y-2 scale-[0.96] blur-[2px]"
     )}>
       
-      {/* Icon Container */}
-      <div className={cn("w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center flex-shrink-0 relative", pConfig.iconWrap)}>
+      {/* Icon Container - Exact identical scale logic to Facebook baseline */}
+      <div className={cn("w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 relative", pConfig.iconWrap)}>
         {pConfig.iconGradient && <div className={pConfig.iconGradient} />}
         <Icon className={cn("w-4 h-4 md:w-[18px] md:h-[18px] relative z-10 transition-transform duration-250", pConfig.iconColor, getPulseEffect())} />
         
-        {/* Temporary Reaction Particle (Only SVG to avoid Unicode Mojibake) */}
+        {/* Temporary Reaction Particle (SVG only) */}
         {particle && (type === 'likes' || type === 'views') && (
           <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full text-[10px] animate-[slide-up-fade_800ms_ease-out_forwards]">
             {type === 'likes' && platform === 'facebook' ? <ThumbsUp className="w-3 h-3 text-blue-500 fill-blue-500" /> : type === 'likes' ? <Heart className="w-3 h-3 text-pink-500 fill-pink-500" /> : <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />}
@@ -209,16 +206,16 @@ export function FloatingNotification({ platform, type, position, initialCount = 
       <div className="flex-1 min-w-0">
         {type === 'status' ? (
           <>
-            <div className={cn("font-bold text-[12px] md:text-[13px] leading-tight whitespace-nowrap overflow-visible", pConfig.numberColor)}>{mConfig.title}</div>
+            <div className={cn("font-bold text-[12px] md:text-[14px] leading-tight whitespace-nowrap overflow-visible", pConfig.numberColor)}>{mConfig.title}</div>
             <div className={cn("text-[10px] md:text-[11px] font-medium mt-0.5 whitespace-nowrap", pConfig.textColor)}>{mConfig.label}</div>
           </>
         ) : (
           <>
             <div className="flex items-baseline gap-1">
-              <div className={cn("font-bold text-[15px] md:text-[18px] tabular-nums tracking-tight leading-none", pConfig.numberColor)}>
+              <div className={cn("font-bold text-[15px] md:text-[17px] tabular-nums tracking-tight leading-none", pConfig.numberColor)}>
                 {mConfig.prefix}{(count).toLocaleString('en-US')}
               </div>
-              <ArrowUpRight className={cn("w-2.5 h-2.5 md:w-3 md:h-3 stroke-[3] ml-1", pConfig.badgeColor)} />
+              <ArrowUpRight className={cn("w-2.5 h-2.5 md:w-3 md:h-3 stroke-[3]", pConfig.badgeColor)} />
             </div>
             <div className={cn("text-[10px] md:text-[11px] font-semibold tracking-tight mt-1 leading-none", pConfig.textColor)}>{mConfig.label}</div>
             <div className={cn("text-[8px] md:text-[9px] font-bold tracking-wider mt-1 uppercase", pConfig.badgeColor)}>
