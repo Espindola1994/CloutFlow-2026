@@ -2,14 +2,26 @@
 
 import { useFunnelStore } from "@/stores/funnel.store";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { ArrowRight, CheckCircle2, Target, Users, Zap } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 
 export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: string }) {
   const { setFollowerType } = useFunnelStore();
 
   const isTiktok = platform === 'tiktok';
-  const iconText = isTiktok ? "🎵" : "👥";
-  const startPrice = isTiktok ? "$9.90" : "$7.90";
+  const isTwitter = platform === 'twitter';
+  
+  let iconText = "👥";
+  let startPrice = "$7.90";
+  
+  if (isTiktok) {
+    iconText = "🎵";
+    startPrice = "$9.90";
+  } else if (isTwitter) {
+    iconText = "🐦";
+    startPrice = "$9.90";
+  }
+
+  const platformName = platform === 'twitter' ? 'Twitter (X)' : platform.charAt(0).toUpperCase() + platform.slice(1);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto mt-8">
@@ -121,7 +133,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <span className="flex-shrink-0 mt-0.5 text-lg leading-none">📊</span>
                 <div>
                   <strong className="block text-foreground">Explore Page Reach</strong>
-                  <span className="text-muted-foreground">{platform.charAt(0).toUpperCase() + platform.slice(1)} delivers more to your niche</span>
+                  <span className="text-muted-foreground">{platformName} delivers more to your niche</span>
                 </div>
               </li>
               <li className="flex items-start gap-2 text-sm">
