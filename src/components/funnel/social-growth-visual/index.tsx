@@ -224,7 +224,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         <div className="w-full h-full flex flex-col relative text-white bg-black">
           <div className="flex justify-between items-center w-full px-4 pt-4 pb-2">
             <span className="text-white/80"><ArrowLeft className="w-5 h-5" /></span>
-            <span className="font-bold text-sm">@yourbrand</span>
+            
             <span className="text-white/80"><Repeat2 className="w-5 h-5" /></span>
           </div>
 
