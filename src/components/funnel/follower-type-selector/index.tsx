@@ -9,6 +9,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
 
   const isTiktok = platform === 'tiktok';
   const isTwitter = platform === 'twitter';
+  const isFacebook = platform === 'facebook';
   
   let iconText = "👥";
   let startPrice = "$7.90";
@@ -19,6 +20,9 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
   } else if (isTwitter) {
     iconText = "🐦";
     startPrice = "$9.90";
+  } else if (isFacebook) {
+    iconText = "📘";
+    startPrice = "$7.90";
   }
 
   const platformName = platform === 'twitter' ? 'Twitter (X)' : platform.charAt(0).toUpperCase() + platform.slice(1);

@@ -20,7 +20,7 @@ export default function PlatformServicePage() {
     setService(params.service);
   }, [params.platform, params.service, setPlatform, setService]);
 
-  const showTypeSelector = (params.platform === 'instagram' || params.platform === 'tiktok' || params.platform === 'twitter') 
+  const showTypeSelector = (params.platform === 'instagram' || params.platform === 'tiktok' || params.platform === 'twitter' || params.platform === 'facebook') 
                            && params.service === 'followers' 
                            && !followerType;
 
@@ -64,7 +64,7 @@ export default function PlatformServicePage() {
             </p>
           </div>
 
-          {/* Show Type Selector if it's IG/TikTok/Twitter Followers and they haven't picked a type yet */}
+          {/* Show Type Selector if it's IG/TikTok/Twitter/Facebook Followers and they haven't picked a type yet */}
           {showTypeSelector ? (
             <FollowerTypeSelector platform={params.platform} />
           ) : (
