@@ -370,6 +370,8 @@ export function SocialGrowthVisual({ platform }: Props) {
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[280px] md:w-[310px] h-full bg-black rounded-[45px] border-[10px] border-[#111] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-20 overflow-hidden ring-1 ring-white/5 animate-[float_7s_ease-in-out_infinite_alternate]">
           {/* Notch/Speaker */}
           {platform !== 'twitter' && <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[70px] h-[20px] bg-[#111] rounded-full z-30 shadow-[inset_0_-2px_4px_rgba(255,255,255,0.05)]" />}
+          
+          {/* Interface Interna Original Preservada */}
           {renderPhoneScreen()}
         </div>
 
@@ -403,7 +405,7 @@ export function SocialGrowthVisual({ platform }: Props) {
 
       {/* Advanced Bottom Growth Bar (Absolute Centered) */}
       <div className={cn(
-        "absolute bottom-0 left-1/2 -translate-x-1/2 w-[90%] max-w-[460px] backdrop-blur-xl border rounded-[18px] p-4 shadow-2xl z-40 transition-all duration-300",
+        "absolute bottom-[-20px] md:bottom-2 left-1/2 -translate-x-1/2 w-[90%] max-w-[460px] backdrop-blur-xl border rounded-[18px] p-4 shadow-2xl z-40 transition-all duration-300",
         platformType === 'facebook' ? "bg-[#050c1c]/90 border-blue-500/20" :
         platformType === 'tiktok' ? "bg-[#0a0a0a]/90 border-cyan-500/20" :
         platformType === 'twitter' ? "bg-[#080808]/90 border-white/10" :
@@ -422,7 +424,7 @@ export function SocialGrowthVisual({ platform }: Props) {
           </div>
         </div>
         
-        {/* Animated Progress Bar */}
+        {/* Animated Progress Bar Customizada por Plataforma */}
         <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden relative">
           <div 
             className={cn(
@@ -439,6 +441,3 @@ export function SocialGrowthVisual({ platform }: Props) {
     </div>
   );
 }
-/* Trigger Vercel Deploy 11 */
-/ *   T r i g g e r   V e r c e l   R e s t a r t   * /  
- 
