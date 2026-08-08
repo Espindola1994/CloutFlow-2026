@@ -407,7 +407,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         platformType === 'facebook' ? "bg-[#050c1c]/90 border-blue-500/20" :
         platformType === 'tiktok' ? "bg-[#0a0a0a]/90 border-cyan-500/20" :
         platformType === 'twitter' ? "bg-[#080808]/90 border-white/10" :
-        "bg-[#0a0a0a]/90 border-pink-500/20"
+        "bg-[#0a0a0a]/90 border-pink-500/20" // Instagram changed to dark graphite
       )}>
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
@@ -440,5 +440,3 @@ export function SocialGrowthVisual({ platform }: Props) {
     </div>
   );
 }
-/ *   T r i g g e r   V e r c e l   9   * /  
- 
