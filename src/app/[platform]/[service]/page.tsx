@@ -9,6 +9,8 @@ import { ProfileInput } from "@/components/funnel/profile-input";
 import { FollowerTypeSelector } from "@/components/funnel/follower-type-selector";
 import { SocialGrowthVisual } from "@/components/funnel/social-growth-visual";
 import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 
 export default function PlatformServicePage() {
@@ -51,15 +53,25 @@ export default function PlatformServicePage() {
           </Button>
 
           <div className="max-w-3xl mx-auto text-center mb-6">
-            <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-4 capitalize">
+            <div className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-4 capitalize">
+              {params.platform === "instagram" && <FaInstagram className="w-3.5 h-3.5 shrink-0" />}
+              {params.platform === "tiktok" && <FaTiktok className="w-3.5 h-3.5 shrink-0" />}
+              {params.platform === "twitter" && <FaXTwitter className="w-3.5 h-3.5 shrink-0 text-primary" />}
+              {params.platform === "facebook" && <FaFacebook className="w-3.5 h-3.5 shrink-0 text-[#1877F2]" />}
               {params.platform === 'twitter' ? 'Twitter (X)' : params.platform} Growth
             </div>
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 capitalize">
               {params.platform === 'twitter' ? 'Twitter (X)' : params.platform} {params.service.replace('-', ' ')}
             </h1>
+            <p className="text-lg text-muted-foreground">
+              {followerType || !showTypeSelector
+                ? "Enter your profile details below to see the available packages and get started immediately."
+                : "What type of followers do you want? Choose below and see the difference each option makes on your profile."
+              }
+            </p>
           </div>
 
-          {/* O Telefone Animado 3D sempre entra aqui, LOGO ABAIXO do título, só não aparece na aba de Checkout do @ */}
+          {/* O Telefone Animado 3D sempre entra aqui, LOGO ABAIXO do título */}
           {showTypeSelector && (
             <SocialGrowthVisual platform={params.platform} />
           )}
