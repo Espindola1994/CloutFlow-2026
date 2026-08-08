@@ -18,10 +18,11 @@ export function FloatingNotification({ platform, type, position, initialCount = 
   const [particle, setParticle] = useState(false);
 
   // Position configurations
+  // Reduzidos e aproximados para compor melhor ao redor do smartphone
   const posClasses = {
-    'top-left': 'top-[18%] left-[8%] md:top-[22%] md:left-[10%] z-30',
-    'middle-right': 'top-[42%] right-[6%] md:top-[45%] md:right-[8%] z-30',
-    'bottom-left': 'bottom-[18%] left-[5%] md:bottom-[22%] md:left-[10%] z-30'
+    'top-left': 'top-[18%] left-[10%] md:top-[20%] md:left-[14%] z-30',
+    'middle-right': 'top-[42%] right-[8%] md:top-[42%] md:right-[12%] z-30',
+    'bottom-left': 'bottom-[18%] left-[8%] md:bottom-[22%] md:left-[12%] z-30'
   };
 
   // Organic floating animations
@@ -182,7 +183,7 @@ export function FloatingNotification({ platform, type, position, initialCount = 
 
   return (
     <div className={cn(
-      "absolute w-[185px] md:w-[220px] rounded-[18px] p-3 md:p-4 flex items-center gap-3 md:gap-4 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
+      "absolute w-[150px] md:w-[190px] rounded-[16px] p-2.5 md:p-3 flex items-center gap-2 md:gap-3 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
       posClasses[position],
       floatAnim[position],
       pConfig.bg,
@@ -192,9 +193,9 @@ export function FloatingNotification({ platform, type, position, initialCount = 
     )}>
       
       {/* Icon Container */}
-      <div className={cn("w-10 h-10 md:w-11 md:h-11 rounded-full flex items-center justify-center flex-shrink-0 relative", pConfig.iconWrap)}>
+      <div className={cn("w-8 h-8 md:w-9 md:h-9 rounded-full flex items-center justify-center flex-shrink-0 relative", pConfig.iconWrap)}>
         {pConfig.iconGradient && <div className={pConfig.iconGradient} />}
-        <Icon className={cn("w-5 h-5 relative z-10 transition-transform duration-250", pConfig.iconColor, getPulseEffect())} />
+        <Icon className={cn("w-4 h-4 md:w-[18px] md:h-[18px] relative z-10 transition-transform duration-250", pConfig.iconColor, getPulseEffect())} />
         
         {/* Temporary Reaction Particle (Only SVG to avoid Unicode Mojibake) */}
         {particle && (type === 'likes' || type === 'views') && (
@@ -208,19 +209,19 @@ export function FloatingNotification({ platform, type, position, initialCount = 
       <div className="flex-1 min-w-0">
         {type === 'status' ? (
           <>
-            <div className={cn("font-bold text-[13px] md:text-[15px] truncate leading-tight", pConfig.numberColor)}>{mConfig.title}</div>
-            <div className={cn("text-[11px] md:text-[12px] font-medium mt-0.5", pConfig.textColor)}>{mConfig.label}</div>
+            <div className={cn("font-bold text-[12px] md:text-[13px] leading-tight whitespace-nowrap overflow-visible", pConfig.numberColor)}>{mConfig.title}</div>
+            <div className={cn("text-[10px] md:text-[11px] font-medium mt-0.5 whitespace-nowrap", pConfig.textColor)}>{mConfig.label}</div>
           </>
         ) : (
           <>
             <div className="flex items-baseline gap-1">
-              <div className={cn("font-bold text-base md:text-xl tabular-nums tracking-tight leading-none", pConfig.numberColor)}>
+              <div className={cn("font-bold text-[15px] md:text-[18px] tabular-nums tracking-tight leading-none", pConfig.numberColor)}>
                 {mConfig.prefix}{(count).toLocaleString('en-US')}
               </div>
-              <ArrowUpRight className={cn("w-3 h-3 md:w-4 md:h-4 stroke-[3]", pConfig.badgeColor)} />
+              <ArrowUpRight className={cn("w-2.5 h-2.5 md:w-3 md:h-3 stroke-[3]", pConfig.badgeColor)} />
             </div>
-            <div className={cn("text-[11px] md:text-[13px] font-medium tracking-tight mt-1", pConfig.textColor)}>{mConfig.label}</div>
-            <div className={cn("text-[9px] md:text-[10px] font-bold tracking-wider mt-1 uppercase", pConfig.badgeColor)}>
+            <div className={cn("text-[10px] md:text-[11px] font-semibold tracking-tight mt-1 leading-none", pConfig.textColor)}>{mConfig.label}</div>
+            <div className={cn("text-[8px] md:text-[9px] font-bold tracking-wider mt-1 uppercase", pConfig.badgeColor)}>
               {mConfig.badge}
             </div>
           </>
