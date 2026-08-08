@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useFunnelStore } from "@/stores/funnel.store";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -83,7 +83,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <ShieldCheck className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong className="block text-foreground">Zero account risk</strong>
-                  <span className="text-muted-foreground">No password · 100% safe</span>
+                  <span className="text-muted-foreground">No password Â· 100% safe</span>
                 </div>
               </li>
             </ul>
