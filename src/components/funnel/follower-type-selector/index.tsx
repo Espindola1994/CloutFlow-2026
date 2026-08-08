@@ -76,14 +76,14 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <CircleDollarSign className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong className="block text-foreground">Affordable pricing</strong>
-                  <span className="text-muted-foreground">Starting at {startPrice} - best value</span>
+                  <span className="text-muted-foreground">Starting at {startPrice} — best value</span>
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm">
                 <ShieldCheck className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong className="block text-foreground">Zero account risk</strong>
-                  <span className="text-muted-foreground">No password, 100% safe</span>
+                  <span className="text-muted-foreground">No password · 100% safe</span>
                 </div>
               </li>
             </ul>
@@ -131,7 +131,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                     ? 'from-blue-400/20 to-blue-600/20 border-blue-500/30' 
                     : isTiktok
                       ? 'from-purple-500/20 to-purple-700/20 border-purple-500/30'
-                      : 'from-purple-500/20 to-pink-500/20 border-pink-500/30'
+                      : 'from-pink-500/20 to-pink-600/20 border-pink-500/30'
               }`}>
                 <Target className={`h-6 w-6 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-500' : 'text-pink-500'}`} />
               </div>
@@ -145,7 +145,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Followers from your specific niche - people who <strong className="text-foreground">genuinely care</strong> about what you post, comment, like and buy your products.
+              Followers from your specific niche — people who <strong className="text-foreground">genuinely care</strong> about what you post, comment, like and buy your products.
             </p>
             <ul className="space-y-3 pt-2">
               <li className="flex items-start gap-3 text-sm">
@@ -163,7 +163,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm">
-                <BarChart className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-400' : 'text-pink-400'}`} />
+                <BarChart className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-500' : 'text-pink-500'}`} />
                 <div>
                   <strong className="block text-foreground">Explore Page Reach</strong>
                   <span className="text-muted-foreground">{platformName} delivers more to your niche</span>
@@ -180,13 +180,13 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
             <div className={`mt-4 p-3 rounded-lg text-sm border flex gap-2 items-start ${
               isTwitter ? 'bg-neutral-500/5 border-neutral-500/20' : isFacebook ? 'bg-blue-500/5 border-blue-500/20' : isTiktok ? 'bg-purple-500/5 border-purple-500/20' : 'bg-pink-500/5 border-pink-500/20'
             }`}>
-              <Star className={`h-4 w-4 flex-shrink-0 mt-0.5 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-500 fill-purple-500' : 'text-yellow-500 fill-yellow-500'}`} /> 
+              <Star className="h-4 w-4 flex-shrink-0 mt-0.5 text-yellow-500 fill-yellow-500" /> 
               <div>
                 <strong className="text-foreground">Great for:</strong> <span className="text-muted-foreground">Sellers, course creators and creators who want to sell more</span>
               </div>
             </div>
             <div className={`mt-6 pt-4 border-t border-border/40 flex items-center justify-center gap-2 text-white rounded-full py-3 font-bold group-hover:opacity-90 transition-opacity shadow-lg ${
-              isTwitter ? 'bg-gradient-to-r from-neutral-500 to-neutral-700' : isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600' : isTiktok ? 'bg-gradient-to-r from-purple-500 to-purple-700' : 'bg-gradient-to-r from-orange-500 to-pink-500'
+              isTwitter ? 'bg-gradient-to-r from-neutral-500 to-neutral-700' : isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600' : isTiktok ? 'bg-gradient-to-r from-purple-500 to-purple-700' : 'bg-gradient-to-r from-purple-500 to-pink-500'
             }`}>
               <span>Find my audience</span>
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -197,5 +197,3 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
     </div>
   );
 }
-/ *   T r i g g e r   V e r c e l   S y n c   4   * /  
- 
