@@ -68,9 +68,9 @@ export default function PlatformServicePage() {
           {showTypeSelector ? (
             <div className="mt-8 md:mt-16 relative z-20">
               <div className="text-center max-w-2xl mx-auto mb-10">
-                <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">Que tipo de seguidores você deseja?</h2>
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">What type of followers do you want?</h2>
                 <p className="text-muted-foreground">
-                  Escolha abaixo e veja a diferença que cada opção faz no seu perfil:
+                  Choose below and see the difference each option makes on your profile:
                 </p>
               </div>
               <FollowerTypeSelector platform={params.platform} />
