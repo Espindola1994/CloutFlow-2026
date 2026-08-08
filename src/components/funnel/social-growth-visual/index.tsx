@@ -376,20 +376,20 @@ export function SocialGrowthVisual({ platform }: Props) {
         {/* Floating Notifications */}
         <div className="absolute inset-0 w-full h-full pointer-events-none z-30">
           
-          {/* Notification 1 (O Instagram inverte com a Likes) */}
+          {/* Notification 1 (Followers top-left uniformizado) */}
           <FloatingNotification 
             platform={platformType} 
-            type={platformType === 'instagram' ? 'likes' : 'followers'} 
+            type='followers' 
             position="top-left" 
-            initialCount={platformType === 'tiktok' ? 256782 : platformType === 'instagram' ? 3241 : platformType === 'twitter' ? 8742 : 17832} 
+            initialCount={platformType === 'tiktok' ? 256782 : platformType === 'instagram' ? 13242 : platformType === 'twitter' ? 8742 : 17832} 
           />
           
-          {/* Notification 2 (O Instagram joga Followers pra direita) */}
+          {/* Notification 2 (Likes right-middle uniformizado) */}
           <FloatingNotification 
             platform={platformType} 
-            type={platformType === 'instagram' ? 'followers' : platformType === 'tiktok' ? 'views' : platformType === 'twitter' ? 'reposts' : 'likes'} 
+            type={platformType === 'tiktok' ? 'views' : platformType === 'twitter' ? 'reposts' : 'likes'} 
             position="middle-right" 
-            initialCount={platformType === 'tiktok' ? 1421000 : platformType === 'instagram' ? 13242 : platformType === 'twitter' ? 67 : 12431}
+            initialCount={platformType === 'tiktok' ? 1421000 : platformType === 'instagram' ? 3241 : platformType === 'twitter' ? 67 : 12431}
           />
           
           <FloatingNotification 
