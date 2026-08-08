@@ -95,7 +95,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
               </div>
             </div>
             <div className={`mt-6 pt-4 border-t border-border/40 flex items-center justify-center gap-2 text-foreground rounded-full py-3 font-bold transition-all ${
-              isFacebook ? 'bg-blue-500/10 ' : isTiktok ? 'bg-cyan-500/10 ' : isInstagram ? 'bg-pink-500/10 ' : 'bg-secondary/50 '
+              isFacebook ? 'bg-blue-500 text-white hover:bg-blue-600' : isTiktok ? 'bg-cyan-500 text-white hover:bg-cyan-600' : isInstagram ? 'bg-pink-500 text-white hover:bg-pink-600' : 'bg-primary text-primary-foreground hover:bg-primary/90'
             }`}>
               <span>Start growing</span>
               <ArrowRight className="h-4 w-4 " />
