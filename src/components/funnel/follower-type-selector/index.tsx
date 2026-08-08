@@ -77,7 +77,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <CircleDollarSign className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong className="block text-foreground">Affordable pricing</strong>
-                  <span className="text-muted-foreground">Starting at {startPrice} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â best value</span>
+                  <span className="text-muted-foreground">Starting at {startPrice} - best value</span>
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm">
@@ -114,7 +114,8 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
             ? 'border-neutral-500/50 bg-gradient-to-b from-neutral-500/5 to-transparent hover:shadow-[0_0_30px_rgba(163,163,163,0.15)]' 
             : isFacebook 
               ? 'border-blue-500/50 bg-gradient-to-b from-blue-500/5 to-transparent hover:shadow-[0_0_30px_rgba(59,130,246,0.15)]' 
-              : isTiktok ? 'border-pink-500/50 bg-gradient-to-b from-cyan-500/5 via-transparent to-pink-500/5 hover:shadow-[0_0_30px_rgba(236,72,153,0.15)]'
+              : isTiktok
+                ? 'border-pink-500/50 bg-gradient-to-b from-cyan-500/5 via-transparent to-pink-500/5 hover:shadow-[0_0_30px_rgba(236,72,153,0.15)]'
                 : 'border-pink-500/50 bg-gradient-to-b from-pink-500/5 to-transparent hover:shadow-[0_0_30px_rgba(236,72,153,0.15)]'
         }`}>
           <div className={`absolute top-0 right-0 text-white text-xs font-bold px-4 py-1.5 rounded-bl-lg z-10 flex items-center gap-1 shadow-md ${
@@ -124,14 +125,14 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
           </div>
           <CardHeader className="pb-4 pt-8">
             <div className="flex items-center gap-4 mb-2">
-              <div className={`bg-gradient-to-br p-3 rounded-xl border flex items-center justify-center text-2xl h-12 w-12 ${
+              <div className={`p-3 rounded-xl border flex items-center justify-center text-2xl h-12 w-12 ${
                 isTwitter 
-                  ? 'from-neutral-400/20 to-neutral-600/20 border-neutral-500/30' 
+                  ? 'bg-gradient-to-br from-neutral-400/20 to-neutral-600/20 border-neutral-500/30' 
                   : isFacebook 
-                    ? 'from-blue-400/20 to-blue-600/20 border-blue-500/30' 
+                    ? 'bg-gradient-to-br from-blue-400/20 to-blue-600/20 border-blue-500/30' 
                     : isTiktok
-                      ? 'from-cyan-500/20 to-pink-500/20 border-pink-500/30'
-                      : 'from-pink-500/20 to-pink-600/20 border-pink-500/30'
+                      ? 'bg-gradient-to-br from-cyan-500/20 to-pink-500/20 border-pink-500/30'
+                      : 'bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-pink-500/30'
               }`}>
                 <Target className={`h-6 w-6 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-cyan-500' : 'text-pink-500'}`} />
               </div>
@@ -163,7 +164,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm">
-                <BarChart className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-cyan-500' : 'text-pink-400'}`} />
+                <BarChart className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-cyan-500' : 'text-pink-500'}`} />
                 <div>
                   <strong className="block text-foreground">Explore Page Reach</strong>
                   <span className="text-muted-foreground">{platformName} delivers more to your niche</span>
