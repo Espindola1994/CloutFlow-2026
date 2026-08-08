@@ -352,9 +352,9 @@ export function SocialGrowthVisual({ platform }: Props) {
   };
 
   return (
-    <div className="relative w-full max-w-[850px] mx-auto min-h-[480px] md:min-h-[550px] flex items-center justify-center my-6 overflow-visible px-2 py-8">
+    <div className="relative w-full max-w-[850px] mx-auto min-h-[480px] md:min-h-[550px] flex items-center justify-center my-6 px-2 py-8">
       
-      {/* Glow / Gradient de Fundo - Preservando efeito da plataforma */}
+      {/* Glow / Gradient de Fundo - Shared Across Platforms */}
       <div className={cn(
         "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full blur-[100px] opacity-40 md:opacity-50 pointer-events-none -z-10",
         platformType === 'instagram' ? "bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500" :
@@ -363,51 +363,48 @@ export function SocialGrowthVisual({ platform }: Props) {
         "bg-neutral-600"
       )} />
 
-      {/* Partículas flutuantes ultra-discretas */}
-      <div className="hidden md:block absolute top-[10%] left-[20%] text-white/10 animate-[float_6s_ease-in-out_infinite_alternate]"><Heart size={16} /></div>
-      <div className="hidden md:block absolute bottom-[25%] right-[18%] text-white/5 animate-[float_7s_ease-in-out_infinite_alternate-reverse]"><User size={20} /></div>
-
-      <div className="relative z-10 w-full flex flex-col md:flex-row items-center justify-center gap-6">
+      {/* Shared Absolute Container for All Platforms Geometry (Strictly Follows Facebook Rules) */}
+      <div className="relative z-10 w-full flex flex-col items-center justify-center h-[580px] md:h-[620px]">
         
-        {/* Smartphone Central Refinado */}
-        <div className="relative w-[280px] md:w-[310px] h-[580px] md:h-[620px] bg-black rounded-[45px] border-[10px] border-[#111] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex-shrink-0 animate-[float_7s_ease-in-out_infinite_alternate] z-20 overflow-hidden ring-1 ring-white/5 mx-auto">
+        {/* Central Smartphone */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[280px] md:w-[310px] h-full bg-black rounded-[45px] border-[10px] border-[#111] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-20 overflow-hidden ring-1 ring-white/5 animate-[float_7s_ease-in-out_infinite_alternate]">
           {/* Notch/Speaker */}
           {platform !== 'twitter' && <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[70px] h-[20px] bg-[#111] rounded-full z-30 shadow-[inset_0_-2px_4px_rgba(255,255,255,0.05)]" />}
-          
-          {/* Interface Interna Original Preservada */}
           {renderPhoneScreen()}
         </div>
 
-        {/* Dynamic Floating Notifications baseadas na estrutura Premium do Facebook */}
-        <FloatingNotification 
-          platform={platformType} 
-          type="followers" 
-          position="top-left" 
-          initialCount={platformType === 'tiktok' ? 256782 : platformType === 'instagram' ? 13242 : platformType === 'twitter' ? 8742 : 17832} 
-        />
-        
-        <FloatingNotification 
-          platform={platformType} 
-          type={platformType === 'tiktok' ? 'views' : platformType === 'twitter' ? 'reposts' : 'likes'} 
-          position="middle-right" 
-          initialCount={platformType === 'tiktok' ? 1421000 : platformType === 'instagram' ? 3241 : platformType === 'twitter' ? 67 : 12431}
-        />
-        
-        <FloatingNotification 
-          platform={platformType} 
-          type="status" 
-          position="bottom-left" 
-        />
+        {/* Floating Notifications (Strict Absolute Coordinates for all platforms based on Facebook template) */}
+        <div className="absolute inset-0 w-full h-full pointer-events-none z-30">
+          <FloatingNotification 
+            platform={platformType} 
+            type="followers" 
+            position="top-left" 
+            initialCount={platformType === 'tiktok' ? 256782 : platformType === 'instagram' ? 13242 : platformType === 'twitter' ? 8742 : 17832} 
+          />
+          
+          <FloatingNotification 
+            platform={platformType} 
+            type={platformType === 'tiktok' ? 'views' : platformType === 'twitter' ? 'reposts' : 'likes'} 
+            position="middle-right" 
+            initialCount={platformType === 'tiktok' ? 1421000 : platformType === 'instagram' ? 3241 : platformType === 'twitter' ? 67 : 12431}
+          />
+          
+          <FloatingNotification 
+            platform={platformType} 
+            type="status" 
+            position="bottom-left" 
+          />
+        </div>
 
       </div>
 
-      {/* Advanced Bottom Growth Bar */}
+      {/* Advanced Bottom Growth Bar (Absolute Centered) */}
       <div className={cn(
-        "absolute bottom-[-20px] md:bottom-2 left-1/2 -translate-x-1/2 w-[90%] max-w-[460px] backdrop-blur-xl border rounded-[18px] p-4 shadow-2xl z-40 transition-all duration-300",
+        "absolute bottom-0 left-1/2 -translate-x-1/2 w-[90%] max-w-[460px] backdrop-blur-xl border rounded-[18px] p-4 shadow-2xl z-40 transition-all duration-300",
         platformType === 'facebook' ? "bg-[#050c1c]/90 border-blue-500/20" :
         platformType === 'tiktok' ? "bg-[#0a0a0a]/90 border-cyan-500/20" :
         platformType === 'twitter' ? "bg-[#080808]/90 border-white/10" :
-        "bg-[#0a0a0a]/90 border-pink-500/20" // Instagram changed to dark graphite
+        "bg-[#0a0a0a]/90 border-pink-500/20" // Dark graphite for Instagram too
       )}>
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
@@ -422,7 +419,7 @@ export function SocialGrowthVisual({ platform }: Props) {
           </div>
         </div>
         
-        {/* Animated Progress Bar Customizada por Plataforma */}
+        {/* Animated Progress Bar */}
         <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden relative">
           <div 
             className={cn(
