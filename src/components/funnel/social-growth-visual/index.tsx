@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Heart, MessageCircle, BarChart3, Repeat2, Play, Users, CheckCircle2, ArrowRight, ArrowLeft, ShieldCheck, Star, ArrowUpRight } from "lucide-react";
+import { User, Heart, MessageCircle, BarChart3, Repeat2, Play, CheckCircle2, Star, ArrowRight, ArrowLeft, ShieldCheck, ArrowUpRight } from "lucide-react";
 import { FaInstagram, FaTiktok, FaTwitter, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { FloatingNotification } from "./floating-notification";
@@ -439,5 +439,3 @@ export function SocialGrowthVisual({ platform }: Props) {
     </div>
   );
 }
-/ *   F o r c e   V e r c e l   S y n c   8   * /  
- 
