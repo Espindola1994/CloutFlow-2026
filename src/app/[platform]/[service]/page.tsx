@@ -57,12 +57,6 @@ export default function PlatformServicePage() {
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 capitalize">
               {params.platform === 'twitter' ? 'Twitter (X)' : params.platform} {params.service.replace('-', ' ')}
             </h1>
-            <p className="text-lg text-muted-foreground">
-              {followerType || !showTypeSelector
-                ? "Enter your profile details below to see the available packages and get started immediately."
-                : "What type of followers do you want? Choose below and see the difference each option makes on your profile."
-              }
-            </p>
           </div>
 
           {/* O Telefone Animado 3D sempre entra aqui, LOGO ABAIXO do título, só não aparece na aba de Checkout do @ */}
@@ -72,11 +66,22 @@ export default function PlatformServicePage() {
 
           {/* Show Type Selector if it's IG/TikTok/Twitter/Facebook Followers and they haven't picked a type yet */}
           {showTypeSelector ? (
-            <div className="mt-8 relative z-20">
+            <div className="mt-8 md:mt-16 relative z-20">
+              <div className="text-center max-w-2xl mx-auto mb-10">
+                <h2 className="text-2xl md:text-3xl font-bold tracking-tight mb-3">Que tipo de seguidores você deseja?</h2>
+                <p className="text-muted-foreground">
+                  Escolha abaixo e veja a diferença que cada opção faz no seu perfil:
+                </p>
+              </div>
               <FollowerTypeSelector platform={params.platform} />
             </div>
           ) : (
             <div className="mt-12">
+              <div className="text-center mb-10">
+                <p className="text-lg text-muted-foreground">
+                  Enter your profile details below to see the available packages and get started immediately.
+                </p>
+              </div>
               <ProfileInput />
               <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-6 text-muted-foreground text-sm">
                 <div className="flex items-center bg-card/50 px-4 py-2 rounded-full border border-border/40">
