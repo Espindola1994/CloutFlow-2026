@@ -3,6 +3,7 @@
 import { useFunnelStore } from "@/stores/funnel.store";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { ArrowRight } from "lucide-react";
+import { FaInstagram, FaTiktok, FaTwitter, FaFacebook } from "react-icons/fa";
 
 export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: string }) {
   const { setFollowerType } = useFunnelStore();
@@ -11,17 +12,17 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
   const isTwitter = platform === 'twitter';
   const isFacebook = platform === 'facebook';
   
-  let iconText = "👥";
+  let IconComponent = FaInstagram;
   let startPrice = "$7.90";
   
   if (isTiktok) {
-    iconText = "🎵";
+    IconComponent = FaTiktok;
     startPrice = "$9.90";
   } else if (isTwitter) {
-    iconText = "🐦";
+    IconComponent = FaTwitter;
     startPrice = "$9.90";
   } else if (isFacebook) {
-    iconText = "📘";
+    IconComponent = FaFacebook;
     startPrice = "$7.90";
   }
 
@@ -41,7 +42,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
           <CardHeader className="pb-4 pt-8">
             <div className="flex items-center gap-4 mb-2">
               <div className="bg-primary/10 p-3 rounded-xl flex items-center justify-center text-2xl h-12 w-12 border border-primary/20">
-                {iconText}
+                <IconComponent className="text-primary h-6 w-6" />
               </div>
               <div>
                 <CardTitle className="text-xl">Real Followers</CardTitle>
