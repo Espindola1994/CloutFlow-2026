@@ -20,7 +20,7 @@ export default function PlatformServicePage() {
     setService(params.service);
   }, [params.platform, params.service, setPlatform, setService]);
 
-  const showTypeSelector = (params.platform === 'instagram' || params.platform === 'tiktok') 
+  const showTypeSelector = (params.platform === 'instagram' || params.platform === 'tiktok' || params.platform === 'twitter') 
                            && params.service === 'followers' 
                            && !followerType;
 
@@ -51,10 +51,10 @@ export default function PlatformServicePage() {
 
           <div className="max-w-3xl mx-auto text-center mb-12">
             <div className="inline-flex items-center rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-4 capitalize">
-              {params.platform} Growth
+              {params.platform === 'twitter' ? 'Twitter (X)' : params.platform} Growth
             </div>
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 capitalize">
-              {params.platform} {params.service.replace('-', ' ')}
+              {params.platform === 'twitter' ? 'Twitter (X)' : params.platform} {params.service.replace('-', ' ')}
             </h1>
             <p className="text-lg text-muted-foreground">
               {followerType || !showTypeSelector
@@ -64,7 +64,7 @@ export default function PlatformServicePage() {
             </p>
           </div>
 
-          {/* Show Type Selector if it's IG/TikTok Followers and they haven't picked a type yet */}
+          {/* Show Type Selector if it's IG/TikTok/Twitter Followers and they haven't picked a type yet */}
           {showTypeSelector ? (
             <FollowerTypeSelector platform={params.platform} />
           ) : (
