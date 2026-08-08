@@ -11,6 +11,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
   const isTiktok = platform === 'tiktok';
   const isTwitter = platform === 'twitter';
   const isFacebook = platform === 'facebook';
+  const isInstagram = platform === 'instagram';
   
   let IconComponent = FaInstagram;
   let startPrice = "$7.90";
@@ -42,9 +43,9 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
           <CardHeader className="pb-4 pt-8">
             <div className="flex items-center gap-4 mb-2">
               <div className={`p-3 rounded-xl flex items-center justify-center text-2xl h-12 w-12 border ${
-                isFacebook ? 'bg-blue-500/10 border-blue-500/20' : isTiktok ? 'bg-purple-500/10 border-purple-500/20' : 'bg-primary/10 border-primary/20'
+                isFacebook ? 'bg-blue-500/10 border-blue-500/20' : isTiktok ? 'bg-purple-500/10 border-purple-500/20' : isInstagram ? 'bg-pink-500/10 border-pink-500/20' : 'bg-primary/10 border-primary/20'
               }`}>
-                <IconComponent className={`h-6 w-6 ${isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-500' : 'text-primary'}`} />
+                <IconComponent className={`h-6 w-6 ${isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-500' : isInstagram ? 'text-pink-500' : 'text-primary'}`} />
               </div>
               <div>
                 <CardTitle className="text-xl">Real Followers</CardTitle>
@@ -93,7 +94,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
               </div>
             </div>
             <div className={`mt-6 pt-4 border-t border-border/40 flex items-center justify-center gap-2 text-foreground rounded-full py-3 font-bold transition-all ${
-              isFacebook ? 'bg-blue-500/10 group-hover:bg-blue-500 group-hover:text-white' : isTiktok ? 'bg-purple-500/10 group-hover:bg-purple-500 group-hover:text-white' : 'bg-secondary/50 group-hover:bg-primary group-hover:text-primary-foreground'
+              isFacebook ? 'bg-blue-500/10 group-hover:bg-blue-500 group-hover:text-white' : isTiktok ? 'bg-purple-500/10 group-hover:bg-purple-500 group-hover:text-white' : isInstagram ? 'bg-pink-500/10 group-hover:bg-pink-500 group-hover:text-white' : 'bg-secondary/50 group-hover:bg-primary group-hover:text-primary-foreground'
             }`}>
               <span>Start growing</span>
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -148,21 +149,21 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
             </p>
             <ul className="space-y-3 pt-2">
               <li className="flex items-start gap-3 text-sm">
-                <Flame className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-500' : 'text-orange-500'}`} />
+                <Flame className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-500' : 'text-pink-500'}`} />
                 <div>
                   <strong className="block text-foreground">3x More Engagement</strong>
                   <span className="text-muted-foreground">More likes, comments and real reach</span>
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm">
-                <Wallet className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-500' : 'text-emerald-500'}`} />
+                <Wallet className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-500' : 'text-pink-500'}`} />
                 <div>
                   <strong className="block text-foreground">Audience That Buys</strong>
                   <span className="text-muted-foreground">Followers ready to become your clients</span>
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm">
-                <BarChart className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-400' : 'text-blue-400'}`} />
+                <BarChart className={`h-4 w-4 mt-0.5 flex-shrink-0 ${isTwitter ? 'text-neutral-400' : isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-400' : 'text-pink-400'}`} />
                 <div>
                   <strong className="block text-foreground">Explore Page Reach</strong>
                   <span className="text-muted-foreground">{platformName} delivers more to your niche</span>
@@ -185,7 +186,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
               </div>
             </div>
             <div className={`mt-6 pt-4 border-t border-border/40 flex items-center justify-center gap-2 text-white rounded-full py-3 font-bold group-hover:opacity-90 transition-opacity shadow-lg ${
-              isTwitter ? 'bg-gradient-to-r from-neutral-500 to-neutral-700' : isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600' : isTiktok ? 'bg-gradient-to-r from-purple-500 to-purple-700' : 'bg-gradient-to-r from-purple-500 to-pink-500'
+              isTwitter ? 'bg-gradient-to-r from-neutral-500 to-neutral-700' : isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600' : isTiktok ? 'bg-gradient-to-r from-purple-500 to-purple-700' : 'bg-gradient-to-r from-orange-500 to-pink-500'
             }`}>
               <span>Find my audience</span>
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
