@@ -75,14 +75,14 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <CircleDollarSign className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong className="block text-foreground">Affordable pricing</strong>
-                  <span className="text-muted-foreground">Starting at {startPrice} — best value</span>
+                  <span className="text-muted-foreground">Starting at {startPrice} - best value</span>
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm">
                 <ShieldCheck className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong className="block text-foreground">Zero account risk</strong>
-                  <span className="text-muted-foreground">No password · 100% safe</span>
+                  <span className="text-muted-foreground">No password, 100% safe</span>
                 </div>
               </li>
             </ul>
@@ -144,7 +144,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Followers from your specific niche — people who <strong className="text-foreground">genuinely care</strong> about what you post, comment, like and buy your products.
+              Followers from your specific niche - people who <strong className="text-foreground">genuinely care</strong> about what you post, comment, like and buy your products.
             </p>
             <ul className="space-y-3 pt-2">
               <li className="flex items-start gap-3 text-sm">
@@ -196,5 +196,3 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
     </div>
   );
 }
-/ *   T r i g g e r   V e r c e l   S y n c   2   * /  
- 
