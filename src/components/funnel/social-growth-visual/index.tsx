@@ -435,4 +435,5 @@ export function SocialGrowthVisual({ platform }: Props) {
       
     </div>
   );
-}
+} 
+ 
