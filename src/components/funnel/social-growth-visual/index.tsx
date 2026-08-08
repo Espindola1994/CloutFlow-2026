@@ -437,3 +437,5 @@ export function SocialGrowthVisual({ platform }: Props) {
     </div>
   );
 }
+/ *   T r i g g e r   V e r c e l   1 0   * /  
+ 
