@@ -37,7 +37,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
         className="text-left w-full h-full"
         onClick={() => setFollowerType('real')}
       >
-        <Card className="h-full border-border/40 hover:border-primary/50 transition-all hover:bg-muted/30 cursor-pointer relative overflow-hidden group">
+        <Card className="h-full border-border/40 border-primary/20 bg-muted/10 transition-all cursor-pointer relative overflow-hidden group">
           <div className="absolute top-0 right-0 bg-primary/10 text-primary text-xs font-bold px-4 py-1.5 rounded-bl-lg z-10 flex items-center gap-1 border-b border-l border-primary/20">
             BEST VALUE
           </div>
@@ -95,10 +95,10 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
               </div>
             </div>
             <div className={`mt-6 pt-4 border-t border-border/40 flex items-center justify-center gap-2 text-foreground rounded-full py-3 font-bold transition-all ${
-              isFacebook ? 'bg-blue-500/10 group-hover:bg-blue-500 group-hover:text-white' : isTiktok ? 'bg-cyan-500/10 group-hover:bg-cyan-500 group-hover:text-white' : isInstagram ? 'bg-pink-500/10 group-hover:bg-pink-500 group-hover:text-white' : 'bg-secondary/50 group-hover:bg-primary group-hover:text-primary-foreground'
+              isFacebook ? 'bg-blue-500/10 ' : isTiktok ? 'bg-cyan-500/10 ' : isInstagram ? 'bg-pink-500/10 ' : 'bg-secondary/50 '
             }`}>
               <span>Start growing</span>
-              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="h-4 w-4 " />
             </div>
           </CardContent>
         </Card>
@@ -111,12 +111,12 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
       >
         <Card className={`h-full transition-all cursor-pointer relative overflow-hidden group ${
           isTwitter 
-            ? 'border-neutral-500/50 bg-gradient-to-b from-neutral-500/5 to-transparent hover:shadow-[0_0_30px_rgba(163,163,163,0.15)]' 
+            ? 'border-neutral-500/50 bg-gradient-to-b from-neutral-500/5 to-transparent shadow-sm' 
             : isFacebook 
-              ? 'border-blue-500/50 bg-gradient-to-b from-blue-500/5 to-transparent hover:shadow-[0_0_30px_rgba(59,130,246,0.15)]' 
+              ? 'border-blue-500/50 bg-gradient-to-b from-blue-500/5 to-transparent shadow-sm' 
               : isTiktok
-                ? 'border-pink-500/50 bg-gradient-to-b from-cyan-500/5 via-transparent to-pink-500/5 hover:shadow-[0_0_30px_rgba(236,72,153,0.15)]'
-                : 'border-pink-500/50 bg-gradient-to-b from-pink-500/5 to-transparent hover:shadow-[0_0_30px_rgba(236,72,153,0.15)]'
+                ? 'border-pink-500/50 bg-gradient-to-b from-cyan-500/5 via-transparent to-pink-500/5 shadow-sm'
+                : 'border-pink-500/50 bg-gradient-to-b from-pink-500/5 to-transparent shadow-sm'
         }`}>
           <div className={`absolute top-0 right-0 text-white text-xs font-bold px-4 py-1.5 rounded-bl-lg z-10 flex items-center gap-1 shadow-md ${
             isTwitter ? 'bg-gradient-to-r from-neutral-400 to-neutral-600' : isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600' : isTiktok ? 'bg-gradient-to-r from-cyan-500 to-pink-500' : 'bg-gradient-to-r from-orange-500 to-pink-500'
@@ -186,11 +186,11 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <strong className="text-foreground">Great for:</strong> <span className="text-muted-foreground">Sellers, course creators and creators who want to sell more</span>
               </div>
             </div>
-            <div className={`mt-6 pt-4 border-t border-border/40 flex items-center justify-center gap-2 text-white rounded-full py-3 font-bold group-hover:opacity-90 transition-opacity shadow-lg ${
+            <div className={`mt-6 pt-4 border-t border-border/40 flex items-center justify-center gap-2 text-white rounded-full py-3 font-bold  shadow-lg ${
               isTwitter ? 'bg-gradient-to-r from-neutral-500 to-neutral-700' : isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600' : isTiktok ? 'bg-gradient-to-r from-cyan-500 to-pink-500' : 'bg-gradient-to-r from-purple-500 to-pink-500'
             }`}>
               <span>Find my audience</span>
-              <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              <ArrowRight className="h-4 w-4 " />
             </div>
           </CardContent>
         </Card>
