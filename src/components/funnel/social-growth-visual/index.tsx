@@ -1,21 +1,26 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Heart, MessageCircle, BarChart3, Repeat2, Play, Users, CheckCircle2, ArrowRight, ShieldCheck, Star } from "lucide-react";
+import { User, Heart, MessageCircle, BarChart3, Repeat2, Play, CheckCircle2, Star, ArrowRight, ShieldCheck } from "lucide-react";
 import { FaInstagram, FaTiktok, FaTwitter, FaFacebook } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
+import { FloatingNotification } from "./floating-notification";
+import { cn } from "@/lib/utils";
 
 interface Props {
   platform: string;
 }
 
 export function SocialGrowthVisual({ platform }: Props) {
-  // Configs
+  // Cast platform to specific types for safety
+  const platformType = (['instagram', 'tiktok', 'twitter', 'facebook'].includes(platform) ? platform : 'instagram') as 'instagram' | 'tiktok' | 'twitter' | 'facebook';
+
+  // ConfiguraÃ§Ãµes DinÃ¢micas por Plataforma (Base para o Mockup do Celular)
   const config = {
     instagram: {
       gradient: "from-pink-500/20 via-purple-500/10 to-orange-500/10",
       accent: "text-pink-500",
       bgAccent: "bg-pink-500",
-      borderAccent: "border-pink-500",
       logo: FaInstagram,
       mockup: {
         avatarBg: "bg-gradient-to-tr from-orange-400 via-pink-500 to-purple-500",
@@ -27,18 +32,12 @@ export function SocialGrowthVisual({ platform }: Props) {
         btn1: "Follow",
         btn2: "Message"
       },
-      cards: [
-        { title: "+1,284", sub: "New Followers", small: "right now" },
-        { title: "+347", sub: "Likes", small: "on your posts" },
-        { title: "Delivery complete!", sub: "100% guaranteed", small: "safe" }
-      ],
-      bottom: { text: "Followers growing in real time", baseCount: 13242 }
+      bottom: { text: "Followers growing in real time", baseCount: 13242, icon: BarChart3 }
     },
     tiktok: {
       gradient: "from-cyan-500/20 via-black to-pink-500/10",
       accent: "text-cyan-400",
       bgAccent: "bg-pink-600",
-      borderAccent: "border-cyan-400",
       logo: FaTiktok,
       mockup: {
         avatarBg: "bg-gradient-to-tr from-cyan-400 to-pink-500",
@@ -50,19 +49,13 @@ export function SocialGrowthVisual({ platform }: Props) {
         btn1: "Follow",
         btn2: "Message"
       },
-      cards: [
-        { title: "+3,782", sub: "New Views", small: "right now" },
-        { title: "+1,247", sub: "New Likes", small: "on your videos" },
-        { title: "Promotion active!", sub: "Results guaranteed", small: "safe" }
-      ],
-      bottom: { text: "Views increasing in real time", baseCount: 256782 }
+      bottom: { text: "Views increasing in real time", baseCount: 256782, icon: Play }
     },
     twitter: {
       gradient: "from-neutral-600/20 to-neutral-900/10",
       accent: "text-neutral-300",
       bgAccent: "bg-neutral-100 text-black",
-      borderAccent: "border-neutral-500",
-      logo: FaTwitter,
+      logo: FaXTwitter,
       mockup: {
         avatarBg: "bg-neutral-800 border-2 border-black",
         stats: [
@@ -72,18 +65,12 @@ export function SocialGrowthVisual({ platform }: Props) {
         btn1: "Follow",
         btn2: "Message"
       },
-      cards: [
-        { title: "+156", sub: "New Followers", small: "right now" },
-        { title: "+89", sub: "Reposts", small: "on your post" },
-        { title: "Campaign active!", sub: "100% secure", small: "safe" }
-      ],
-      bottom: { text: "Followers growing in real time", baseCount: 8742 }
+      bottom: { text: "Followers growing in real time", baseCount: 8742, icon: User }
     },
     facebook: {
       gradient: "from-blue-500/20 to-blue-800/10",
       accent: "text-blue-500",
       bgAccent: "bg-blue-600",
-      borderAccent: "border-blue-500",
       logo: FaFacebook,
       mockup: {
         avatarBg: "bg-gradient-to-br from-blue-400 to-blue-700 border-2 border-white",
@@ -94,31 +81,32 @@ export function SocialGrowthVisual({ platform }: Props) {
         btn1: "+ Follow",
         btn2: "Message"
       },
-      cards: [
-        { title: "+312", sub: "New Followers", small: "this week" },
-        { title: "+734", sub: "New Likes", small: "on your page" },
-        { title: "Boost active!", sub: "100% effective", small: "safe" }
-      ],
-      bottom: { text: "Engagement growing in real time", baseCount: 17832 }
+      bottom: { text: "Engagement growing in real time", baseCount: 17832, icon: BarChart3 }
     }
   };
 
-  const current = config[platform as keyof typeof config] || config.instagram;
+  const current = config[platformType];
   const Logo = current.logo;
+  const BottomIcon = current.bottom.icon;
 
+  // LÃ³gica da Barra Inferior (Live Counter Progress)
   const [count, setCount] = useState(current.bottom.baseCount);
-  const [progress, setProgress] = useState(25);
+  const [progress, setProgress] = useState(48);
 
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     
     const tick = () => {
-      const increment = Math.floor(Math.random() * 7) + 2;
+      const increment = Math.floor(Math.random() * 5) + 1;
       setCount(prev => prev + increment);
       
-      setProgress(prev => prev > 95 ? 10 : prev + (Math.random() * 2));
+      // Simulate non-linear progress bar logic
+      setProgress(prev => {
+        if (prev > 75) return prev - (Math.random() * 10);
+        return prev + (Math.random() * 5);
+      });
       
-      const nextTick = Math.floor(Math.random() * 2000) + 1000;
+      const nextTick = Math.floor(Math.random() * 2000) + 1500;
       timeout = setTimeout(tick, nextTick);
     };
 
@@ -166,9 +154,9 @@ export function SocialGrowthVisual({ platform }: Props) {
               <div className="flex-1">
                 <div className="flex items-center gap-1 text-xs mb-1">
                   <span className="font-bold">Your Brand</span>
-                  <span className="text-white/50">@yourbrand • 2h</span>
+                  <span className="text-white/50">@yourbrand â€¢ 2h</span>
                 </div>
-                <p className="text-xs mb-2">Content that connects.<br/>Growth that lasts. 🚀</p>
+                <p className="text-xs mb-2">Content that connects.<br/>Growth that lasts. ðŸš€</p>
                 <div className="flex justify-between text-white/50 text-[10px]">
                   <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> 24</span>
                   <span className="flex items-center gap-1"><Repeat2 className="w-3 h-3" /> 67</span>
@@ -194,7 +182,7 @@ export function SocialGrowthVisual({ platform }: Props) {
                <User className="text-white/70 w-8 h-8" />
             </div>
             <h3 className="font-bold text-xl leading-tight flex items-center gap-1">Your Brand <CheckCircle2 className="w-4 h-4 text-white fill-blue-500" /></h3>
-            <p className="text-gray-500 text-xs mb-4">Page • Digital Creator</p>
+            <p className="text-gray-500 text-xs mb-4">Page â€¢ Digital Creator</p>
             
             <div className="flex gap-3 text-sm font-bold text-gray-700 mb-4">
               <div>17K <span className="font-normal text-gray-500">Likes</span></div>
@@ -223,14 +211,14 @@ export function SocialGrowthVisual({ platform }: Props) {
                 <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex-shrink-0" />
                 <div>
                   <div className="font-bold text-xs">Your Brand</div>
-                  <div className="text-gray-500 text-[10px]">2h • 🌐</div>
+                  <div className="text-gray-500 text-[10px]">2h â€¢ ðŸŒ</div>
                 </div>
               </div>
-              <p className="text-xs mb-2 text-gray-800">We deliver real results.<br/>Grow your brand with us. 🚀</p>
+              <p className="text-xs mb-2 text-gray-800">We deliver real results.<br/>Grow your brand with us. ðŸš€</p>
               <div className="h-[100px] bg-gray-100 rounded-md border border-gray-200 mb-2"></div>
               <div className="flex justify-between items-center text-gray-500 text-[10px] pb-2 border-b border-gray-200 mb-2">
-                <span className="flex items-center gap-1">👍 ❤️ 312</span>
-                <span>47 Comments • 89 Shares</span>
+                <span className="flex items-center gap-1">ðŸ‘ â¤ï¸ 312</span>
+                <span>47 Comments â€¢ 89 Shares</span>
               </div>
               <div className="flex justify-between text-gray-600 text-xs font-bold px-2">
                 <span>Like</span>
@@ -279,16 +267,15 @@ export function SocialGrowthVisual({ platform }: Props) {
             <div className="flex gap-2 w-full mb-4 px-4">
               <button className="flex-1 bg-[#FE2C55] text-white font-bold text-sm py-2.5 rounded-sm">Follow</button>
               <button className="px-4 bg-white/10 text-white font-bold text-sm py-2.5 rounded-sm"><FaInstagram /></button>
-              <button className="px-3 bg-white/10 text-white font-bold text-sm py-2.5 rounded-sm">▾</button>
+              <button className="px-3 bg-white/10 text-white font-bold text-sm py-2.5 rounded-sm">â–¾</button>
             </div>
 
-            <p className="text-white/80 text-xs text-center">Digital Creator<br/>Building audience 🚀<br/>Link in bio ↓</p>
+            <p className="text-white/80 text-xs text-center">Digital Creator<br/>Building audience ðŸš€<br/>Link in bio â†“</p>
           </div>
 
           <div className="flex border-b border-white/10">
             <div className="flex-1 py-3 flex justify-center border-b-2 border-white"><BarChart3 className="w-5 h-5 text-white" /></div>
             <div className="flex-1 py-3 flex justify-center"><Heart className="w-5 h-5 text-white/40" /></div>
-            <div className="flex-1 py-3 flex justify-center"><ShieldCheck className="w-5 h-5 text-white/40" /></div>
           </div>
 
           <div className="grid grid-cols-3 gap-0.5 w-full flex-1 overflow-hidden">
@@ -333,14 +320,14 @@ export function SocialGrowthVisual({ platform }: Props) {
         </div>
 
         <div className="px-4 mb-4">
-          <h3 className="text-white font-bold text-sm">Your Brand ✨</h3>
-          <p className="text-white/80 text-xs mt-0.5">Digital Creator<br/>Helping brands grow online 🚀<br/>Link in bio ↓</p>
+          <h3 className="text-white font-bold text-sm">Your Brand âœ¨</h3>
+          <p className="text-white/80 text-xs mt-0.5">Digital Creator<br/>Helping brands grow online ðŸš€<br/>Link in bio â†“</p>
         </div>
 
         <div className="flex gap-2 w-full px-4 mb-4">
           <button className="flex-1 bg-blue-500 text-white font-bold text-xs py-2 rounded-md">Follow</button>
           <button className="flex-1 bg-neutral-800 text-white font-bold text-xs py-2 rounded-md">Message</button>
-          <button className="bg-neutral-800 text-white font-bold text-xs px-3 rounded-md">▾</button>
+          <button className="bg-neutral-800 text-white font-bold text-xs px-3 rounded-md">â–¾</button>
         </div>
 
         {/* Story Highlights */}
@@ -380,82 +367,91 @@ export function SocialGrowthVisual({ platform }: Props) {
   return (
     <div className="relative w-full max-w-[850px] mx-auto min-h-[450px] md:min-h-[520px] flex items-center justify-center my-6 overflow-visible px-2 py-8">
       
-      {/* Glow / Gradient de Fundo */}
-      <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full blur-[100px] bg-gradient-to-r ${current.gradient} opacity-50 md:opacity-70 pointer-events-none -z-10`} />
+      {/* Glow / Gradient de Fundo - Preservando efeito da plataforma */}
+      <div className={cn(
+        "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full blur-[100px] opacity-40 md:opacity-50 pointer-events-none -z-10",
+        platformType === 'instagram' ? "bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500" :
+        platformType === 'tiktok' ? "bg-gradient-to-r from-cyan-500 via-black to-pink-500" :
+        platformType === 'facebook' ? "bg-blue-600" :
+        "bg-neutral-600"
+      )} />
 
-      {/* Partículas flutuantes discretas */}
-      <div className="hidden md:block absolute top-[10%] left-[20%] text-white/20 animate-float"><Heart size={20} /></div>
-      <div className="hidden md:block absolute bottom-[25%] right-[18%] text-white/10 animate-[float_5s_ease-in-out_infinite_alternate-reverse]"><User size={24} /></div>
-      {platform === 'tiktok' && <div className="hidden md:block absolute top-[30%] right-[25%] text-white/15 animate-float"><Play size={18} /></div>}
-      {platform === 'twitter' && <div className="hidden md:block absolute top-[40%] right-[15%] text-white/15 animate-float"><Repeat2 size={22} /></div>}
+      {/* PartÃ­culas flutuantes ultra-discretas */}
+      <div className="hidden md:block absolute top-[10%] left-[20%] text-white/10 animate-[float_6s_ease-in-out_infinite_alternate]"><Heart size={16} /></div>
+      <div className="hidden md:block absolute bottom-[25%] right-[18%] text-white/5 animate-[float_7s_ease-in-out_infinite_alternate-reverse]"><User size={20} /></div>
 
-      <div className="relative z-10 w-full flex flex-col md:flex-row items-center justify-center gap-6 md:gap-0">
+      <div className="relative z-10 w-full flex flex-col items-center justify-center gap-6">
         
-        {/* Smartphone Central */}
-        <div className="relative w-[280px] md:w-[320px] h-[580px] md:h-[620px] bg-black rounded-[45px] border-[8px] border-[#161616] shadow-2xl flex-shrink-0 animate-float z-20 overflow-hidden ring-1 ring-white/10">
+        {/* Smartphone Central Refinado */}
+        <div className="relative w-[280px] md:w-[310px] h-[580px] md:h-[620px] bg-black rounded-[45px] border-[10px] border-[#111] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex-shrink-0 animate-[float_7s_ease-in-out_infinite_alternate] z-20 overflow-hidden ring-1 ring-white/5">
           {/* Notch/Speaker */}
-          {platform !== 'twitter' && <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[60px] h-[15px] bg-[#161616] rounded-full z-30 shadow-[inset_0_0_2px_rgba(255,255,255,0.1)]" />}
+          {platform !== 'twitter' && <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[70px] h-[20px] bg-[#111] rounded-full z-30 shadow-[inset_0_-2px_4px_rgba(255,255,255,0.05)]" />}
           
-          {/* Interface Interna */}
+          {/* Interface Interna Original Preservada */}
           {renderPhoneScreen()}
         </div>
 
-        {/* Cards Flutuantes (Responsivos) */}
+        {/* Dynamic Floating Notifications */}
+        <FloatingNotification 
+          platform={platformType} 
+          type="followers" 
+          position="top-left" 
+          initialCount={platformType === 'tiktok' ? 256782 : platformType === 'instagram' ? 13242 : platformType === 'twitter' ? 8742 : 17832} 
+        />
         
-        {/* Card 1: Top Left */}
-        <div className="absolute top-[2%] md:top-[12%] left-1/2 md:left-[5%] -translate-x-1/2 md:-translate-x-0 w-[200px] md:w-[220px] bg-black/70 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-xl flex items-center gap-3 z-30 animate-[float_5s_ease-in-out_infinite_alternate-reverse] delay-100">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border ${current.borderAccent}`}>
-            <Users className={`w-5 h-5 ${current.accent}`} />
-          </div>
-          <div>
-            <div className="text-white font-bold text-sm">{current.cards[0].title}</div>
-            <div className="text-white/60 text-[11px]">{current.cards[0].sub}</div>
-            <div className={`text-[9px] uppercase font-bold mt-0.5 ${current.accent}`}>{current.cards[0].small}</div>
-          </div>
-        </div>
-
-        {/* Card 2: Right middle */}
-        <div className="absolute top-[25%] md:top-[35%] right-[-10px] md:right-[5%] w-[190px] md:w-[220px] bg-black/70 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-xl flex items-center gap-3 z-30 animate-[float_4.5s_ease-in-out_infinite_alternate] delay-300">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border ${current.borderAccent}`}>
-            <Heart className={`w-5 h-5 ${current.accent}`} />
-          </div>
-          <div>
-            <div className="text-white font-bold text-sm">{current.cards[1].title}</div>
-            <div className="text-white/60 text-[11px]">{current.cards[1].sub}</div>
-            <div className={`text-[9px] uppercase font-bold mt-0.5 ${current.accent}`}>{current.cards[1].small}</div>
-          </div>
-        </div>
-
-        {/* Card 3: Bottom left */}
-        <div className="hidden md:flex absolute bottom-[25%] left-[2%] w-[220px] bg-black/70 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-xl items-center gap-3 z-30 animate-[float_6s_ease-in-out_infinite_alternate] delay-500">
-          <div className={`w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-emerald-500/50`}>
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-          </div>
-          <div>
-            <div className="text-white font-bold text-sm">{current.cards[2].title}</div>
-            <div className="text-white/60 text-[11px]">{current.cards[2].sub}</div>
-          </div>
-        </div>
+        <FloatingNotification 
+          platform={platformType} 
+          type={platformType === 'tiktok' ? 'views' : platformType === 'twitter' ? 'reposts' : 'likes'} 
+          position="middle-right" 
+          initialCount={platformType === 'tiktok' ? 1421000 : platformType === 'instagram' ? 3241 : platformType === 'twitter' ? 67 : 12431}
+        />
+        
+        <FloatingNotification 
+          platform={platformType} 
+          type="status" 
+          position="bottom-left" 
+        />
 
       </div>
 
-      {/* Barra Inferior (Live Counter) */}
-      <div className="absolute bottom-[-10px] md:bottom-2 left-1/2 -translate-x-1/2 w-[90%] md:w-[450px] bg-black/80 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl z-40">
-        <div className="flex justify-between items-center mb-2">
+      {/* Advanced Bottom Growth Bar */}
+      <div className={cn(
+        "absolute bottom-[-10px] md:bottom-2 left-1/2 -translate-x-1/2 w-[90%] md:w-[480px] backdrop-blur-xl border rounded-2xl p-4 shadow-2xl z-40 transition-all duration-300",
+        platformType === 'instagram' ? "bg-[#110e15]/90 border-pink-500/20" :
+        platformType === 'tiktok' ? "bg-[#0a0a0a]/90 border-cyan-500/20" :
+        platformType === 'facebook' ? "bg-[#061022]/90 border-blue-500/20" :
+        "bg-[#080808]/90 border-white/10"
+      )}>
+        <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
-            <BarChart3 className={`w-4 h-4 ${current.accent}`} />
-            <span className="text-white text-xs font-semibold">{current.bottom.text}</span>
+            <BottomIcon className={cn("w-4 h-4", current.accent)} />
+            <span className="text-white/90 text-[13px] font-semibold">{current.bottom.text}</span>
           </div>
-          <span className="text-white font-bold text-sm tabular-nums flex items-center gap-1">
-            {count.toLocaleString()} <span className="text-emerald-400 text-[10px] px-1 bg-emerald-500/10 rounded font-bold">+284</span>
-          </span>
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-white font-bold text-sm tabular-nums">
+              {count.toLocaleString('en-US')}
+            </span>
+            <span className={cn("text-[10px] font-bold", platformType === 'facebook' ? 'text-blue-400' : platformType === 'twitter' ? 'text-neutral-400' : 'text-emerald-400')}>
+              â†‘
+            </span>
+          </div>
         </div>
-        {/* Animated Progress Bar */}
-        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden">
+        
+        {/* Animated Progress Bar Customizada por Plataforma */}
+        <div className="w-full h-1.5 bg-white/10 rounded-full overflow-hidden relative">
           <div 
-            className={`h-full ${current.bgAccent} transition-all duration-700 ease-out`} 
+            className={cn(
+              "h-full transition-all duration-700 ease-in-out rounded-full relative",
+              platformType === 'instagram' ? "bg-gradient-to-r from-orange-400 via-pink-500 to-purple-500" :
+              platformType === 'tiktok' ? "bg-gradient-to-r from-cyan-400 to-pink-500" :
+              platformType === 'facebook' ? "bg-gradient-to-r from-blue-500 to-blue-400" :
+              "bg-gradient-to-r from-neutral-500 to-white"
+            )}
             style={{ width: `${progress}%` }} 
-          />
+          >
+            {/* Brilho na ponta da barra */}
+            <div className="absolute right-0 top-0 bottom-0 w-4 bg-white/40 blur-[2px]" />
+          </div>
         </div>
       </div>
       
