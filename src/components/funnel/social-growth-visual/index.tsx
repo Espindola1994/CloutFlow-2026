@@ -341,7 +341,7 @@ export function SocialGrowthVisual({ platform }: Props) {
     return (
       <div className="w-full h-full flex flex-col relative text-white bg-black">
         <div className="flex justify-between items-center w-full px-4 pt-4 pb-2">
-          
+          <span className="font-bold text-xs flex items-center gap-1 min-w-0 pr-1 whitespace-nowrap"><ShieldCheck className="w-3.5 h-3.5 shrink-0" /> yourbrand</span>
           <span className="text-white/80"><BarChart3 className="w-5 h-5" /></span>
         </div>
 
@@ -464,7 +464,8 @@ export function SocialGrowthVisual({ platform }: Props) {
       </div>
 
       {/* Advanced Bottom Growth Bar (Absolute Centered) */}
-      <div className={cn("absolute -bottom-[16px] md:bottom-2 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[460px] backdrop-blur-xl border rounded-[16px] md:rounded-[18px] p-3 md:p-4 shadow-2xl z-40 transition-all duration-300",
+      <div className={cn(
+        "absolute -bottom-[16px] md:bottom-2 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[460px] backdrop-blur-xl border rounded-[16px] md:rounded-[18px] p-3 md:p-4 shadow-2xl z-40 transition-all duration-300",
         platformType === 'facebook' ? "bg-[#050c1c]/90 border-blue-500/20" :
         platformType === 'tiktok' ? "bg-[#0a0a0a]/90 border-cyan-500/20" :
         platformType === 'twitter' ? "bg-[#080808]/90 border-white/10" :
@@ -500,5 +501,3 @@ export function SocialGrowthVisual({ platform }: Props) {
     </div>
   );
 }
-/ *   T r i g g e r   V e r c e l   R e s t a r t   F i n a l   F i x   1 2   * /  
- 
