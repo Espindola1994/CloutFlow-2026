@@ -149,7 +149,7 @@ export function SocialGrowthVisual({ platform }: Props) {
                   <span className="font-bold">Your Brand</span>
                   <span className="text-white/50">@yourbrand - 2h</span>
                 </div>
-                <p className="text-xs mb-2">Content that connects.<br/>Growth that lasts. 🚀</p>
+                <p className="text-xs mb-2">Content that connects.<br/>Growth that lasts.</p>
                 <div className="flex justify-between text-white/50 text-[10px]">
                   <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> 24</span>
                   <span className="flex items-center gap-1"><Repeat2 className="w-3 h-3" /> 67</span>
@@ -309,7 +309,7 @@ export function SocialGrowthVisual({ platform }: Props) {
 
         <div className="px-4 mb-4">
           <h3 className="text-white font-bold text-sm">Your Brand</h3>
-          <p className="text-white/80 text-xs mt-0.5">Digital Creator<br/>Helping brands grow online 🚀<br/>Link in bio</p>
+          <p className="text-white/80 text-xs mt-0.5">Digital Creator<br/>Helping brands grow online<br/>Link in bio</p>
         </div>
 
         <div className="flex gap-2 w-full px-4 mb-4">
@@ -363,11 +363,11 @@ export function SocialGrowthVisual({ platform }: Props) {
         "bg-neutral-600"
       )} />
 
-      {/* PartÃƒÂ­culas flutuantes ultra-discretas */}
+      {/* Partículas flutuantes ultra-discretas */}
       <div className="hidden md:block absolute top-[10%] left-[20%] text-white/10 animate-[float_6s_ease-in-out_infinite_alternate]"><Heart size={16} /></div>
       <div className="hidden md:block absolute bottom-[25%] right-[18%] text-white/5 animate-[float_7s_ease-in-out_infinite_alternate-reverse]"><User size={20} /></div>
 
-      <div className="relative z-10 w-full flex flex-col items-center justify-center gap-6">
+      <div className="relative z-10 w-full flex flex-col md:flex-row items-center justify-center gap-6">
         
         {/* Smartphone Central Refinado */}
         <div className="relative w-[280px] md:w-[310px] h-[580px] md:h-[620px] bg-black rounded-[45px] border-[10px] border-[#111] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex-shrink-0 animate-[float_7s_ease-in-out_infinite_alternate] z-20 overflow-hidden ring-1 ring-white/5 mx-auto">
@@ -378,7 +378,7 @@ export function SocialGrowthVisual({ platform }: Props) {
           {renderPhoneScreen()}
         </div>
 
-        {/* Dynamic Floating Notifications (Completamente absolutas sobre o espaÃƒÂ§o total) */}
+        {/* Dynamic Floating Notifications baseadas na estrutura Premium do Facebook */}
         <FloatingNotification 
           platform={platformType} 
           type="followers" 
@@ -398,6 +398,7 @@ export function SocialGrowthVisual({ platform }: Props) {
           type="status" 
           position="bottom-left" 
         />
+
       </div>
 
       {/* Advanced Bottom Growth Bar */}
@@ -406,7 +407,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         platformType === 'facebook' ? "bg-[#050c1c]/90 border-blue-500/20" :
         platformType === 'tiktok' ? "bg-[#0a0a0a]/90 border-cyan-500/20" :
         platformType === 'twitter' ? "bg-[#080808]/90 border-white/10" :
-        "bg-[#0a0a0a]/90 border-pink-500/20" // Instagram changed to dark graphite
+        "bg-[#0a0a0a]/90 border-pink-500/20"
       )}>
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
@@ -439,5 +440,3 @@ export function SocialGrowthVisual({ platform }: Props) {
     </div>
   );
 }
-/ *   T r i g g e r   V e r c e l   R e s t a r t   * /  
- 
