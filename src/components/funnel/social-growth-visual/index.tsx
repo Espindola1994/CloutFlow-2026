@@ -32,7 +32,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         btn1: "Follow",
         btn2: "Message"
       },
-      bottom: { text: "Followers growing in real time", baseCount: 13344, icon: BarChart3 }
+      bottom: { text: "Followers growing in real time", baseCount: 100000, icon: BarChart3 }
     },
     tiktok: {
       gradient: "from-cyan-500/20 via-black to-pink-500/10",
@@ -43,13 +43,13 @@ export function SocialGrowthVisual({ platform }: Props) {
         avatarBg: "bg-gradient-to-tr from-cyan-400 to-pink-500",
         stats: [
           { label: "Following", val: "142" },
-          { label: "Followers", val: "256.8K", highlight: true, rawValue: 256782 },
+          { label: "Followers", val: "256.8K", highlight: true, rawValue: 2510000082 },
           { label: "Likes", val: "1.2M" }
         ],
         btn1: "Follow",
         btn2: "Message"
       },
-      bottom: { text: "Views increasing in real time", baseCount: 256782, icon: Play }
+      bottom: { text: "Followers growing in real time", baseCount: 100000, icon: Play }
     },
     twitter: {
       gradient: "from-neutral-600/20 to-neutral-900/10",
@@ -65,7 +65,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         btn1: "Follow",
         btn2: "Message"
       },
-      bottom: { text: "Followers growing in real time", baseCount: 8752, icon: User }
+      bottom: { text: "Followers growing in real time", baseCount: 100000, icon: User }
     },
     facebook: {
       gradient: "from-blue-500/20 to-blue-800/10",
@@ -81,7 +81,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         btn1: "+ Follow",
         btn2: "Message"
       },
-      bottom: { text: "Engagement growing in real time", baseCount: 18000, icon: BarChart3 }
+      bottom: { text: "Followers growing in real time", baseCount: 100000, icon: BarChart3 }
     }
   };
 
@@ -212,7 +212,7 @@ export function SocialGrowthVisual({ platform }: Props) {
                 <p className="text-xs mb-2">Content that connects.<br/>Growth that lasts.</p>
                 <div className="flex justify-between text-white/50 text-[10px]">
                   <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> 24</span>
-                  <span className="flex items-center gap-1"><Repeat2 className="w-3 h-3" /> 67</span>
+                  <span className="flex items-center gap-1"><Repeat2 className="w-3 h-3" /> 100000</span>
                   <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> 248</span>
                   <span className="flex items-center gap-1"><BarChart3 className="w-3 h-3" /> 12K</span>
                 </div>
@@ -412,7 +412,7 @@ export function SocialGrowthVisual({ platform }: Props) {
   };
 
   return (
-    <div className="relative w-full max-w-[850px] mx-auto min-h-[460px] md:min-h-[550px] flex items-center justify-center my-6 px-0 md:px-2 py-8 overflow-hidden md:overflow-visible">
+    <div className="relative w-full max-w-[850px] mx-auto min-h-[500px] md:min-h-[550px] flex items-center justify-center mt-2 mb-16 md:my-6 px-0 md:px-2 py-4 md:py-8 overflow-hidden md:overflow-visible">
       
       {/* Glow / Gradient de Fundo - Shared Across Platforms */}
       <div className={cn(
@@ -424,7 +424,7 @@ export function SocialGrowthVisual({ platform }: Props) {
       )} />
 
       {/* Shared Absolute Container for All Platforms Geometry */}
-      <div className="relative z-10 w-full flex flex-col items-center justify-center h-[540px] md:h-[620px]">
+      <div className="relative z-10 w-full flex flex-col items-center justify-center h-[520px] md:h-[620px]">
         
         {/* Central Smartphone */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(72vw,285px)] md:w-[310px] h-full bg-black rounded-[40px] md:rounded-[45px] border-[8px] md:border-[10px] border-[#111] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-20 overflow-hidden ring-1 ring-white/5 animate-[float_7s_ease-in-out_infinite_alternate]">
@@ -436,7 +436,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         </div>
 
         {/* Floating Notifications */}
-        <div className="absolute inset-0 w-full h-full pointer-events-none z-30">
+        <div className="hidden md:block absolute inset-0 w-full h-full pointer-events-none z-30">
           
           {/* Notification 1 */}
           <FloatingNotification 
@@ -451,7 +451,7 @@ export function SocialGrowthVisual({ platform }: Props) {
             platform={platformType} 
             type={platformType === 'tiktok' ? 'views' : platformType === 'twitter' ? 'reposts' : 'likes'} 
             position="middle-right" 
-            initialCount={platformType === 'tiktok' ? 1421000 : platformType === 'instagram' ? 3241 : platformType === 'twitter' ? 67 : 12431}
+            initialCount={platformType === 'tiktok' ? 100000 : platformType === 'instagram' ? 100000 : platformType === 'twitter' ? 100000 : 100000}
           />
           
           <FloatingNotification 
