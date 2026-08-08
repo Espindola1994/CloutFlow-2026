@@ -281,7 +281,7 @@ export function SocialGrowthVisual({ platform }: Props) {
     return (
       <div className="w-full h-full flex flex-col relative text-white bg-black">
         <div className="flex justify-between items-center w-full px-4 pt-4 pb-2">
-          <span className="font-bold text-xs flex items-center gap-1 min-w-0 pr-1 whitespace-nowrap"><ShieldCheck className="w-3.5 h-3.5 shrink-0" /> yourbrand</span>
+          
           <span className="text-white/80"><BarChart3 className="w-5 h-5" /></span>
         </div>
 
@@ -308,7 +308,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         </div>
 
         <div className="px-4 mb-4">
-          <h3 className="text-white font-bold text-sm">Your Brand</h3>
+          <div className="flex items-center gap-1"><h3 className="text-white font-bold text-sm">Your Brand</h3><CheckCircle2 className="w-[14px] h-[14px] text-blue-500 fill-[#0095F6] flex-shrink-0" /></div>
           <p className="text-white/80 text-xs mt-0.5">Digital Creator<br/>Helping brands grow online<br/>Link in bio</p>
         </div>
 
@@ -439,5 +439,4 @@ export function SocialGrowthVisual({ platform }: Props) {
     </div>
   );
 }
-/ *   T r i g g e r   V e r c e l   D e p l o y   1 1   * /  
- 
+/* Trigger Vercel Deploy 11 */
