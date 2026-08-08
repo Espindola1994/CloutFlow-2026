@@ -352,7 +352,7 @@ export function SocialGrowthVisual({ platform }: Props) {
   };
 
   return (
-    <div className="relative w-full max-w-[850px] mx-auto min-h-[480px] md:min-h-[550px] flex items-center justify-center my-6 px-2 py-8">
+    <div className="relative w-full max-w-[850px] mx-auto min-h-[480px] md:min-h-[550px] flex items-center justify-center my-6 overflow-visible px-2 py-8">
       
       {/* Glow / Gradient de Fundo - Shared Across Platforms */}
       <div className={cn(

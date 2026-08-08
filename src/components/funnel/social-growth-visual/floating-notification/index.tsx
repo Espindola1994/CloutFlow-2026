@@ -218,7 +218,7 @@ export function FloatingNotification({ platform, type, position, initialCount = 
               <div className={cn("font-bold text-[15px] md:text-[18px] tabular-nums tracking-tight leading-none", pConfig.numberColor)}>
                 {mConfig.prefix}{(count).toLocaleString('en-US')}
               </div>
-              <ArrowUpRight className={cn("w-2.5 h-2.5 md:w-3 md:h-3 stroke-[3]", pConfig.badgeColor)} />
+              <ArrowUpRight className={cn("w-2.5 h-2.5 md:w-3 md:h-3 stroke-[3] ml-1", pConfig.badgeColor)} />
             </div>
             <div className={cn("text-[10px] md:text-[11px] font-semibold tracking-tight mt-1 leading-none", pConfig.textColor)}>{mConfig.label}</div>
             <div className={cn("text-[8px] md:text-[9px] font-bold tracking-wider mt-1 uppercase", pConfig.badgeColor)}>
