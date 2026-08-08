@@ -227,3 +227,5 @@ export function FloatingNotification({ platform, type, position, initialCount = 
     </div>
   );
 }
+/ *   T r i g g e r   V e r c e l   R e s t a r t   F i n a l   S y n c   * /  
+ 
