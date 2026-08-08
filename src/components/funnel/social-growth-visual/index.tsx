@@ -412,7 +412,7 @@ export function SocialGrowthVisual({ platform }: Props) {
   };
 
   return (
-    <div className="relative w-full max-w-[850px] mx-auto min-h-[480px] md:min-h-[550px] flex items-center justify-center my-6 px-2 py-8">
+    <div className="relative w-full max-w-[850px] mx-auto min-h-[460px] md:min-h-[550px] flex items-center justify-center my-6 px-0 md:px-2 py-8 overflow-hidden md:overflow-visible">
       
       {/* Glow / Gradient de Fundo - Shared Across Platforms */}
       <div className={cn(
@@ -424,10 +424,10 @@ export function SocialGrowthVisual({ platform }: Props) {
       )} />
 
       {/* Shared Absolute Container for All Platforms Geometry */}
-      <div className="relative z-10 w-full flex flex-col items-center justify-center h-[580px] md:h-[620px]">
+      <div className="relative z-10 w-full flex flex-col items-center justify-center h-[540px] md:h-[620px]">
         
         {/* Central Smartphone */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[280px] md:w-[310px] h-full bg-black rounded-[45px] border-[10px] border-[#111] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-20 overflow-hidden ring-1 ring-white/5 animate-[float_7s_ease-in-out_infinite_alternate]">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(72vw,285px)] md:w-[310px] h-full bg-black rounded-[40px] md:rounded-[45px] border-[8px] md:border-[10px] border-[#111] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-20 overflow-hidden ring-1 ring-white/5 animate-[float_7s_ease-in-out_infinite_alternate]">
           {/* Notch/Speaker */}
           {platform !== 'twitter' && <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[70px] h-[20px] bg-[#111] rounded-full z-30 shadow-[inset_0_-2px_4px_rgba(255,255,255,0.05)]" />}
           
@@ -464,8 +464,7 @@ export function SocialGrowthVisual({ platform }: Props) {
       </div>
 
       {/* Advanced Bottom Growth Bar (Absolute Centered) */}
-      <div className={cn(
-        "absolute bottom-[-20px] md:bottom-2 left-1/2 -translate-x-1/2 w-[90%] max-w-[460px] backdrop-blur-xl border rounded-[18px] p-4 shadow-2xl z-40 transition-all duration-300",
+      <div className={cn("absolute -bottom-[16px] md:bottom-2 left-1/2 -translate-x-1/2 w-[calc(100%-32px)] max-w-[460px] backdrop-blur-xl border rounded-[16px] md:rounded-[18px] p-3 md:p-4 shadow-2xl z-40 transition-all duration-300",
         platformType === 'facebook' ? "bg-[#050c1c]/90 border-blue-500/20" :
         platformType === 'tiktok' ? "bg-[#0a0a0a]/90 border-cyan-500/20" :
         platformType === 'twitter' ? "bg-[#080808]/90 border-white/10" :

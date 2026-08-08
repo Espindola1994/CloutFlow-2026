@@ -12,7 +12,7 @@ interface FloatingNotificationProps {
 }
 
 export function FloatingNotification({ platform, type, position, initialCount = 124 }: FloatingNotificationProps) {
-  const [count, setCount] = useState(0); // Mudança Principal: Iniciar as animações de todos em 0!
+  const [count, setCount] = useState(0); // MudanÃ§a Principal: Iniciar as animaÃ§Ãµes de todos em 0!
   const [pulse, setPulse] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [particle, setParticle] = useState(false);
@@ -20,9 +20,9 @@ export function FloatingNotification({ platform, type, position, initialCount = 
   // Position configurations - SHARED EXTREMELY STRICT FACEBOOK TEMPLATE
   // These absolute coordinates apply perfectly over the master Absolute wrapper container.
   const posClasses = {
-    'top-left': 'top-[16%] left-[6%] md:top-[18%] md:left-[10%] z-30',
-    'middle-right': 'top-[42%] right-[4%] md:top-[44%] md:right-[6%] z-30',
-    'bottom-left': 'bottom-[15%] left-[5%] md:bottom-[20%] md:left-[8%] z-30'
+    'top-left': 'top-[16%] left-0 md:top-[18%] md:left-[10%] z-30',
+    'middle-right': 'top-[42%] right-0 md:top-[44%] md:right-[6%] z-30',
+    'bottom-left': 'bottom-[12%] left-0 md:bottom-[20%] md:left-[8%] z-30'
   };
 
   // Organic floating animations wrapper class logic. Kept structurally the same for all.
@@ -41,7 +41,7 @@ export function FloatingNotification({ platform, type, position, initialCount = 
     const mountTimer = setTimeout(() => {
       setMounted(true);
       
-      // NOVA LÓGICA DE CONTAGEM SOLICITADA (Subida do Zero contínua e desacelerada)
+      // NOVA LÃ“GICA DE CONTAGEM SOLICITADA (Subida do Zero contÃ­nua e desacelerada)
       if (type !== 'status') {
         let startTime: number;
         const duration = 5500; // 5.5s cravado
@@ -56,7 +56,7 @@ export function FloatingNotification({ platform, type, position, initialCount = 
             const t = elapsed / duration;
             const progress = 1 - Math.pow(1 - t, 3);
             
-            // Não piscar o botão excessivamente na subida super rápida, apenas quando ficar lento
+            // NÃ£o piscar o botÃ£o excessivamente na subida super rÃ¡pida, apenas quando ficar lento
             const currentValue = Math.floor(progress * target);
             setCount(currentValue);
             
@@ -72,7 +72,7 @@ export function FloatingNotification({ platform, type, position, initialCount = 
             
             requestAnimationFrame(animateCount);
           } else {
-            // Cava no Target Máximo no final
+            // Cava no Target MÃ¡ximo no final
             setCount(target);
             setPulse(true);
             setTimeout(() => setPulse(false), 400);
@@ -198,8 +198,7 @@ export function FloatingNotification({ platform, type, position, initialCount = 
   };
 
   return (
-    <div className={cn(
-      "absolute w-[160px] md:w-[200px] rounded-[16px] p-2.5 md:p-3 flex items-center gap-3 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
+    <div className={cn("absolute w-[145px] sm:w-[160px] md:w-[200px] rounded-[14px] md:rounded-[16px] p-2 md:p-3 flex items-center gap-2 md:gap-3 transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
       posClasses[position],
       floatAnim[position],
       pConfig.bg,
@@ -209,9 +208,9 @@ export function FloatingNotification({ platform, type, position, initialCount = 
     )}>
       
       {/* Icon Container - Exact identical scale logic to Facebook baseline */}
-      <div className={cn("w-9 h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 relative", pConfig.iconWrap)}>
+      <div className={cn("w-7 h-7 sm:w-9 sm:h-9 md:w-10 md:h-10 rounded-full flex items-center justify-center flex-shrink-0 relative", pConfig.iconWrap)}>
         {pConfig.iconGradient && <div className={pConfig.iconGradient} />}
-        <Icon className={cn("w-4 h-4 md:w-[18px] md:h-[18px] relative z-10 transition-transform duration-250", pConfig.iconColor, getPulseEffect())} />
+        <Icon className={cn("w-3.5 h-3.5 sm:w-4 sm:h-4 md:w-[18px] md:h-[18px] relative z-10 transition-transform duration-250", pConfig.iconColor, getPulseEffect())} />
         
         {/* Temporary Reaction Particle (SVG only) */}
         {particle && (type === 'likes' || type === 'views') && (
@@ -225,13 +224,13 @@ export function FloatingNotification({ platform, type, position, initialCount = 
       <div className="flex-1 min-w-0">
         {type === 'status' ? (
           <>
-            <div className={cn("font-bold text-[12px] md:text-[14px] leading-tight whitespace-nowrap overflow-visible", pConfig.numberColor)}>{mConfig.title}</div>
+            <div className={cn("font-bold text-[11px] sm:text-[12px] md:text-[14px] leading-tight whitespace-nowrap overflow-visible", pConfig.numberColor)}>{mConfig.title}</div>
             <div className={cn("text-[10px] md:text-[11px] font-medium mt-0.5 whitespace-nowrap", pConfig.textColor)}>{mConfig.label}</div>
           </>
         ) : (
           <>
             <div className="flex items-baseline gap-1">
-              <div className={cn("font-bold text-[15px] md:text-[17px] tabular-nums tracking-tight leading-none font-variant-numeric", pConfig.numberColor)} style={{ fontVariantNumeric: "tabular-nums" }}>
+              <div className={cn("font-bold text-[14px] sm:text-[15px] md:text-[17px] tabular-nums tracking-tight leading-none font-variant-numeric", pConfig.numberColor)} style={{ fontVariantNumeric: "tabular-nums" }}>
                 {mConfig.prefix}{(count).toLocaleString('en-US')}
               </div>
               <ArrowUpRight className={cn("w-2.5 h-2.5 md:w-3 md:h-3 stroke-[3] ml-1", pConfig.badgeColor)} />
