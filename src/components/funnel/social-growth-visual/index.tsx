@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { User, Heart, MessageCircle, BarChart3, Repeat2, Play, Users, CheckCircle2 } from "lucide-react";
+import { User, Heart, MessageCircle, BarChart3, Repeat2, Play, Users, CheckCircle2, ArrowRight, ShieldCheck, Star } from "lucide-react";
 import { FaInstagram, FaTiktok, FaTwitter, FaFacebook } from "react-icons/fa";
 
 interface Props {
@@ -166,9 +166,9 @@ export function SocialGrowthVisual({ platform }: Props) {
               <div className="flex-1">
                 <div className="flex items-center gap-1 text-xs mb-1">
                   <span className="font-bold">Your Brand</span>
-                  <span className="text-white/50">@yourbrand • 2h</span>
+                  <span className="text-white/50">@yourbrand â€¢ 2h</span>
                 </div>
-                <p className="text-xs mb-2">Content that connects.<br/>Growth that lasts. 🚀</p>
+                <p className="text-xs mb-2">Content that connects.<br/>Growth that lasts. ðŸš€</p>
                 <div className="flex justify-between text-white/50 text-[10px]">
                   <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> 24</span>
                   <span className="flex items-center gap-1"><Repeat2 className="w-3 h-3" /> 67</span>
@@ -194,7 +194,7 @@ export function SocialGrowthVisual({ platform }: Props) {
                <User className="text-white/70 w-8 h-8" />
             </div>
             <h3 className="font-bold text-xl leading-tight flex items-center gap-1">Your Brand <CheckCircle2 className="w-4 h-4 text-white fill-blue-500" /></h3>
-            <p className="text-gray-500 text-xs mb-4">Page • Digital Creator</p>
+            <p className="text-gray-500 text-xs mb-4">Page â€¢ Digital Creator</p>
             
             <div className="flex gap-3 text-sm font-bold text-gray-700 mb-4">
               <div>17K <span className="font-normal text-gray-500">Likes</span></div>
@@ -223,14 +223,14 @@ export function SocialGrowthVisual({ platform }: Props) {
                 <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-200 flex-shrink-0" />
                 <div>
                   <div className="font-bold text-xs">Your Brand</div>
-                  <div className="text-gray-500 text-[10px]">2h • 🌐</div>
+                  <div className="text-gray-500 text-[10px]">2h â€¢ ðŸŒ</div>
                 </div>
               </div>
-              <p className="text-xs mb-2 text-gray-800">We deliver real results.<br/>Grow your brand with us. 🚀</p>
+              <p className="text-xs mb-2 text-gray-800">We deliver real results.<br/>Grow your brand with us. ðŸš€</p>
               <div className="h-[100px] bg-gray-100 rounded-md border border-gray-200 mb-2"></div>
               <div className="flex justify-between items-center text-gray-500 text-[10px] pb-2 border-b border-gray-200 mb-2">
-                <span className="flex items-center gap-1">👍 ❤️ 312</span>
-                <span>47 Comments • 89 Shares</span>
+                <span className="flex items-center gap-1">ðŸ‘ â¤ï¸ 312</span>
+                <span>47 Comments â€¢ 89 Shares</span>
               </div>
               <div className="flex justify-between text-gray-600 text-xs font-bold px-2">
                 <span>Like</span>
@@ -279,10 +279,10 @@ export function SocialGrowthVisual({ platform }: Props) {
             <div className="flex gap-2 w-full mb-4 px-4">
               <button className="flex-1 bg-[#FE2C55] text-white font-bold text-sm py-2.5 rounded-sm">Follow</button>
               <button className="px-4 bg-white/10 text-white font-bold text-sm py-2.5 rounded-sm"><FaInstagram /></button>
-              <button className="px-3 bg-white/10 text-white font-bold text-sm py-2.5 rounded-sm">▾</button>
+              <button className="px-3 bg-white/10 text-white font-bold text-sm py-2.5 rounded-sm">â–¾</button>
             </div>
 
-            <p className="text-white/80 text-xs text-center">Digital Creator<br/>Building audience 🚀<br/>Link in bio ↓</p>
+            <p className="text-white/80 text-xs text-center">Digital Creator<br/>Building audience ðŸš€<br/>Link in bio â†“</p>
           </div>
 
           <div className="flex border-b border-white/10">
@@ -333,14 +333,14 @@ export function SocialGrowthVisual({ platform }: Props) {
         </div>
 
         <div className="px-4 mb-4">
-          <h3 className="text-white font-bold text-sm">Your Brand ✨</h3>
-          <p className="text-white/80 text-xs mt-0.5">Digital Creator<br/>Helping brands grow online 🚀<br/>Link in bio ↓</p>
+          <h3 className="text-white font-bold text-sm">Your Brand âœ¨</h3>
+          <p className="text-white/80 text-xs mt-0.5">Digital Creator<br/>Helping brands grow online ðŸš€<br/>Link in bio â†“</p>
         </div>
 
         <div className="flex gap-2 w-full px-4 mb-4">
           <button className="flex-1 bg-blue-500 text-white font-bold text-xs py-2 rounded-md">Follow</button>
           <button className="flex-1 bg-neutral-800 text-white font-bold text-xs py-2 rounded-md">Message</button>
-          <button className="bg-neutral-800 text-white font-bold text-xs px-3 rounded-md">▾</button>
+          <button className="bg-neutral-800 text-white font-bold text-xs px-3 rounded-md">â–¾</button>
         </div>
 
         {/* Story Highlights */}
@@ -383,7 +383,7 @@ export function SocialGrowthVisual({ platform }: Props) {
       {/* Glow / Gradient de Fundo */}
       <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] md:w-[500px] md:h-[500px] rounded-full blur-[100px] bg-gradient-to-r ${current.gradient} opacity-50 md:opacity-70 pointer-events-none -z-10`} />
 
-      {/* Partículas flutuantes discretas */}
+      {/* PartÃ­culas flutuantes discretas */}
       <div className="hidden md:block absolute top-[10%] left-[20%] text-white/20 animate-float"><Heart size={20} /></div>
       <div className="hidden md:block absolute bottom-[25%] right-[18%] text-white/10 animate-[float_5s_ease-in-out_infinite_alternate-reverse]"><User size={24} /></div>
       {platform === 'tiktok' && <div className="hidden md:block absolute top-[30%] right-[25%] text-white/15 animate-float"><Play size={18} /></div>}
