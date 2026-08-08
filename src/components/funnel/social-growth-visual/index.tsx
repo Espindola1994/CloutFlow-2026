@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { User, Heart, MessageCircle, BarChart3, Repeat2, Play, CheckCircle2, Star, ArrowRight, ArrowLeft, ShieldCheck, ArrowUpRight } from "lucide-react";
 import { FaInstagram, FaTiktok, FaTwitter, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
@@ -26,13 +26,13 @@ export function SocialGrowthVisual({ platform }: Props) {
         avatarBg: "bg-gradient-to-tr from-orange-400 via-pink-500 to-purple-500",
         stats: [
           { label: "Posts", val: "48" },
-          { label: "Followers", val: "13.2K", highlight: true },
+          { label: "Followers", val: "13.2K", highlight: true, rawValue: 13344 },
           { label: "Following", val: "243" }
         ],
         btn1: "Follow",
         btn2: "Message"
       },
-      bottom: { text: "Followers growing in real time", baseCount: 13242, icon: BarChart3 }
+      bottom: { text: "Followers growing in real time", baseCount: 13344, icon: BarChart3 }
     },
     tiktok: {
       gradient: "from-cyan-500/20 via-black to-pink-500/10",
@@ -43,7 +43,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         avatarBg: "bg-gradient-to-tr from-cyan-400 to-pink-500",
         stats: [
           { label: "Following", val: "142" },
-          { label: "Followers", val: "256K", highlight: true },
+          { label: "Followers", val: "256.8K", highlight: true, rawValue: 256782 },
           { label: "Likes", val: "1.2M" }
         ],
         btn1: "Follow",
@@ -60,12 +60,12 @@ export function SocialGrowthVisual({ platform }: Props) {
         avatarBg: "bg-neutral-800 border-2 border-black",
         stats: [
           { label: "Following", val: "452" },
-          { label: "Followers", val: "8,742", highlight: true }
+          { label: "Followers", val: "8,752", highlight: true, rawValue: 8752 }
         ],
         btn1: "Follow",
         btn2: "Message"
       },
-      bottom: { text: "Followers growing in real time", baseCount: 8742, icon: User }
+      bottom: { text: "Followers growing in real time", baseCount: 8752, icon: User }
     },
     facebook: {
       gradient: "from-blue-500/20 to-blue-800/10",
@@ -76,12 +76,12 @@ export function SocialGrowthVisual({ platform }: Props) {
         avatarBg: "bg-gradient-to-br from-blue-400 to-blue-700 border-2 border-white",
         stats: [
           { label: "Likes", val: "17K", highlight: true },
-          { label: "Followers", val: "18K" }
+          { label: "Followers", val: "18K", rawValue: 18000 }
         ],
         btn1: "+ Follow",
         btn2: "Message"
       },
-      bottom: { text: "Engagement growing in real time", baseCount: 17832, icon: BarChart3 }
+      bottom: { text: "Engagement growing in real time", baseCount: 18000, icon: BarChart3 }
     }
   };
 
@@ -89,28 +89,88 @@ export function SocialGrowthVisual({ platform }: Props) {
   const Logo = current.logo;
   const BottomIcon = current.bottom.icon;
 
-  const [count, setCount] = useState(current.bottom.baseCount);
+  // Single Source of Truth for Follower Animation
+  const [followerCount, setFollowerCount] = useState(0);
+  const targetFollowers = current.bottom.baseCount;
+  
+  // Progress Bar specific
   const [progress, setProgress] = useState(48);
+  const observerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    
-    const tick = () => {
-      const increment = Math.floor(Math.random() * 5) + 1;
-      setCount(prev => prev + increment);
+    let animationFrameId: number;
+    let observer: IntersectionObserver;
+
+    const startAnimation = () => {
+      let startTime: number | null = null;
+      const duration = 5500; // 5.5s total duration
       
+      const animate = (timestamp: number) => {
+        if (!startTime) startTime = timestamp;
+        const elapsed = timestamp - startTime;
+        
+        if (elapsed < duration) {
+          const t = elapsed / duration;
+          const easeOutProgress = 1 - Math.pow(1 - t, 3);
+          
+          setFollowerCount(Math.floor(easeOutProgress * targetFollowers));
+          animationFrameId = requestAnimationFrame(animate);
+        } else {
+          setFollowerCount(targetFollowers); // Snap to target when done
+        }
+      };
+      
+      animationFrameId = requestAnimationFrame(animate);
+    };
+
+    observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        // Start animation only once
+        startAnimation();
+        observer.disconnect();
+      }
+    }, { threshold: 0.25 });
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    // Bar animation logic
+    let progressTimer: NodeJS.Timeout;
+    const progressTick = () => {
       setProgress(prev => {
         if (prev > 75) return prev - (Math.random() * 10);
         return prev + (Math.random() * 5);
       });
-      
       const nextTick = Math.floor(Math.random() * 2000) + 1500;
-      timeout = setTimeout(tick, nextTick);
+      progressTimer = setTimeout(progressTick, nextTick);
     };
+    progressTimer = setTimeout(progressTick, 1000);
 
-    timeout = setTimeout(tick, 1000);
-    return () => clearTimeout(timeout);
-  }, []);
+    return () => {
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      if (progressTimer) clearTimeout(progressTimer);
+      if (observer) observer.disconnect();
+    };
+  }, [targetFollowers]);
+
+  // Formatter for Phone Internal Display (Compact format like 13.3K)
+  const formatCompactFollowers = (val: number, isTwitter: boolean) => {
+    if (val === 0) return "0";
+    if (isTwitter && val < 10000) return val.toLocaleString('en-US'); // X uses full comma formatting below 10K
+    
+    if (val >= 1000000) {
+      return (val / 1000000).toFixed(1) + 'M';
+    }
+    if (val >= 1000) {
+      // Show exactly one decimal place unless it's perfectly round
+      const kVal = val / 1000;
+      return (kVal % 1 === 0 ? kVal : kVal.toFixed(1)) + 'K';
+    }
+    return val.toString();
+  };
+
+  const currentDisplayFollowers = formatCompactFollowers(followerCount, platformType === 'twitter');
 
   const renderPhoneScreen = () => {
     if (platform === 'twitter') {
@@ -131,7 +191,7 @@ export function SocialGrowthVisual({ platform }: Props) {
             
             <div className="flex gap-4 text-xs">
               <div className="text-white/50"><span className="text-white font-bold">452</span> Following</div>
-              <div className="text-white/50"><span className="text-white font-bold">8,742</span> Followers</div>
+              <div className="text-white/50"><span className="text-white font-bold font-variant-numeric tabular-nums">{currentDisplayFollowers}</span> Followers</div>
             </div>
           </div>
 
@@ -177,7 +237,7 @@ export function SocialGrowthVisual({ platform }: Props) {
             
             <div className="flex gap-3 text-sm font-bold text-gray-700 mb-4">
               <div>17K <span className="font-normal text-gray-500">Likes</span></div>
-              <div>18K <span className="font-normal text-gray-500">Followers</span></div>
+              <div><span className="font-variant-numeric tabular-nums">{currentDisplayFollowers}</span> <span className="font-normal text-gray-500">Followers</span></div>
             </div>
 
             <div className="flex gap-2 w-full">
@@ -243,7 +303,7 @@ export function SocialGrowthVisual({ platform }: Props) {
                 <span className="text-[10px] text-white/50">Following</span>
               </div>
               <div className="flex flex-col items-center border-x border-white/20 px-6">
-                <span className="font-bold text-sm text-white">256K</span>
+                <span className="font-bold text-sm text-white font-variant-numeric tabular-nums">{currentDisplayFollowers}</span>
                 <span className="text-[10px] text-white/50">Followers</span>
               </div>
               <div className="flex flex-col items-center">
@@ -281,7 +341,7 @@ export function SocialGrowthVisual({ platform }: Props) {
     return (
       <div className="w-full h-full flex flex-col relative text-white bg-black">
         <div className="flex justify-between items-center w-full px-4 pt-4 pb-2">
-          
+          <span className="font-bold text-xs flex items-center gap-1 min-w-0 pr-1 whitespace-nowrap"><ShieldCheck className="w-3.5 h-3.5 shrink-0" /> yourbrand</span>
           <span className="text-white/80"><BarChart3 className="w-5 h-5" /></span>
         </div>
 
@@ -297,7 +357,7 @@ export function SocialGrowthVisual({ platform }: Props) {
               <span className="text-[10px] text-white/70">Posts</span>
             </div>
             <div className="flex flex-col items-center">
-              <span className="font-bold text-base text-white">13.2K</span>
+              <span className="font-bold text-base text-white font-variant-numeric tabular-nums">{currentDisplayFollowers}</span>
               <span className="text-[10px] text-white/70">Followers</span>
             </div>
             <div className="flex flex-col items-center">
@@ -352,7 +412,7 @@ export function SocialGrowthVisual({ platform }: Props) {
   };
 
   return (
-    <div className="relative w-full max-w-[850px] mx-auto min-h-[480px] md:min-h-[550px] flex items-center justify-center my-6 px-2 py-8">
+    <div ref={observerRef} className="relative w-full max-w-[850px] mx-auto min-h-[480px] md:min-h-[550px] flex items-center justify-center my-6 px-2 py-8">
       
       {/* Glow / Gradient de Fundo - Shared Across Platforms */}
       <div className={cn(
@@ -383,7 +443,7 @@ export function SocialGrowthVisual({ platform }: Props) {
             platform={platformType} 
             type='followers' 
             position="top-left" 
-            initialCount={platformType === 'tiktok' ? 256782 : platformType === 'instagram' ? 13242 : platformType === 'twitter' ? 8742 : 17832} 
+            initialCount={followerCount} 
           />
           
           {/* Notification 2 (Likes right-middle uniformizado) */}
@@ -418,7 +478,7 @@ export function SocialGrowthVisual({ platform }: Props) {
           </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-white font-bold text-sm tabular-nums">
-              {count.toLocaleString('en-US')}
+              {followerCount.toLocaleString('en-US')}
             </span>
             <ArrowUpRight className={cn("w-3 h-3 md:w-4 md:h-4 stroke-[3]", platformType === 'facebook' ? 'text-blue-400' : platformType === 'twitter' ? 'text-neutral-400' : platformType === 'tiktok' ? 'text-cyan-400' : 'text-pink-400')} />
           </div>

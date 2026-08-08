@@ -12,7 +12,7 @@ interface FloatingNotificationProps {
 }
 
 export function FloatingNotification({ platform, type, position, initialCount = 124 }: FloatingNotificationProps) {
-  const [count, setCount] = useState(initialCount);
+  const [count, setCount] = useState(0); // Mudança Principal: Iniciar as animações de todos em 0!
   const [pulse, setPulse] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [particle, setParticle] = useState(false);
@@ -33,44 +33,63 @@ export function FloatingNotification({ platform, type, position, initialCount = 
   };
 
   useEffect(() => {
-    // Staggered entrance
+    // IntersecionObserver simulation
     let mountDelay = 150;
     if (position === 'middle-right') mountDelay = 300;
     if (position === 'bottom-left') mountDelay = 450;
     
-    const mountTimer = setTimeout(() => setMounted(true), mountDelay);
-
-    if (type === 'status') return () => clearTimeout(mountTimer);
-
-    // Organic count updates
-    const updateTick = () => {
-      const increment = 
-        type === 'views' ? Math.floor(Math.random() * 32) + 8 :
-        type === 'likes' && platform === 'tiktok' ? Math.floor(Math.random() * 10) + 2 :
-        Math.floor(Math.random() * 5) + 1;
-
-      setCount(c => c + increment);
-      setPulse(true);
+    const mountTimer = setTimeout(() => {
+      setMounted(true);
       
-      if (type === 'likes' || type === 'views') {
-        setParticle(true);
-        setTimeout(() => setParticle(false), 800);
+      // NOVA LÓGICA DE CONTAGEM SOLICITADA (Subida do Zero contínua e desacelerada)
+      if (type !== 'status') {
+        let startTime: number;
+        const duration = 5500; // 5.5s cravado
+        const target = initialCount;
+        
+        const animateCount = (timestamp: number) => {
+          if (!startTime) startTime = timestamp;
+          const elapsed = timestamp - startTime;
+          
+          if (elapsed < duration) {
+            // Curva ease-out 
+            const t = elapsed / duration;
+            const progress = 1 - Math.pow(1 - t, 3);
+            
+            // Não piscar o botão excessivamente na subida super rápida, apenas quando ficar lento
+            const currentValue = Math.floor(progress * target);
+            setCount(currentValue);
+            
+            if (elapsed > duration * 0.7 && Math.random() > 0.8) {
+               setPulse(true);
+               setTimeout(() => setPulse(false), 200);
+               
+               if ((type === 'likes' || type === 'views') && Math.random() > 0.85) {
+                 setParticle(true);
+                 setTimeout(() => setParticle(false), 800);
+               }
+            }
+            
+            requestAnimationFrame(animateCount);
+          } else {
+            // Cava no Target Máximo no final
+            setCount(target);
+            setPulse(true);
+            setTimeout(() => setPulse(false), 400);
+            if (type === 'likes' || type === 'views') {
+                 setParticle(true);
+                 setTimeout(() => setParticle(false), 800);
+            }
+          }
+        };
+        requestAnimationFrame(animateCount);
       }
-
-      setTimeout(() => setPulse(false), 300);
-
-      const minBase = type === 'views' ? 2000 : 3000;
-      const nextDelay = minBase + Math.random() * 2500;
-      timeout = setTimeout(updateTick, nextDelay);
-    };
-
-    let timeout = setTimeout(updateTick, 2500 + Math.random() * 2000);
+    }, mountDelay);
 
     return () => {
       clearTimeout(mountTimer);
-      clearTimeout(timeout);
     };
-  }, [type, platform, position]);
+  }, [type, position, initialCount, platform]);
 
   // Unified visual architectural model based off Facebook's dark UI block approach.
   const getPlatformConfig = () => {
@@ -212,10 +231,10 @@ export function FloatingNotification({ platform, type, position, initialCount = 
         ) : (
           <>
             <div className="flex items-baseline gap-1">
-              <div className={cn("font-bold text-[15px] md:text-[17px] tabular-nums tracking-tight leading-none", pConfig.numberColor)}>
+              <div className={cn("font-bold text-[15px] md:text-[17px] tabular-nums tracking-tight leading-none font-variant-numeric", pConfig.numberColor)} style={{ fontVariantNumeric: "tabular-nums" }}>
                 {mConfig.prefix}{(count).toLocaleString('en-US')}
               </div>
-              <ArrowUpRight className={cn("w-2.5 h-2.5 md:w-3 md:h-3 stroke-[3]", pConfig.badgeColor)} />
+              <ArrowUpRight className={cn("w-2.5 h-2.5 md:w-3 md:h-3 stroke-[3] ml-1", pConfig.badgeColor)} />
             </div>
             <div className={cn("text-[10px] md:text-[11px] font-semibold tracking-tight mt-1 leading-none", pConfig.textColor)}>{mConfig.label}</div>
             <div className={cn("text-[8px] md:text-[9px] font-bold tracking-wider mt-1 uppercase", pConfig.badgeColor)}>
@@ -227,5 +246,3 @@ export function FloatingNotification({ platform, type, position, initialCount = 
     </div>
   );
 }
-/ *   T r i g g e r   V e r c e l   R e s t a r t   F i n a l   S y n c   * /  
- 
