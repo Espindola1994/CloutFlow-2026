@@ -281,7 +281,7 @@ export function SocialGrowthVisual({ platform }: Props) {
     return (
       <div className="w-full h-full flex flex-col relative text-white bg-black">
         <div className="flex justify-between items-center w-full px-4 pt-4 pb-2">
-          <span className="font-bold text-sm flex items-center gap-1"><ShieldCheck className="w-4 h-4" /> yourbrand</span>
+          <span className="font-bold text-xs flex items-center gap-1 min-w-0 pr-1 whitespace-nowrap"><ShieldCheck className="w-3.5 h-3.5 shrink-0" /> yourbrand</span>
           <span className="text-white/80"><BarChart3 className="w-5 h-5" /></span>
         </div>
 
