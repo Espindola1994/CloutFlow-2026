@@ -32,12 +32,12 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mx-auto mt-8">
-      {/* Real Followers Card */}
+      {/* Real Followers Card - NO HOVER ON CARD */}
       <button 
-        className="text-left w-full h-full"
-        onClick={() => setFollowerType('real')}
+        className="text-left w-full h-full cursor-default"
+        type="button"
       >
-        <Card className="h-full border-border/40 border-primary/20 bg-muted/10 transition-all cursor-pointer relative overflow-hidden group">
+        <Card className="h-full border-border/40 border-primary/20 bg-muted/10 relative overflow-hidden">
           <div className="absolute top-0 right-0 bg-primary/10 text-primary text-xs font-bold px-4 py-1.5 rounded-bl-lg z-10 flex items-center gap-1 border-b border-l border-primary/20">
             BEST VALUE
           </div>
@@ -94,22 +94,37 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <strong className="text-foreground">Great for:</strong> <span className="text-muted-foreground">Building social proof, impressing visitors and growing fast</span>
               </div>
             </div>
-            <div className={`mt-6 pt-4 border-t border-border/40 flex items-center justify-center gap-2 text-foreground rounded-full py-3 font-bold transition-all ${
-              isFacebook ? 'bg-blue-500 text-white hover:bg-blue-600' : isTiktok ? 'bg-cyan-500 text-white hover:bg-cyan-600' : isInstagram ? 'bg-pink-500 text-white hover:bg-pink-600' : 'bg-primary text-primary-foreground hover:bg-primary/90'
-            }`}>
-              <span>Start growing</span>
-              <ArrowRight className="h-4 w-4 " />
+            
+            {/* CTA BUTTON WITH INTERACTIVE HOVER */}
+            <div 
+              className={`mt-6 pt-4 border-t border-border/40`}
+            >
+              <div 
+                className={`group flex items-center justify-center gap-2 rounded-full py-3 font-bold transition-all duration-200 ease-out cursor-pointer hover:-translate-y-[2px] hover:scale-[1.025] hover:brightness-[1.06] active:scale-[0.97] ${
+                  isFacebook ? 'bg-blue-500 text-white hover:shadow-[0_4px_16px_rgba(59,130,246,0.3)]' : 
+                  isTiktok ? 'bg-cyan-500 text-white hover:shadow-[0_4px_16px_rgba(6,182,212,0.3)]' : 
+                  isInstagram ? 'bg-pink-500 text-white hover:shadow-[0_4px_16px_rgba(236,72,153,0.3)]' : 
+                  'bg-primary text-primary-foreground hover:shadow-[0_4px_16px_rgba(var(--primary),0.3)]'
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation(); // Avoid triggering parent if any
+                  setFollowerType('real');
+                }}
+              >
+                <span>Start growing</span>
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 ease-out group-hover:translate-x-[4px]" />
+              </div>
             </div>
           </CardContent>
         </Card>
       </button>
 
-      {/* Niche-Targeted Followers Card */}
+      {/* Niche-Targeted Followers Card - NO HOVER ON CARD */}
       <button 
-        className="text-left w-full h-full"
-        onClick={() => setFollowerType('niche')}
+        className="text-left w-full h-full cursor-default"
+        type="button"
       >
-        <Card className={`h-full transition-all cursor-pointer relative overflow-hidden group ${
+        <Card className={`h-full relative overflow-hidden ${
           isTwitter 
             ? 'border-neutral-500/50 bg-gradient-to-b from-neutral-500/5 to-transparent shadow-sm' 
             : isFacebook 
@@ -186,17 +201,29 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <strong className="text-foreground">Great for:</strong> <span className="text-muted-foreground">Sellers, course creators and creators who want to sell more</span>
               </div>
             </div>
-            <div className={`mt-6 pt-4 border-t border-border/40 flex items-center justify-center gap-2 text-white rounded-full py-3 font-bold  shadow-lg ${
-              isTwitter ? 'bg-gradient-to-r from-neutral-500 to-neutral-700' : isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600' : isTiktok ? 'bg-gradient-to-r from-cyan-500 to-pink-500' : 'bg-gradient-to-r from-purple-500 to-pink-500'
-            }`}>
-              <span>Find my audience</span>
-              <ArrowRight className="h-4 w-4 " />
+
+            {/* CTA BUTTON WITH INTERACTIVE HOVER */}
+            <div className="mt-6 pt-4 border-t border-border/40">
+              <div 
+                className={`group flex items-center justify-center gap-2 text-white rounded-full py-3 font-bold shadow-lg cursor-pointer transition-all duration-200 ease-out hover:-translate-y-[2px] hover:scale-[1.025] hover:brightness-[1.06] active:scale-[0.97] ${
+                  isTwitter ? 'bg-gradient-to-r from-neutral-500 to-neutral-700 hover:shadow-[0_4px_16px_rgba(163,163,163,0.3)]' : 
+                  isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600 hover:shadow-[0_4px_16px_rgba(59,130,246,0.3)]' : 
+                  isTiktok ? 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:shadow-[0_4px_16px_rgba(236,72,153,0.3)]' : 
+                  'bg-gradient-to-r from-purple-500 to-pink-500 hover:shadow-[0_4px_16px_rgba(236,72,153,0.3)]'
+                }`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFollowerType('niche');
+                }}
+              >
+                <span>Find my audience</span>
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 ease-out group-hover:translate-x-[4px]" />
+              </div>
             </div>
+            
           </CardContent>
         </Card>
       </button>
     </div>
   );
 }
-/ *   T r i g g e r   C T A   V e r c e l   S y n c   1 2   * /  
- 
