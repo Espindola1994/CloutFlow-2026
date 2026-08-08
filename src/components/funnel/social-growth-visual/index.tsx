@@ -341,7 +341,7 @@ export function SocialGrowthVisual({ platform }: Props) {
     return (
       <div className="w-full h-full flex flex-col relative text-white bg-black">
         <div className="flex justify-between items-center w-full px-4 pt-4 pb-2">
-          <span className="font-bold text-xs flex items-center gap-1 min-w-0 pr-1 whitespace-nowrap"><ShieldCheck className="w-3.5 h-3.5 shrink-0" /> yourbrand</span>
+          
           <span className="text-white/80"><BarChart3 className="w-5 h-5" /></span>
         </div>
 
@@ -412,7 +412,7 @@ export function SocialGrowthVisual({ platform }: Props) {
   };
 
   return (
-    <div ref={observerRef} className="relative w-full max-w-[850px] mx-auto min-h-[480px] md:min-h-[550px] flex items-center justify-center my-6 px-2 py-8">
+    <div className="relative w-full max-w-[850px] mx-auto min-h-[480px] md:min-h-[550px] flex items-center justify-center my-6 px-2 py-8">
       
       {/* Glow / Gradient de Fundo - Shared Across Platforms */}
       <div className={cn(
@@ -438,15 +438,15 @@ export function SocialGrowthVisual({ platform }: Props) {
         {/* Floating Notifications */}
         <div className="absolute inset-0 w-full h-full pointer-events-none z-30">
           
-          {/* Notification 1 (Followers top-left uniformizado) */}
+          {/* Notification 1 */}
           <FloatingNotification 
             platform={platformType} 
-            type='followers' 
+            type="followers" 
             position="top-left" 
             initialCount={followerCount} 
           />
           
-          {/* Notification 2 (Likes right-middle uniformizado) */}
+          {/* Notification 2 */}
           <FloatingNotification 
             platform={platformType} 
             type={platformType === 'tiktok' ? 'views' : platformType === 'twitter' ? 'reposts' : 'likes'} 
@@ -501,5 +501,3 @@ export function SocialGrowthVisual({ platform }: Props) {
     </div>
   );
 }
-/ *   F i n a l   V e r c e l   T r i g g e r   1 4   * /  
- 
