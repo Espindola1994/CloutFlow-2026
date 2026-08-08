@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useFunnelStore } from "@/stores/funnel.store";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
@@ -42,9 +42,9 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
           <CardHeader className="pb-4 pt-8">
             <div className="flex items-center gap-4 mb-2">
               <div className={`p-3 rounded-xl flex items-center justify-center text-2xl h-12 w-12 border ${
-                isFacebook ? 'bg-blue-500/10 border-blue-500/20' : 'bg-primary/10 border-primary/20'
+                isFacebook ? 'bg-blue-500/10 border-blue-500/20' : isTiktok ? 'bg-purple-500/10 border-purple-500/20' : 'bg-primary/10 border-primary/20'
               }`}>
-                <IconComponent className={`h-6 w-6 ${isFacebook ? 'text-blue-500' : 'text-primary'}`} />
+                <IconComponent className={`h-6 w-6 ${isFacebook ? 'text-blue-500' : isTiktok ? 'text-purple-500' : 'text-primary'}`} />
               </div>
               <div>
                 <CardTitle className="text-xl">Real Followers</CardTitle>
@@ -82,7 +82,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <ShieldCheck className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong className="block text-foreground">Zero account risk</strong>
-                  <span className="text-muted-foreground">No password Â· 100% safe</span>
+                  <span className="text-muted-foreground">No password · 100% safe</span>
                 </div>
               </li>
             </ul>
@@ -93,7 +93,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
               </div>
             </div>
             <div className={`mt-6 pt-4 border-t border-border/40 flex items-center justify-center gap-2 text-foreground rounded-full py-3 font-bold transition-all ${
-              isFacebook ? 'bg-blue-500/10 group-hover:bg-blue-500 group-hover:text-white' : 'bg-secondary/50 group-hover:bg-primary group-hover:text-primary-foreground'
+              isFacebook ? 'bg-blue-500/10 group-hover:bg-blue-500 group-hover:text-white' : isTiktok ? 'bg-purple-500/10 group-hover:bg-purple-500 group-hover:text-white' : 'bg-secondary/50 group-hover:bg-primary group-hover:text-primary-foreground'
             }`}>
               <span>Start growing</span>
               <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
@@ -196,5 +196,3 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
     </div>
   );
 }
-/ *   T r i g g e r   V e r c e l   S y n c   * /  
- 
