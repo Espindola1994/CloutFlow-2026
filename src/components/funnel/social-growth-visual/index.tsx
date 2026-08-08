@@ -352,7 +352,7 @@ export function SocialGrowthVisual({ platform }: Props) {
   };
 
   return (
-    <div className="relative w-full max-w-[850px] mx-auto min-h-[480px] md:min-h-[550px] flex items-center justify-center my-6 overflow-visible px-2 py-8">
+    <div className="relative w-full max-w-[850px] mx-auto min-h-[480px] md:min-h-[550px] flex items-center justify-center my-6 px-2 py-8">
       
       {/* Glow / Gradient de Fundo - Shared Across Platforms */}
       <div className={cn(
@@ -363,7 +363,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         "bg-neutral-600"
       )} />
 
-      {/* Shared Absolute Container for All Platforms Geometry (Strictly Follows Facebook Rules) */}
+      {/* Shared Absolute Container for All Platforms Geometry */}
       <div className="relative z-10 w-full flex flex-col items-center justify-center h-[580px] md:h-[620px]">
         
         {/* Central Smartphone */}
@@ -373,20 +373,23 @@ export function SocialGrowthVisual({ platform }: Props) {
           {renderPhoneScreen()}
         </div>
 
-        {/* Floating Notifications (Strict Absolute Coordinates for all platforms based on Facebook template) */}
+        {/* Floating Notifications */}
         <div className="absolute inset-0 w-full h-full pointer-events-none z-30">
+          
+          {/* Notification 1 (O Instagram inverte com a Likes) */}
           <FloatingNotification 
             platform={platformType} 
-            type="followers" 
+            type={platformType === 'instagram' ? 'likes' : 'followers'} 
             position="top-left" 
-            initialCount={platformType === 'tiktok' ? 256782 : platformType === 'instagram' ? 13242 : platformType === 'twitter' ? 8742 : 17832} 
+            initialCount={platformType === 'tiktok' ? 256782 : platformType === 'instagram' ? 3241 : platformType === 'twitter' ? 8742 : 17832} 
           />
           
+          {/* Notification 2 (O Instagram joga Followers pra direita) */}
           <FloatingNotification 
             platform={platformType} 
-            type={platformType === 'tiktok' ? 'views' : platformType === 'twitter' ? 'reposts' : 'likes'} 
+            type={platformType === 'instagram' ? 'followers' : platformType === 'tiktok' ? 'views' : platformType === 'twitter' ? 'reposts' : 'likes'} 
             position="middle-right" 
-            initialCount={platformType === 'tiktok' ? 1421000 : platformType === 'instagram' ? 3241 : platformType === 'twitter' ? 67 : 12431}
+            initialCount={platformType === 'tiktok' ? 1421000 : platformType === 'instagram' ? 13242 : platformType === 'twitter' ? 67 : 12431}
           />
           
           <FloatingNotification 
@@ -404,7 +407,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         platformType === 'facebook' ? "bg-[#050c1c]/90 border-blue-500/20" :
         platformType === 'tiktok' ? "bg-[#0a0a0a]/90 border-cyan-500/20" :
         platformType === 'twitter' ? "bg-[#080808]/90 border-white/10" :
-        "bg-[#0a0a0a]/90 border-pink-500/20" // Dark graphite for Instagram too
+        "bg-[#0a0a0a]/90 border-pink-500/20"
       )}>
         <div className="flex justify-between items-center mb-3">
           <div className="flex items-center gap-2">
@@ -428,7 +431,6 @@ export function SocialGrowthVisual({ platform }: Props) {
             )}
             style={{ width: `${progress}%` }} 
           >
-            {/* Brilho na ponta da barra */}
             <div className="absolute right-0 top-0 bottom-0 w-4 bg-white/40 blur-[2px]" />
           </div>
         </div>
