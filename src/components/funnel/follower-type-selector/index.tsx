@@ -77,7 +77,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <CircleDollarSign className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong className="block text-foreground">Affordable pricing</strong>
-                  <span className="text-muted-foreground">Starting at {startPrice} Ã¢â‚¬â€ best value</span>
+                  <span className="text-muted-foreground">Starting at {startPrice} ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â best value</span>
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm">
@@ -227,5 +227,3 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
     </div>
   );
 }
-/ *   T r i g g e r   V e r c e l   R e s t a r t   F i x   1 5   * /  
- 
