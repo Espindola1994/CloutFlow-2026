@@ -33,7 +33,7 @@ export default function PlatformServicePage() {
       <main className="flex-1 py-5 md:py-8 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
         
-        <div className="container px-4 mx-auto relative z-10">
+        <div className="container w-full max-w-[1200px] px-4 md:px-6 lg:px-8 mx-auto relative z-10">
           <Button 
             variant="ghost" 
             className="mb-4 md:mb-6 pl-0 hover:bg-transparent hover:text-primary relative z-20 -ml-1"
@@ -70,7 +70,7 @@ export default function PlatformServicePage() {
             </p>
           </div>
 
-          {/* O Telefone Animado 3D sempre entra aqui, LOGO ABAIXO do tÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â­tulo */}
+          {/* O Telefone Animado 3D sempre entra aqui, LOGO ABAIXO do tÃƒÆ’Ã†â€™Ãƒâ€ Ã¢â‚¬â„¢ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â­tulo */}
           {showTypeSelector && (
             <SocialGrowthVisual platform={params.platform} />
           )}

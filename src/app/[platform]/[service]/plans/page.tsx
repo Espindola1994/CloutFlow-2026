@@ -43,7 +43,7 @@ export default function PlansPage() {
       <Header />
       
       <main className="flex-1 py-12 md:py-20">
-        <div className="container px-4 mx-auto">
+        <div className="container w-full max-w-[1200px] px-4 md:px-6 lg:px-8 mx-auto">
           <Button 
             variant="ghost" 
             className="mb-8 pl-0 hover:bg-transparent hover:text-primary"
