@@ -32,7 +32,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         btn1: "Follow",
         btn2: "Message"
       },
-      bottom: { text: "Followers growing in real time", baseCount: 100000, icon: BarChart3 }
+      bottom: { text: "Followers growing in real time", baseCount: 13344, icon: BarChart3 }
     },
     tiktok: {
       gradient: "from-cyan-500/20 via-black to-pink-500/10",
@@ -43,13 +43,13 @@ export function SocialGrowthVisual({ platform }: Props) {
         avatarBg: "bg-gradient-to-tr from-cyan-400 to-pink-500",
         stats: [
           { label: "Following", val: "142" },
-          { label: "Followers", val: "256.8K", highlight: true, rawValue: 2510000082 },
+          { label: "Followers", val: "256.8K", highlight: true, rawValue: 256782 },
           { label: "Likes", val: "1.2M" }
         ],
         btn1: "Follow",
         btn2: "Message"
       },
-      bottom: { text: "Followers growing in real time", baseCount: 100000, icon: Play }
+      bottom: { text: "Views increasing in real time", baseCount: 256782, icon: Play }
     },
     twitter: {
       gradient: "from-neutral-600/20 to-neutral-900/10",
@@ -65,7 +65,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         btn1: "Follow",
         btn2: "Message"
       },
-      bottom: { text: "Followers growing in real time", baseCount: 100000, icon: User }
+      bottom: { text: "Followers growing in real time", baseCount: 8752, icon: User }
     },
     facebook: {
       gradient: "from-blue-500/20 to-blue-800/10",
@@ -81,7 +81,7 @@ export function SocialGrowthVisual({ platform }: Props) {
         btn1: "+ Follow",
         btn2: "Message"
       },
-      bottom: { text: "Followers growing in real time", baseCount: 100000, icon: BarChart3 }
+      bottom: { text: "Engagement growing in real time", baseCount: 18000, icon: BarChart3 }
     }
   };
 
@@ -212,7 +212,7 @@ export function SocialGrowthVisual({ platform }: Props) {
                 <p className="text-xs mb-2">Content that connects.<br/>Growth that lasts.</p>
                 <div className="flex justify-between text-white/50 text-[10px]">
                   <span className="flex items-center gap-1"><MessageCircle className="w-3 h-3" /> 24</span>
-                  <span className="flex items-center gap-1"><Repeat2 className="w-3 h-3" /> 100000</span>
+                  <span className="flex items-center gap-1"><Repeat2 className="w-3 h-3" /> 67</span>
                   <span className="flex items-center gap-1"><Heart className="w-3 h-3" /> 248</span>
                   <span className="flex items-center gap-1"><BarChart3 className="w-3 h-3" /> 12K</span>
                 </div>
@@ -409,7 +409,7 @@ export function SocialGrowthVisual({ platform }: Props) {
   };
 
   return (
-    <div className="relative w-full max-w-[850px] mx-auto min-h-[500px] md:min-h-[550px] flex items-center justify-center mt-2 mb-16 md:my-6 px-0 md:px-2 py-4 md:py-8 overflow-hidden md:overflow-visible">
+    <div ref={observerRef} className="relative w-full max-w-[850px] mx-auto min-h-[500px] md:min-h-[550px] flex items-center justify-center mt-2 mb-16 md:my-6 px-0 md:px-2 py-4 md:py-8 overflow-hidden md:overflow-visible">
       
       {/* Glow / Gradient de Fundo - Shared Across Platforms */}
       <div className={cn(
@@ -498,5 +498,3 @@ export function SocialGrowthVisual({ platform }: Props) {
     </div>
   );
 }
-/ *   V e r c e l   C l e a n   T r i g g e r   * /  
- 
