@@ -340,18 +340,15 @@ export function SocialGrowthVisual({ platform }: Props) {
     // Default: Instagram
     return (
       <div className="w-full h-full flex flex-col relative text-white bg-black">
-        <div className="flex justify-between items-center w-full px-4 pt-4 pb-2">
-          <span className="font-bold text-xs flex items-center gap-1 min-w-0 pr-1 whitespace-nowrap"><ShieldCheck className="w-3.5 h-3.5 shrink-0" /> yourbrand</span>
+        <div className="flex justify-end items-center w-full px-4 pt-4 pb-0">
           <span className="text-white/80"><BarChart3 className="w-5 h-5" /></span>
         </div>
 
         <div className="w-full px-4 py-3 flex items-center justify-between">
-          <div className={`w-20 h-20 rounded-full ${current.mockup.avatarBg} p-1`}>
-            <div className="w-full h-full bg-[#111] rounded-full flex items-center justify-center border-2 border-black">
-              <User className="text-white/50 w-8 h-8" />
-            </div>
+          <div className={`w-[70px] h-[70px] rounded-full ${current.mockup.avatarBg} p-[2.5px] shrink-0`}>
+            <div className="w-full h-full bg-[#111] rounded-full flex items-center justify-center border-2 border-black"><User className="text-white/50 w-6 h-6" /></div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-1 justify-around items-center ml-2 md:ml-4">
             <div className="flex flex-col items-center">
               <span className="font-bold text-base text-white">48</span>
               <span className="text-[10px] text-white/70">Posts</span>
