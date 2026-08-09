@@ -30,13 +30,13 @@ export default function PlatformServicePage() {
     <div className="flex min-h-screen flex-col bg-background">
       <Header />
       
-      <main className="flex-1 py-12 md:py-20 relative overflow-hidden">
+      <main className="flex-1 py-5 md:py-8 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
         
         <div className="container px-4 mx-auto relative z-10">
           <Button 
             variant="ghost" 
-            className="mb-8 pl-0 hover:bg-transparent hover:text-primary relative z-20"
+            className="mb-4 md:mb-6 pl-0 hover:bg-transparent hover:text-primary relative z-20 -ml-1"
             onClick={() => {
               if (followerType) {
                 // If they picked a type, back button clears the type selection first
@@ -51,7 +51,7 @@ export default function PlatformServicePage() {
             {followerType ? "Back to Follower Types" : "Back to Services"}
           </Button>
 
-          <div className="max-w-3xl mx-auto text-center mb-6">
+          <div className="max-w-3xl mx-auto text-center mb-0">
             <div className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-4 capitalize">
               {params.platform === "instagram" && <FaInstagram className="w-3.5 h-3.5 shrink-0" />}
               {params.platform === "tiktok" && <FaTiktok className="w-3.5 h-3.5 shrink-0" />}
@@ -59,7 +59,7 @@ export default function PlatformServicePage() {
               {params.platform === "facebook" && <FaFacebook className="w-3.5 h-3.5 shrink-0 text-[#1877F2]" />}
               {params.platform === 'twitter' ? 'Twitter (X)' : params.platform} Growth
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-4 capitalize">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2 capitalize">
               {params.platform === 'twitter' ? 'Twitter (X)' : params.platform} {params.service.replace('-', ' ')}
             </h1>
             <p className="text-lg text-muted-foreground">
@@ -70,7 +70,7 @@ export default function PlatformServicePage() {
             </p>
           </div>
 
-          {/* O Telefone Animado 3D sempre entra aqui, LOGO ABAIXO do tÃ­tulo */}
+          {/* O Telefone Animado 3D sempre entra aqui, LOGO ABAIXO do tÃƒÂ­tulo */}
           {showTypeSelector && (
             <SocialGrowthVisual platform={params.platform} />
           )}
