@@ -4,7 +4,6 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useFunnelStore } from "@/stores/funnel.store";
 import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { PlanSelector } from "@/components/funnel/plan-selector";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -67,8 +66,6 @@ export default function PlansPage() {
           <PlanSelector plans={plans} />
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 }

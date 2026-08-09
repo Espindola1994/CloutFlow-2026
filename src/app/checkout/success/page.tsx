@@ -3,7 +3,6 @@
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -76,8 +75,6 @@ export default function CheckoutSuccessPage() {
           <SuccessContent />
         </Suspense>
       </main>
-      
-      <Footer />
     </div>
   );
 }

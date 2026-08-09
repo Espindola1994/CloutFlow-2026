@@ -5,7 +5,6 @@ import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowRight, CheckCircle2, Users, Zap } from "lucide-react";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 
 export default function Home() {
   const scrollToPlatforms = () => {
@@ -127,8 +126,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-      
-      <Footer />
     </div>
   );
 }

@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useFunnelStore } from "@/stores/funnel.store";
 import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
 import { ProfileInput } from "@/components/funnel/profile-input";
 import { FollowerTypeSelector } from "@/components/funnel/follower-type-selector";
 import { SocialGrowthVisual } from "@/components/funnel/social-growth-visual";
@@ -71,7 +70,7 @@ export default function PlatformServicePage() {
             </p>
           </div>
 
-          {/* O Telefone Animado 3D sempre entra aqui, LOGO ABAIXO do título */}
+          {/* O Telefone Animado 3D sempre entra aqui, LOGO ABAIXO do tÃ­tulo */}
           {showTypeSelector && (
             <SocialGrowthVisual platform={params.platform} />
           )}
@@ -110,8 +109,6 @@ export default function PlatformServicePage() {
 
         </div>
       </main>
-      
-      <Footer />
     </div>
   );
 }
