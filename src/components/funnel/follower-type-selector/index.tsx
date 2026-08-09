@@ -100,7 +100,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
               className={`mt-6 pt-4 border-t border-border/40`}
             >
               <div 
-                className={`group flex items-center justify-center gap-2 rounded-full py-3 font-bold transition-all duration-200 ease-out cursor-pointer hover:-translate-y-[2px] hover:scale-[1.025] hover:brightness-[1.06] active:scale-[0.97] ${
+                className={`group flex items-center justify-center gap-2 rounded-full py-3 font-bold transition-all duration-200 ease-out cursor-pointer hover:-translate-y-[2px] hover:scale-[1.025] hover:brightness-[1.06] active:scale-[0.97] active:brightness-[1.06] active:shadow-[0_4px_16px_rgba(var(--primary),0.2)] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                   isFacebook ? 'bg-blue-500 text-white hover:shadow-[0_4px_16px_rgba(59,130,246,0.3)]' : 
                   isTiktok ? 'bg-cyan-500 text-white hover:shadow-[0_4px_16px_rgba(6,182,212,0.3)]' : 
                   isInstagram ? 'bg-pink-500 text-white hover:shadow-[0_4px_16px_rgba(236,72,153,0.3)]' : 
@@ -112,7 +112,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 }}
               >
                 <span>Start growing</span>
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 ease-out group-hover:translate-x-[4px]" />
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 ease-out group-hover:translate-x-[4px] group-active:translate-x-[4px] motion-reduce:transform-none" />
               </div>
             </div>
           </CardContent>
@@ -205,7 +205,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
             {/* CTA BUTTON WITH INTERACTIVE HOVER */}
             <div className="mt-6 pt-4 border-t border-border/40">
               <div 
-                className={`group flex items-center justify-center gap-2 text-white rounded-full py-3 font-bold shadow-lg cursor-pointer transition-all duration-200 ease-out hover:-translate-y-[2px] hover:scale-[1.025] hover:brightness-[1.06] active:scale-[0.97] ${
+                className={`group flex items-center justify-center gap-2 text-white rounded-full py-3 font-bold shadow-lg cursor-pointer transition-all duration-200 ease-out hover:-translate-y-[2px] hover:scale-[1.025] hover:brightness-[1.06] active:scale-[0.97] active:brightness-[1.06] active:shadow-[0_4px_16px_rgba(236,72,153,0.3)] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                   isTwitter ? 'bg-gradient-to-r from-neutral-500 to-neutral-700 hover:shadow-[0_4px_16px_rgba(163,163,163,0.3)]' : 
                   isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600 hover:shadow-[0_4px_16px_rgba(59,130,246,0.3)]' : 
                   isTiktok ? 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:shadow-[0_4px_16px_rgba(236,72,153,0.3)]' : 
@@ -217,7 +217,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 }}
               >
                 <span>Find my audience</span>
-                <ArrowRight className="h-4 w-4 transition-transform duration-200 ease-out group-hover:translate-x-[4px]" />
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 ease-out group-hover:translate-x-[4px] group-active:translate-x-[4px] motion-reduce:transform-none" />
               </div>
             </div>
             
