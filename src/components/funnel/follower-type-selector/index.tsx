@@ -28,6 +28,8 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
     startPrice = "$7.90";
   }
 
+    const platformHaloColor = isTwitter ? 'rgba(255,255,255,0.07)' : isFacebook ? 'rgba(24,119,242,0.10)' : isTiktok ? 'rgba(37,244,238,0.09)' : 'rgba(214,41,118,0.10)';
+
   const platformName = platform === 'twitter' ? 'Twitter (X)' : platform.charAt(0).toUpperCase() + platform.slice(1);
 
   return (
@@ -37,7 +39,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
         className="text-left w-full h-full cursor-default"
         type="button"
       >
-        <Card className="h-full border-white/5 bg-muted/10 relative overflow-hidden shadow-[0_8px_30px_rgba(0,0,0,0.12)] md:hover:-translate-y-0.5 md:hover:shadow-[0_16px_40px_rgba(0,0,0,0.2)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+        <Card style={{ "--platform-halo": platformHaloColor } as React.CSSProperties} className="h-full bg-[#0a0a0a] relative overflow-hidden shadow-[0_18px_45px_rgba(0,0,0,0.5),0_6px_18px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/10 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0">
           <div className="absolute top-0 right-0 bg-primary/10 text-primary text-xs font-bold px-4 py-1.5 rounded-bl-lg z-10 flex items-center gap-1 border-b border-l border-primary/20">
             BEST VALUE
           </div>
@@ -77,7 +79,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 <CircleDollarSign className="h-4 w-4 text-emerald-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <strong className="block text-foreground">Affordable pricing</strong>
-                  <span className="text-muted-foreground">Starting at {startPrice} ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â best value</span>
+                  <span className="text-muted-foreground">Starting at {startPrice} ÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¢ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã…Â¡Ãƒâ€šÃ‚Â¬ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â best value</span>
                 </div>
               </li>
               <li className="flex items-start gap-3 text-sm">
@@ -124,14 +126,14 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
         className="text-left w-full h-full cursor-default"
         type="button"
       >
-        <Card className={`h-full relative overflow-hidden ${
+        <Card style={{ "--platform-halo": platformHaloColor } as React.CSSProperties} className={`h-full relative overflow-hidden ${
           isTwitter 
-            ? 'border-neutral-500/50 bg-gradient-to-b from-neutral-500/5 to-transparent shadow-[0_8px_30px_rgba(0,0,0,0.12)] md:hover:-translate-y-0.5 md:hover:shadow-[0_16px_40px_rgba(0,0,0,0.2)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0' 
+            ? 'border-white/10 bg-[#0a0a0a] shadow-[0_18px_45px_rgba(0,0,0,0.5),0_6px_18px_rgba(0,0,0,0.35),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/10 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0' 
             : isFacebook 
-              ? 'border-blue-500/50 bg-gradient-to-b from-blue-500/5 to-transparent shadow-[0_8px_30px_rgba(0,0,0,0.12)] md:hover:-translate-y-0.5 md:hover:shadow-[0_16px_40px_rgba(0,0,0,0.2)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0' 
+              ? 'border-white/10 bg-[#0a0a0a] shadow-[0_18px_45px_rgba(0,0,0,0.5),0_6px_18px_rgba(0,0,0,0.35),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/10 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0' 
               : isTiktok
-                ? 'border-pink-500/50 bg-gradient-to-b from-cyan-500/5 via-transparent to-pink-500/5 shadow-[0_8px_30px_rgba(0,0,0,0.12)] md:hover:-translate-y-0.5 md:hover:shadow-[0_16px_40px_rgba(0,0,0,0.2)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0'
-                : 'border-pink-500/50 bg-gradient-to-b from-pink-500/5 to-transparent shadow-[0_8px_30px_rgba(0,0,0,0.12)] md:hover:-translate-y-0.5 md:hover:shadow-[0_16px_40px_rgba(0,0,0,0.2)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0'
+                ? 'border-white/10 bg-[#0a0a0a] shadow-[0_18px_45px_rgba(0,0,0,0.5),0_6px_18px_rgba(0,0,0,0.35),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/10 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0'
+                : 'border-white/10 bg-[#0a0a0a] shadow-[0_18px_45px_rgba(0,0,0,0.5),0_6px_18px_rgba(0,0,0,0.35),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/10 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0'
         }`}>
           <div className={`absolute top-0 right-0 text-white text-xs font-bold px-4 py-1.5 rounded-bl-lg z-10 flex items-center gap-1 shadow-md ${
             isTwitter ? 'bg-gradient-to-r from-neutral-400 to-neutral-600' : isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600' : isTiktok ? 'bg-gradient-to-r from-cyan-500 to-pink-500' : 'bg-gradient-to-r from-orange-500 to-pink-500'
