@@ -1,12 +1,37 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Zap, Layers, Link as LinkIcon, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { SocialGrowthEngine } from "@/components/funnel/social-growth-visual/social-growth-engine";
+import { SocialGrowthOrbit } from "@/components/funnel/social-growth-visual/social-growth-orbit";
+import { Sparkles } from "lucide-react";
 
 export default function Home() {
+  const [showStickyCTA, setShowStickyCTA] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          // Se o CTA principal sair da tela, mostra a barra sticky. Se voltar, esconde.
+          setShowStickyCTA(!entry.isIntersecting);
+        });
+      },
+      { threshold: 0 }
+    );
+
+    const mainCTA = document.getElementById('main-hero-cta');
+    if (mainCTA) {
+      observer.observe(mainCTA);
+    }
+
+    return () => {
+      if (mainCTA) observer.unobserve(mainCTA);
+    };
+  }, []);
+
   const scrollToPlatforms = () => {
     const platformsSection = document.getElementById('platforms-section');
     if (platformsSection) {
@@ -18,93 +43,85 @@ export default function Home() {
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full pt-10 pb-16 md:pt-14 md:pb-24 lg:pt-16 lg:pb-32 flex items-center justify-center relative overflow-hidden bg-background">
+        <section className="w-full pt-10 pb-16 md:pt-14 md:pb-24 lg:pt-16 lg:pb-32 flex flex-col items-center relative overflow-hidden bg-background">
           {/* Ambient Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vw] max-w-[800px] max-h-[800px] bg-[radial-gradient(circle,rgba(124,92,252,0.12),transparent_55%)] pointer-events-none" />
-          <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[600px] max-h-[600px] bg-[radial-gradient(circle,rgba(56,189,248,0.08),transparent_60%)] pointer-events-none" />
+          <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[80vw] h-[80vw] max-w-[800px] max-h-[800px] bg-[radial-gradient(circle,rgba(124,92,252,0.1),transparent_60%)] pointer-events-none z-0" />
+          <div className="absolute top-[30%] left-1/2 -translate-x-1/2 w-[60vw] h-[60vw] max-w-[600px] max-h-[600px] bg-[radial-gradient(circle,rgba(56,189,248,0.06),transparent_60%)] pointer-events-none z-0" />
           
-          <div className="container px-4 md:px-6 relative z-10 mx-auto max-w-[1200px]">
+          <div className="container px-4 md:px-6 relative z-10 mx-auto max-w-[1200px] flex flex-col items-center text-center">
             
-            {/* 2-Column Desktop / Stacked Mobile */}
-            <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
-              
-              {/* LEFT COLUMN: Content */}
-              <div className="w-full lg:w-[55%] flex flex-col items-center lg:items-start text-center lg:text-left relative z-20">
-                
-                <div className="mb-8 md:mb-10 w-[170px] md:w-[230px] flex items-center justify-center lg:justify-start">
-                  <Image 
-                    src="/cloutflow-logo.png" 
-                    alt="CloutFlow Logo" 
-                    width={400} 
-                    height={100} 
-                    className="w-full h-auto object-contain drop-shadow-[0_2px_10px_rgba(124,92,252,0.15)]"
-                    priority
-                  />
-                </div>
-
-                <div className="inline-flex items-center rounded-full border border-primary/30 bg-surface px-3 py-1 text-sm font-medium text-foreground mb-6 shadow-[0_0_15px_rgba(124,92,252,0.15)]">
-                  <Zap className="mr-2 h-4 w-4 text-accent" />
-                  <span>The #1 Social Media Growth Platform</span>
-                </div>
-                
-                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] leading-[1.1] font-extrabold tracking-tight mb-6 text-foreground">
-                  Grow Your Social Presence. <br className="hidden lg:block" />
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Across Every Platform.</span>
-                </h1>
-                
-                <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-[520px]">
-                  Choose your network, select the growth you want, and manage everything from one place. No passwords required.
-                </p>
-                
-                {/* CTAs */}
-                <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-                  <Link href="/instagram" className="w-full sm:w-auto">
-                    <Button size="lg" className="w-full sm:w-auto text-[17px] font-semibold px-8 h-14 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground hover:brightness-110 hover:-translate-y-[1px] active:scale-[0.98] transition-all shadow-[0_8px_24px_rgba(124,92,252,0.25)] border-0">
-                      Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </Link>
-                  <Button 
-                    onClick={scrollToPlatforms}
-                    size="lg" 
-                    variant="outline" 
-                    className="w-full sm:w-auto text-[17px] font-medium px-8 h-14 rounded-full bg-surface border-border text-foreground hover:bg-surface-elevated active:scale-[0.98] transition-all"
-                  >
-                    View Services
-                  </Button>
-                </div>
-                
-                {/* Social Proof */}
-                <div className="mt-8 flex flex-col items-center lg:items-start">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center">
-                      <div className="w-[30px] h-[30px] rounded-full border-2 border-background bg-surface overflow-hidden shrink-0">
-                        <img src="https://i.pravatar.cc/100?img=1" alt="Customer" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="w-[30px] h-[30px] rounded-full border-2 border-background bg-surface overflow-hidden -ml-2 shrink-0">
-                        <img src="https://i.pravatar.cc/100?img=2" alt="Customer" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="w-[30px] h-[30px] rounded-full border-2 border-background bg-surface overflow-hidden -ml-2 shrink-0">
-                        <img src="https://i.pravatar.cc/100?img=3" alt="Customer" className="w-full h-full object-cover" />
-                      </div>
-                      <div className="w-[30px] h-[30px] rounded-full border-2 border-background bg-surface overflow-hidden -ml-2 shrink-0">
-                        <img src="https://i.pravatar.cc/100?img=4" alt="Customer" className="w-full h-full object-cover" />
-                      </div>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-[14px] text-foreground leading-tight">52,749+ satisfied customers</span>
-                      <span className="text-[12px] text-muted-foreground leading-tight">Trusted by creators worldwide</span>
-                    </div>
-                  </div>
-                </div>
-                
-              </div>
-              
-              {/* RIGHT COLUMN: Visual */}
-              <div className="w-full lg:w-[45%]">
-                <SocialGrowthEngine />
-              </div>
-              
+            {/* CloutFlow Logo Centered */}
+            <div className="mb-8 md:mb-10 w-[145px] md:w-[180px] animate-in fade-in slide-in-from-bottom-2 duration-1000">
+              <Image 
+                src="/cloutflow-logo.png" 
+                alt="CloutFlow Logo" 
+                width={400} 
+                height={100} 
+                className="w-full h-auto object-contain"
+                priority
+              />
             </div>
+
+            {/* Badge */}
+            <div className="inline-flex items-center rounded-full border border-border bg-surface/50 backdrop-blur-sm px-3 py-1.5 text-[13px] font-medium text-foreground mb-6 shadow-sm animate-in fade-in slide-in-from-bottom-3 duration-1000 delay-100 fill-mode-both">
+              <Sparkles className="mr-2 h-4 w-4 text-accent" />
+              <span>Social Growth • Made Simple</span>
+            </div>
+            
+            {/* Headline */}
+            <h1 className="text-[36px] sm:text-[44px] md:text-[56px] lg:text-[64px] leading-[1.08] font-bold tracking-tight mb-5 text-foreground max-w-[950px] animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-200 fill-mode-both">
+              Turn attention into real growth. <br className="hidden md:block" />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Across every platform.</span>
+            </h1>
+            
+            {/* Subheadline */}
+            <p className="text-[15px] md:text-[18px] text-muted-foreground mb-10 max-w-[650px] animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300 fill-mode-both">
+              Followers, likes and views for Instagram, TikTok, Facebook and X — all in one place.
+            </p>
+            
+            {/* CTAs */}
+            <div id="main-hero-cta" className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4 w-full sm:w-auto animate-in fade-in slide-in-from-bottom-5 duration-1000 delay-400 fill-mode-both">
+              <Link href="/instagram" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto text-[16px] font-bold px-8 h-14 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground hover:brightness-110 md:hover:-translate-y-[2px] active:scale-[0.98] transition-all shadow-[0_4px_20px_rgba(124,92,252,0.25)] border-0 group">
+                  Start Growing <ArrowRight className="ml-2 h-5 w-5 md:group-hover:translate-x-[3px] transition-transform" />
+                </Button>
+              </Link>
+              <Button 
+                onClick={scrollToPlatforms}
+                size="lg" 
+                variant="outline" 
+                className="w-full sm:w-auto text-[16px] font-semibold px-8 h-14 rounded-full bg-transparent border-border text-foreground hover:bg-surface-elevated active:scale-[0.98] transition-all"
+              >
+                Explore Services
+              </Button>
+            </div>
+            
+            {/* Social Proof */}
+            <div className="mt-10 flex items-center justify-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-1000 delay-500 fill-mode-both">
+              <div className="flex items-center">
+                <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-full border-[2px] border-background bg-surface overflow-hidden shrink-0">
+                  <img src="https://i.pravatar.cc/100?img=1" alt="Customer" className="w-full h-full object-cover" />
+                </div>
+                <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-full border-[2px] border-background bg-surface overflow-hidden -ml-2 shrink-0">
+                  <img src="https://i.pravatar.cc/100?img=2" alt="Customer" className="w-full h-full object-cover" />
+                </div>
+                <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-full border-[2px] border-background bg-surface overflow-hidden -ml-2 shrink-0">
+                  <img src="https://i.pravatar.cc/100?img=3" alt="Customer" className="w-full h-full object-cover" />
+                </div>
+                <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-full border-[2px] border-background bg-surface overflow-hidden -ml-2 shrink-0">
+                  <img src="https://i.pravatar.cc/100?img=4" alt="Customer" className="w-full h-full object-cover" />
+                </div>
+              </div>
+              <span className="font-bold text-[13px] md:text-[14px] text-foreground">
+                52,749+ <span className="font-normal text-muted-foreground ml-0.5">satisfied customers</span>
+              </span>
+            </div>
+            
+            {/* Orbit / Social Growth Engine */}
+            <div className="w-full mt-10 md:mt-16 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-700 fill-mode-both">
+              <SocialGrowthOrbit />
+            </div>
+
           </div>
         </section>
 
