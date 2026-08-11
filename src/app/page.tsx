@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Zap } from "lucide-react";
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
+import { GrowthOverviewPreview } from "@/components/funnel/social-growth-visual/growth-overview-preview";
 
 export default function Home() {
   const scrollToPlatforms = () => {
@@ -19,55 +20,74 @@ export default function Home() {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-24 md:py-32 lg:py-40 flex items-center justify-center relative overflow-hidden bg-background">
+        <section className="w-full py-16 md:py-24 lg:py-32 flex items-center justify-center relative overflow-hidden bg-background">
           {/* Ambient Glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[radial-gradient(circle,rgba(124,92,252,0.14),transparent_55%)] pointer-events-none" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[radial-gradient(circle,rgba(56,189,248,0.05),transparent_60%)] pointer-events-none" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vw] max-w-[800px] max-h-[800px] bg-[radial-gradient(circle,rgba(124,92,252,0.12),transparent_55%)] pointer-events-none" />
+          <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[600px] max-h-[600px] bg-[radial-gradient(circle,rgba(56,189,248,0.08),transparent_60%)] pointer-events-none" />
           
-          <div className="container px-4 md:px-6 relative z-10 text-center max-w-4xl mx-auto">
-            <div className="inline-flex items-center rounded-full border border-primary/30 bg-surface px-3 py-1 text-sm font-medium text-foreground mb-8 shadow-[0_0_15px_rgba(124,92,252,0.15)]">
-              <Zap className="mr-2 h-4 w-4 text-accent" />
-              <span>The #1 Social Media Growth Platform</span>
-            </div>
+          <div className="container px-4 md:px-6 relative z-10 mx-auto max-w-[1200px]">
             
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-8 text-foreground">
-              Premium Growth for <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Serious Creators</span>
-            </h1>
-            
-            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-              Accelerate your social media presence with high-quality, authentic growth services. No bots, no passwords required.
-            </p>
-            
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/instagram" className="w-full sm:w-auto">
-                <Button size="lg" className="w-full text-lg px-8 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground hover:brightness-110 hover:-translate-y-[1px] transition-all shadow-[0_0_20px_rgba(124,92,252,0.20)] border-0">
-                  Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-              <Button 
-                onClick={scrollToPlatforms}
-                size="lg" 
-                variant="outline" 
-                className="w-full sm:w-auto text-lg px-8 rounded-full bg-surface border-border text-foreground hover:border-primary/50 hover:bg-surface-elevated transition-colors"
-              >
-                View Services
-              </Button>
-            </div>
-            
-            <div className="mt-16 flex items-center justify-center gap-8 text-muted-foreground text-sm font-medium">
-              <div className="flex items-center"><CheckCircle2 className="mr-2 h-4 w-4 text-success" /> Instant Delivery</div>
-              <div className="flex items-center"><CheckCircle2 className="mr-2 h-4 w-4 text-success" /> 24/7 Support</div>
-              <div className="flex items-center"><CheckCircle2 className="mr-2 h-4 w-4 text-success" /> 100% Secure</div>
+            {/* 2-Column Desktop / Stacked Mobile */}
+            <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
+              
+              {/* LEFT COLUMN: Content */}
+              <div className="w-full lg:w-[55%] flex flex-col items-center lg:items-start text-center lg:text-left">
+                
+                <div className="inline-flex items-center rounded-full border border-primary/30 bg-surface px-3 py-1 text-sm font-medium text-foreground mb-6 shadow-[0_0_15px_rgba(124,92,252,0.15)]">
+                  <Zap className="mr-2 h-4 w-4 text-accent" />
+                  <span>The #1 Social Media Growth Platform</span>
+                </div>
+                
+                <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-[4.25rem] leading-[1.1] font-extrabold tracking-tight mb-6 text-foreground">
+                  Grow Your Social Presence. <br className="hidden lg:block" />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Across Every Platform.</span>
+                </h1>
+                
+                <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-[520px]">
+                  Choose your network, select the growth you want, and manage everything from one place. No passwords required.
+                </p>
+                
+                {/* CTAs */}
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
+                  <Link href="/instagram" className="w-full sm:w-auto">
+                    <Button size="lg" className="w-full sm:w-auto text-[17px] font-semibold px-8 h-14 rounded-full bg-gradient-to-br from-primary to-accent text-primary-foreground hover:brightness-110 hover:-translate-y-[1px] active:scale-[0.98] transition-all shadow-[0_8px_24px_rgba(124,92,252,0.25)] border-0">
+                      Get Started Now <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                  <Button 
+                    onClick={scrollToPlatforms}
+                    size="lg" 
+                    variant="outline" 
+                    className="w-full sm:w-auto text-[17px] font-medium px-8 h-14 rounded-full bg-surface border-border text-foreground hover:bg-surface-elevated active:scale-[0.98] transition-all"
+                  >
+                    View Services
+                  </Button>
+                </div>
+                
+                {/* Trust Strip */}
+                <div className="mt-10 flex items-center flex-wrap justify-center lg:justify-start gap-x-6 gap-y-3 text-muted-foreground text-sm font-medium">
+                  <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success" /> Instant Delivery</div>
+                  <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success" /> 24/7 Support</div>
+                  <div className="flex items-center gap-2"><CheckCircle2 className="h-4 w-4 text-success" /> 100% Secure</div>
+                </div>
+                
+              </div>
+              
+              {/* RIGHT COLUMN: Visual */}
+              <div className="w-full lg:w-[45%] lg:pl-10">
+                <GrowthOverviewPreview />
+              </div>
+              
             </div>
           </div>
         </section>
 
         {/* Platforms */}
-        <section id="platforms-section" className="w-full py-20 bg-background-secondary">
+        <section id="platforms-section" className="w-full py-20 bg-background-secondary relative border-t border-border/30">
           <div className="container px-4 md:px-6 mx-auto">
             <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold tracking-tight mb-4 text-foreground">Choose Your Platform</h2>
-              <p className="text-muted-foreground">Select the social network you want to grow today.</p>
+              <h2 className="text-3xl font-bold tracking-tight mb-4 text-foreground">Start With Your Platform</h2>
+              <p className="text-muted-foreground">Choose where you want to grow first.</p>
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 lg:gap-5 max-w-5xl mx-auto">
@@ -171,29 +191,34 @@ export default function Home() {
         </section>
         
         {/* How it works */}
-        <section className="w-full py-24 bg-background">
+        <section className="w-full py-24 bg-background relative">
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-border/50 to-transparent" />
           <div className="container px-4 md:px-6 mx-auto">
             <div className="text-center mb-16">
               <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-4 text-foreground">How It Works</h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">Three simple steps to supercharge your social media presence.</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-10 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto relative">
+              {/* Desktop Connecting Line */}
+              <div className="hidden md:block absolute top-[45px] left-[15%] right-[15%] h-[2px] bg-border z-0" />
+              
+              {/* Mobile Connecting Line */}
+              <div className="md:hidden absolute top-[10%] bottom-[10%] left-[39px] w-[2px] bg-border z-0" />
+
               {[
                 { step: "01", title: "Select Service", desc: "Choose the platform and the type of growth you need." },
                 { step: "02", title: "Enter Details", desc: "Provide your username or post link. We never ask for your password." },
                 { step: "03", title: "Watch It Grow", desc: "Checkout securely and watch your numbers go up instantly." },
               ].map((item, i) => (
-                <div key={i} className="flex flex-col items-center text-center relative z-10">
-                  <div className="w-16 h-16 rounded-full bg-surface-elevated text-accent flex items-center justify-center text-2xl font-bold mb-6 border border-border shadow-[0_0_15px_rgba(56,189,248,0.1)]">
+                <div key={i} className="flex flex-row md:flex-col items-center md:items-center text-left md:text-center relative z-10 bg-surface border border-border rounded-2xl p-6 shadow-sm hover:shadow-md transition-shadow">
+                  <div className="w-12 h-12 md:w-16 md:h-16 shrink-0 rounded-full bg-surface-elevated text-accent flex items-center justify-center text-xl md:text-2xl font-bold md:mb-6 border border-border shadow-[0_0_15px_rgba(56,189,248,0.1)] mr-5 md:mr-0">
                     {item.step}
                   </div>
-                  <h3 className="text-xl font-bold mb-2 text-foreground">{item.title}</h3>
-                  <p className="text-muted-foreground">{item.desc}</p>
-                  
-                  {i < 2 && (
-                    <div className="hidden md:block absolute top-8 left-1/2 w-full h-[2px] bg-gradient-to-r from-border via-primary/30 to-transparent -z-10" />
-                  )}
+                  <div>
+                    <h3 className="text-lg md:text-xl font-bold mb-1 md:mb-2 text-foreground">{item.title}</h3>
+                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
