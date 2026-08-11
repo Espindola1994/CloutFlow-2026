@@ -62,16 +62,29 @@ export function GrowthOverviewPreview() {
       
       <div className="bg-surface/80 backdrop-blur-xl border border-border rounded-2xl shadow-[0_20px_40px_rgba(0,0,0,0.4)] overflow-hidden relative">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface-elevated/50">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-primary/20">
-              <Zap className="w-3.5 h-3.5 text-accent" />
+        <div className="flex items-center gap-3 px-5 py-3 border-b border-border bg-surface-elevated/50 group hover:bg-surface-elevated/70 transition-colors">
+          <div className="flex items-center">
+            {/* Avatars */}
+            <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-full border-2 border-[#080B14] bg-surface overflow-hidden shrink-0">
+              <img src="https://i.pravatar.cc/100?img=1" alt="Customer" className="w-full h-full object-cover" />
             </div>
-            <span className="font-semibold text-sm text-foreground">Growth Overview</span>
+            <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-full border-2 border-[#080B14] bg-surface overflow-hidden -ml-2 shrink-0">
+              <img src="https://i.pravatar.cc/100?img=2" alt="Customer" className="w-full h-full object-cover" />
+            </div>
+            <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-full border-2 border-[#080B14] bg-surface overflow-hidden -ml-2 shrink-0">
+              <img src="https://i.pravatar.cc/100?img=3" alt="Customer" className="w-full h-full object-cover" />
+            </div>
+            <div className="w-[28px] h-[28px] md:w-[32px] md:h-[32px] rounded-full border-2 border-[#080B14] bg-surface overflow-hidden -ml-2 shrink-0">
+              <img src="https://i.pravatar.cc/100?img=4" alt="Customer" className="w-full h-full object-cover" />
+            </div>
           </div>
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-success/10 border border-success/20">
-            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-            <span className="text-[10px] font-bold text-success uppercase tracking-wider">Live</span>
+          <div className="flex flex-row md:flex-row items-center gap-1.5 md:gap-1.5 flex-wrap flex-1 min-w-0">
+            <span className="font-bold text-[13px] md:text-[14px] text-foreground shrink-0 whitespace-nowrap">
+              52,749+
+            </span>
+            <span className="text-[13px] md:text-[14px] text-muted-foreground truncate">
+              satisfied customers
+            </span>
           </div>
         </div>
 
