@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Zap, Layers, Link as LinkIcon, TrendingUp } from "lucide-react";
 import Link from "next/link";
-import { Header } from "@/components/layout/header";
+import Image from "next/image";
 import { SocialGrowthEngine } from "@/components/funnel/social-growth-visual/social-growth-engine";
 
 export default function Home() {
@@ -16,11 +16,9 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <Header />
-      
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="w-full py-16 md:py-24 lg:py-32 flex items-center justify-center relative overflow-hidden bg-background">
+        <section className="w-full pt-10 pb-16 md:pt-14 md:pb-24 lg:pt-16 lg:pb-32 flex items-center justify-center relative overflow-hidden bg-background">
           {/* Ambient Glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vw] max-w-[800px] max-h-[800px] bg-[radial-gradient(circle,rgba(124,92,252,0.12),transparent_55%)] pointer-events-none" />
           <div className="absolute top-1/2 right-0 -translate-y-1/2 w-[80vw] h-[80vw] max-w-[600px] max-h-[600px] bg-[radial-gradient(circle,rgba(56,189,248,0.08),transparent_60%)] pointer-events-none" />
@@ -31,8 +29,19 @@ export default function Home() {
             <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-8">
               
               {/* LEFT COLUMN: Content */}
-              <div className="w-full lg:w-[55%] flex flex-col items-center lg:items-start text-center lg:text-left">
+              <div className="w-full lg:w-[55%] flex flex-col items-center lg:items-start text-center lg:text-left relative z-20">
                 
+                <div className="mb-8 md:mb-10 w-[170px] md:w-[230px] flex items-center justify-center lg:justify-start">
+                  <Image 
+                    src="/cloutflow-logo.png" 
+                    alt="CloutFlow Logo" 
+                    width={400} 
+                    height={100} 
+                    className="w-full h-auto object-contain drop-shadow-[0_2px_10px_rgba(124,92,252,0.15)]"
+                    priority
+                  />
+                </div>
+
                 <div className="inline-flex items-center rounded-full border border-primary/30 bg-surface px-3 py-1 text-sm font-medium text-foreground mb-6 shadow-[0_0_15px_rgba(124,92,252,0.15)]">
                   <Zap className="mr-2 h-4 w-4 text-accent" />
                   <span>The #1 Social Media Growth Platform</span>
@@ -295,6 +304,24 @@ export default function Home() {
             </Link>
           </div>
         </div>
+
+        {/* Global Footer (Basic for now to accommodate logo) */}
+        <footer className="w-full bg-background-secondary border-t border-border py-12 md:py-16">
+          <div className="container px-4 md:px-6 mx-auto flex flex-col items-center justify-center">
+            <div className="w-[140px] md:w-[160px] opacity-80 mb-6">
+              <Image 
+                src="/cloutflow-logo.png" 
+                alt="CloutFlow Logo" 
+                width={300} 
+                height={75} 
+                className="w-full h-auto object-contain"
+              />
+            </div>
+            <p className="text-muted-foreground text-sm text-center">
+              &copy; {new Date().getFullYear()} CloutFlow. All rights reserved.
+            </p>
+          </div>
+        </footer>
       </main>
     </div>
   );
