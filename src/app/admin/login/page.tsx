@@ -49,8 +49,8 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-black p-4">
-      <Card className="w-full max-w-md border-border/40 bg-card/60 backdrop-blur-sm">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md border-border bg-surface-elevated">
         <CardHeader className="space-y-1 text-center">
           <div className="mx-auto mb-4 bg-primary/20 p-3 rounded-full w-fit">
             <Lock className="h-6 w-6 text-primary" />
@@ -83,7 +83,7 @@ export default function AdminLogin() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-accent text-primary-foreground hover:brightness-110 border-0" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}
             </Button>
           </form>

@@ -27,16 +27,17 @@ export default function PlatformServicePage() {
                            && !followerType;
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
       <Header />
       
       <main className="flex-1 py-5 md:py-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-[300px] bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
+        {/* Global ambient background layer for platform */}
+        <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-background-secondary to-transparent pointer-events-none" />
         
         <div className="container w-full max-w-[1200px] px-4 md:px-6 lg:px-8 mx-auto relative z-10">
           <Button 
             variant="ghost" 
-            className="mb-4 md:mb-6 pl-0 hover:bg-transparent hover:text-primary relative z-20 -ml-1"
+            className="mb-4 md:mb-6 pl-0 text-muted-foreground hover:bg-transparent hover:text-accent relative z-20 -ml-1"
             onClick={() => {
               if (followerType) {
                 // If they picked a type, back button clears the type selection first
@@ -52,14 +53,20 @@ export default function PlatformServicePage() {
           </Button>
 
           <div className="max-w-3xl mx-auto text-center mb-0">
-            <div className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-sm font-medium text-primary mb-4 capitalize">
+            <div className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-surface-elevated px-3 py-1 text-sm font-medium mb-4 capitalize
+              ${params.platform === 'instagram' ? 'text-pink-500 shadow-[0_0_10px_rgba(236,72,153,0.15)]' : ''}
+              ${params.platform === 'tiktok' ? 'text-[#00f2fe] shadow-[0_0_10px_rgba(0,242,254,0.15)]' : ''}
+              ${params.platform === 'twitter' ? 'text-white shadow-[0_0_10px_rgba(255,255,255,0.1)]' : ''}
+              ${params.platform === 'facebook' ? 'text-[#1877F2] shadow-[0_0_10px_rgba(24,119,242,0.15)]' : ''}
+              ${!['instagram','tiktok','twitter','facebook'].includes(params.platform) ? 'text-primary' : ''}
+            `}>
               {params.platform === "instagram" && <FaInstagram className="w-3.5 h-3.5 shrink-0" />}
               {params.platform === "tiktok" && <FaTiktok className="w-3.5 h-3.5 shrink-0" />}
-              {params.platform === "twitter" && <FaXTwitter className="w-3.5 h-3.5 shrink-0 text-primary" />}
-              {params.platform === "facebook" && <FaFacebook className="w-3.5 h-3.5 shrink-0 text-[#1877F2]" />}
+              {params.platform === "twitter" && <FaXTwitter className="w-3.5 h-3.5 shrink-0" />}
+              {params.platform === "facebook" && <FaFacebook className="w-3.5 h-3.5 shrink-0" />}
               {params.platform === 'twitter' ? 'Twitter (X)' : params.platform} Growth
             </div>
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2 capitalize">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight mb-2 capitalize text-foreground">
               {params.platform === 'twitter' ? 'Twitter (X)' : params.platform} {params.service.replace('-', ' ')}
             </h1>
             <p className="text-lg text-muted-foreground">
@@ -95,11 +102,11 @@ export default function PlatformServicePage() {
               </div>
               <ProfileInput />
               <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-6 text-muted-foreground text-sm">
-                <div className="flex items-center bg-card/50 px-4 py-2 rounded-full border border-border/40">
+                <div className="flex items-center bg-surface px-4 py-2 rounded-full border border-border">
                   <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-500" /> 
                   No passwords needed
                 </div>
-                <div className="flex items-center bg-card/50 px-4 py-2 rounded-full border border-border/40">
+                <div className="flex items-center bg-surface px-4 py-2 rounded-full border border-border">
                   <CheckCircle2 className="mr-2 h-4 w-4 text-emerald-500" /> 
                   Instant Start
                 </div>

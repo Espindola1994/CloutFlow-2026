@@ -39,7 +39,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
         className="text-left w-full h-full cursor-default"
         type="button"
       >
-        <Card style={{ "--platform-halo": platformHaloColor } as React.CSSProperties} className="h-full bg-[#0a0a0a] relative overflow-hidden shadow-[0_18px_45px_rgba(0,0,0,0.5),0_6px_18px_rgba(0,0,0,0.35),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/10 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0">
+        <Card style={{ "--platform-halo": platformHaloColor } as React.CSSProperties} className="h-full bg-surface relative overflow-hidden shadow-[0_12px_32px_rgba(0,0,0,0.3),inset_0_1px_0_rgba(255,255,255,0.06)] border border-border md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0">
           <div className="absolute top-0 right-0 bg-primary/10 text-primary text-xs font-bold px-4 py-1.5 rounded-bl-lg z-10 flex items-center gap-1 border-b border-l border-primary/20">
             BEST VALUE
           </div>
@@ -90,7 +90,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
                 </div>
               </li>
             </ul>
-            <div className="mt-4 p-3 bg-card border border-border/40 rounded-lg text-sm flex gap-2 items-start">
+            <div className="mt-4 p-3 bg-surface-elevated border border-border rounded-lg text-sm flex gap-2 items-start">
               <CheckCircle2 className="h-4 w-4 text-emerald-500 flex-shrink-0 mt-0.5" />
               <div>
                 <strong className="text-foreground">Great for:</strong> <span className="text-muted-foreground">Building social proof, impressing visitors and growing fast</span>
@@ -99,7 +99,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
             
             {/* CTA BUTTON WITH INTERACTIVE HOVER */}
             <div 
-              className={`mt-6 pt-4 border-t border-border/40`}
+              className={`mt-6 pt-4 border-t border-border`}
             >
               <div 
                 className={`group flex items-center justify-center gap-2 rounded-full py-3 font-bold transition-all duration-200 ease-out cursor-pointer hover:-translate-y-[2px] hover:scale-[1.025] hover:brightness-[1.06] active:scale-[0.97] active:brightness-[1.06] active:shadow-[0_4px_16px_rgba(var(--primary),0.2)] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
@@ -126,14 +126,14 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
         className="text-left w-full h-full cursor-default"
         type="button"
       >
-        <Card style={{ "--platform-halo": platformHaloColor } as React.CSSProperties} className={`h-full relative overflow-hidden ${
+        <Card style={{ "--platform-halo": platformHaloColor } as React.CSSProperties} className={`h-full relative overflow-hidden bg-surface border-border transition-all duration-300 ease-out md:hover:-translate-y-0.5 motion-reduce:transition-none motion-reduce:hover:translate-y-0 ${
           isTwitter 
-            ? 'border-white/10 bg-[#0a0a0a] shadow-[0_18px_45px_rgba(0,0,0,0.5),0_6px_18px_rgba(0,0,0,0.35),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/10 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0' 
+            ? 'shadow-[0_12px_32px_rgba(0,0,0,0.3),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)]' 
             : isFacebook 
-              ? 'border-white/10 bg-[#0a0a0a] shadow-[0_18px_45px_rgba(0,0,0,0.5),0_6px_18px_rgba(0,0,0,0.35),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/10 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0' 
+              ? 'shadow-[0_12px_32px_rgba(0,0,0,0.3),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)]' 
               : isTiktok
-                ? 'border-white/10 bg-[#0a0a0a] shadow-[0_18px_45px_rgba(0,0,0,0.5),0_6px_18px_rgba(0,0,0,0.35),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/10 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0'
-                : 'border-white/10 bg-[#0a0a0a] shadow-[0_18px_45px_rgba(0,0,0,0.5),0_6px_18px_rgba(0,0,0,0.35),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/10 md:hover:-translate-y-0.5 md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.6),0_8px_20px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)] transition-all duration-300 ease-out motion-reduce:transition-none motion-reduce:hover:translate-y-0'
+                ? 'shadow-[0_12px_32px_rgba(0,0,0,0.3),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)]'
+                : 'shadow-[0_12px_32px_rgba(0,0,0,0.3),0_0_24px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.06)] md:hover:shadow-[0_24px_50px_rgba(0,0,0,0.4),0_0_32px_var(--platform-halo),inset_0_1px_0_rgba(255,255,255,0.08)]'
         }`}>
           <div className={`absolute top-0 right-0 text-white text-xs font-bold px-4 py-1.5 rounded-bl-lg z-10 flex items-center gap-1 shadow-md ${
             isTwitter ? 'bg-gradient-to-r from-neutral-400 to-neutral-600' : isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600' : isTiktok ? 'bg-gradient-to-r from-cyan-500 to-pink-500' : 'bg-gradient-to-r from-orange-500 to-pink-500'
@@ -196,7 +196,7 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
               </li>
             </ul>
             <div className={`mt-4 p-3 rounded-lg text-sm border flex gap-2 items-start ${
-              isTwitter ? 'bg-neutral-500/5 border-neutral-500/20' : isFacebook ? 'bg-blue-500/5 border-blue-500/20' : isTiktok ? 'bg-pink-500/5 border-pink-500/20' : 'bg-pink-500/5 border-pink-500/20'
+              isTwitter ? 'bg-surface-elevated border-border' : isFacebook ? 'bg-surface-elevated border-border' : isTiktok ? 'bg-surface-elevated border-border' : 'bg-surface-elevated border-border'
             }`}>
               <Star className="h-4 w-4 flex-shrink-0 mt-0.5 text-yellow-500 fill-yellow-500" /> 
               <div>
@@ -205,9 +205,9 @@ export function FollowerTypeSelector({ platform = 'instagram' }: { platform?: st
             </div>
 
             {/* CTA BUTTON WITH INTERACTIVE HOVER */}
-            <div className="mt-6 pt-4 border-t border-border/40">
+            <div className="mt-6 pt-4 border-t border-border">
               <div 
-                className={`group flex items-center justify-center gap-2 text-white rounded-full py-3 font-bold shadow-lg cursor-pointer transition-all duration-200 ease-out hover:-translate-y-[2px] hover:scale-[1.025] hover:brightness-[1.06] active:scale-[0.97] active:brightness-[1.06] active:shadow-[0_4px_16px_rgba(236,72,153,0.3)] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                className={`group flex items-center justify-center gap-2 text-white rounded-full py-3 font-bold shadow-[0_8px_20px_rgba(0,0,0,0.2)] cursor-pointer transition-all duration-200 ease-out hover:-translate-y-[2px] hover:scale-[1.025] hover:brightness-[1.06] hover:shadow-[0_12px_28px_rgba(0,0,0,0.3)] active:scale-[0.97] active:brightness-[1.06] motion-reduce:transition-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
                   isTwitter ? 'bg-gradient-to-r from-neutral-500 to-neutral-700 hover:shadow-[0_4px_16px_rgba(163,163,163,0.3)]' : 
                   isFacebook ? 'bg-gradient-to-r from-blue-400 to-blue-600 hover:shadow-[0_4px_16px_rgba(59,130,246,0.3)]' : 
                   isTiktok ? 'bg-gradient-to-r from-cyan-500 to-pink-500 hover:shadow-[0_4px_16px_rgba(236,72,153,0.3)]' : 

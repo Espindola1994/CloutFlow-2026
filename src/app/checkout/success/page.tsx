@@ -37,7 +37,7 @@ function SuccessContent() {
         Thank you for your order. We are now processing it.
       </p>
       
-      <Card className="border-border/40 bg-card/40 backdrop-blur-sm mb-12">
+      <Card className="border-border bg-surface-elevated mb-12">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="text-left">

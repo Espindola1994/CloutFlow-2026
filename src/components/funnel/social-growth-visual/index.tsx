@@ -52,9 +52,9 @@ export function SocialGrowthVisual({ platform }: Props) {
       bottom: { text: "Views increasing in real time", baseCount: 256782, icon: Play }
     },
     twitter: {
-      gradient: "from-neutral-600/20 to-neutral-900/10",
-      accent: "text-neutral-300",
-      bgAccent: "bg-neutral-100 text-black",
+      gradient: "from-neutral-400/10 to-neutral-700/5",
+      accent: "text-foreground",
+      bgAccent: "bg-white text-black",
       logo: FaXTwitter,
       mockup: {
         avatarBg: "bg-neutral-800 border-2 border-black",
@@ -290,7 +290,7 @@ export function SocialGrowthVisual({ platform }: Props) {
 
           <div className="w-full px-4 pt-2 pb-4 flex flex-col items-center border-b border-white/10">
             <div className={`w-20 h-20 rounded-full ${current.mockup.avatarBg} p-0.5 mb-3`}>
-              <div className="w-full h-full bg-[#111] rounded-full flex items-center justify-center border-2 border-black">
+              <div className="w-full h-full bg-surface rounded-full flex items-center justify-center border-2 border-black">
                 <User className="text-white/50 w-8 h-8" />
               </div>
             </div>
@@ -346,7 +346,7 @@ export function SocialGrowthVisual({ platform }: Props) {
 
         <div className="w-full px-4 py-3 flex items-center justify-between">
           <div className={`w-[70px] h-[70px] rounded-full ${current.mockup.avatarBg} p-[2.5px] shrink-0`}>
-            <div className="w-full h-full bg-[#111] rounded-full flex items-center justify-center border-2 border-black"><User className="text-white/50 w-6 h-6" /></div>
+            <div className="w-full h-full bg-surface rounded-full flex items-center justify-center border-2 border-black"><User className="text-white/50 w-6 h-6" /></div>
           </div>
           <div className="flex flex-1 justify-around items-center ml-2 md:ml-4">
             <div className="flex flex-col items-center">
@@ -424,9 +424,9 @@ export function SocialGrowthVisual({ platform }: Props) {
       <div className="relative z-10 w-full flex flex-col items-center justify-center h-[520px] md:h-[620px]">
         
         {/* Central Smartphone */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(72vw,285px)] md:w-[310px] h-full bg-black rounded-[40px] md:rounded-[45px] border-[8px] md:border-[10px] border-[#111] shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-20 overflow-hidden ring-1 ring-white/5 animate-[float_7s_ease-in-out_infinite_alternate]">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[min(72vw,285px)] md:w-[310px] h-full bg-black rounded-[40px] md:rounded-[45px] border-[8px] md:border-[10px] border-surface shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-20 overflow-hidden ring-1 ring-white/5 animate-[float_7s_ease-in-out_infinite_alternate]">
           {/* Notch/Speaker */}
-          {platform !== 'twitter' && <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[70px] h-[20px] bg-[#111] rounded-full z-30 shadow-[inset_0_-2px_4px_rgba(255,255,255,0.05)]" />}
+          {platform !== 'twitter' && <div className="absolute top-2 left-1/2 -translate-x-1/2 w-[70px] h-[20px] bg-surface rounded-full z-30 shadow-[inset_0_-2px_4px_rgba(255,255,255,0.05)]" />}
           
           {/* Interface Interna Original Preservada */}
           {renderPhoneScreen()}

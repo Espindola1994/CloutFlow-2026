@@ -71,7 +71,7 @@ export default function CheckoutPage() {
             <div className="lg:col-span-7">
               <h1 className="text-3xl font-bold tracking-tight mb-8">Secure Checkout</h1>
               
-              <Card className="border-border/40 bg-card/40 backdrop-blur-sm">
+              <Card className="border-border bg-surface-elevated">
                 <CardHeader>
                   <CardTitle>Contact Information</CardTitle>
                 </CardHeader>
@@ -86,7 +86,7 @@ export default function CheckoutPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         required
-                        className="bg-background/50"
+                        className="bg-surface border-border"
                       />
                       <p className="text-xs text-muted-foreground">We'll send your receipt and tracking link here.</p>
                     </div>
@@ -96,16 +96,16 @@ export default function CheckoutPage() {
             </div>
             
             <div className="lg:col-span-5 space-y-6">
-              <Card className="border-border/40 bg-card/40 backdrop-blur-sm sticky top-24">
+              <Card className="border-border bg-surface-elevated sticky top-24">
                 <CardHeader>
                   <CardTitle>Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex justify-between items-center py-2 border-b border-border/40">
+                  <div className="flex justify-between items-center py-2 border-b border-border">
                     <span className="text-muted-foreground">Target Profile</span>
                     <span className="font-medium">@{username}</span>
                   </div>
-                  <div className="flex justify-between items-center py-2 border-b border-border/40">
+                  <div className="flex justify-between items-center py-2 border-b border-border">
                     <span className="text-muted-foreground">Package</span>
                     <span className="font-medium capitalize">{mockPlan.quantity.toLocaleString()} {platformSlug} {mockPlan.name}</span>
                   </div>
@@ -116,7 +116,7 @@ export default function CheckoutPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex-col gap-4">
-                  <Button form="checkout-form" type="submit" size="lg" className="w-full text-lg h-12 rounded-full" disabled={loading}>
+                  <Button form="checkout-form" type="submit" size="lg" className="w-full text-lg h-12 rounded-full bg-gradient-to-r from-primary to-accent hover:brightness-110 shadow-lg border-0" disabled={loading}>
                     {loading ? <Loader2 className="mr-2 h-5 w-5 animate-spin" /> : "Pay Securely"}
                   </Button>
                   

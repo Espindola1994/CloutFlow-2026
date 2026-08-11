@@ -73,7 +73,7 @@ export default function TrackOrderPage() {
             </p>
           </div>
 
-          <Card className="border-border/40 bg-card/60 backdrop-blur-sm mb-8 shadow-xl">
+          <Card className="border-border bg-surface-elevated mb-8 shadow-xl">
             <CardContent className="p-6">
               <form onSubmit={handleTrack} className="flex gap-4">
                 <div className="relative flex-1">
@@ -96,8 +96,8 @@ export default function TrackOrderPage() {
 
           {order && (
             <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <Card className="border-border/40 overflow-hidden">
-                <div className="bg-muted/50 px-6 py-4 flex justify-between items-center border-b border-border/40">
+              <Card className="border-border overflow-hidden bg-surface">
+                <div className="bg-surface-elevated px-6 py-4 flex justify-between items-center border-b border-border">
                   <div>
                     <p className="text-sm text-muted-foreground">Order Number</p>
                     <p className="font-mono font-bold">{order.publicId}</p>
@@ -109,12 +109,12 @@ export default function TrackOrderPage() {
                 </div>
                 <CardContent className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-                    <div className="flex flex-col items-center text-center p-4 bg-muted/20 rounded-lg">
+                    <div className="flex flex-col items-center text-center p-4 bg-surface-elevated border border-border rounded-lg">
                       <CreditCard className="h-8 w-8 text-primary mb-2" />
                       <p className="text-sm text-muted-foreground">Payment</p>
                       <p className="font-bold">{order.paymentStatus}</p>
                     </div>
-                    <div className="flex flex-col items-center text-center p-4 bg-primary/5 rounded-lg border border-primary/20">
+                    <div className="flex flex-col items-center text-center p-4 bg-primary/10 rounded-lg border border-primary/20">
                       <Package className="h-8 w-8 text-primary mb-2" />
                       <p className="text-sm text-muted-foreground">Delivery Status</p>
                       <p className="font-bold flex items-center gap-2">
@@ -122,14 +122,14 @@ export default function TrackOrderPage() {
                         {order.fulfillmentStatus}
                       </p>
                     </div>
-                    <div className="flex flex-col items-center text-center p-4 bg-muted/20 rounded-lg">
+                    <div className="flex flex-col items-center text-center p-4 bg-surface-elevated border border-border rounded-lg">
                       <CheckCircle2 className="h-8 w-8 text-primary mb-2" />
                       <p className="text-sm text-muted-foreground">Target Profile</p>
                       <p className="font-bold">{order.target}</p>
                     </div>
                   </div>
 
-                  <div className="border-t border-border/40 pt-6">
+                  <div className="border-t border-border pt-6">
                     <h3 className="font-semibold mb-4">Order Details</h3>
                     <div className="flex justify-between items-center py-2">
                       <span className="text-muted-foreground">{order.quantity.toLocaleString()} {order.service}</span>

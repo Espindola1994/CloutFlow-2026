@@ -110,9 +110,9 @@ export function FloatingNotification({ platform, type, position, initialCount = 
         // PERFECT COPY of Facebook's structure but keeping the Instagram accenting context
         return {
           bg: 'bg-[#0a0a0a]/92 backdrop-blur-md',
-          border: 'border border-[#222] shadow-[0_4px_24px_rgba(0,0,0,0.4)]',
+          border: 'border border-border shadow-[0_4px_24px_rgba(0,0,0,0.4)]',
           pseudoBorder: '',
-          iconWrap: 'bg-[#111] border border-pink-500/30 relative overflow-hidden',
+          iconWrap: 'bg-surface border border-pink-500/30 relative overflow-hidden',
           iconGradient: 'absolute inset-0 bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-600 opacity-30',
           iconColor: 'text-white',
           numberColor: 'text-white',
@@ -122,9 +122,9 @@ export function FloatingNotification({ platform, type, position, initialCount = 
       case 'tiktok':
         return {
           bg: 'bg-[#070707]/95 backdrop-blur-md',
-          border: 'border border-[#222] shadow-[0_4px_20px_rgba(0,0,0,0.5)]',
+          border: 'border border-border shadow-[0_4px_20px_rgba(0,0,0,0.5)]',
           pseudoBorder: 'shadow-[-1px_0_4px_rgba(105,201,208,0.15),1px_0_4px_rgba(254,44,85,0.15)]',
-          iconWrap: 'bg-[#111] border border-[#333] shadow-[-1px_1px_3px_rgba(105,201,208,0.2),1px_-1px_3px_rgba(254,44,85,0.2)]',
+          iconWrap: 'bg-surface border border-border shadow-[-1px_1px_3px_rgba(105,201,208,0.2),1px_-1px_3px_rgba(254,44,85,0.2)]',
           iconGradient: '',
           iconColor: type === 'likes' ? 'text-pink-500' : 'text-cyan-400',
           numberColor: 'text-white',
