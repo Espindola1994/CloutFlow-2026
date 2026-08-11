@@ -311,34 +311,20 @@ export default function Home() {
         </section>
 
         {/* Mobile Sticky CTA Bar */}
-        <div className="md:hidden fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-10 fade-in duration-500 delay-1000 fill-mode-both">
-          <div className="bg-surface-elevated border border-border shadow-[0_10px_40px_rgba(0,0,0,0.6)] rounded-2xl p-3 flex items-center justify-between">
-            <span className="text-sm font-semibold text-foreground ml-2">Ready to grow?</span>
-            <Link href="#platforms-section" onClick={(e) => { e.preventDefault(); scrollToPlatforms(); }}>
-              <Button size="sm" className="rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground border-0 font-bold px-5">
-                Get Started <ArrowRight className="ml-1.5 h-4 w-4" />
-              </Button>
-            </Link>
+        {showStickyCTA && (
+          <div className="md:hidden fixed bottom-4 left-4 right-4 z-50 animate-in slide-in-from-bottom-2 fade-in duration-300">
+            <div className="bg-surface-elevated border border-border shadow-[0_10px_40px_rgba(0,0,0,0.6)] rounded-2xl p-3 flex items-center justify-between">
+              <span className="text-[13px] font-semibold text-foreground ml-2">Ready to grow?</span>
+              <Link href="/instagram" className="shrink-0">
+                <Button size="sm" className="rounded-full bg-gradient-to-r from-primary to-accent text-primary-foreground border-0 font-bold px-4 h-9">
+                  Start Growing <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                </Button>
+              </Link>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Global Footer (Basic for now to accommodate logo) */}
-        <footer className="w-full bg-background-secondary border-t border-border py-12 md:py-16">
-          <div className="container px-4 md:px-6 mx-auto flex flex-col items-center justify-center">
-            <div className="w-[140px] md:w-[160px] opacity-80 mb-6">
-              <Image 
-                src="/cloutflow-logo.png" 
-                alt="CloutFlow Logo" 
-                width={300} 
-                height={75} 
-                className="w-full h-auto object-contain"
-              />
-            </div>
-            <p className="text-muted-foreground text-sm text-center">
-              &copy; {new Date().getFullYear()} CloutFlow. All rights reserved.
-            </p>
-          </div>
-        </footer>
       </main>
     </div>
   );
