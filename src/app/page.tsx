@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, CheckCircle2, Zap, Layers, Link as LinkIcon, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { SocialGrowthOrbit } from "@/components/funnel/social-growth-visual/social-growth-orbit";
 import { Sparkles } from "lucide-react";
 
 export default function Home() {
@@ -115,11 +114,6 @@ export default function Home() {
               <span className="font-bold text-[13px] md:text-[14px] text-foreground">
                 52,749+ <span className="font-normal text-muted-foreground ml-0.5">satisfied customers</span>
               </span>
-            </div>
-            
-            {/* Orbit / Social Growth Engine */}
-            <div className="w-full mt-10 md:mt-16 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-700 fill-mode-both">
-              <SocialGrowthOrbit />
             </div>
 
           </div>
