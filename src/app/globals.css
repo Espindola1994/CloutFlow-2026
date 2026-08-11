@@ -168,3 +168,15 @@
   0% { transform: translateY(0px) rotate(0deg); }
   100% { transform: translateY(-8px) rotate(0.5deg); }
 }
+
+@keyframes slide-right {
+  0% { transform: translateX(-100%); }
+  50% { transform: translateX(500%); }
+  100% { transform: translateX(500%); }
+}
+
+@keyframes slide-down {
+  0% { transform: translateY(-100%); }
+  50% { transform: translateY(500%); }
+  100% { transform: translateY(500%); }
+}
