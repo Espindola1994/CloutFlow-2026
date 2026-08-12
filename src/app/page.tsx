@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Zap, Users, Star, ArrowRight, TrendingUp, ShieldCheck, Sparkles, Crown } from "lucide-react";
+import { Zap, Users, Star, ArrowRight, TrendingUp, ShieldCheck, Sparkles } from "lucide-react";
 import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -59,11 +59,6 @@ export default function Home() {
             {/* Instagram Holographic Launcher */}
             <Link href="/instagram" className="group outline-none block relative z-10 flex flex-col items-center cursor-pointer min-h-[110px] md:min-h-[135px]">
               
-              {/* Premium Crown Differentiator */}
-              <div className="absolute top-[-3px] md:top-[-4px] right-[8%] md:right-[15%] z-30 transition-all duration-300 md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] md:group-hover:brightness-125 rotate-[18deg]">
-                <Crown className="w-[12px] h-[12px] md:w-[15px] md:h-[15px] text-[#FF4FA3] drop-shadow-[0_0_5px_rgba(255,79,163,0.35)]" />
-              </div>
-
               <div className="relative mb-3 md:mb-4 transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] active:scale-[0.96]">
                 
                 <div className="w-[72px] h-[72px] md:w-[80px] md:h-[80px] rounded-[22px] bg-[#111728]/80 backdrop-blur-xl border border-white/20 md:group-hover:border-white/30 flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
