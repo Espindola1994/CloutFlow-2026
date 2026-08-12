@@ -141,24 +141,24 @@ export default function Home() {
           </div>
 
           {/* 7. Social Proof / Metrics Bar */}
-          <div className="w-full max-w-[800px] bg-[#111728]/60 backdrop-blur-md border border-[#26314D] rounded-[20px] md:rounded-[24px] py-4 px-3 md:px-6 shadow-lg flex flex-row items-center justify-between animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500 fill-mode-both">
+          <div className="w-full max-w-[800px] bg-[#111728]/60 backdrop-blur-md border border-[#26314D] rounded-[18px] md:rounded-[24px] py-2.5 md:py-4 px-2 md:px-6 shadow-lg flex flex-row items-center justify-between animate-in fade-in slide-in-from-bottom-8 duration-700 delay-500 fill-mode-both">
             
             <div className="flex-1 flex flex-col items-center text-center px-1 md:px-4 border-r border-[#26314D]/50 relative">
-              <Users className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary mb-1 md:mb-1.5 opacity-80" />
-              <span className="text-[16px] md:text-[22px] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#7C5CFC] to-[#C83CFF] mb-0.5 leading-none">52,749+</span>
-              <span className="text-[11px] md:text-[13px] text-[#A8B1C7] font-medium leading-tight">Satisfied<br className="md:hidden" /> customers</span>
+              <Users className="w-3 h-3 md:w-4 md:h-4 text-primary mb-1 md:mb-1.5 opacity-80" />
+              <span className="text-[14px] md:text-[22px] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#7C5CFC] to-[#C83CFF] mb-0.5 leading-none">52,749+</span>
+              <span className="text-[10px] md:text-[13px] text-[#A8B1C7] font-medium leading-[1.1] md:leading-tight mt-[1px]">Satisfied<br className="md:hidden" /> customers</span>
             </div>
             
             <div className="flex-1 flex flex-col items-center text-center px-1 md:px-4 border-r border-[#26314D]/50 relative">
-              <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-accent mb-1 md:mb-1.5 opacity-80" />
-              <span className="text-[16px] md:text-[22px] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#38BDF8] to-[#22D3EE] mb-0.5 leading-none">24h</span>
-              <span className="text-[11px] md:text-[13px] text-[#A8B1C7] font-medium leading-tight">Avg.<br className="md:hidden" /> delivery</span>
+              <Zap className="w-3 h-3 md:w-4 md:h-4 text-accent mb-1 md:mb-1.5 opacity-80" />
+              <span className="text-[14px] md:text-[22px] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#38BDF8] to-[#22D3EE] mb-0.5 leading-none">24h</span>
+              <span className="text-[10px] md:text-[13px] text-[#A8B1C7] font-medium leading-[1.1] md:leading-tight mt-[1px]">Avg.<br className="md:hidden" /> delivery</span>
             </div>
             
             <div className="flex-1 flex flex-col items-center text-center px-1 md:px-4 relative">
-              <Star className="w-3.5 h-3.5 md:w-4 md:h-4 text-cyan-400 mb-1 md:mb-1.5 opacity-80" />
-              <span className="text-[16px] md:text-[22px] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 mb-0.5 leading-none">4.9★</span>
-              <span className="text-[11px] md:text-[13px] text-[#A8B1C7] font-medium leading-tight">Avg.<br className="md:hidden" /> rating</span>
+              <Star className="w-3 h-3 md:w-4 md:h-4 text-cyan-400 mb-1 md:mb-1.5 opacity-80" />
+              <span className="text-[14px] md:text-[22px] font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-400 mb-0.5 leading-none">4.9★</span>
+              <span className="text-[10px] md:text-[13px] text-[#A8B1C7] font-medium leading-[1.1] md:leading-tight mt-[1px]">Avg.<br className="md:hidden" /> rating</span>
             </div>
 
           </div>
