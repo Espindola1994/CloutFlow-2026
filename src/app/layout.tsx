@@ -1,11 +1,25 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { inter } from "@/lib/fonts";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
+export const viewport: Viewport = {
+  themeColor: "#080B14",
+  colorScheme: "dark",
+};
+
 export const metadata: Metadata = {
-  title: "Instahub | Premium Social Media Growth",
+  title: "CloutFlow | Premium Social Media Growth",
   description: "Accelerate your social media presence with premium growth services.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "CloutFlow",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    apple: "/cloutflow-logo.png", // Using the available logo as a fallback
+  },
 };
 
 export default function RootLayout({
