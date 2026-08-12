@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, Users, Star, CheckCircle2, ArrowRight, TrendingUp } from "lucide-react";
+import { Zap, Users, Star, ArrowRight, TrendingUp, ShieldCheck } from "lucide-react";
 import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -163,21 +163,21 @@ export default function Home() {
 
           </div>
 
-          {/* 8. Feature Strip (Desktop Only) */}
-          <div className="hidden md:flex flex-row items-center justify-center gap-8 mt-10 animate-in fade-in duration-700 delay-700 fill-mode-both">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#7C5CFC]" />
-              <span className="text-[13px] lg:text-[14px] text-[#A8B1C7] font-medium">Holographic glass with neon glow</span>
+          {/* 8. Feature Strip (Trust Signals) */}
+          <div className="flex flex-row flex-wrap items-center justify-center gap-x-4 md:gap-x-8 gap-y-3 mt-10 md:mt-12 animate-in fade-in duration-700 delay-700 fill-mode-both px-2">
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <Users className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#7C5CFC]" />
+              <span className="text-[12px] md:text-[13px] lg:text-[14px] text-[#A8B1C7] font-medium">Real followers</span>
             </div>
-            <div className="w-1 h-1 rounded-full bg-[#26314D]" />
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#7C5CFC]" />
-              <span className="text-[13px] lg:text-[14px] text-[#A8B1C7] font-medium">Platforms stay true to their identity</span>
+            <div className="w-[3px] h-[3px] rounded-full bg-[#26314D] opacity-60" />
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <ShieldCheck className="w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-400" />
+              <span className="text-[12px] md:text-[13px] lg:text-[14px] text-[#A8B1C7] font-medium">Safe & guaranteed</span>
             </div>
-            <div className="w-1 h-1 rounded-full bg-[#26314D]" />
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-[#7C5CFC]" />
-              <span className="text-[13px] lg:text-[14px] text-[#A8B1C7] font-medium">Hover & tap effects improve interaction</span>
+            <div className="w-[3px] h-[3px] rounded-full bg-[#26314D] opacity-60" />
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#38BDF8]" />
+              <span className="text-[12px] md:text-[13px] lg:text-[14px] text-[#A8B1C7] font-medium">Instant start</span>
             </div>
           </div>
 
