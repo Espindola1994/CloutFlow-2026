@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -55,59 +55,82 @@ export default function Home() {
             <p className="text-[13px] md:text-[14px] text-muted-foreground mt-1">Select the platform you want to grow</p>
           </div>
 
-          {/* 6. Platform Cards Grid */}
-          <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-14 md:mb-16 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-400 fill-mode-both">
+          {/* 6. Platform Launchers Grid */}
+          <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-x-5 md:gap-x-8 gap-y-8 md:gap-y-10 mb-14 md:mb-16 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-400 fill-mode-both max-w-[900px] mx-auto">
             
-            {/* Instagram Card */}
-            <Link href="/instagram" className="group outline-none block relative z-10">
+            {/* Instagram Launcher */}
+            <Link href="/instagram" className="group outline-none block relative z-10 flex flex-col items-center cursor-pointer min-h-[125px]">
               {/* Badge POPULAR */}
-              <div className="absolute -top-[7px] right-[8px] md:-top-[9px] md:right-[12px] z-20 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-[9px] md:text-[10px] tracking-[0.04em] px-2.5 py-0.5 rounded-full shadow-[0_2px_10px_rgba(236,72,153,0.3)] animate-in fade-in slide-in-from-bottom-1 duration-700 delay-500 fill-mode-both border border-white/20">
+              <div className="absolute top-[-8px] md:top-[-10px] right-[10%] md:right-[20%] z-20 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-[9px] md:text-[10px] tracking-[0.04em] px-2.5 py-0.5 rounded-full shadow-[0_2px_10px_rgba(236,72,153,0.3)] border border-white/20">
                 POPULAR
               </div>
-              <div className="w-full h-[145px] md:h-[165px] bg-surface border border-border rounded-[20px] flex flex-col items-center justify-center relative overflow-hidden transition-all duration-250 ease-out md:hover:-translate-y-[3px] md:hover:border-pink-500/50 md:hover:shadow-[0_12px_32px_rgba(236,72,153,0.15)] active:scale-[0.98]">
-                <div className="w-[58px] h-[58px] rounded-2xl bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-500 flex items-center justify-center mb-3 md:group-hover:-translate-y-[2px] transition-transform duration-250">
-                  <FaInstagram className="w-7 h-7 text-white" />
+              <div className="relative">
+                <div className="w-[64px] h-[64px] md:w-[76px] md:h-[76px] rounded-[20px] md:rounded-[24px] bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-500 flex items-center justify-center transition-all duration-250 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] md:group-hover:shadow-[0_12px_24px_rgba(236,72,153,0.3)] active:scale-[0.96]">
+                  <FaInstagram className="w-8 h-8 md:w-9 md:h-9 text-white" />
                 </div>
+                <div className="absolute inset-0 rounded-[20px] md:rounded-[24px] bg-pink-500/20 blur-xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 pointer-events-none -z-10" />
+              </div>
+              <div className="flex flex-col items-center mt-3 text-center transition-transform duration-250">
                 <span className="font-bold text-[15px] md:text-[17px] text-foreground">Instagram</span>
-                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-pink-500/5 to-transparent pointer-events-none opacity-50 md:group-hover:opacity-100 transition-opacity" />
+                <span className="flex items-center text-[12px] md:text-[13px] text-muted-foreground mt-0.5 md:group-hover:text-pink-400 transition-colors">
+                  Grow Instagram <ArrowRight className="ml-1 w-3 h-3 md:group-hover:translate-x-[3px] transition-transform" />
+                </span>
               </div>
             </Link>
 
-            {/* TikTok Card */}
-            <Link href="/tiktok" className="group outline-none block">
-              <div className="w-full h-[145px] md:h-[165px] bg-surface border border-border rounded-[20px] flex flex-col items-center justify-center relative overflow-hidden transition-all duration-250 ease-out md:hover:-translate-y-[3px] md:hover:border-[#00f2fe]/50 md:hover:shadow-[0_12px_32px_rgba(6,182,212,0.15)] active:scale-[0.98]">
-                <div className="w-[58px] h-[58px] rounded-2xl bg-[#080B14] border border-border/50 flex items-center justify-center mb-3 md:group-hover:-translate-y-[2px] transition-transform duration-250 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-[#00f2fe]/20 to-[#fe0979]/20" />
-                  <FaTiktok className="w-6 h-6 text-white relative z-10" />
+            {/* TikTok Launcher */}
+            <Link href="/tiktok" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[125px]">
+              <div className="relative">
+                <div className="w-[64px] h-[64px] md:w-[76px] md:h-[76px] rounded-[20px] md:rounded-[24px] bg-[#07090F] border border-white/10 flex items-center justify-center transition-all duration-250 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] md:group-hover:shadow-[0_12px_24px_rgba(6,182,212,0.2)] active:scale-[0.96] overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-[#00f2fe]/10 to-[#fe0979]/10" />
+                  <FaTiktok className="w-7 h-7 md:w-8 md:h-8 text-white relative z-10 drop-shadow-[0_0_8px_rgba(0,242,254,0.5)]" />
                 </div>
+                <div className="absolute inset-0 rounded-[20px] md:rounded-[24px] bg-[#00f2fe]/20 blur-xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 pointer-events-none -z-10" />
+              </div>
+              <div className="flex flex-col items-center mt-3 text-center transition-transform duration-250">
                 <span className="font-bold text-[15px] md:text-[17px] text-foreground">TikTok</span>
-                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[#00f2fe]/5 to-transparent pointer-events-none opacity-50 md:group-hover:opacity-100 transition-opacity" />
+                <span className="flex items-center text-[12px] md:text-[13px] text-muted-foreground mt-0.5 md:group-hover:text-[#00f2fe] transition-colors">
+                  Grow TikTok <ArrowRight className="ml-1 w-3 h-3 md:group-hover:translate-x-[3px] transition-transform" />
+                </span>
               </div>
             </Link>
 
-            {/* X / Twitter Card */}
-            <Link href="/twitter" className="group outline-none block">
-              <div className="w-full h-[145px] md:h-[165px] bg-surface border border-border rounded-[20px] flex flex-col items-center justify-center relative overflow-hidden transition-all duration-250 ease-out md:hover:-translate-y-[3px] md:hover:border-white/30 md:hover:shadow-[0_12px_32px_rgba(255,255,255,0.08)] active:scale-[0.98]">
-                <div className="w-[58px] h-[58px] rounded-2xl bg-[#080B14] border border-border/50 flex items-center justify-center mb-3 md:group-hover:-translate-y-[2px] transition-transform duration-250">
-                  <FaXTwitter className="w-6 h-6 text-white" />
+            {/* X / Twitter Launcher */}
+            <Link href="/twitter" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[125px]">
+              <div className="relative">
+                <div className="w-[64px] h-[64px] md:w-[76px] md:h-[76px] rounded-[20px] md:rounded-[24px] bg-[#0A0A0A] border border-white/15 flex items-center justify-center transition-all duration-250 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] md:group-hover:shadow-[0_12px_24px_rgba(255,255,255,0.1)] active:scale-[0.96]">
+                  <FaXTwitter className="w-7 h-7 md:w-8 md:h-8 text-white" />
                 </div>
-                <span className="font-bold text-[15px] md:text-[17px] text-foreground">Twitter (X)</span>
-                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-white/5 to-transparent pointer-events-none opacity-50 md:group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 rounded-[20px] md:rounded-[24px] bg-white/10 blur-xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 pointer-events-none -z-10" />
+              </div>
+              <div className="flex flex-col items-center mt-3 text-center transition-transform duration-250">
+                <span className="font-bold text-[15px] md:text-[17px] text-foreground">X / Twitter</span>
+                <span className="flex items-center text-[12px] md:text-[13px] text-muted-foreground mt-0.5 md:group-hover:text-white transition-colors">
+                  Grow on X <ArrowRight className="ml-1 w-3 h-3 md:group-hover:translate-x-[3px] transition-transform" />
+                </span>
               </div>
             </Link>
 
-            {/* Facebook Card */}
-            <Link href="/facebook" className="group outline-none block">
-              <div className="w-full h-[145px] md:h-[165px] bg-surface border border-border rounded-[20px] flex flex-col items-center justify-center relative overflow-hidden transition-all duration-250 ease-out md:hover:-translate-y-[3px] md:hover:border-blue-500/50 md:hover:shadow-[0_12px_32px_rgba(59,130,246,0.15)] active:scale-[0.98]">
-                <div className="w-[58px] h-[58px] rounded-2xl bg-[#1877F2] flex items-center justify-center mb-3 md:group-hover:-translate-y-[2px] transition-transform duration-250">
-                  <FaFacebook className="w-7 h-7 text-white" />
+            {/* Facebook Launcher */}
+            <Link href="/facebook" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[125px]">
+              <div className="relative">
+                <div className="w-[64px] h-[64px] md:w-[76px] md:h-[76px] rounded-[20px] md:rounded-[24px] bg-gradient-to-tr from-[#1877F2] to-[#3b8ef5] border border-blue-400/30 flex items-center justify-center transition-all duration-250 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] md:group-hover:shadow-[0_12px_24px_rgba(24,119,242,0.3)] active:scale-[0.96]">
+                  <FaFacebook className="w-8 h-8 md:w-9 md:h-9 text-white" />
                 </div>
+                <div className="absolute inset-0 rounded-[20px] md:rounded-[24px] bg-blue-500/20 blur-xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 pointer-events-none -z-10" />
+              </div>
+              <div className="flex flex-col items-center mt-3 text-center transition-transform duration-250">
                 <span className="font-bold text-[15px] md:text-[17px] text-foreground">Facebook</span>
-                <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-blue-500/5 to-transparent pointer-events-none opacity-50 md:group-hover:opacity-100 transition-opacity" />
+                <span className="flex items-center text-[12px] md:text-[13px] text-muted-foreground mt-0.5 md:group-hover:text-blue-400 transition-colors">
+                  Grow Facebook <ArrowRight className="ml-1 w-3 h-3 md:group-hover:translate-x-[3px] transition-transform" />
+                </span>
               </div>
             </Link>
 
           </div>
+          
+          {/* Subtle Decorative Line Below Launchers (Desktop only) */}
+          <div className="hidden md:block w-full max-w-[500px] h-[1px] bg-gradient-to-r from-transparent via-primary/30 to-transparent mb-12 animate-in fade-in duration-1000 delay-500" />
 
           {/* 7. Social Proof / Metrics Bar */}
           <div className="w-full max-w-[800px] bg-surface border border-border rounded-[20px] py-4 px-2 md:px-8 shadow-sm flex flex-row items-center justify-between animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500 fill-mode-both">
