@@ -59,7 +59,11 @@ export default function Home() {
           <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-14 md:mb-16 animate-in fade-in slide-in-from-bottom-6 duration-1000 delay-400 fill-mode-both">
             
             {/* Instagram Card */}
-            <Link href="/instagram" className="group outline-none block">
+            <Link href="/instagram" className="group outline-none block relative z-10">
+              {/* Badge POPULAR */}
+              <div className="absolute -top-[7px] right-[8px] md:-top-[9px] md:right-[12px] z-20 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-[9px] md:text-[10px] tracking-[0.04em] px-2.5 py-0.5 rounded-full shadow-[0_2px_10px_rgba(236,72,153,0.3)] animate-in fade-in slide-in-from-bottom-1 duration-700 delay-500 fill-mode-both border border-white/20">
+                POPULAR
+              </div>
               <div className="w-full h-[145px] md:h-[165px] bg-surface border border-border rounded-[20px] flex flex-col items-center justify-center relative overflow-hidden transition-all duration-250 ease-out md:hover:-translate-y-[3px] md:hover:border-pink-500/50 md:hover:shadow-[0_12px_32px_rgba(236,72,153,0.15)] active:scale-[0.98]">
                 <div className="w-[58px] h-[58px] rounded-2xl bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-500 flex items-center justify-center mb-3 md:group-hover:-translate-y-[2px] transition-transform duration-250">
                   <FaInstagram className="w-7 h-7 text-white" />
