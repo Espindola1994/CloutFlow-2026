@@ -168,55 +168,71 @@ export default function PlatformPage() {
             Choose the service that fits your goal. Fast, simple and reliable growth.
           </p>
 
-          {/* Micro Benefits */}
-          <div className="flex items-center justify-center gap-4 md:gap-6 mt-6 md:mt-8">
-            <div className="flex items-center gap-1.5 text-[12px] md:text-[13px] font-medium text-muted-foreground">
-              <ShieldCheck className="w-3.5 h-3.5 text-indigo-400" /> Secure
+          {/* Micro Benefits (Pills) */}
+          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mt-6 md:mt-8">
+            <div className="flex items-center gap-2 bg-[#111728]/80 backdrop-blur-md border border-white/5 px-4 md:px-5 py-2 md:py-2.5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
+              <ShieldCheck className="w-4 h-4 text-indigo-400 drop-shadow-[0_0_8px_currentColor]" /> 
+              <span className="text-[12px] md:text-[13px] font-medium text-white">Secure</span>
             </div>
-            <div className="w-1 h-1 rounded-full bg-[#26314D]" />
-            <div className="flex items-center gap-1.5 text-[12px] md:text-[13px] font-medium text-muted-foreground">
-              <Zap className="w-3.5 h-3.5 text-[#38BDF8]" /> Fast Delivery
+            <div className="flex items-center gap-2 bg-[#111728]/80 backdrop-blur-md border border-white/5 px-4 md:px-5 py-2 md:py-2.5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
+              <Zap className="w-4 h-4 text-[#38BDF8] drop-shadow-[0_0_8px_currentColor]" /> 
+              <span className="text-[12px] md:text-[13px] font-medium text-white">Fast Delivery</span>
             </div>
-            <div className="w-1 h-1 rounded-full bg-[#26314D]" />
-            <div className="flex items-center gap-1.5 text-[12px] md:text-[13px] font-medium text-muted-foreground">
-              <TrendingUp className="w-3.5 h-3.5 text-[#7C5CFC]" /> Real Results
+            <div className="flex items-center gap-2 bg-[#111728]/80 backdrop-blur-md border border-white/5 px-4 md:px-5 py-2 md:py-2.5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
+              <TrendingUp className="w-4 h-4 text-[#7C5CFC] drop-shadow-[0_0_8px_currentColor]" /> 
+              <span className="text-[12px] md:text-[13px] font-medium text-white">Real Results</span>
             </div>
           </div>
         </div>
 
-        {/* Services Holographic Grid */}
-        <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-16 md:mb-24 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-150">
+        {/* Services Holographic Grid (Vertical Cards) */}
+        <div className="w-full grid grid-cols-2 md:flex md:flex-row md:flex-wrap md:justify-center gap-4 md:gap-[36px] mb-16 md:mb-24 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-150">
           {SERVICES_DATA.map((svc) => {
             const cardTheme = theme.cards[svc.id as keyof typeof theme.cards];
             
             return (
-              <Link key={svc.id} href={`/${params.platform}/${svc.id}`} className="group outline-none block">
-                <div className={`w-full h-full min-h-[145px] md:min-h-[190px] relative bg-[#111728]/80 backdrop-blur-xl border border-[#26314D] rounded-[22px] md:rounded-[28px] p-4 md:p-6 flex flex-col justify-between overflow-hidden transition-all duration-300 ease-out md:hover:-translate-y-1 active:scale-[0.98] ${theme.borderHover} ${cardTheme.glow}`}>
+              <Link key={svc.id} href={`/${params.platform}/${svc.id}`} className="group outline-none block w-full md:w-[250px]">
+                <div className={`w-full min-h-[220px] md:h-[335px] relative bg-[#111728]/80 backdrop-blur-xl border border-white/10 rounded-[24px] md:rounded-[32px] p-5 md:p-8 flex flex-col items-center text-center justify-between transition-all duration-300 ease-out md:hover:-translate-y-1.5 active:scale-[0.98] ${theme.borderHover} group-hover:shadow-[0_15px_40px_rgba(0,0,0,0.6)] relative z-10`}>
                   
-                  {/* Subtle Inner Highlight */}
-                  <div className="absolute top-0 left-0 w-full h-[50px] bg-gradient-to-b from-white/5 to-transparent pointer-events-none" />
+                  {/* Internal Radial Glow Permanent */}
+                  <div className={`absolute inset-0 opacity-40 blur-2xl transition-opacity duration-300 md:group-hover:opacity-60 pointer-events-none -z-10 ${cardTheme.glow.replace('group-hover:shadow-[0_10px_30px_', 'bg-[').replace(']', ']')}`} style={{ background: `radial-gradient(circle at center 30%, ${cardTheme.text.replace('text-', '') === 'purple-400' ? 'rgba(168,85,247,0.25)' : cardTheme.text.replace('text-', '') === 'pink-500' ? 'rgba(236,72,153,0.25)' : cardTheme.text.replace('text-', '') === 'orange-400' ? 'rgba(251,146,60,0.25)' : 'rgba(34,211,238,0.25)'}, transparent 70%)` }} />
 
-                  {/* Top Row: Icon + Badge */}
-                  <div className="flex items-start justify-between w-full relative z-10 mb-6">
-                    <div className="w-10 h-10 md:w-12 md:h-12 rounded-2xl bg-surface-elevated border border-white/10 flex items-center justify-center shadow-inner group-hover:bg-white/5 transition-colors">
-                      <svc.icon className={`w-5 h-5 md:w-6 md:h-6 ${cardTheme.text} drop-shadow-[0_0_8px_currentColor]`} />
+                  {/* Inner Highlight / Reflection */}
+                  <div className="absolute top-0 left-0 w-full h-[80px] bg-gradient-to-b from-white/10 to-transparent rounded-t-[24px] md:rounded-t-[32px] pointer-events-none" />
+
+                  {/* Top Floating Badge overlapping border strictly on Followers */}
+                  {svc.popular && (
+                    <div className="absolute -top-[10px] right-4 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white text-[9px] md:text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-full border border-white/20 shadow-[0_4px_12px_rgba(236,72,153,0.4)] z-30">
+                      ★ BEST SELLER
                     </div>
+                  )}
 
-                    {svc.popular && (
-                      <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white text-[9px] md:text-[10px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded-full border border-white/20 shadow-[0_2px_8px_rgba(236,72,153,0.3)]">
-                        ★ BEST SELLER
-                      </div>
-                    )}
+                  {/* Corner Sparkles (Desktop Hover) */}
+                  <div className="hidden md:block absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"><Star className={`w-3 h-3 ${cardTheme.text}`} /></div>
+                  <div className="hidden md:block absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"><Star className={`w-2 h-2 ${cardTheme.text}`} /></div>
+                  <div className="hidden md:block absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"><Star className={`w-2 h-2 ${cardTheme.text}`} /></div>
+                  <div className="hidden md:block absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"><Star className={`w-3 h-3 ${cardTheme.text}`} /></div>
+
+                  {/* Top Element: Hexagon Icon Box */}
+                  <div className="relative mt-2 mb-4 md:mb-6">
+                    <div className="w-[60px] h-[60px] md:w-[84px] md:h-[84px] bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner group-hover:border-white/40 transition-colors z-20 relative" style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}>
+                      <svc.icon className={`w-7 h-7 md:w-10 md:h-10 ${cardTheme.text} drop-shadow-[0_0_12px_currentColor] group-hover:scale-110 transition-transform duration-300`} />
+                    </div>
+                    {/* Behind-Hexagon strict glow */}
+                    <div className="absolute inset-0 bg-current opacity-40 blur-xl rounded-full scale-150 pointer-events-none -z-10" style={{ color: cardTheme.text.replace('text-', '') === 'purple-400' ? '#c084fc' : cardTheme.text.replace('text-', '') === 'pink-500' ? '#ec4899' : cardTheme.text.replace('text-', '') === 'orange-400' ? '#fb923c' : '#22d3ee' }} />
                   </div>
 
-                  {/* Bottom Row: Text + Arrow */}
-                  <div className="relative z-10">
-                    <h3 className="text-[16px] md:text-[20px] font-bold text-[#F8FAFF] mb-1.5">{svc.title}</h3>
-                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-2">
-                      <p className="text-[12px] md:text-[14px] text-[#A8B1C7] leading-relaxed max-w-[85%]">{svc.desc}</p>
-                      <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-white/10 group-hover:border-white/20 transition-all self-end sm:self-auto">
-                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-white md:group-hover:translate-x-[2px] transition-all" />
-                      </div>
+                  {/* Middle Elements: Title + Subtitle */}
+                  <div className="flex-1 flex flex-col items-center justify-center relative z-20 mb-4 md:mb-6">
+                    <h3 className="text-[17px] md:text-[22px] font-extrabold text-[#F8FAFF] mb-2 tracking-tight">{svc.title}</h3>
+                    <p className="text-[12px] md:text-[14.5px] text-[#D0D4DF] leading-snug px-1">{svc.desc}</p>
+                  </div>
+
+                  {/* Bottom Element: Circular CTA */}
+                  <div className="mt-auto relative z-20">
+                    <div className={`w-[44px] h-[44px] md:w-[52px] md:h-[52px] rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-inner group-hover:bg-white/15 transition-all overflow-hidden relative`}>
+                      <div className="absolute inset-0 opacity-0 group-hover:opacity-30 blur-md bg-current transition-opacity" style={{ color: cardTheme.text.replace('text-', '') === 'purple-400' ? '#c084fc' : cardTheme.text.replace('text-', '') === 'pink-500' ? '#ec4899' : cardTheme.text.replace('text-', '') === 'orange-400' ? '#fb923c' : '#22d3ee' }} />
+                      <ArrowRight className={`w-5 h-5 md:w-6 md:h-6 ${cardTheme.text} group-hover:translate-x-[3px] transition-transform`} />
                     </div>
                   </div>
 
