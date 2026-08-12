@@ -81,11 +81,11 @@ export default function Home() {
             {/* TikTok Launcher */}
             <Link href="/tiktok" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[125px]">
               <div className="relative">
-                <div className="w-[64px] h-[64px] md:w-[76px] md:h-[76px] rounded-[20px] md:rounded-[24px] bg-[#07090F] border border-white/10 flex items-center justify-center transition-all duration-250 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] md:group-hover:shadow-[0_12px_24px_rgba(6,182,212,0.2)] active:scale-[0.96] overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-[#00f2fe]/10 to-[#fe0979]/10" />
+                <div className="w-[64px] h-[64px] md:w-[76px] md:h-[76px] rounded-[20px] md:rounded-[24px] bg-[#07090F] border border-white/10 flex items-center justify-center transition-all duration-250 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] md:group-hover:shadow-[0_12px_24px_rgba(6,182,212,0.2)] active:scale-[0.96] overflow-hidden relative">
+                  <div className="absolute inset-0 bg-gradient-to-tr from-[#00f2fe]/10 to-[#fe0979]/10 rounded-[20px] md:rounded-[24px]" />
                   <FaTiktok className="w-7 h-7 md:w-8 md:h-8 text-white relative z-10 drop-shadow-[0_0_8px_rgba(0,242,254,0.5)]" />
                 </div>
-                <div className="absolute inset-0 rounded-[20px] md:rounded-[24px] bg-[#00f2fe]/20 blur-xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 pointer-events-none -z-10" />
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#00f2fe] to-[#fe0979] opacity-0 md:group-hover:opacity-15 blur-2xl transition-opacity duration-300 pointer-events-none -z-10" />
               </div>
               <div className="flex flex-col items-center mt-3 text-center transition-transform duration-250">
                 <span className="font-bold text-[15px] md:text-[17px] text-foreground">TikTok</span>
