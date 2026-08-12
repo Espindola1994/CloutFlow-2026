@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, Users, Star, ArrowRight, TrendingUp, ShieldCheck } from "lucide-react";
+import { Zap, Users, Star, ArrowRight, TrendingUp, ShieldCheck, Sparkles } from "lucide-react";
 import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -57,28 +57,30 @@ export default function Home() {
             
             {/* Instagram Holographic Launcher */}
             <Link href="/instagram" className="group outline-none block relative z-10 flex flex-col items-center cursor-pointer min-h-[130px] md:min-h-[145px]">
+              
+              {/* Floating Sparkles Feature Indicator */}
+              <div className="absolute top-[-10px] md:top-[-12px] right-[10%] md:right-[15%] z-30 transition-all duration-300 md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] md:group-hover:brightness-125">
+                <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#F77737] drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" />
+              </div>
+
               <div className="relative mb-3 md:mb-4 transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] active:scale-[0.96]">
                 
-                <div className="w-[84px] h-[84px] md:w-[90px] md:h-[90px] rounded-[24px] bg-[#111728]/80 backdrop-blur-xl border border-white/10 flex flex-col items-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                <div className="w-[84px] h-[84px] md:w-[90px] md:h-[90px] rounded-[24px] bg-[#111728]/80 backdrop-blur-xl border border-white/20 md:group-hover:border-white/30 flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
                   
-                  {/* Integrated POPULAR Bar at top */}
-                  <div className="w-full h-[20px] md:h-[23px] bg-gradient-to-r from-[rgba(247,119,55,0.85)] via-[rgba(225,48,108,0.85)] to-[rgba(131,58,180,0.85)] border-b border-white/10 flex items-center justify-center relative z-20">
-                    <span className="text-white font-extrabold text-[9px] md:text-[10px] tracking-[0.03em] leading-none">POPULAR</span>
-                  </div>
-
-                  {/* Inner Highlight / Reflection (moved down slightly to respect bar) */}
-                  <div className="absolute top-[20px] md:top-[23px] left-0 w-full h-1/2 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
+                  {/* Inner Highlight / Reflection */}
+                  <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/15 to-transparent rounded-t-[24px] pointer-events-none md:group-hover:from-white/25 transition-colors duration-300" />
                   
                   {/* Soft Background Glow inside */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/20 via-pink-500/20 to-purple-500/20 blur-md md:group-hover:opacity-100 opacity-60 transition-opacity duration-300" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/30 via-pink-500/30 to-purple-500/30 blur-md md:group-hover:opacity-100 opacity-80 transition-opacity duration-300" />
                   
-                  {/* Recentralized Instagram Icon */}
-                  <FaInstagram className="w-8 h-8 md:w-9 md:h-9 text-white relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] mt-auto mb-[18px] md:mb-[20px]" />
+                  {/* Instagram Icon Centered */}
+                  <FaInstagram className="w-10 h-10 md:w-11 md:h-11 text-white relative z-10 drop-shadow-[0_0_12px_rgba(255,255,255,0.6)]" />
                 </div>
                 {/* Outer Glow */}
-                <div className="absolute inset-0 rounded-[24px] bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-500 blur-xl opacity-30 md:group-hover:opacity-50 transition-opacity duration-300 pointer-events-none -z-10" />
+                <div className="absolute inset-0 rounded-[24px] bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-500 blur-2xl opacity-40 md:group-hover:opacity-60 transition-opacity duration-300 pointer-events-none -z-10" />
               </div>
               <div className="flex flex-col items-center text-center transition-transform duration-300">
+                <span className="font-bold text-[9px] md:text-[10px] text-pink-400 uppercase tracking-widest mb-[3px] md:mb-[4px]">Most chosen</span>
                 <span className="font-bold text-[15px] md:text-[16px] text-[#F8FAFF]">Instagram</span>
                 <span className="flex items-center text-[12px] md:text-[13px] text-[#A8B1C7] mt-0.5 md:group-hover:text-pink-400 transition-colors">
                   Grow Instagram <ArrowRight className="ml-1 w-3 h-3 md:group-hover:translate-x-[3px] transition-transform" />
