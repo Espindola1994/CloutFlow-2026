@@ -21,18 +21,18 @@ export function SocialIconRain() {
   // Pre-defined static configuration to avoid hydration mismatch
   const particles = [
     // LEFT SIDE
-    { id: 'l1', Icon: FaInstagram, side: 'left', size: 22, color: 'text-pink-500', opacity: 0.15, top: '-10%', left: '8%', duration: 18, delay: 0 },
-    { id: 'l2', Icon: FaTiktok, side: 'left', size: 16, color: 'text-[#00f2fe]', opacity: 0.12, top: '-20%', left: '15%', duration: 22, delay: 2 },
-    { id: 'l3', Icon: FaFacebook, side: 'left', size: 26, color: 'text-blue-500', opacity: 0.08, top: '-5%', left: '4%', duration: 15, delay: 5 },
-    { id: 'l4', Icon: FaXTwitter, side: 'left', size: 18, color: 'text-white', opacity: 0.1, top: '-30%', left: '12%', duration: 20, delay: 7 },
-    { id: 'l5', Icon: FaInstagram, side: 'left', size: 14, color: 'text-purple-500', opacity: 0.18, top: '-15%', left: '2%', duration: 16, delay: 9 },
+    { id: 'l1', Icon: FaInstagram, side: 'left', size: 24, color: 'text-pink-500', opacity: 0.25, top: '-10%', left: '8%', duration: 18, delay: 0 },
+    { id: 'l2', Icon: FaTiktok, side: 'left', size: 18, color: 'text-[#00f2fe]', opacity: 0.20, top: '-20%', left: '15%', duration: 22, delay: 2 },
+    { id: 'l3', Icon: FaFacebook, side: 'left', size: 28, color: 'text-blue-500', opacity: 0.18, top: '-5%', left: '4%', duration: 15, delay: 5 },
+    { id: 'l4', Icon: FaXTwitter, side: 'left', size: 20, color: 'text-white', opacity: 0.22, top: '-30%', left: '12%', duration: 20, delay: 7 },
+    { id: 'l5', Icon: FaInstagram, side: 'left', size: 16, color: 'text-purple-500', opacity: 0.28, top: '-15%', left: '2%', duration: 16, delay: 9 },
 
     // RIGHT SIDE
-    { id: 'r1', Icon: FaTiktok, side: 'right', size: 24, color: 'text-[#fe0979]', opacity: 0.15, top: '-5%', right: '5%', duration: 17, delay: 1 },
-    { id: 'r2', Icon: FaInstagram, side: 'right', size: 18, color: 'text-orange-400', opacity: 0.12, top: '-25%', right: '12%', duration: 21, delay: 3 },
-    { id: 'r3', Icon: FaXTwitter, side: 'right', size: 22, color: 'text-neutral-400', opacity: 0.1, top: '-15%', right: '8%', duration: 19, delay: 6 },
-    { id: 'r4', Icon: FaFacebook, side: 'right', size: 16, color: 'text-cyan-500', opacity: 0.14, top: '-35%', right: '3%', duration: 23, delay: 8 },
-    { id: 'r5', Icon: FaTiktok, side: 'right', size: 20, color: 'text-[#00f2fe]', opacity: 0.09, top: '-10%', right: '15%', duration: 16, delay: 10 },
+    { id: 'r1', Icon: FaTiktok, side: 'right', size: 26, color: 'text-[#fe0979]', opacity: 0.25, top: '-5%', right: '5%', duration: 17, delay: 1 },
+    { id: 'r2', Icon: FaInstagram, side: 'right', size: 20, color: 'text-orange-400', opacity: 0.20, top: '-25%', right: '12%', duration: 21, delay: 3 },
+    { id: 'r3', Icon: FaXTwitter, side: 'right', size: 24, color: 'text-neutral-400', opacity: 0.18, top: '-15%', right: '8%', duration: 19, delay: 6 },
+    { id: 'r4', Icon: FaFacebook, side: 'right', size: 18, color: 'text-cyan-500', opacity: 0.22, top: '-35%', right: '3%', duration: 23, delay: 8 },
+    { id: 'r5', Icon: FaTiktok, side: 'right', size: 22, color: 'text-[#00f2fe]', opacity: 0.19, top: '-10%', right: '15%', duration: 16, delay: 10 },
   ];
 
   // In mobile, we dramatically reduce the amount to only 3 items globally
@@ -43,7 +43,7 @@ export function SocialIconRain() {
   if (!mounted) return null;
 
   return (
-    <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none -z-10 select-none">
+    <div className="fixed inset-0 w-full h-full overflow-hidden pointer-events-none z-0 select-none">
       
       {/* Custom Styles for Keyframes */}
       <style dangerouslySetInnerHTML={{ __html: `
