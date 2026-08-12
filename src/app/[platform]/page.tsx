@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter, useParams, usePathname } from "next/navigation";
 import { 
   ArrowLeft, ArrowRight, Star, ShieldCheck, Zap, HeartHandshake, Headphones,
-  UsersRound, Heart, Eye, MessageCircle, TrendingUp
+  UsersRound, Heart, Eye, MessageCircle, TrendingUp, Lock
 } from "lucide-react";
 import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
@@ -211,10 +211,12 @@ export default function PlatformPage() {
 
                   {/* Bottom Row: Text + Arrow */}
                   <div className="relative z-10">
-                    <h3 className="text-[15px] md:text-[18px] font-bold text-[#F8FAFF] mb-1">{svc.title}</h3>
-                    <div className="flex items-center justify-between">
-                      <p className="text-[11px] md:text-[13px] text-[#A8B1C7] leading-tight max-w-[80%]">{svc.desc}</p>
-                      <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-white md:group-hover:translate-x-1 transition-all" />
+                    <h3 className="text-[16px] md:text-[20px] font-bold text-[#F8FAFF] mb-1.5">{svc.title}</h3>
+                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 sm:gap-2">
+                      <p className="text-[12px] md:text-[14px] text-[#A8B1C7] leading-relaxed max-w-[85%]">{svc.desc}</p>
+                      <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-white/10 group-hover:border-white/20 transition-all self-end sm:self-auto">
+                        <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-white md:group-hover:translate-x-[2px] transition-all" />
+                      </div>
                     </div>
                   </div>
 
@@ -311,6 +313,12 @@ export default function PlatformPage() {
             </div>
           </div>
 
+        </div>
+
+        {/* Security Message */}
+        <div className="flex items-center justify-center gap-1.5 mt-2 mb-10 text-[#A8B1C7] opacity-80 animate-in fade-in duration-700 delay-500">
+          <Lock className="w-3.5 h-3.5" />
+          <span className="text-[11px] md:text-[13px] font-medium tracking-wide">Your information is 100% secure and protected.</span>
         </div>
 
       </main>
