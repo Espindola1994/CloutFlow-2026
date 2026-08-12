@@ -125,19 +125,19 @@ export default function PlatformPage() {
       <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-10 flex flex-col items-center">
         
         {/* Top Controls: Back & Platform Selector */}
-        <div className="w-full flex flex-col md:flex-row items-start md:items-center justify-between mb-8 md:mb-16 gap-6 md:gap-0">
+        <div className="w-full relative flex flex-col items-center justify-center mb-10 md:mb-16 gap-6 md:gap-0">
           
           <button 
             onClick={() => router.push('/')}
-            className="group flex items-center text-[13px] md:text-[14px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+            className="group flex items-center text-[13px] md:text-[14px] font-medium text-muted-foreground hover:text-foreground transition-colors self-start md:absolute md:left-0 md:top-1/2 md:-translate-y-1/2"
           >
             <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
             Back to Home
           </button>
 
           {/* Segmented Control / Glass Navigation */}
-          <div className="w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
-            <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-[#111728]/60 backdrop-blur-md border border-[#26314D] shadow-[0_4px_16px_rgba(0,0,0,0.2)] min-w-max">
+          <div className="w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0 flex justify-center">
+            <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-[#111728]/60 backdrop-blur-md border border-[#26314D] shadow-[0_4px_16px_rgba(0,0,0,0.2)] min-w-max mx-auto">
               {NAV_PLATFORMS.map((plat) => {
                 const isActive = params.platform === plat.id;
                 return (
