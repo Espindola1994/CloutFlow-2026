@@ -80,7 +80,6 @@ export default function Home() {
                 <div className="absolute inset-0 rounded-[24px] bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-500 blur-2xl opacity-40 md:group-hover:opacity-60 transition-opacity duration-300 pointer-events-none -z-10" />
               </div>
               <div className="flex flex-col items-center text-center transition-transform duration-300">
-                <span className="font-bold text-[9px] md:text-[10px] text-[#FF4FA3] md:text-pink-400 uppercase tracking-widest mb-[3px] md:mb-[4px] opacity-90">Most chosen</span>
                 <span className="font-bold text-[15px] md:text-[16px] text-[#F8FAFF]">Instagram</span>
                 <span className="flex items-center text-[12px] md:text-[13px] text-[#A8B1C7] mt-0.5 md:group-hover:text-pink-400 transition-colors">
                   Grow Instagram <ArrowRight className="ml-1 w-3 h-3 md:group-hover:translate-x-[3px] transition-transform" />
