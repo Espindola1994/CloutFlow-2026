@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useFunnelStore } from "@/stores/funnel.store";
-import { Header } from "@/components/layout/header";
 import { ProfileInput } from "@/components/funnel/profile-input";
 import { FollowerTypeSelector } from "@/components/funnel/follower-type-selector";
 import { SocialGrowthVisual } from "@/components/funnel/social-growth-visual";
@@ -28,7 +27,6 @@ export default function PlatformServicePage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <Header />
       
       <main className="flex-1 py-5 md:py-8 relative overflow-hidden">
         {/* Global ambient background layer for platform */}

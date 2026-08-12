@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Header } from "@/components/layout/header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -60,7 +59,6 @@ export default function TrackOrderPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Header />
       
       <main className="flex-1 py-12 md:py-24">
         <div className="container px-4 mx-auto max-w-3xl">

@@ -2,7 +2,6 @@
 
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Header } from "@/components/layout/header";
 import { CheckCircle2, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -68,7 +67,6 @@ function SuccessContent() {
 export default function CheckoutSuccessPage() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Header />
       
       <main className="flex-1 py-12 md:py-24 flex items-center justify-center">
         <Suspense fallback={<Loader2 className="h-8 w-8 animate-spin text-primary" />}>

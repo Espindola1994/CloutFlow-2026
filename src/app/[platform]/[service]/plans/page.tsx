@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useFunnelStore } from "@/stores/funnel.store";
-import { Header } from "@/components/layout/header";
 import { PlanSelector } from "@/components/funnel/plan-selector";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,7 +39,6 @@ export default function PlansPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      <Header />
       
       <main className="flex-1 py-12 md:py-20">
         <div className="container w-full max-w-[1200px] px-4 md:px-6 lg:px-8 mx-auto">
