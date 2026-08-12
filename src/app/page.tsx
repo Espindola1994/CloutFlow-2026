@@ -1,43 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Zap, Users, Star, ArrowRight, TrendingUp, ShieldCheck, Sparkles, Crown, ChevronUp, ChevronDown } from "lucide-react";
+import Image from "next/image";
+import { Zap, Users, Star, ArrowRight, TrendingUp, ShieldCheck, Sparkles, Crown } from "lucide-react";
 import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
 export default function Home() {
-  const [isAtTop, setIsAtTop] = useState(true);
-  const [isAtBottom, setIsAtBottom] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      const scrollHeight = document.body.scrollHeight;
-      const innerHeight = window.innerHeight;
-
-      setIsAtTop(scrollY < 50);
-      // Considered at bottom if within 50px of the very end
-      setIsAtBottom(scrollY + innerHeight >= scrollHeight - 50);
-    };
-
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    // Run once to initialize states
-    handleScroll();
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const scrollDown = () => {
-    // Scroll down approximately one screen height
-    window.scrollBy({ top: window.innerHeight * 0.7, behavior: "smooth" });
-  };
-
-  const scrollUp = () => {
-    // Scroll up approximately one screen height
-    window.scrollBy({ top: -window.innerHeight * 0.7, behavior: "smooth" });
-  };
-
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground overflow-hidden">
       <main className="flex-1 flex flex-col items-center justify-center min-h-[100dvh] py-6 md:py-8 lg:py-10">
@@ -244,29 +213,6 @@ export default function Home() {
 
           </div>
 
-        </div>
-
-        {/* Mobile Floating Scroll Controls */}
-        <div className="md:hidden fixed z-50 right-[10px] top-[63%] -translate-y-1/2 flex flex-col items-center justify-center w-[40px] h-[82px] bg-[#111728]/80 backdrop-blur-xl border border-primary/20 rounded-[20px] shadow-[0_4px_16px_rgba(0,0,0,0.4),0_0_10px_rgba(124,92,252,0.1)] transition-all duration-300 animate-in fade-in slide-in-from-right-4">
-          <button 
-            onClick={scrollUp} 
-            disabled={isAtTop}
-            className={`flex items-center justify-center w-full flex-1 transition-all duration-200 active:scale-90 ${isAtTop ? 'opacity-30 cursor-default' : 'opacity-100'}`}
-            aria-label="Scroll Up"
-          >
-            <ChevronUp className="w-5 h-5 text-[#FF4FA3]" />
-          </button>
-          
-          <div className="w-[60%] h-[1px] bg-white/10" />
-          
-          <button 
-            onClick={scrollDown} 
-            disabled={isAtBottom}
-            className={`flex items-center justify-center w-full flex-1 transition-all duration-200 active:scale-90 ${isAtBottom ? 'opacity-30 cursor-default' : 'opacity-100'}`}
-            aria-label="Scroll Down"
-          >
-            <ChevronDown className="w-5 h-5 text-[#38BDF8]" />
-          </button>
         </div>
 
       </main>
