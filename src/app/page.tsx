@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, Users, Star, ArrowRight, TrendingUp, ShieldCheck, Sparkles } from "lucide-react";
+import { Zap, Users, Star, ArrowRight, TrendingUp, ShieldCheck, Sparkles, Crown } from "lucide-react";
 import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -58,9 +58,9 @@ export default function Home() {
             {/* Instagram Holographic Launcher */}
             <Link href="/instagram" className="group outline-none block relative z-10 flex flex-col items-center cursor-pointer min-h-[130px] md:min-h-[145px]">
               
-              {/* Floating Sparkles Feature Indicator */}
-              <div className="absolute top-[-10px] md:top-[-12px] right-[10%] md:right-[15%] z-30 transition-all duration-300 md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] md:group-hover:brightness-125">
-                <Sparkles className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#F77737] drop-shadow-[0_0_8px_rgba(236,72,153,0.8)]" />
+              {/* Premium Crown Differentiator */}
+              <div className="absolute top-[-4px] md:top-[-6px] right-[8%] md:right-[12%] z-30 transition-all duration-300 md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] md:group-hover:brightness-125 rotate-[18deg]">
+                <Crown className="w-[14px] h-[14px] md:w-[17px] md:h-[17px] text-[#FF4FA3] drop-shadow-[0_0_5px_rgba(255,79,163,0.35)]" />
               </div>
 
               <div className="relative mb-3 md:mb-4 transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] active:scale-[0.96]">
@@ -80,7 +80,7 @@ export default function Home() {
                 <div className="absolute inset-0 rounded-[24px] bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-500 blur-2xl opacity-40 md:group-hover:opacity-60 transition-opacity duration-300 pointer-events-none -z-10" />
               </div>
               <div className="flex flex-col items-center text-center transition-transform duration-300">
-                <span className="font-bold text-[9px] md:text-[10px] text-pink-400 uppercase tracking-widest mb-[3px] md:mb-[4px]">Most chosen</span>
+                <span className="font-bold text-[9px] md:text-[10px] text-[#FF4FA3] md:text-pink-400 uppercase tracking-widest mb-[3px] md:mb-[4px] opacity-90">Most chosen</span>
                 <span className="font-bold text-[15px] md:text-[16px] text-[#F8FAFF]">Instagram</span>
                 <span className="flex items-center text-[12px] md:text-[13px] text-[#A8B1C7] mt-0.5 md:group-hover:text-pink-400 transition-colors">
                   Grow Instagram <ArrowRight className="ml-1 w-3 h-3 md:group-hover:translate-x-[3px] transition-transform" />
