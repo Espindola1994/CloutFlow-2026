@@ -247,7 +247,7 @@ export default function Home() {
         </div>
 
         {/* Mobile Floating Scroll Controls */}
-        <div className="md:hidden fixed z-50 right-[12px] bottom-[calc(22px+env(safe-area-inset-bottom))] flex flex-col items-center justify-center w-[40px] h-[82px] bg-[#111728]/80 backdrop-blur-xl border border-primary/20 rounded-[20px] shadow-[0_4px_16px_rgba(0,0,0,0.4),0_0_10px_rgba(124,92,252,0.1)] transition-all duration-300 animate-in fade-in slide-in-from-right-4">
+        <div className="md:hidden fixed z-50 right-[10px] top-[63%] -translate-y-1/2 flex flex-col items-center justify-center w-[40px] h-[82px] bg-[#111728]/80 backdrop-blur-xl border border-primary/20 rounded-[20px] shadow-[0_4px_16px_rgba(0,0,0,0.4),0_0_10px_rgba(124,92,252,0.1)] transition-all duration-300 animate-in fade-in slide-in-from-right-4">
           <button 
             onClick={scrollUp} 
             disabled={isAtTop}
