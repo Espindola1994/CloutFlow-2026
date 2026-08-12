@@ -59,18 +59,20 @@ export default function Home() {
             <Link href="/instagram" className="group outline-none block relative z-10 flex flex-col items-center cursor-pointer min-h-[130px] md:min-h-[145px]">
               <div className="relative mb-3 md:mb-4 transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] active:scale-[0.96]">
                 
-                {/* Badge MOST POPULAR */}
-                <div className="absolute top-[-11px] left-1/2 -translate-x-1/2 z-30 bg-gradient-to-r from-[#F77737] via-[#E1306C] to-[#833AB4] text-white font-bold text-[8px] md:text-[9.5px] tracking-[0.03em] px-2 md:px-2.5 py-0.5 rounded-full shadow-[0_2px_8px_rgba(236,72,153,0.3)] border border-white/15 flex items-center justify-center gap-1 whitespace-nowrap">
-                  <TrendingUp className="w-2.5 h-2.5 md:w-3 md:h-3" />
-                  MOST POPULAR
-                </div>
-
-                <div className="w-[84px] h-[84px] md:w-[90px] md:h-[90px] rounded-[24px] bg-[#111728]/80 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                <div className="w-[84px] h-[84px] md:w-[90px] md:h-[90px] rounded-[24px] bg-[#111728]/80 backdrop-blur-xl border border-white/10 flex flex-col items-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
                   {/* Inner Highlight / Reflection */}
                   <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/10 to-transparent rounded-t-[24px] pointer-events-none" />
+                  
                   {/* Soft Background Glow inside */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/20 via-pink-500/20 to-purple-500/20 blur-md md:group-hover:opacity-100 opacity-60 transition-opacity duration-300" />
-                  <FaInstagram className="w-10 h-10 md:w-11 md:h-11 text-white relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+                  
+                  {/* Integrated Badge */}
+                  <div className="relative z-20 mt-[8px] md:mt-[10px] flex items-center justify-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 rounded-full bg-gradient-to-r from-[rgba(247,119,55,0.85)] via-[rgba(225,48,108,0.85)] to-[rgba(131,58,180,0.85)] border border-white/10 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
+                    <TrendingUp className="w-2.5 h-2.5 text-white" />
+                    <span className="text-white font-bold text-[7px] md:text-[8px] tracking-[0.03em] leading-none mt-[0.5px]">MOST POPULAR</span>
+                  </div>
+
+                  <FaInstagram className="w-8 h-8 md:w-9 md:h-9 text-white relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] mt-auto mb-[14px] md:mb-[16px]" />
                 </div>
                 {/* Outer Glow */}
                 <div className="absolute inset-0 rounded-[24px] bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-500 blur-xl opacity-30 md:group-hover:opacity-50 transition-opacity duration-300 pointer-events-none -z-10" />
