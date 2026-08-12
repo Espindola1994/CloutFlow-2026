@@ -169,21 +169,48 @@ export default function Home() {
           </div>
 
           {/* 8. Feature Strip (Trust Signals) */}
-          <div className="flex flex-row flex-wrap items-center justify-center gap-x-4 md:gap-x-8 gap-y-3 mt-10 md:mt-12 animate-in fade-in duration-700 delay-700 fill-mode-both px-2">
-            <div className="flex items-center gap-1.5 md:gap-2">
-              <Users className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#7C5CFC]" />
-              <span className="text-[12px] md:text-[13px] lg:text-[14px] text-[#A8B1C7] font-medium">Real followers</span>
+          <div className="w-full mt-10 md:mt-12 animate-in fade-in duration-700 delay-700 fill-mode-both">
+            
+            {/* Desktop Version */}
+            <div className="hidden md:flex flex-row items-center justify-center gap-x-8">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#7C5CFC]" />
+                <span className="text-[14px] text-[#A8B1C7] font-medium">Real followers</span>
+              </div>
+              <div className="w-[3px] h-[3px] rounded-full bg-[#26314D] opacity-60" />
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-indigo-400" />
+                <span className="text-[14px] text-[#A8B1C7] font-medium">Safe & guaranteed</span>
+              </div>
+              <div className="w-[3px] h-[3px] rounded-full bg-[#26314D] opacity-60" />
+              <div className="flex items-center gap-2">
+                <Zap className="w-4 h-4 text-[#38BDF8]" />
+                <span className="text-[14px] text-[#A8B1C7] font-medium">Instant start</span>
+              </div>
             </div>
-            <div className="w-[3px] h-[3px] rounded-full bg-[#26314D] opacity-60" />
-            <div className="flex items-center gap-1.5 md:gap-2">
-              <ShieldCheck className="w-3.5 h-3.5 md:w-4 md:h-4 text-indigo-400" />
-              <span className="text-[12px] md:text-[13px] lg:text-[14px] text-[#A8B1C7] font-medium">Safe & guaranteed</span>
+
+            {/* Mobile Version (3 Column Grid) */}
+            <div className="md:hidden grid grid-cols-3 w-full max-w-[400px] mx-auto relative px-1">
+              {/* Vertical Dividers */}
+              <div className="absolute top-1/2 left-[33.33%] -translate-y-1/2 w-[1px] h-[28px] bg-white/5 pointer-events-none" />
+              <div className="absolute top-1/2 left-[66.66%] -translate-y-1/2 w-[1px] h-[28px] bg-white/5 pointer-events-none" />
+
+              <div className="flex flex-col items-center justify-start text-center px-1">
+                <Users className="w-[16px] h-[16px] text-[#7C5CFC] mb-1.5 opacity-90" />
+                <span className="text-[10px] sm:text-[11px] text-[#A8B1C7] font-medium leading-[1.3]">Real<br />followers</span>
+              </div>
+
+              <div className="flex flex-col items-center justify-start text-center px-1">
+                <ShieldCheck className="w-[16px] h-[16px] text-indigo-400 mb-1.5 opacity-90" />
+                <span className="text-[10px] sm:text-[11px] text-[#A8B1C7] font-medium leading-[1.3]">Safe &<br />guaranteed</span>
+              </div>
+
+              <div className="flex flex-col items-center justify-start text-center px-1">
+                <Zap className="w-[16px] h-[16px] text-[#38BDF8] mb-1.5 opacity-90" />
+                <span className="text-[10px] sm:text-[11px] text-[#A8B1C7] font-medium leading-[1.3]">Instant<br />start</span>
+              </div>
             </div>
-            <div className="w-[3px] h-[3px] rounded-full bg-[#26314D] opacity-60" />
-            <div className="flex items-center gap-1.5 md:gap-2">
-              <Zap className="w-3.5 h-3.5 md:w-4 md:h-4 text-[#38BDF8]" />
-              <span className="text-[12px] md:text-[13px] lg:text-[14px] text-[#A8B1C7] font-medium">Instant start</span>
-            </div>
+
           </div>
 
         </div>
