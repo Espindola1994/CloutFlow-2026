@@ -37,20 +37,20 @@ export default function Home() {
           </div>
 
           {/* 3. Headline */}
-          <h2 className="text-[32px] sm:text-[38px] md:text-[46px] lg:text-[56px] leading-[1.02] font-extrabold tracking-tight mb-4 md:mb-5 text-center text-[#F8FAFF] max-w-[850px] animate-in fade-in slide-in-from-bottom-3 duration-700 delay-150 fill-mode-both">
-            Grow your business or <br className="hidden sm:block" />
-            personal profile <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7C5CFC] to-[#38BDF8]">fast</span>
+          <h2 className="text-[34px] sm:text-[42px] md:text-[50px] lg:text-[58px] leading-[1.05] font-extrabold tracking-tight mb-4 md:mb-5 text-center text-[#F8FAFF] max-w-[850px] animate-in fade-in slide-in-from-bottom-3 duration-700 delay-150 fill-mode-both">
+            Grow your audience. <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#7C5CFC] to-[#38BDF8]">Get noticed faster.</span>
           </h2>
 
           {/* 4. Subheadline */}
-          <p className="text-[14px] md:text-[16px] lg:text-[17px] text-[#A8B1C7] mb-8 md:mb-10 text-center max-w-[340px] md:max-w-[650px] leading-relaxed animate-in fade-in duration-700 delay-200 fill-mode-both">
-            Pick your platform below and we'll show you the best growth options for it — delivered in as little as 24h.
+          <p className="text-[15px] md:text-[17px] lg:text-[18px] text-[#A8B1C7] mb-8 md:mb-10 text-center max-w-[340px] md:max-w-[600px] leading-relaxed animate-in fade-in duration-700 delay-200 fill-mode-both">
+            Followers, likes and views for the platforms that matter to you.
           </p>
 
           {/* 5. Platform Title */}
           <div className="text-center mb-6 md:mb-8 animate-in fade-in duration-700 delay-300 fill-mode-both">
-            <h3 className="text-[18px] md:text-[22px] font-bold tracking-tight text-[#F8FAFF]">Choose your social network</h3>
-            <p className="text-[12px] md:text-[14px] text-[#A8B1C7] mt-1">Select the platform you want to grow</p>
+            <h3 className="text-[20px] md:text-[24px] font-bold tracking-tight text-[#F8FAFF]">Where do you want to grow?</h3>
+            <p className="text-[13px] md:text-[15px] text-[#A8B1C7] mt-1.5">Choose your platform to explore your options.</p>
           </div>
 
           {/* 6. Platform Launchers Grid */}
