@@ -60,19 +60,20 @@ export default function Home() {
               <div className="relative mb-3 md:mb-4 transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] active:scale-[0.96]">
                 
                 <div className="w-[84px] h-[84px] md:w-[90px] md:h-[90px] rounded-[24px] bg-[#111728]/80 backdrop-blur-xl border border-white/10 flex flex-col items-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
-                  {/* Inner Highlight / Reflection */}
-                  <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/10 to-transparent rounded-t-[24px] pointer-events-none" />
+                  
+                  {/* Integrated POPULAR Bar at top */}
+                  <div className="w-full h-[20px] md:h-[23px] bg-gradient-to-r from-[rgba(247,119,55,0.85)] via-[rgba(225,48,108,0.85)] to-[rgba(131,58,180,0.85)] border-b border-white/10 flex items-center justify-center relative z-20">
+                    <span className="text-white font-extrabold text-[9px] md:text-[10px] tracking-[0.03em] leading-none">POPULAR</span>
+                  </div>
+
+                  {/* Inner Highlight / Reflection (moved down slightly to respect bar) */}
+                  <div className="absolute top-[20px] md:top-[23px] left-0 w-full h-1/2 bg-gradient-to-b from-white/10 to-transparent pointer-events-none" />
                   
                   {/* Soft Background Glow inside */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/20 via-pink-500/20 to-purple-500/20 blur-md md:group-hover:opacity-100 opacity-60 transition-opacity duration-300" />
                   
-                  {/* Integrated Badge */}
-                  <div className="relative z-20 mt-[8px] md:mt-[10px] flex items-center justify-center gap-0.5 md:gap-1 px-1.5 md:px-2 py-0.5 rounded-full bg-gradient-to-r from-[rgba(247,119,55,0.85)] via-[rgba(225,48,108,0.85)] to-[rgba(131,58,180,0.85)] border border-white/10 shadow-[0_2px_4px_rgba(0,0,0,0.2)]">
-                    <TrendingUp className="w-2.5 h-2.5 text-white" />
-                    <span className="text-white font-bold text-[7px] md:text-[8px] tracking-[0.03em] leading-none mt-[0.5px]">MOST POPULAR</span>
-                  </div>
-
-                  <FaInstagram className="w-8 h-8 md:w-9 md:h-9 text-white relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] mt-auto mb-[14px] md:mb-[16px]" />
+                  {/* Recentralized Instagram Icon */}
+                  <FaInstagram className="w-8 h-8 md:w-9 md:h-9 text-white relative z-10 drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] mt-auto mb-[18px] md:mb-[20px]" />
                 </div>
                 {/* Outer Glow */}
                 <div className="absolute inset-0 rounded-[24px] bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-500 blur-xl opacity-30 md:group-hover:opacity-50 transition-opacity duration-300 pointer-events-none -z-10" />
