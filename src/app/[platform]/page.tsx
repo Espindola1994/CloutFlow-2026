@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useMemo } from "react";
 import { useRouter, useParams, usePathname } from "next/navigation";
@@ -204,7 +204,7 @@ export default function PlatformPage() {
 
                     {svc.popular && (
                       <div className="bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white text-[9px] md:text-[10px] font-extrabold tracking-wider uppercase px-2 py-0.5 rounded-full border border-white/20 shadow-[0_2px_8px_rgba(236,72,153,0.3)]">
-                        ★ Best Seller
+                        ★ BEST SELLER
                       </div>
                     )}
                   </div>
