@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Zap, Users, Star, CheckCircle2, ArrowRight } from "lucide-react";
+import { Zap, Users, Star, CheckCircle2, ArrowRight, TrendingUp } from "lucide-react";
 import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
@@ -57,12 +57,15 @@ export default function Home() {
             
             {/* Instagram Holographic Launcher */}
             <Link href="/instagram" className="group outline-none block relative z-10 flex flex-col items-center cursor-pointer min-h-[130px] md:min-h-[145px]">
-              {/* Badge POPULAR */}
-              <div className="absolute top-[-6px] md:top-[-8px] right-[10%] md:right-[15%] z-30 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white font-bold text-[9px] md:text-[10px] tracking-[0.04em] px-2 py-0.5 rounded-full shadow-[0_2px_10px_rgba(236,72,153,0.4)] border border-white/20">
-                POPULAR
-              </div>
-              <div className="relative mb-3 md:mb-4">
-                <div className="w-[84px] h-[84px] md:w-[90px] md:h-[90px] rounded-[24px] bg-[#111728]/80 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] active:scale-[0.96] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
+              <div className="relative mb-3 md:mb-4 transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] active:scale-[0.96]">
+                
+                {/* Badge MOST POPULAR */}
+                <div className="absolute top-[-11px] left-1/2 -translate-x-1/2 z-30 bg-gradient-to-r from-[#F77737] via-[#E1306C] to-[#833AB4] text-white font-bold text-[8px] md:text-[9.5px] tracking-[0.03em] px-2 md:px-2.5 py-0.5 rounded-full shadow-[0_2px_8px_rgba(236,72,153,0.3)] border border-white/15 flex items-center justify-center gap-1 whitespace-nowrap">
+                  <TrendingUp className="w-2.5 h-2.5 md:w-3 md:h-3" />
+                  MOST POPULAR
+                </div>
+
+                <div className="w-[84px] h-[84px] md:w-[90px] md:h-[90px] rounded-[24px] bg-[#111728]/80 backdrop-blur-xl border border-white/10 flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
                   {/* Inner Highlight / Reflection */}
                   <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/10 to-transparent rounded-t-[24px] pointer-events-none" />
                   {/* Soft Background Glow inside */}
