@@ -5,12 +5,16 @@ import Image from "next/image";
 import { Zap, Users, Star, ArrowRight, TrendingUp, ShieldCheck, Sparkles } from "lucide-react";
 import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
+import { SocialIconRain } from "@/components/funnel/social-growth-visual/social-icon-rain";
 
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground overflow-hidden">
       <main className="flex-1 flex flex-col items-center justify-center min-h-[100dvh] py-6 md:py-8 lg:py-10">
         
+        {/* Experimental Neon Ambient Background (Reversible) */}
+        <SocialIconRain />
+
         {/* Ambient Glows */}
         <div className="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
           {/* Top Left Violet */}
