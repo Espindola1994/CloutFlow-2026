@@ -107,47 +107,35 @@ export default function Home() {
           <div className="w-full grid grid-cols-2 md:grid-cols-4 gap-x-4 md:gap-x-6 gap-y-6 md:gap-y-0 mb-10 md:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-400 fill-mode-both max-w-[900px] mx-auto">
             
             {/* Instagram Holographic Launcher */}
-            <Link href="/instagram" className="group outline-none block relative z-10 flex flex-col items-center cursor-pointer min-h-[110px] md:min-h-[135px]">
+            <Link href="/instagram" className="group outline-none block relative z-10 flex flex-col items-center cursor-pointer min-h-[90px] md:min-h-[110px]">
               
-              <div className="relative mb-3 md:mb-4"><OrganicSocialIcon platform="instagram" /></div>
+              <div className="relative mb-2 md:mb-3"><OrganicSocialIcon platform="instagram" /></div>
               <div className="flex flex-col items-center text-center transition-transform duration-300">
                 <span className="font-bold text-[15px] md:text-[16px] text-[#F8FAFF]">Instagram</span>
-                <span className="flex items-center text-[12px] md:text-[13px] text-[#A8B1C7] mt-0.5 md:group-hover:text-pink-400 transition-colors">
-                  Grow Instagram <ArrowRight className="ml-1 w-3 h-3 md:group-hover:translate-x-[3px] transition-transform" />
-                </span>
               </div>
             </Link>
 
             {/* TikTok Holographic Launcher */}
-            <Link href="/tiktok" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[110px] md:min-h-[135px]">
-              <div className="relative mb-3 md:mb-4"><OrganicSocialIcon platform="tiktok" /></div>
+            <Link href="/tiktok" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[90px] md:min-h-[110px]">
+              <div className="relative mb-2 md:mb-3"><OrganicSocialIcon platform="tiktok" /></div>
               <div className="flex flex-col items-center text-center transition-transform duration-300">
                 <span className="font-bold text-[15px] md:text-[16px] text-[#F8FAFF]">TikTok</span>
-                <span className="flex items-center text-[12px] md:text-[13px] text-[#A8B1C7] mt-0.5 md:group-hover:text-[#00f2fe] transition-colors">
-                  Grow TikTok <ArrowRight className="ml-1 w-3 h-3 md:group-hover:translate-x-[3px] transition-transform" />
-                </span>
               </div>
             </Link>
 
             {/* X / Twitter Holographic Launcher */}
-            <Link href="/twitter" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[110px] md:min-h-[135px]">
-              <div className="relative mb-3 md:mb-4"><OrganicSocialIcon platform="twitter" /></div>
+            <Link href="/twitter" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[90px] md:min-h-[110px]">
+              <div className="relative mb-2 md:mb-3"><OrganicSocialIcon platform="twitter" /></div>
               <div className="flex flex-col items-center text-center transition-transform duration-300">
                 <span className="font-bold text-[15px] md:text-[16px] text-[#F8FAFF]">Twitter (X)</span>
-                <span className="flex items-center text-[12px] md:text-[13px] text-[#A8B1C7] mt-0.5 md:group-hover:text-white transition-colors">
-                  Grow on X <ArrowRight className="ml-1 w-3 h-3 md:group-hover:translate-x-[3px] transition-transform" />
-                </span>
               </div>
             </Link>
 
             {/* Facebook Holographic Launcher */}
-            <Link href="/facebook" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[110px] md:min-h-[135px]">
-              <div className="relative mb-3 md:mb-4"><OrganicSocialIcon platform="facebook" /></div>
+            <Link href="/facebook" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[90px] md:min-h-[110px]">
+              <div className="relative mb-2 md:mb-3"><OrganicSocialIcon platform="facebook" /></div>
               <div className="flex flex-col items-center text-center transition-transform duration-300">
                 <span className="font-bold text-[15px] md:text-[16px] text-[#F8FAFF]">Facebook</span>
-                <span className="flex items-center text-[12px] md:text-[13px] text-[#A8B1C7] mt-0.5 md:group-hover:text-blue-400 transition-colors">
-                  Grow Facebook <ArrowRight className="ml-1 w-3 h-3 md:group-hover:translate-x-[3px] transition-transform" />
-                </span>
               </div>
             </Link>
 
