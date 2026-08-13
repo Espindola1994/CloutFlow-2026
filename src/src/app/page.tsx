@@ -1,57 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { Zap, Users, Star, ArrowRight, TrendingUp, ShieldCheck, Sparkles } from "lucide-react";
 import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 import { SocialIconRain } from "@/components/funnel/social-growth-visual/social-icon-rain";
-
-
-function OrganicSocialIcon({ platform }: { platform: "instagram" | "tiktok" | "twitter" | "facebook" }) {
-  const base = "relative w-[86px] h-[86px] md:w-[96px] md:h-[96px] transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.06] active:scale-[0.96]";
-
-  if (platform === "instagram") {
-    return (
-      <div className={base}>
-        <span className="absolute inset-[8px] rounded-[36%_64%_58%_42%/46%_40%_60%_54%] bg-gradient-to-br from-[#7C3AED] via-[#E1306C] to-[#FF8A00] rotate-[-11deg] opacity-90" />
-        <span className="absolute inset-[12px] rounded-[58%_42%_37%_63%/44%_61%_39%_56%] bg-gradient-to-tr from-[#FF9F0A] via-[#FF2D85] to-[#9B5CFF] rotate-[10deg] opacity-95" />
-        <span className="absolute inset-[18px] rounded-[42%_58%_54%_46%/57%_42%_58%_43%] bg-gradient-to-br from-[#FF8A3D] via-[#E1306C] to-[#B83DFF] shadow-[0_12px_28px_rgba(225,48,108,0.28)]" />
-        <FaInstagram className="absolute inset-0 m-auto w-[38px] h-[38px] md:w-[42px] md:h-[42px] text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.28)]" />
-      </div>
-    );
-  }
-
-  if (platform === "tiktok") {
-    return (
-      <div className={base}>
-        <span className="absolute inset-[8px] rounded-[58%_42%_35%_65%/41%_63%_37%_59%] bg-[#25F4EE] rotate-[-12deg] opacity-85" />
-        <span className="absolute inset-[10px] rounded-[37%_63%_57%_43%/60%_39%_61%_40%] bg-[#FE2C55] rotate-[13deg] opacity-90" />
-        <span className="absolute inset-[17px] rounded-[47%_53%_43%_57%/55%_44%_56%_45%] bg-gradient-to-br from-[#111827] to-[#05070D] border border-white/10 shadow-[0_12px_28px_rgba(37,244,238,0.14)]" />
-        <FaTiktok className="absolute inset-0 m-auto w-[36px] h-[36px] md:w-[40px] md:h-[40px] text-white drop-shadow-[3px_2px_0_#FE2C55] [filter:drop-shadow(-3px_-1px_0_#25F4EE)]" />
-      </div>
-    );
-  }
-
-  if (platform === "facebook") {
-    return (
-      <div className={base}>
-        <span className="absolute inset-[8px] rounded-[61%_39%_54%_46%/43%_58%_42%_57%] bg-[#00B8FF] rotate-[-10deg] opacity-85" />
-        <span className="absolute inset-[11px] rounded-[39%_61%_42%_58%/60%_44%_56%_40%] bg-[#2358FF] rotate-[12deg] opacity-95" />
-        <span className="absolute inset-[17px] rounded-[44%_56%_61%_39%/47%_57%_43%_53%] bg-gradient-to-br from-[#2189FF] to-[#1554E8] shadow-[0_12px_28px_rgba(24,119,242,0.24)]" />
-        <FaFacebook className="absolute inset-0 m-auto w-[40px] h-[40px] md:w-[44px] md:h-[44px] text-white" />
-      </div>
-    );
-  }
-
-  return (
-    <div className={base}>
-      <span className="absolute inset-[8px] rounded-[56%_44%_35%_65%/44%_61%_39%_56%] bg-[#4B5563] rotate-[-12deg] opacity-55" />
-      <span className="absolute inset-[10px] rounded-[38%_62%_59%_41%/62%_39%_61%_38%] bg-[#1F2937] rotate-[12deg] opacity-90" />
-      <span className="absolute inset-[17px] rounded-[46%_54%_42%_58%/58%_45%_55%_42%] bg-gradient-to-br from-[#151B25] to-[#05070A] border border-white/20 shadow-[0_12px_28px_rgba(255,255,255,0.08)]" />
-      <FaXTwitter className="absolute inset-0 m-auto w-[34px] h-[34px] md:w-[38px] md:h-[38px] text-white" />
-    </div>
-  );
-}
 
 export default function Home() {
   return (
@@ -109,7 +63,22 @@ export default function Home() {
             {/* Instagram Holographic Launcher */}
             <Link href="/instagram" className="group outline-none block relative z-10 flex flex-col items-center cursor-pointer min-h-[110px] md:min-h-[135px]">
               
-              <div className="relative mb-3 md:mb-4"><OrganicSocialIcon platform="instagram" /></div>
+              <div className="relative mb-3 md:mb-4 transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] active:scale-[0.96]">
+                
+                <div className="w-[72px] h-[72px] md:w-[80px] md:h-[80px] rounded-[22px] bg-[#111728]/80 backdrop-blur-xl border border-white/20 md:group-hover:border-white/30 flex items-center justify-center shadow-[inset_0_1px_1px_rgba(255,255,255,0.25),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                  
+                  {/* Inner Highlight / Reflection */}
+                  <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/15 to-transparent rounded-t-[22px] pointer-events-none md:group-hover:from-white/25 transition-colors duration-300" />
+                  
+                  {/* Soft Background Glow inside */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-orange-500/30 via-pink-500/30 to-purple-500/30 blur-md md:group-hover:opacity-100 opacity-80 transition-opacity duration-300" />
+                  
+                  {/* Instagram Icon Centered */}
+                  <FaInstagram className="w-8 h-8 md:w-9 md:h-9 text-white relative z-10 drop-shadow-[0_0_12px_rgba(255,255,255,0.6)]" />
+                </div>
+                {/* Outer Glow */}
+                <div className="absolute inset-0 rounded-[22px] bg-gradient-to-tr from-orange-500 via-pink-500 to-purple-500 blur-2xl opacity-40 md:group-hover:opacity-60 transition-opacity duration-300 pointer-events-none -z-10" />
+              </div>
               <div className="flex flex-col items-center text-center transition-transform duration-300">
                 <span className="font-bold text-[15px] md:text-[16px] text-[#F8FAFF]">Instagram</span>
                 <span className="flex items-center text-[12px] md:text-[13px] text-[#A8B1C7] mt-0.5 md:group-hover:text-pink-400 transition-colors">
@@ -120,7 +89,15 @@ export default function Home() {
 
             {/* TikTok Holographic Launcher */}
             <Link href="/tiktok" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[110px] md:min-h-[135px]">
-              <div className="relative mb-3 md:mb-4"><OrganicSocialIcon platform="tiktok" /></div>
+              <div className="relative mb-3 md:mb-4">
+                <div className="w-[72px] h-[72px] md:w-[80px] md:h-[80px] rounded-[22px] bg-[#0A0A0A]/90 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] active:scale-[0.96] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/5 to-transparent rounded-t-[22px] pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-tr from-[#00f2fe]/15 to-[#fe0979]/15 blur-md md:group-hover:opacity-100 opacity-50 transition-opacity duration-300" />
+                  <FaTiktok className="w-[28px] h-[28px] md:w-8 md:h-8 text-white relative z-10 drop-shadow-[0_0_10px_rgba(0,242,254,0.4)]" />
+                </div>
+                {/* Circular Outer Glow */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] rounded-full bg-gradient-to-tr from-[#00f2fe] to-[#fe0979] blur-2xl opacity-20 md:group-hover:opacity-40 transition-opacity duration-300 pointer-events-none -z-10" />
+              </div>
               <div className="flex flex-col items-center text-center transition-transform duration-300">
                 <span className="font-bold text-[15px] md:text-[16px] text-[#F8FAFF]">TikTok</span>
                 <span className="flex items-center text-[12px] md:text-[13px] text-[#A8B1C7] mt-0.5 md:group-hover:text-[#00f2fe] transition-colors">
@@ -131,7 +108,14 @@ export default function Home() {
 
             {/* X / Twitter Holographic Launcher */}
             <Link href="/twitter" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[110px] md:min-h-[135px]">
-              <div className="relative mb-3 md:mb-4"><OrganicSocialIcon platform="twitter" /></div>
+              <div className="relative mb-3 md:mb-4">
+                <div className="w-[72px] h-[72px] md:w-[80px] md:h-[80px] rounded-[22px] bg-[#0D1120]/80 backdrop-blur-xl border border-white/10 flex items-center justify-center transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] active:scale-[0.96] shadow-[inset_0_1px_1px_rgba(255,255,255,0.15),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/10 to-transparent rounded-t-[22px] pointer-events-none" />
+                  <div className="absolute inset-0 bg-white/5 blur-md md:group-hover:opacity-100 opacity-50 transition-opacity duration-300" />
+                  <FaXTwitter className="w-7 h-7 md:w-[30px] md:h-[30px] text-white relative z-10 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+                </div>
+                <div className="absolute inset-0 rounded-[22px] bg-white/20 blur-xl opacity-10 md:group-hover:opacity-20 transition-opacity duration-300 pointer-events-none -z-10" />
+              </div>
               <div className="flex flex-col items-center text-center transition-transform duration-300">
                 <span className="font-bold text-[15px] md:text-[16px] text-[#F8FAFF]">Twitter (X)</span>
                 <span className="flex items-center text-[12px] md:text-[13px] text-[#A8B1C7] mt-0.5 md:group-hover:text-white transition-colors">
@@ -142,7 +126,14 @@ export default function Home() {
 
             {/* Facebook Holographic Launcher */}
             <Link href="/facebook" className="group outline-none block relative flex flex-col items-center cursor-pointer min-h-[110px] md:min-h-[135px]">
-              <div className="relative mb-3 md:mb-4"><OrganicSocialIcon platform="facebook" /></div>
+              <div className="relative mb-3 md:mb-4">
+                <div className="w-[72px] h-[72px] md:w-[80px] md:h-[80px] rounded-[22px] bg-[#111728]/80 backdrop-blur-xl border border-blue-400/20 flex items-center justify-center transition-all duration-300 ease-out md:group-hover:-translate-y-[4px] md:group-hover:scale-[1.04] active:scale-[0.96] shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_10px_30px_rgba(0,0,0,0.5)] relative overflow-hidden">
+                  <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-white/10 to-transparent rounded-t-[22px] pointer-events-none" />
+                  <div className="absolute inset-0 bg-blue-500/20 blur-md md:group-hover:opacity-100 opacity-60 transition-opacity duration-300" />
+                  <FaFacebook className="w-[30px] h-[30px] md:w-8 md:h-8 text-white relative z-10 drop-shadow-[0_0_10px_rgba(24,119,242,0.5)]" />
+                </div>
+                <div className="absolute inset-0 rounded-[22px] bg-blue-500 blur-xl opacity-20 md:group-hover:opacity-40 transition-opacity duration-300 pointer-events-none -z-10" />
+              </div>
               <div className="flex flex-col items-center text-center transition-transform duration-300">
                 <span className="font-bold text-[15px] md:text-[16px] text-[#F8FAFF]">Facebook</span>
                 <span className="flex items-center text-[12px] md:text-[13px] text-[#A8B1C7] mt-0.5 md:group-hover:text-blue-400 transition-colors">
