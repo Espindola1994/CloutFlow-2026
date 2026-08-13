@@ -1,353 +1,179 @@
-﻿"use client";
+"use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { useRouter, useParams, usePathname } from "next/navigation";
-import { 
-  ArrowLeft, ArrowRight, Star, ShieldCheck, Zap, HeartHandshake, Headphones,
-  UsersRound, Heart, Eye, MessageCircle, TrendingUp, Lock
-} from "lucide-react";
-import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
-import { FaXTwitter } from "react-icons/fa6";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image, { type StaticImageData } from "next/image";
+import instagramOrganic from "@/assets/social-platforms/instagram.png";
+import tiktokOrganic from "@/assets/social-platforms/tiktok.png";
+import twitterOrganic from "@/assets/social-platforms/twitter.png";
+import facebookOrganic from "@/assets/social-platforms/facebook.png";
+import {
+  ArrowLeft, ArrowRight, Headphones, Heart, Lock,
+  MessageSquareText, ShieldCheck, Star, UsersRound, Eye, Zap
+} from "lucide-react";
+import { FaFacebook, FaInstagram, FaTiktok } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 
-type ThemeConfig = {
+type PlatformId = "instagram" | "tiktok" | "twitter" | "facebook";
+
+type Theme = {
   name: string;
-  id: string;
-  icon: React.FC<any>;
+  icon: React.ComponentType<{ className?: string }>;
+  gradient: string;
+  accent: string;
+  accent2: string;
   glow: string;
-  baseColor: string;
-  textColor: string;
-  borderHover: string;
-  cards: {
-    followers: { glow: string, text: string };
-    likes: { glow: string, text: string };
-    views: { glow: string, text: string };
-    comments: { glow: string, text: string };
-  }
 };
 
-const THEMES: Record<string, ThemeConfig> = {
-  instagram: {
-    name: "Instagram",
-    id: "instagram",
-    icon: FaInstagram,
-    glow: "bg-[radial-gradient(circle,rgba(225,48,108,0.1),rgba(131,58,180,0.05),transparent_70%)]",
-    baseColor: "from-[#F77737] via-[#E1306C] to-[#833AB4]",
-    textColor: "text-transparent bg-clip-text bg-gradient-to-r from-[#F77737] via-[#E1306C] to-[#833AB4]",
-    borderHover: "group-hover:border-pink-500/50",
-    cards: {
-      followers: { glow: "group-hover:shadow-[0_10px_30px_rgba(131,58,180,0.25)]", text: "text-purple-400" },
-      likes: { glow: "group-hover:shadow-[0_10px_30px_rgba(225,48,108,0.25)]", text: "text-pink-500" },
-      views: { glow: "group-hover:shadow-[0_10px_30px_rgba(247,119,55,0.25)]", text: "text-orange-400" },
-      comments: { glow: "group-hover:shadow-[0_10px_30px_rgba(6,182,212,0.2)]", text: "text-cyan-400" },
-    }
-  },
-  tiktok: {
-    name: "TikTok",
-    id: "tiktok",
-    icon: FaTiktok,
-    glow: "bg-[radial-gradient(circle,rgba(0,242,254,0.08),rgba(254,9,121,0.05),transparent_70%)]",
-    baseColor: "from-[#00f2fe] to-[#fe0979]",
-    textColor: "text-transparent bg-clip-text bg-gradient-to-r from-[#00f2fe] to-[#fe0979]",
-    borderHover: "group-hover:border-[#00f2fe]/50",
-    cards: {
-      followers: { glow: "group-hover:shadow-[0_10px_30px_rgba(0,242,254,0.25)]", text: "text-[#00f2fe]" },
-      likes: { glow: "group-hover:shadow-[0_10px_30px_rgba(254,9,121,0.25)]", text: "text-[#fe0979]" },
-      views: { glow: "group-hover:shadow-[0_10px_30px_rgba(0,242,254,0.2)]", text: "text-cyan-400" },
-      comments: { glow: "group-hover:shadow-[0_10px_30px_rgba(254,9,121,0.2)]", text: "text-pink-400" },
-    }
-  },
-  twitter: {
-    name: "X / Twitter",
-    id: "twitter",
-    icon: FaXTwitter,
-    glow: "bg-[radial-gradient(circle,rgba(255,255,255,0.05),rgba(124,92,252,0.05),transparent_70%)]",
-    baseColor: "from-gray-300 to-white",
-    textColor: "text-white",
-    borderHover: "group-hover:border-white/40",
-    cards: {
-      followers: { glow: "group-hover:shadow-[0_10px_30px_rgba(124,92,252,0.2)]", text: "text-purple-400" },
-      likes: { glow: "group-hover:shadow-[0_10px_30px_rgba(255,255,255,0.15)]", text: "text-white" },
-      views: { glow: "group-hover:shadow-[0_10px_30px_rgba(163,163,163,0.2)]", text: "text-gray-300" },
-      comments: { glow: "group-hover:shadow-[0_10px_30px_rgba(59,130,246,0.2)]", text: "text-blue-400" },
-    }
-  },
-  facebook: {
-    name: "Facebook",
-    id: "facebook",
-    icon: FaFacebook,
-    glow: "bg-[radial-gradient(circle,rgba(24,119,242,0.1),rgba(0,242,254,0.05),transparent_70%)]",
-    baseColor: "from-[#1877F2] to-[#3b8ef5]",
-    textColor: "text-[#1877F2]",
-    borderHover: "group-hover:border-[#1877F2]/50",
-    cards: {
-      followers: { glow: "group-hover:shadow-[0_10px_30px_rgba(24,119,242,0.3)]", text: "text-blue-500" },
-      likes: { glow: "group-hover:shadow-[0_10px_30px_rgba(124,92,252,0.2)]", text: "text-indigo-400" },
-      views: { glow: "group-hover:shadow-[0_10px_30px_rgba(0,242,254,0.2)]", text: "text-cyan-400" },
-      comments: { glow: "group-hover:shadow-[0_10px_30px_rgba(56,189,248,0.2)]", text: "text-sky-400" },
-    }
-  }
+const THEMES: Record<PlatformId, Theme> = {
+  instagram: { name: "Instagram", icon: FaInstagram, gradient: "linear-gradient(90deg,#ff7a35 0%,#f02d82 48%,#ec4899 100%)", accent: "#ec4899", accent2: "#ff2a98", glow: "rgba(236,72,153,.22)" },
+  tiktok: { name: "TikTok", icon: FaTiktok, gradient: "linear-gradient(90deg,#00f2ea 0%,#ffffff 48%,#ff0050 100%)", accent: "#00e9f5", accent2: "#ff2c7d", glow: "rgba(0,234,245,.18)" },
+  twitter: { name: "X / Twitter", icon: FaXTwitter, gradient: "linear-gradient(90deg,#ffffff 0%,#9fb0c8 100%)", accent: "#dbe7ff", accent2: "#6d8cff", glow: "rgba(110,140,255,.16)" },
+  facebook: { name: "Facebook", icon: FaFacebook, gradient: "linear-gradient(90deg,#35a2ff 0%,#1877f2 100%)", accent: "#238bff", accent2: "#00c6ff", glow: "rgba(24,119,242,.2)" },
 };
 
-const NAV_PLATFORMS = [
-  { id: 'instagram', icon: FaInstagram, label: 'Instagram' },
-  { id: 'tiktok', icon: FaTiktok, label: 'TikTok' },
-  { id: 'twitter', icon: FaXTwitter, label: 'X / Twitter' },
-  { id: 'facebook', icon: FaFacebook, label: 'Facebook' },
+const NAV: { id: PlatformId; label: string; image: StaticImageData }[] = [
+  { id: "instagram", label: "Instagram", image: instagramOrganic },
+  { id: "tiktok", label: "TikTok", image: tiktokOrganic },
+  { id: "twitter", label: "X / Twitter", image: twitterOrganic },
+  { id: "facebook", label: "Facebook", image: facebookOrganic },
 ];
 
-const SERVICES_DATA = [
-  { id: "followers", icon: UsersRound, title: "Followers", desc: "High quality real followers", popular: true },
-  { id: "likes", icon: Heart, title: "Likes", desc: "Instant post likes", popular: false },
-  { id: "views", icon: Eye, title: "Views", desc: "Boost video views and reach", popular: false },
-  { id: "comments", icon: MessageCircle, title: "Comments", desc: "Custom relevant comments", popular: false }
+const SERVICES = [
+  { id: "followers", title: "Followers", desc: "High quality real\nfollowers.", icon: UsersRound, popular: true },
+  { id: "likes", title: "Likes", desc: "Instant post likes\nfrom real users.", icon: Heart },
+  { id: "views", title: "Views", desc: "Boost video views\nand reach.", icon: Eye },
+  { id: "comments", title: "Comments", desc: "Custom relevant\ncomments.", icon: MessageSquareText },
 ];
 
 export default function PlatformPage() {
   const router = useRouter();
-  const pathname = usePathname();
-  const params = useParams() as { platform: string };
-  
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const theme = THEMES[params.platform] || THEMES['instagram'];
+  const params = useParams<{ platform: string }>();
+  const platform = (params?.platform in THEMES ? params.platform : "instagram") as PlatformId;
+  const theme = THEMES[platform];
+  const bestSellerStyle = platform === "tiktok"
+    ? {
+        backgroundImage: "linear-gradient(90deg,#00bfc4 0%,#2a6674 46%,#c50043 100%)",
+        boxShadow: "0 0 4px rgba(0,234,245,.10)",
+      }
+    : platform === "twitter"
+      ? {
+          backgroundImage: "linear-gradient(90deg,#5f6b7c 0%,#7b8798 48%,#4b5667 100%)",
+          boxShadow: "0 0 3px rgba(219,231,255,.08)",
+        }
+      : {
+          backgroundImage: theme.gradient,
+          boxShadow: `0 0 14px ${theme.glow}`,
+        };
 
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground overflow-x-hidden selection:bg-primary/30">
-      
-      {/* Platform Ambient Glow */}
-      <div className={`fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-[1000px] h-[500px] pointer-events-none -z-10 ${theme.glow}`} />
+    <div className="select-screen" style={{ "--platform-glow": theme.glow } as React.CSSProperties}>
+      <div className="ambient ambient-a" />
+      <div className="ambient ambient-b" />
 
-      <main className="flex-1 w-full max-w-[1200px] mx-auto px-4 md:px-6 lg:px-8 py-6 md:py-10 flex flex-col items-center">
-        
-        {/* Top Controls: Back & Platform Selector */}
-        <div className="w-full relative flex flex-col items-center justify-center mb-10 md:mb-16 gap-6 md:gap-0">
-          
-          <button 
-            onClick={() => router.push('/')}
-            className="group flex items-center text-[13px] md:text-[14px] font-medium text-muted-foreground hover:text-foreground transition-colors self-start md:absolute md:left-0 md:top-1/2 md:-translate-y-1/2"
-          >
-            <ArrowLeft className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-            Back to Home
-          </button>
+      <button className="back" onClick={() => router.push("/")}><ArrowLeft /> <span>Back to Home</span></button>
 
-          {/* Segmented Control / Glass Navigation */}
-          <div className="w-full md:w-auto overflow-x-auto pb-2 md:pb-0 hide-scrollbar -mx-4 px-4 md:mx-0 md:px-0 flex justify-center">
-            <div className="flex items-center gap-1.5 p-1.5 rounded-full bg-[#111728]/60 backdrop-blur-md border border-[#26314D] shadow-[0_4px_16px_rgba(0,0,0,0.2)] min-w-max mx-auto">
-              {NAV_PLATFORMS.map((plat) => {
-                const isActive = params.platform === plat.id;
-                return (
-                  <Link 
-                    key={plat.id} 
-                    href={`/${plat.id}`}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 outline-none
-                      ${isActive 
-                        ? `bg-surface-elevated shadow-sm border border-white/5` 
-                        : `hover:bg-white/5 text-muted-foreground`
-                      }`}
-                  >
-                    <plat.icon className={`w-3.5 h-3.5 ${isActive ? theme.textColor.split(' ')[0] : 'opacity-70'}`} />
-                    <span className={`text-[13px] font-bold ${isActive ? 'text-foreground' : ''}`}>{plat.label}</span>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        </div>
+      <nav className="platform-nav" aria-label="Choose platform">
+        {NAV.map((item) => {
+          const active = item.id === platform;
+          return (
+            <Link key={item.id} href={`/${item.id}`} className={`platform-tab ${active ? "active" : ""}`} style={({ "--active-gradient": THEMES[item.id].gradient, "--active-glow": THEMES[item.id].glow, "--tab-accent": THEMES[item.id].accent, "--tab-accent-2": THEMES[item.id].accent2 } as React.CSSProperties)}>
+              <Image src={item.image} alt="" className={`platform-icon organic-nav-icon ${item.id}`} priority />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
 
-        {/* Compact Hero */}
-        <div className="text-center mb-10 md:mb-16 flex flex-col items-center animate-in fade-in slide-in-from-bottom-3 duration-700">
-          <h1 className="text-[32px] md:text-[46px] lg:text-[52px] font-extrabold tracking-tight leading-[1.1] mb-4 md:mb-5">
-            Select an <span className={`${theme.textColor}`}>{theme.name}</span> Service
-          </h1>
-          <p className="text-[15px] md:text-[17px] text-[#A8B1C7] max-w-[550px] leading-relaxed">
-            Choose the service that fits your goal. Fast, simple and reliable growth.
-          </p>
+      <Decor theme={theme} />
 
-          {/* Micro Benefits (Pills) */}
-          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4 mt-6 md:mt-8">
-            <div className="flex items-center gap-2 bg-[#111728]/80 backdrop-blur-md border border-white/5 px-4 md:px-5 py-2 md:py-2.5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
-              <ShieldCheck className="w-4 h-4 text-indigo-400 drop-shadow-[0_0_8px_currentColor]" /> 
-              <span className="text-[12px] md:text-[13px] font-medium text-white">Secure</span>
-            </div>
-            <div className="flex items-center gap-2 bg-[#111728]/80 backdrop-blur-md border border-white/5 px-4 md:px-5 py-2 md:py-2.5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
-              <Zap className="w-4 h-4 text-[#38BDF8] drop-shadow-[0_0_8px_currentColor]" /> 
-              <span className="text-[12px] md:text-[13px] font-medium text-white">Fast Delivery</span>
-            </div>
-            <div className="flex items-center gap-2 bg-[#111728]/80 backdrop-blur-md border border-white/5 px-4 md:px-5 py-2 md:py-2.5 rounded-full shadow-[0_4px_12px_rgba(0,0,0,0.2)]">
-              <TrendingUp className="w-4 h-4 text-[#7C5CFC] drop-shadow-[0_0_8px_currentColor]" /> 
-              <span className="text-[12px] md:text-[13px] font-medium text-white">Real Results</span>
-            </div>
-          </div>
-        </div>
+      <main className="content">
+        <section className="hero">
+          <h1>Grow Your <span style={{ backgroundImage: theme.gradient }}>{theme.name}</span></h1>
+          <p>Choose a service and start growing today.</p>
+        </section>
 
-        {/* Services Holographic Grid (Vertical Cards) */}
-        <div className="w-full grid grid-cols-2 md:flex md:flex-row md:flex-wrap md:justify-center gap-4 md:gap-[36px] mb-16 md:mb-24 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-150">
-          {SERVICES_DATA.map((svc) => {
-            const cardTheme = theme.cards[svc.id as keyof typeof theme.cards];
-            
+        <section className="service-grid">
+          {SERVICES.map((service) => {
+            const Icon = service.icon;
             return (
-              <Link key={svc.id} href={`/${params.platform}/${svc.id}`} className="group outline-none block w-full md:w-[250px]">
-                <div className={`w-full min-h-[220px] md:h-[335px] relative bg-[#111728]/80 backdrop-blur-xl border border-white/10 rounded-[24px] md:rounded-[32px] p-5 md:p-8 flex flex-col items-center text-center justify-between transition-all duration-300 ease-out md:hover:-translate-y-1.5 active:scale-[0.98] ${theme.borderHover} group-hover:shadow-[0_15px_40px_rgba(0,0,0,0.6)] relative z-10`}>
-                  
-                  {/* Internal Radial Glow Permanent */}
-                  <div className={`absolute inset-0 opacity-40 blur-2xl transition-opacity duration-300 md:group-hover:opacity-60 pointer-events-none -z-10 ${cardTheme.glow.replace('group-hover:shadow-[0_10px_30px_', 'bg-[').replace(']', ']')}`} style={{ background: `radial-gradient(circle at center 30%, ${cardTheme.text.replace('text-', '') === 'purple-400' ? 'rgba(168,85,247,0.25)' : cardTheme.text.replace('text-', '') === 'pink-500' ? 'rgba(236,72,153,0.25)' : cardTheme.text.replace('text-', '') === 'orange-400' ? 'rgba(251,146,60,0.25)' : 'rgba(34,211,238,0.25)'}, transparent 70%)` }} />
-
-                  {/* Inner Highlight / Reflection */}
-                  <div className="absolute top-0 left-0 w-full h-[80px] bg-gradient-to-b from-white/10 to-transparent rounded-t-[24px] md:rounded-t-[32px] pointer-events-none" />
-
-                  {/* Top Floating Badge overlapping border strictly on Followers */}
-                  {svc.popular && (
-                    <div className="absolute -top-[10px] right-4 bg-gradient-to-r from-orange-500 via-pink-500 to-purple-500 text-white text-[9px] md:text-[10px] font-extrabold tracking-wider uppercase px-2.5 py-1 rounded-full border border-white/20 shadow-[0_4px_12px_rgba(236,72,153,0.4)] z-30">
-                      ★ BEST SELLER
-                    </div>
-                  )}
-
-                  {/* Corner Sparkles (Desktop Hover) */}
-                  <div className="hidden md:block absolute top-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"><Star className={`w-3 h-3 ${cardTheme.text}`} /></div>
-                  <div className="hidden md:block absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"><Star className={`w-2 h-2 ${cardTheme.text}`} /></div>
-                  <div className="hidden md:block absolute bottom-4 left-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"><Star className={`w-2 h-2 ${cardTheme.text}`} /></div>
-                  <div className="hidden md:block absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"><Star className={`w-3 h-3 ${cardTheme.text}`} /></div>
-
-                  {/* Top Element: Hexagon Icon Box */}
-                  <div className="relative mt-2 mb-4 md:mb-6">
-                    <div className="w-[60px] h-[60px] md:w-[84px] md:h-[84px] bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner group-hover:border-white/40 transition-colors z-20 relative" style={{ clipPath: "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)" }}>
-                      <svc.icon className={`w-7 h-7 md:w-10 md:h-10 ${cardTheme.text} drop-shadow-[0_0_12px_currentColor] group-hover:scale-110 transition-transform duration-300`} />
-                    </div>
-                    {/* Behind-Hexagon strict glow */}
-                    <div className="absolute inset-0 bg-current opacity-40 blur-xl rounded-full scale-150 pointer-events-none -z-10" style={{ color: cardTheme.text.replace('text-', '') === 'purple-400' ? '#c084fc' : cardTheme.text.replace('text-', '') === 'pink-500' ? '#ec4899' : cardTheme.text.replace('text-', '') === 'orange-400' ? '#fb923c' : '#22d3ee' }} />
-                  </div>
-
-                  {/* Middle Elements: Title + Subtitle */}
-                  <div className="flex-1 flex flex-col items-center justify-center relative z-20 mb-4 md:mb-6">
-                    <h3 className="text-[17px] md:text-[22px] font-extrabold text-[#F8FAFF] mb-2 tracking-tight">{svc.title}</h3>
-                    <p className="text-[12px] md:text-[14.5px] text-[#D0D4DF] leading-snug px-1">{svc.desc}</p>
-                  </div>
-
-                  {/* Bottom Element: Circular CTA */}
-                  <div className="mt-auto relative z-20">
-                    <div className={`w-[44px] h-[44px] md:w-[52px] md:h-[52px] rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-inner group-hover:bg-white/15 transition-all overflow-hidden relative`}>
-                      <div className="absolute inset-0 opacity-0 group-hover:opacity-30 blur-md bg-current transition-opacity" style={{ color: cardTheme.text.replace('text-', '') === 'purple-400' ? '#c084fc' : cardTheme.text.replace('text-', '') === 'pink-500' ? '#ec4899' : cardTheme.text.replace('text-', '') === 'orange-400' ? '#fb923c' : '#22d3ee' }} />
-                      <ArrowRight className={`w-5 h-5 md:w-6 md:h-6 ${cardTheme.text} group-hover:translate-x-[3px] transition-transform`} />
-                    </div>
-                  </div>
-
-                </div>
+              <Link key={service.id} href={`/${platform}/${service.id}`} className="service-link">
+                <article className={`service-card service-${service.id}`} style={{ "--card-color": theme.accent, "--card-color-2": theme.accent2, "--card-glow": theme.glow } as React.CSSProperties}>
+                  {service.popular && <div className="best" style={bestSellerStyle}><Star fill="currentColor" /> BEST SELLER</div>}
+                  <div className="rings" />
+                  <div className="hex"><Icon /></div>
+                  <h2>{service.title}</h2>
+                  <p>{service.desc}</p>
+                  <div className="round-cta"><span className="cta-label">Start Growing</span><span className="cta-arrow"><ArrowRight /></span></div>
+                </article>
               </Link>
             );
           })}
-        </div>
+        </section>
 
-        {/* Bottom Benefit Bar */}
-        <div className="w-full max-w-[900px] mb-8 animate-in fade-in duration-700 delay-300">
-          
-          {/* Desktop Version */}
-          <div className="hidden md:flex flex-row items-center justify-between bg-[#111728]/50 backdrop-blur-md border border-[#26314D] rounded-[24px] px-8 py-5">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-surface border border-white/5 flex items-center justify-center">
-                <Zap className="w-4 h-4 text-[#38BDF8]" />
-              </div>
-              <div>
-                <h4 className="text-[14px] font-bold text-foreground">Instant Start</h4>
-                <p className="text-[12px] text-muted-foreground">Begin within minutes</p>
-              </div>
-            </div>
+        <section className="benefit-bar">
+          <Benefit icon={<Zap />} title="Instant Start" text="Begin within minutes" color={theme.accent} />
+          <Benefit icon={<ShieldCheck />} title="Secure & Private" text="No password required" color={theme.accent2} />
+          <Benefit icon={<Star />} title="Real Engagement" text="Quality-focused service" color={theme.accent} />
+          <Benefit icon={<Headphones />} title="24/7 Support" text="We're here for you" color={theme.accent2} last />
+        </section>
 
-            <div className="w-[1px] h-[30px] bg-[#26314D]" />
-
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-surface border border-white/5 flex items-center justify-center">
-                <ShieldCheck className="w-4 h-4 text-indigo-400" />
-              </div>
-              <div>
-                <h4 className="text-[14px] font-bold text-foreground">Secure & Private</h4>
-                <p className="text-[12px] text-muted-foreground">No password required</p>
-              </div>
-            </div>
-
-            <div className="w-[1px] h-[30px] bg-[#26314D]" />
-
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-surface border border-white/5 flex items-center justify-center">
-                <HeartHandshake className="w-4 h-4 text-[#7C5CFC]" />
-              </div>
-              <div>
-                <h4 className="text-[14px] font-bold text-foreground">Real Engagement</h4>
-                <p className="text-[12px] text-muted-foreground">Quality-focused service</p>
-              </div>
-            </div>
-
-            <div className="w-[1px] h-[30px] bg-[#26314D]" />
-
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-full bg-surface border border-white/5 flex items-center justify-center">
-                <Headphones className="w-4 h-4 text-pink-400" />
-              </div>
-              <div>
-                <h4 className="text-[14px] font-bold text-foreground">Support</h4>
-                <p className="text-[12px] text-muted-foreground">We're here for you</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Mobile Version (Compact Grid) */}
-          <div className="md:hidden grid grid-cols-2 gap-3">
-            <div className="flex items-start gap-3 bg-[#111728]/50 backdrop-blur-md border border-[#26314D] rounded-[16px] p-3">
-              <Zap className="w-4 h-4 text-[#38BDF8] shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-[12px] font-bold text-foreground leading-tight">Instant Start</h4>
-                <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Begin within minutes</p>
-              </div>
-            </div>
-            
-            <div className="flex items-start gap-3 bg-[#111728]/50 backdrop-blur-md border border-[#26314D] rounded-[16px] p-3">
-              <ShieldCheck className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-[12px] font-bold text-foreground leading-tight">Secure & Private</h4>
-                <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">No password required</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 bg-[#111728]/50 backdrop-blur-md border border-[#26314D] rounded-[16px] p-3">
-              <HeartHandshake className="w-4 h-4 text-[#7C5CFC] shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-[12px] font-bold text-foreground leading-tight">Real Engagement</h4>
-                <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">Quality-focused</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3 bg-[#111728]/50 backdrop-blur-md border border-[#26314D] rounded-[16px] p-3">
-              <Headphones className="w-4 h-4 text-pink-400 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-[12px] font-bold text-foreground leading-tight">Support</h4>
-                <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">We're here for you</p>
-              </div>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Security Message */}
-        <div className="flex items-center justify-center gap-1.5 mt-2 mb-10 text-[#A8B1C7] opacity-80 animate-in fade-in duration-700 delay-500">
-          <Lock className="w-3.5 h-3.5" />
-          <span className="text-[11px] md:text-[13px] font-medium tracking-wide">Your information is 100% secure and protected.</span>
-        </div>
-
+        <div className="security"><Lock /> Your information is 100% secure and protected.</div>
       </main>
-      
-      <style dangerouslySetInnerHTML={{ __html: `
-        .hide-scrollbar::-webkit-scrollbar {
-          display: none;
+
+      <style jsx global>{`
+        .select-screen{--ink:#f8f9ff;position:relative;min-height:100vh;overflow:hidden;background:radial-gradient(circle at 50% 15%,var(--platform-glow),transparent 28%),radial-gradient(circle at 88% 52%,rgba(22,70,255,.09),transparent 24%),#030713;color:var(--ink);font-family:Arial,Helvetica,sans-serif;padding:24px 24px 20px}
+        .select-screen:before{content:"";position:absolute;inset:0;pointer-events:none;background-image:radial-gradient(circle,rgba(102,57,255,.45) 1px,transparent 1.5px);background-size:48px 48px;mask-image:linear-gradient(to bottom,transparent 14%,#000 43%,transparent 73%);opacity:.12}
+        .ambient{position:absolute;border-radius:999px;filter:blur(90px);pointer-events:none}.ambient-a{width:420px;height:250px;left:12%;top:36%;background:var(--platform-glow);opacity:.32}.ambient-b{width:400px;height:260px;right:4%;top:38%;background:rgba(0,77,255,.1)}
+        .back{position:absolute;z-index:8;left:max(34px,calc(50% - 575px));top:42px;display:flex;align-items:center;gap:9px;border:0;background:transparent;color:#f2f3fb;font-size:14px;cursor:pointer;padding:7px 10px;border-radius:12px;transition:transform .22s ease,color .22s ease,background .22s ease,box-shadow .22s ease}.back svg{width:20px;height:20px;animation:backArrowCue 2.8s ease-in-out infinite;transition:transform .22s ease,filter .22s ease}.back span{transition:transform .22s ease,letter-spacing .22s ease}.back:hover{background:rgba(255,255,255,.035);box-shadow:inset 0 0 0 1px rgba(255,255,255,.06);color:#fff}.back:hover svg{animation:none;transform:translateX(-5px);filter:drop-shadow(0 0 6px var(--platform-glow))}.back:hover span{transform:translateX(-1px);letter-spacing:.1px}.back:active{transform:scale(.97)}@keyframes backArrowCue{0%,72%,100%{transform:translateX(0)}82%{transform:translateX(-4px)}90%{transform:translateX(-1px)}}
+        .platform-nav{position:relative;z-index:10;margin:0 auto;display:flex;gap:5px;width:min(620px,58vw);height:54px;padding:5px;border:1px solid rgba(74,87,119,.52);border-radius:29px;background:linear-gradient(180deg,rgba(14,19,34,.84),rgba(4,8,18,.88));overflow:hidden;box-shadow:0 14px 35px rgba(0,0,0,.26),inset 0 1px 0 rgba(255,255,255,.035);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+        .platform-tab{position:relative;isolation:isolate;display:flex;flex:1;align-items:center;justify-content:center;gap:9px;min-width:0;border-radius:22px;color:#aeb6ca;text-decoration:none;font-size:13px;font-weight:700;transition:color .22s ease,transform .22s ease,background .22s ease,box-shadow .22s ease}.platform-tab:before{content:"";position:absolute;inset:0;border-radius:inherit;background:linear-gradient(135deg,color-mix(in srgb,var(--tab-accent) 10%,transparent),color-mix(in srgb,var(--tab-accent-2) 5%,transparent));border:1px solid transparent;opacity:0;transition:opacity .22s ease,border-color .22s ease;z-index:-1}.platform-tab:hover{color:#fff;transform:translateY(-1px)}.platform-tab:hover:before{opacity:1;border-color:color-mix(in srgb,var(--tab-accent) 24%,transparent)}.platform-tab.active{color:#fff;background:linear-gradient(135deg,color-mix(in srgb,var(--tab-accent) 30%,#101526),color-mix(in srgb,var(--tab-accent-2) 16%,#080c17));box-shadow:0 5px 16px var(--active-glow),inset 0 0 20px color-mix(in srgb,var(--tab-accent) 9%,transparent),inset 0 1px 0 rgba(255,255,255,.09);animation:tabActivate .32s cubic-bezier(.2,.8,.2,1)}.platform-tab.active:before{opacity:1;border-color:color-mix(in srgb,var(--tab-accent) 46%,transparent);background:linear-gradient(135deg,color-mix(in srgb,var(--tab-accent) 17%,transparent),color-mix(in srgb,var(--tab-accent-2) 8%,transparent))}.platform-tab.active:after{content:"";position:absolute;left:22%;right:22%;bottom:1px;height:2px;border-radius:99px;background:var(--active-gradient);box-shadow:0 0 9px var(--tab-accent);opacity:.9}.platform-tab.active .platform-icon{animation:tabIconPop .38s cubic-bezier(.2,.8,.2,1)}@keyframes tabActivate{0%{transform:scale(.97);opacity:.75}100%{transform:scale(1);opacity:1}}@keyframes tabIconPop{0%{transform:scale(.88)}55%{transform:scale(1.12)}100%{transform:scale(1)}}.platform-icon{width:22px;height:22px;transition:transform .22s ease,filter .22s ease}.platform-tab:hover .platform-icon{transform:scale(1.06)}.platform-icon.instagram{color:#ff4e9b;filter:drop-shadow(0 0 6px rgba(255,78,155,.65))}.platform-icon.tiktok{color:#fff;filter:drop-shadow(-2px 0 #00e8ef) drop-shadow(2px 0 #ff315f)}.platform-icon.twitter{color:#fff;filter:drop-shadow(0 0 5px rgba(219,231,255,.3))}.platform-icon.facebook{color:#1688ff;filter:drop-shadow(0 0 5px rgba(22,136,255,.45))}
+        .content{position:relative;z-index:5;width:min(1200px,calc(100vw - 64px));height:calc(100vh - 92px);margin:10px auto 0;display:flex;flex-direction:column;justify-content:center;padding:18px 0 12px;transform:translateY(-42px);box-sizing:border-box}.hero{text-align:center;flex:0 0 auto}.hero h1{margin:0;font-size:42px;line-height:1.08;letter-spacing:-1.2px;font-weight:850}.hero h1 span{background-clip:text;-webkit-background-clip:text;color:transparent}.hero p{margin:15px auto 0;color:#c6cad8;font-size:16px;line-height:1.5}
+        .platform-tab .organic-nav-icon{width:30px!important;height:30px!important;object-fit:contain;flex:0 0 30px;filter:none!important}
+        .platform-tab .organic-nav-icon.tiktok,.platform-tab .organic-nav-icon.facebook{width:27px!important;height:27px!important;flex-basis:27px}
+        .service-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin:34px auto 0;max-width:940px;width:100%;flex:0 0 auto}.service-link{text-decoration:none;color:inherit}.service-card{position:relative;height:292px;border:1.5px solid var(--card-color);border-radius:21px;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:26px 18px 18px;background:radial-gradient(circle at 50% 15%,var(--card-glow),transparent 42%),linear-gradient(180deg,color-mix(in srgb,var(--card-color-2) 8%,rgba(17,14,39,.94)),rgba(4,8,19,.96));box-shadow:0 0 16px var(--card-glow),inset 0 0 26px rgba(255,255,255,.015);transition:.22s ease}.service-card:hover{transform:translateY(-4px);box-shadow:0 0 28px var(--card-glow),inset 0 0 28px rgba(255,255,255,.02)}.best{position:absolute;top:-29px;left:50%;transform:translateX(-50%);height:34px;padding:0 13px;white-space:nowrap;border-radius:6px 6px 2px 2px;background-image:linear-gradient(90deg,var(--card-color),var(--card-color-2));display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;box-shadow:0 0 16px var(--card-glow)}.best{color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.42)}.best svg{width:14px;filter:none}.rings{position:absolute;top:19px;width:112px;height:88px;border-radius:50%;background:repeating-radial-gradient(circle,transparent 0 16px,rgba(255,255,255,.035) 17px 18px);opacity:.55}.hex{position:relative;z-index:2;width:68px;height:68px;clip-path:polygon(50% 0,93% 25%,93% 75%,50% 100%,7% 75%,7% 25%);display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(145deg,color-mix(in srgb,var(--card-color) 38%,#080817),#0b0b20 70%);filter:drop-shadow(0 0 10px var(--card-color))}.hex:before{content:"";position:absolute;inset:2px;clip-path:inherit;background:#111025;z-index:-1}.hex svg{width:32px;height:32px;color:white;filter:drop-shadow(0 0 5px var(--card-color));transform-origin:center;will-change:transform,filter,opacity}.service-followers .hex svg{animation:followersFloat 2.8s ease-in-out infinite}.service-likes .hex svg{animation:likesBeat 1.9s ease-in-out infinite}.service-views .hex svg{animation:viewsFocus 2.6s ease-in-out infinite}.service-comments .hex svg{animation:commentsNudge 2.4s ease-in-out infinite}@keyframes followersFloat{0%,100%{transform:translateY(0) scale(1);filter:drop-shadow(0 0 5px var(--card-color))}50%{transform:translateY(-3px) scale(1.04);filter:drop-shadow(0 0 9px var(--card-color))}}@keyframes likesBeat{0%,100%{transform:scale(1);filter:drop-shadow(0 0 5px var(--card-color))}18%{transform:scale(1.10);filter:drop-shadow(0 0 10px var(--card-color))}34%{transform:scale(.98)}50%{transform:scale(1.07)}68%{transform:scale(1)}}@keyframes viewsFocus{0%,100%{transform:scale(1);filter:drop-shadow(0 0 5px var(--card-color));opacity:.92}45%{transform:scale(1.09);filter:drop-shadow(0 0 11px var(--card-color));opacity:1}58%{transform:scale(1.03)}}@keyframes commentsNudge{0%,100%{transform:translateY(0) rotate(0deg);filter:drop-shadow(0 0 5px var(--card-color))}38%{transform:translateY(-2px) rotate(-3deg);filter:drop-shadow(0 0 9px var(--card-color))}55%{transform:translateY(0) rotate(2deg)}70%{transform:rotate(0deg)}}@media(prefers-reduced-motion:reduce){.platform-tab.active,.platform-tab.active .platform-icon,.back svg{animation:none!important}.service-followers .hex svg,.service-likes .hex svg,.service-views .hex svg,.service-comments .hex svg,.service-card,.service-card:after,.service-card:hover .round-cta svg{animation:none!important}}.service-card h2{margin:16px 0 0;font-size:20px;font-weight:800}.service-card p{white-space:pre-line;text-align:center;margin:9px 0 0;color:#d0d3df;font-size:12.5px;line-height:1.45}.round-cta{position:absolute;bottom:17px;left:18px;right:18px;height:43px;display:flex;align-items:center;justify-content:space-between;padding-left:16px;border-radius:999px;border:1px solid color-mix(in srgb,var(--card-color) 82%,#fff 10%);background:linear-gradient(90deg,color-mix(in srgb,var(--card-color) 8%,rgba(5,8,20,.94)),rgba(5,8,20,.9) 55%,color-mix(in srgb,var(--card-color) 13%,rgba(5,8,20,.92)));box-shadow:inset 0 0 0 1px rgba(255,255,255,.02),0 8px 18px rgba(0,0,0,.24),0 0 10px var(--card-glow);overflow:visible;transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease,background .24s ease}.round-cta:before{content:"";position:absolute;left:42%;right:32px;height:1px;background:linear-gradient(90deg,transparent,var(--card-color),transparent);opacity:.35;transform:scaleX(.65);transition:transform .24s ease,opacity .24s ease}.round-cta:after{content:"";position:absolute;right:34px;width:28px;height:12px;background:repeating-linear-gradient(0deg,transparent 0 2px,color-mix(in srgb,var(--card-color) 60%,transparent) 2px 3px);filter:blur(.2px);opacity:.22;transform:scaleX(.65);transform-origin:right;transition:.24s ease}.cta-label{position:relative;z-index:2;color:#fff;font-size:12px;font-weight:700;letter-spacing:.01em;white-space:nowrap}.cta-arrow{position:relative;z-index:3;width:43px;height:43px;margin-right:-1px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1.5px solid var(--card-color);background:linear-gradient(180deg,color-mix(in srgb,var(--card-color) 16%,#0b0d1b),#080b17);box-shadow:0 0 12px var(--card-glow),inset 0 0 10px color-mix(in srgb,var(--card-color) 7%,transparent);transition:transform .24s ease,box-shadow .24s ease}.cta-arrow svg{width:20px;height:20px;color:#fff;filter:drop-shadow(0 0 3px var(--card-color));transition:transform .24s ease,filter .24s ease}.service-card:hover .round-cta{transform:translateY(-2px);border-color:var(--card-color);box-shadow:inset 0 0 0 1px rgba(255,255,255,.025),0 10px 22px rgba(0,0,0,.28),0 0 16px var(--card-glow)}.service-card:hover .round-cta:before{transform:scaleX(1);opacity:.75}.service-card:hover .round-cta:after{transform:scaleX(1);opacity:.48}.service-card:hover .cta-arrow{transform:translateX(3px) scale(1.05);box-shadow:0 0 18px var(--card-glow),inset 0 0 12px color-mix(in srgb,var(--card-color) 10%,transparent)}.service-card:hover .cta-arrow svg{transform:translateX(3px);filter:drop-shadow(0 0 6px var(--card-color))}.service-card:focus-within .round-cta{border-color:var(--card-color);box-shadow:0 0 16px var(--card-glow)}
+        .benefit-bar{max-width:1000px;width:100%;margin:34px auto 0;border:1px solid #273149;border-radius:20px;background:rgba(6,10,21,.73);min-height:86px;display:grid;grid-template-columns:repeat(4,1fr);align-items:center;padding:0 35px}.benefit{display:flex;align-items:center;gap:12px;padding:0 18px;border-right:1px solid #222b42}.benefit:first-child{padding-left:12px}.benefit.last{border-right:0}.benefit .bicon svg{width:29px;height:29px}.benefit h3{font-size:12px;margin:0 0 5px;white-space:nowrap}.benefit p{font-size:12px;color:#b8bfd1;margin:0;white-space:nowrap;line-height:1.35}.security{display:flex;align-items:center;justify-content:center;gap:9px;color:#8e96ad;margin-top:20px;font-size:12.5px;line-height:1.4}.security svg{width:17px;height:17px}
+        .decor{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:hidden}.fall-icon{position:absolute;top:-90px;color:var(--fall-color);opacity:.055;filter:drop-shadow(0 0 8px var(--fall-color));animation:neonFall var(--dur) linear infinite;animation-delay:var(--delay);transform:rotate(var(--rot));will-change:transform}.fall-icon svg{width:100%;height:100%}@keyframes neonFall{0%{transform:translate3d(0,-120px,0) rotate(var(--rot));opacity:0}10%{opacity:.055}85%{opacity:.04}100%{transform:translate3d(var(--drift),calc(100vh + 180px),0) rotate(calc(var(--rot) + 75deg));opacity:0}}
+        @media(max-width:1050px){.fall-icon{opacity:.035}.content{width:min(94vw,900px)}.service-grid{gap:18px}.hero h1{font-size:40px}.benefit-bar{padding:0 10px}.benefit{padding:0 13px;gap:10px}}
+        @media(min-width:761px) and (max-height:820px){.content{height:calc(100vh - 82px);margin-top:4px;padding-top:10px;padding-bottom:8px;transform:translateY(-26px)}.hero h1{font-size:38px}.hero p{margin-top:11px;font-size:14px}.service-grid{margin-top:27px}.service-card{height:270px}.benefit-bar{margin-top:26px;min-height:76px}.security{margin-top:14px}.platform-nav{height:50px}.back{top:34px}}
+        @media(max-width:760px){
+          .select-screen{min-height:100svh;padding:14px 12px 24px;overflow-x:hidden;background:radial-gradient(circle at 50% 8%,var(--platform-glow),transparent 24%),#030713}
+          .select-screen:before{opacity:.07;background-size:38px 38px}
+          .back{position:relative;left:auto;top:auto;margin:3px 2px 12px;gap:8px;font-size:13px;font-weight:600;padding:7px 9px}.back svg{width:19px;height:19px}.back:active{transform:scale(.96);background:rgba(255,255,255,.045)}.back:active svg{animation:none;transform:translateX(-4px);filter:drop-shadow(0 0 5px var(--platform-glow))}
+          .platform-nav{width:100%;height:50px;padding:4px;gap:3px;border-radius:21px;overflow:hidden;justify-content:stretch;box-shadow:0 10px 28px rgba(0,0,0,.22)}
+          .platform-tab{min-width:0;flex:1;gap:5px;padding:0 5px;border-radius:17px;font-size:10px;white-space:nowrap}.platform-tab:active{transform:scale(.97)}.platform-tab span{overflow:hidden;text-overflow:ellipsis}.platform-icon{width:18px;height:18px;flex:0 0 auto}.platform-tab .organic-nav-icon{width:25px!important;height:25px!important;flex-basis:25px}.platform-tab .organic-nav-icon.tiktok,.platform-tab .organic-nav-icon.facebook{width:23px!important;height:23px!important;flex-basis:23px}
+          .content{width:100%;height:auto;min-height:0;margin-top:30px;display:block;padding:0;transform:none}
+          .hero{padding:0 3px}.hero h1{max-width:none;margin:0 auto;font-size:clamp(22px,7.2vw,29px);line-height:1.08;letter-spacing:-.8px;white-space:nowrap}.hero p{font-size:13px;line-height:1.5;max-width:330px;margin-top:14px;color:#c2c8d8}
+          
+          .service-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 10px;margin-top:38px;padding:0 2px}
+          .service-card{height:232px;border-radius:18px;padding:18px 8px 14px;box-shadow:0 0 11px var(--card-glow),inset 0 0 20px rgba(255,255,255,.012);overflow:hidden;animation:mobileCardBreathe 4.8s ease-in-out infinite;animation-delay:var(--mobile-delay,0s);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}.service-link:nth-child(1) .service-card{--mobile-delay:0s}.service-link:nth-child(2) .service-card{--mobile-delay:-1.2s}.service-link:nth-child(3) .service-card{--mobile-delay:-2.4s}.service-link:nth-child(4) .service-card{--mobile-delay:-3.6s}.service-card:after{content:"";position:absolute;inset:-35%;pointer-events:none;background:linear-gradient(115deg,transparent 42%,color-mix(in srgb,var(--card-color) 16%,transparent) 49%,rgba(255,255,255,.12) 50%,color-mix(in srgb,var(--card-color) 12%,transparent) 51%,transparent 58%);transform:translateX(-75%) rotate(8deg);animation:mobileSheen 5.6s ease-in-out infinite;animation-delay:var(--mobile-delay,0s);opacity:.55}.service-card:active{transform:scale(.975);box-shadow:0 0 22px var(--card-glow),inset 0 0 26px color-mix(in srgb,var(--card-color) 7%,transparent)}.service-card:active .hex{transform:scale(1.06)}.service-card:active .round-cta{transform:scale(1.12);box-shadow:0 0 20px var(--card-color),0 0 30px var(--card-glow)}.service-card:active .round-cta svg{transform:translateX(4px)}@keyframes mobileCardBreathe{0%,100%{box-shadow:0 0 10px var(--card-glow),inset 0 0 20px rgba(255,255,255,.012)}50%{box-shadow:0 0 16px var(--card-glow),inset 0 0 24px color-mix(in srgb,var(--card-color) 4%,transparent)}}@keyframes mobileSheen{0%,68%{transform:translateX(-80%) rotate(8deg);opacity:0}76%{opacity:.42}100%{transform:translateX(80%) rotate(8deg);opacity:0}}
+          .rings{top:17px;width:100px;height:82px;opacity:.38}.hex{width:56px;height:56px;transition:transform .18s ease}.hex svg{width:27px;height:27px}.service-card h2{font-size:17px;margin-top:12px}.service-card p{font-size:10.5px;line-height:1.35;margin-top:7px}.round-cta{left:10px;right:10px;height:36px;bottom:12px;padding-left:11px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02),0 6px 14px rgba(0,0,0,.2),0 0 8px var(--card-glow)}.cta-label{font-size:9.5px}.round-cta:before{left:42%;right:27px}.round-cta:after{right:28px;width:20px;height:9px}.cta-arrow{width:36px;height:36px}.cta-arrow svg{width:17px;height:17px}.service-card:active .round-cta{transform:scale(.98);border-color:var(--card-color);box-shadow:0 0 14px var(--card-glow)}.service-card:active .cta-arrow{transform:translateX(2px) scale(.96);box-shadow:0 0 14px var(--card-glow)}.service-card:active .cta-arrow svg{transform:translateX(2px)}
+          .best{top:-18px;height:24px;padding:0 7px;border-radius:5px;font-size:8px;gap:4px}.best svg{width:10px}
+          .benefit-bar{margin-top:30px;grid-template-columns:1fr 1fr;padding:6px 8px;gap:0;min-height:0;border-radius:18px}.benefit{min-width:0;padding:10px 8px;gap:8px;border-right:0;border-bottom:1px solid #222b42}.benefit:nth-child(odd){border-right:1px solid #222b42}.benefit:nth-child(3),.benefit:nth-child(4){border-bottom:0}.benefit:first-child{padding-left:8px}.benefit .bicon svg{width:22px;height:22px}.benefit h3{font-size:10px;margin-bottom:3px;white-space:normal}.benefit p{font-size:10px;line-height:1.3;white-space:normal;color:#b8bfd1}.security{font-size:10.5px;margin-top:18px;gap:7px}.security svg{width:15px;height:15px}
         }
-        .hide-scrollbar {
-          -ms-overflow-style: none;
-          scrollbar-width: none;
+        @media(max-width:390px){
+          .select-screen{padding-left:9px;padding-right:9px}.platform-tab{font-size:9px;padding:0 3px}.platform-icon{width:17px;height:17px}.hero h1{font-size:clamp(21px,6.8vw,27px);white-space:nowrap}.service-grid{gap-left:8px;gap-right:8px}.service-card{height:224px}.service-card h2{font-size:16px}.service-card p{font-size:10px}
         }
-      `}} />
+      `}</style>
     </div>
   );
+}
+
+function Benefit({ icon, title, text, color, last = false }: { icon: React.ReactNode; title: string; text: string; color: string; last?: boolean }) {
+  return <div className={`benefit ${last ? "last" : ""}`}><div className="bicon" style={{ color }}>{icon}</div><div><h3>{title}</h3><p>{text}</p></div></div>;
+}
+
+function Decor({ theme }: { theme: Theme }) {
+  const Icon = theme.icon;
+  const particles = [
+    { left: "4%", size: 34, dur: "17s", delay: "-3s", rot: "-18deg", drift: "34px" },
+    { left: "13%", size: 24, dur: "22s", delay: "-11s", rot: "14deg", drift: "-26px" },
+    { left: "23%", size: 30, dur: "19s", delay: "-7s", rot: "-9deg", drift: "20px" },
+    { left: "76%", size: 26, dur: "21s", delay: "-14s", rot: "18deg", drift: "-20px" },
+    { left: "86%", size: 36, dur: "18s", delay: "-5s", rot: "-14deg", drift: "28px" },
+    { left: "94%", size: 23, dur: "24s", delay: "-17s", rot: "12deg", drift: "-22px" },
+  ];
+  return <div className="decor" aria-hidden="true">
+    {particles.map((p, i) => <div key={i} className="fall-icon" style={{ left:p.left, width:p.size, height:p.size, "--dur":p.dur, "--delay":p.delay, "--rot":p.rot, "--drift":p.drift, "--fall-color": i % 2 ? theme.accent2 : theme.accent } as React.CSSProperties}><Icon /></div>)}
+  </div>;
 }
