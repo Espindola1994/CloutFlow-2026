@@ -36,8 +36,21 @@ export const useFunnelStore = create<FunnelState>()(
       selectedMedia: null,
       planId: null,
 
-      setPlatform: (slug) => set({ platformSlug: slug, serviceSlug: null, followerType: null, username: null, profileData: null, planId: null }),
-      setService: (slug) => set({ serviceSlug: slug, planId: null }),
+      setPlatform: (slug) => set((state) => {
+        if (state.platformSlug === slug) return state;
+        return {
+          platformSlug: slug,
+          serviceSlug: null,
+          followerType: null,
+          username: null,
+          profileData: null,
+          planId: null,
+        };
+      }),
+      setService: (slug) => set((state) => {
+        if (state.serviceSlug === slug) return state;
+        return { serviceSlug: slug, planId: null };
+      }),
       setFollowerType: (type) => set({ followerType: type }),
       setUsername: (username) => set({ username, profileData: null }),
       setProfileData: (data) => set({ profileData: data }),

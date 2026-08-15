@@ -186,7 +186,7 @@ export function SocialGrowthVisual({ platform }: Props) {
             </div>
             <button className="absolute top-3 right-4 bg-white text-black font-bold text-xs px-4 py-1.5 rounded-full">Follow</button>
             <h3 className="text-white font-bold text-lg leading-tight flex items-center gap-1">Your Brand <CheckCircle2 className="w-4 h-4 text-white fill-blue-500" /></h3>
-            <p className="text-white/50 text-sm mb-3">@yourbrand</p>
+            
             <p className="text-white/90 text-xs mb-3 leading-relaxed">Digital Creator & Growth Expert<br/>Helping you grow on X.<br/>Real engagement. Real results.</p>
             
             <div className="flex gap-4 text-xs">

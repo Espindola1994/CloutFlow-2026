@@ -67,8 +67,8 @@
   --popover: #151D32;
   --popover-foreground: #F8FAFF;
   
-  --primary: #7C5CFC;
-  --primary-hover: #8D72FF;
+  --primary: #FF4D6D;
+  --primary-hover: #FF647F;
   --primary-foreground: #FFFFFF;
   
   --secondary: #111728;
@@ -77,7 +77,7 @@
   --muted: #111728;
   --muted-foreground: #A8B1C7;
   
-  --accent: #38BDF8;
+  --accent: #FFB84D;
   --accent-foreground: #F8FAFF;
   
   --destructive: oklch(0.396 0.141 25.723);
@@ -86,21 +86,21 @@
   
   --border: #26314D;
   --input: #111728;
-  --ring: #7C5CFC;
+  --ring: #FF4D6D;
   
-  --chart-1: #7C5CFC;
-  --chart-2: #38BDF8;
+  --chart-1: #FF4D6D;
+  --chart-2: #FFB84D;
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: #111728;
   --sidebar-foreground: #F8FAFF;
-  --sidebar-primary: #7C5CFC;
+  --sidebar-primary: #FF4D6D;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #151D32;
   --sidebar-accent-foreground: #F8FAFF;
   --sidebar-border: #26314D;
-  --sidebar-ring: #7C5CFC;
+  --sidebar-ring: #FF4D6D;
   --radius: 0.5rem;
 }
 
@@ -116,8 +116,8 @@
   --popover: #151D32;
   --popover-foreground: #F8FAFF;
   
-  --primary: #7C5CFC;
-  --primary-hover: #8D72FF;
+  --primary: #FF4D6D;
+  --primary-hover: #FF647F;
   --primary-foreground: #FFFFFF;
   
   --secondary: #111728;
@@ -126,7 +126,7 @@
   --muted: #111728;
   --muted-foreground: #A8B1C7;
   
-  --accent: #38BDF8;
+  --accent: #FFB84D;
   --accent-foreground: #F8FAFF;
   
   --destructive: oklch(0.396 0.141 25.723);
@@ -135,21 +135,21 @@
   
   --border: #26314D;
   --input: #111728;
-  --ring: #7C5CFC;
+  --ring: #FF4D6D;
   
-  --chart-1: #7C5CFC;
-  --chart-2: #38BDF8;
+  --chart-1: #FF4D6D;
+  --chart-2: #FFB84D;
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
   --sidebar: #111728;
   --sidebar-foreground: #F8FAFF;
-  --sidebar-primary: #7C5CFC;
+  --sidebar-primary: #FF4D6D;
   --sidebar-primary-foreground: #FFFFFF;
   --sidebar-accent: #151D32;
   --sidebar-accent-foreground: #F8FAFF;
   --sidebar-border: #26314D;
-  --sidebar-ring: #7C5CFC;
+  --sidebar-ring: #FF4D6D;
 }
 
 @layer base {
@@ -179,4 +179,2480 @@
   0% { transform: translateY(-100%); }
   50% { transform: translateY(500%); }
   100% { transform: translateY(500%); }
+}
+
+
+/* =========================================================
+   CLOUTFLOW HOME V33 — rebuilt from the two approved refs
+   Desktop: light lilac/white scene. Mobile: purple hero + white body.
+   Everything is scoped to .cf-ref-home.
+   ========================================================= */
+
+.cf-ref-home {
+  --cf-purple:#FF4D6D;
+  --cf-purple-2:#FF647F;
+  --cf-blue:#FFB84D;
+  --cf-ink:#151744;
+  --cf-text:#656b91;
+  --cf-line:#F1D8D1;
+  min-height:100vh;
+  overflow-x:hidden;
+  background:#fbfaff;
+  color:var(--cf-ink);
+}
+.cf-ref-home * { box-sizing:border-box; }
+.cf-ref-shell { width:min(1200px, calc(100% - 56px)); margin-inline:auto; }
+
+/* ===== desktop hero ===== */
+.cf-ref-hero {
+  position:relative;
+  min-height:430px;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 3%, rgba(150,117,255,.11), transparent 32%),
+    linear-gradient(180deg,#fefcff 0%,#f9f6ff 100%);
+}
+.cf-ref-hero::before {
+  content:""; position:absolute; left:-8%; top:-110px; width:46%; height:225px;
+  background:linear-gradient(135deg,#FF8A72 0%,#FFD5C5 65%,rgba(234,225,255,.55) 100%);
+  border-radius:0 0 55% 45%; transform:rotate(-5deg); opacity:.72;
+}
+.cf-ref-hero-inner { position:relative; z-index:4; text-align:center; padding-top:54px; }
+.cf-ref-logo {
+  font-size:33px; line-height:1; font-weight:900; letter-spacing:-1.5px;
+  background:linear-gradient(90deg,#FF4D6D 0%,#FF7A5C 50%,#FFB84D 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.cf-ref-eyebrow {
+  width:max-content; max-width:92%; margin:20px auto 20px; padding:8px 18px;
+  border:1.5px solid #FFD3C8; border-radius:999px; background:rgba(255,255,255,.78);
+  display:flex; gap:9px; align-items:center; color:#FF5B69; font-size:14px;
+  box-shadow:0 7px 22px rgba(110,80,220,.05);
+}
+.cf-ref-title { margin:0; font-weight:900; letter-spacing:-3px; line-height:1.03; }
+.cf-ref-title-main { display:block; color:#151744; font-size:clamp(45px,4.5vw,68px); }
+.cf-ref-title-gradient {
+  display:block; font-size:clamp(45px,4.5vw,68px); margin-top:5px;
+  background:linear-gradient(90deg,#FF4D6D 0%,#FF795C 48%,#FFB84D 100%);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.cf-ref-subtitle { margin:24px auto 0; max-width:760px; font-size:19px; color:#676b8d; line-height:1.5; }
+
+.cf-ref-hero-decor,.cf-ref-dots,.cf-ref-ring,.cf-ref-triangle,.cf-ref-bars { position:absolute; z-index:2; pointer-events:none; }
+.cf-ref-heart {
+  top:72px; left:10.5%; width:130px; height:103px; border-radius:24px;
+  display:grid; place-items:center; color:white; transform:rotate(-9deg);
+  background:linear-gradient(145deg,#8462f2 0%,#b6a3f9 100%);
+  box-shadow:0 18px 36px rgba(94,72,205,.2);
+}
+.cf-ref-heart::after { content:""; position:absolute; bottom:-17px; left:34px; width:28px; height:28px; background:#8c6bf3; clip-path:polygon(0 0,100% 0,22% 100%); }
+.cf-ref-dots { width:80px; height:55px; opacity:.62; background-image:radial-gradient(circle,#c9b9f5 2px,transparent 2.6px); background-size:14px 14px; }
+.cf-ref-dots-left { left:5%; top:250px; }
+.cf-ref-dots-right { right:8%; top:42px; }
+.cf-ref-ring { width:28px; height:28px; border:4px solid #cbbcf3; border-radius:50%; opacity:.72; }
+.cf-ref-ring-left { left:18%; top:292px; }
+.cf-ref-ring-right { right:19%; top:130px; }
+.cf-ref-triangle { left:17%; top:294px; width:23px; height:23px; border:4px solid #cabaf4; clip-path:polygon(50% 0,100% 100%,0 100%); opacity:.7; }
+.cf-ref-bars { right:8.5%; top:150px; width:150px; height:150px; display:flex; align-items:flex-end; gap:10px; }
+.cf-ref-bars span { width:23px; border-radius:7px 7px 2px 2px; background:linear-gradient(180deg,#c8b9ff 0%,#7f63f2 100%); box-shadow:0 12px 22px rgba(100,75,208,.16); }
+.cf-ref-bars span:nth-child(1){height:44px}.cf-ref-bars span:nth-child(2){height:67px}.cf-ref-bars span:nth-child(3){height:92px}.cf-ref-bars span:nth-child(4){height:116px}
+.cf-ref-bars b { position:absolute; right:-4px; top:-34px; color:#a691f7; font-size:78px; font-weight:300; transform:rotate(-7deg); }
+
+.cf-ref-wave { position:absolute; z-index:3; left:-4%; right:-4%; bottom:-49px; height:112px; background:#fbfaff; border-radius:52% 48% 0 0 / 44% 46% 0 0; transform:rotate(-.7deg); }
+.cf-ref-wave::before { content:""; position:absolute; left:-3%; right:-3%; top:-22px; height:52px; background:linear-gradient(90deg,#e4d4ff 0%,#d9c9ff 48%,#efe8ff 100%); border-radius:50%; opacity:.82; transform:rotate(1deg); }
+
+/* ===== desktop body ===== */
+.cf-ref-body { position:relative; min-height:560px; padding:34px 0 30px; background:#fbfaff; }
+.cf-ref-section-title { text-align:center; margin-bottom:25px; }
+.cf-ref-section-title h2 { margin:0; font-size:29px; line-height:1.15; font-weight:900; letter-spacing:-1px; color:#171943; }
+.cf-ref-section-title p { margin:9px 0 0; font-size:15px; color:#6a6f91; }
+.cf-ref-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:22px; max-width:900px; margin:0 auto; }
+.cf-ref-platform-card {
+  min-height:228px; padding:24px 20px 22px; text-decoration:none; color:#151744;
+  background:rgba(255,255,255,.88); border:1px solid #e3def4; border-radius:22px;
+  box-shadow:0 16px 34px rgba(73,56,144,.075); display:flex; flex-direction:column; align-items:center; justify-content:center;
+  transition:transform .2s ease, box-shadow .2s ease;
+}
+.cf-ref-platform-card:hover { transform:translateY(-4px); box-shadow:0 20px 40px rgba(80,61,154,.12); }
+.cf-ref-platform-icon { position:relative; width:92px; height:92px; margin-bottom:17px; filter:drop-shadow(0 10px 12px rgba(64,46,130,.12)); }
+.cf-ref-platform-card h3 { margin:0; font-size:20px; line-height:1.1; font-weight:900; letter-spacing:-.5px; }
+.cf-ref-platform-card > span { margin-top:11px; display:flex; align-items:center; gap:6px; font-size:14px; color:#764df2; }
+.cf-ref-metrics { max-width:900px; margin:26px auto 0; padding:15px 20px; display:grid; grid-template-columns:repeat(3,1fr); border:1px solid #ddd8f2; border-radius:22px; background:rgba(255,255,255,.78); box-shadow:0 15px 28px rgba(76,56,145,.05); }
+.cf-ref-metric { min-height:92px; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+.cf-ref-metric-icon { width:25px; height:25px; color:#7147ed; margin-bottom:5px; stroke-width:2.2; }
+.cf-ref-metric strong { font-size:28px; line-height:1; color:#7550ee; font-weight:900; }
+.cf-ref-metric span { margin-top:7px; font-size:13px; color:#676d90; }
+.cf-ref-metric i { position:absolute; right:0; top:12px; bottom:12px; width:1px; background:#ddd8f0; }
+.cf-ref-trust { margin:19px auto 0; display:flex; justify-content:center; align-items:center; gap:20px; color:#383e68; font-size:14px; }
+.cf-ref-trust span { display:flex; align-items:center; gap:7px; }.cf-ref-trust span svg{color:#754df0}.cf-ref-trust b{color:#9d94be}
+.cf-ref-bottom-clouds { position:absolute; left:-65px; bottom:-85px; width:250px; height:145px; opacity:.75; background:radial-gradient(circle at 65% 25%,#eadfff 0 24%,transparent 25%),radial-gradient(circle at 42% 45%,#e0d0ff 0 31%,transparent 32%),radial-gradient(circle at 15% 55%,#eee2ff 0 28%,transparent 29%); }
+.cf-ref-bottom-orbit { position:absolute; right:-75px; bottom:-98px; width:235px; height:235px; border:2px dashed #d8ccfa; border-radius:50%; opacity:.55; }
+
+/* ===== mobile, matched to the approved screenshot ===== */
+@media (max-width: 767px) {
+  .cf-ref-home { background:#fff; }
+  .cf-ref-shell { width:min(100% - 34px, 520px); }
+  .cf-ref-hero {
+    min-height:615px;
+    background:
+      radial-gradient(circle at 50% 20%,rgba(255,255,255,.08),transparent 30%),
+      linear-gradient(155deg,#9a6cf4 0%,#744ee6 43%,#4637d2 100%);
+  }
+  .cf-ref-hero::before { display:none; }
+  .cf-ref-hero-inner { padding-top:68px; }
+  .cf-ref-logo { font-size:36px; letter-spacing:-1px; background:linear-gradient(90deg,#fff 0%,#e6e1ff 48%,#9edcff 100%); -webkit-background-clip:text; background-clip:text; }
+  .cf-ref-eyebrow { margin-top:34px; margin-bottom:30px; padding:9px 17px; color:white; background:rgba(85,61,211,.18); border-color:rgba(255,255,255,.48); font-size:14px; }
+  .cf-ref-title { letter-spacing:-2.2px; }
+  .cf-ref-title-main { color:white; font-size:clamp(40px,10vw,56px); }
+  .cf-ref-title-gradient { font-size:clamp(40px,10vw,56px); margin-top:11px; background:linear-gradient(90deg,#d6c4ff 0%,#bcb7ff 46%,#8fd1ff 100%); -webkit-background-clip:text; background-clip:text; }
+  .cf-ref-subtitle { max-width:420px; margin-top:33px; padding:0 12px; font-size:17px; line-height:1.55; color:rgba(255,255,255,.92); }
+  .cf-ref-heart { left:18px; top:96px; width:86px; height:68px; border-radius:17px; opacity:.95; }
+  .cf-ref-heart svg { width:35px; height:35px; }
+  .cf-ref-heart::after { left:20px; bottom:-14px; width:23px; height:23px; }
+  .cf-ref-dots-right { top:37px; right:16px; transform:scale(.72); opacity:.48; }
+  .cf-ref-dots-left { display:none; }
+  .cf-ref-ring-right { right:31px; top:132px; border-color:rgba(255,255,255,.72); }
+  .cf-ref-ring-left { left:28px; top:445px; border-color:rgba(255,255,255,.82); }
+  .cf-ref-triangle { left:auto; right:45px; top:286px; border-color:rgba(255,255,255,.34); }
+  .cf-ref-bars { right:18px; top:397px; transform:scale(.63); transform-origin:right bottom; }
+  .cf-ref-bars span { background:linear-gradient(180deg,#f2efff 0%,#c9bff7 100%); }
+  .cf-ref-bars b { color:#f8f6ff; }
+  .cf-ref-wave { bottom:-28px; height:82px; background:#fff; border-radius:54% 46% 0 0 / 52% 50% 0 0; }
+  .cf-ref-wave::before { top:-13px; height:34px; background:#ede8ff; opacity:1; }
+
+  .cf-ref-body { padding:55px 0 34px; background:#fff; }
+  .cf-ref-section-title { margin-bottom:32px; }
+  .cf-ref-section-title h2 { font-size:29px; }
+  .cf-ref-section-title p { margin-top:10px; font-size:16px; }
+  .cf-ref-grid { grid-template-columns:repeat(2,1fr); gap:18px; max-width:560px; }
+  .cf-ref-platform-card { min-height:257px; padding:22px 15px; border-radius:22px; background:rgba(255,255,255,.98); }
+  .cf-ref-platform-icon { width:96px; height:96px; margin-bottom:17px; }
+  .cf-ref-platform-card h3 { font-size:20px; }
+  .cf-ref-platform-card > span { font-size:15px; margin-top:13px; }
+  .cf-ref-metrics { margin-top:34px; padding:16px 10px; border-radius:24px; }
+  .cf-ref-metric { min-height:120px; }
+  .cf-ref-metric-icon { width:27px; height:27px; }
+  .cf-ref-metric strong { font-size:27px; }
+  .cf-ref-metric span { max-width:95px; font-size:13px; line-height:1.28; }
+  .cf-ref-metric i { top:16px; bottom:16px; }
+  .cf-ref-trust { display:none; }
+  .cf-ref-bottom-clouds { left:auto; right:-70px; bottom:-65px; transform:scale(.78); opacity:.68; }
+  .cf-ref-bottom-orbit { display:none; }
+}
+
+@media (max-width: 430px) {
+  .cf-ref-shell { width:min(100% - 26px, 390px); }
+  .cf-ref-hero { min-height:585px; }
+  .cf-ref-logo { font-size:33px; }
+  .cf-ref-eyebrow { font-size:13px; padding:8px 14px; }
+  .cf-ref-title-main,.cf-ref-title-gradient { font-size:38px; }
+  .cf-ref-subtitle { font-size:16px; }
+  .cf-ref-grid { gap:14px; }
+  .cf-ref-platform-card { min-height:232px; }
+  .cf-ref-platform-icon { width:84px; height:84px; }
+  .cf-ref-platform-card h3 { font-size:18px; }
+  .cf-ref-platform-card > span { font-size:14px; }
+  .cf-ref-metrics { padding-inline:4px; }
+  .cf-ref-metric strong { font-size:24px; }
+  .cf-ref-metric span { font-size:12px; }
+}
+
+/* =========================================================
+   CLOUTFLOW HOME V35 — clean blue/white reference rebuild
+   Scoped entirely to .cf-clean-home
+   ========================================================= */
+.cf-clean-home {
+  --cf-blue:#0B73E9;
+  --cf-blue-2:#0A65D7;
+  --cf-ink:#05070B;
+  --cf-muted:#111318;
+  min-height:100vh;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(21,117,233,.035), transparent 28%),
+    linear-gradient(180deg,#ffffff 0%,#fefefe 64%,#fbfbfb 100%);
+  color:var(--cf-ink);
+  font-family:var(--font-geist-sans), Arial, Helvetica, sans-serif;
+}
+.cf-clean-home *{box-sizing:border-box}
+.cf-clean-shell{
+  width:min(1180px,calc(100% - 48px));
+  min-height:100vh;
+  margin-inline:auto;
+  padding:58px 0 42px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  position:relative;
+  z-index:2;
+}
+.cf-clean-brand{
+  color:var(--cf-blue);
+  font-size:clamp(34px,3vw,48px);
+  line-height:1;
+  font-weight:950;
+  letter-spacing:-1.8px;
+  text-align:center;
+}
+.cf-clean-kicker{
+  margin-top:58px;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:44px;
+  padding:8px 18px;
+  border-radius:9px;
+  background:linear-gradient(180deg,#eaf6ff,#e6f2fc);
+  color:#1a5fa7;
+  font-size:clamp(15px,1.3vw,19px);
+  font-weight:700;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 5px 18px rgba(42,123,198,.08);
+}
+.cf-clean-kicker-emoji{font-size:1.05em}
+.cf-clean-hero-copy{
+  margin-top:35px;
+  text-align:center;
+  width:min(920px,100%);
+}
+.cf-clean-hero-copy h1{
+  margin:0;
+  font-size:clamp(52px,5.1vw,78px);
+  line-height:.98;
+  letter-spacing:-4px;
+  font-weight:950;
+}
+.cf-clean-hero-copy h1 span{display:block}
+.cf-clean-hero-copy h1 span+span{margin-top:7px}
+.cf-clean-hero-copy h1 b{color:var(--cf-blue);font-weight:950}
+.cf-clean-hero-copy p{
+  margin:25px auto 0;
+  max-width:790px;
+  font-size:clamp(19px,1.8vw,27px);
+  line-height:1.35;
+  color:#111317;
+  font-weight:450;
+}
+.cf-clean-platforms{
+  width:min(840px,100%);
+  margin:57px auto 0;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:34px;
+  align-items:center;
+  justify-items:center;
+}
+.cf-clean-platform{
+  display:grid;
+  place-items:center;
+  width:154px;
+  height:154px;
+  text-decoration:none;
+  border-radius:50%;
+  transition:transform .22s ease,filter .22s ease;
+}
+.cf-clean-platform:hover{transform:translateY(-4px) scale(1.025)}
+.cf-clean-platform:active{transform:scale(.97)}
+.cf-clean-platform-ring{
+  width:148px;
+  height:148px;
+  border-radius:50%;
+  padding:10px;
+  display:grid;
+  place-items:center;
+  background:linear-gradient(145deg,#ffffff 0%,#fafafa 62%,#f0f0f0 100%);
+  box-shadow:
+    0 10px 22px rgba(0,0,0,.14),
+    inset 0 2px 3px rgba(255,255,255,1),
+    inset 0 -5px 8px rgba(0,0,0,.06);
+}
+.cf-clean-platform-art{
+  position:relative;
+  display:block;
+  width:126px;
+  height:126px;
+  border-radius:50%;
+  filter:drop-shadow(0 8px 10px rgba(0,0,0,.13));
+}
+.cf-clean-instagram .cf-clean-platform-ring{box-shadow:0 12px 24px rgba(224,66,135,.20),inset 0 2px 3px #fff,inset 0 -5px 8px rgba(0,0,0,.05)}
+.cf-clean-tiktok .cf-clean-platform-ring{box-shadow:0 12px 24px rgba(18,186,200,.18),inset 0 2px 3px #fff,inset 0 -5px 8px rgba(0,0,0,.05)}
+.cf-clean-twitter .cf-clean-platform-ring{box-shadow:0 12px 24px rgba(0,0,0,.18),inset 0 2px 3px #fff,inset 0 -5px 8px rgba(0,0,0,.06)}
+.cf-clean-facebook .cf-clean-platform-ring{box-shadow:0 12px 24px rgba(11,115,233,.20),inset 0 2px 3px #fff,inset 0 -5px 8px rgba(0,0,0,.05)}
+.cf-clean-stats{
+  width:min(940px,100%);
+  margin-top:66px;
+  min-height:128px;
+  padding:21px 20px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  border-radius:28px;
+  background:rgba(255,255,255,.94);
+  box-shadow:0 12px 34px rgba(0,0,0,.08);
+  border:1px solid rgba(20,42,70,.04);
+}
+.cf-clean-stat{
+  position:relative;
+  display:grid;
+  grid-template-columns:auto auto;
+  grid-template-rows:auto auto;
+  justify-content:center;
+  align-items:center;
+  column-gap:9px;
+  text-align:center;
+  padding:0 24px;
+}
+.cf-clean-stat:not(:last-child)::after{
+  content:"";
+  position:absolute;
+  right:0;
+  top:10px;
+  bottom:10px;
+  width:1px;
+  background:#e7e7e7;
+}
+.cf-clean-stat svg{
+  width:31px;
+  height:31px;
+  color:var(--cf-blue);
+  stroke-width:2.5;
+}
+.cf-clean-stat strong{
+  color:var(--cf-blue-2);
+  font-size:clamp(29px,2.7vw,40px);
+  font-weight:900;
+  line-height:1;
+  letter-spacing:-1.2px;
+  white-space:nowrap;
+}
+.cf-clean-stat span{
+  grid-column:1/-1;
+  margin-top:8px;
+  color:#08090c;
+  font-size:clamp(15px,1.3vw,20px);
+  line-height:1.15;
+}
+.cf-clean-trust{
+  width:min(920px,100%);
+  margin:34px auto 0;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  align-items:start;
+  text-align:center;
+}
+.cf-clean-trust div{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  color:#05070a;
+  font-size:clamp(15px,1.4vw,20px);
+  font-weight:500;
+}
+.cf-clean-trust svg{width:34px;height:34px;stroke-width:2.2;color:#05070a}
+.cf-clean-circuit{
+  position:absolute;
+  z-index:1;
+  pointer-events:none;
+  right:0;
+  top:0;
+  width:min(43vw,620px);
+  height:390px;
+  opacity:.20;
+}
+.cf-clean-circuit::before,
+.cf-clean-circuit::after{
+  content:"";
+  position:absolute;
+  border:1px solid #c8d2df;
+  transform:rotate(30deg) skewY(-4deg);
+}
+.cf-clean-circuit::before{width:170px;height:170px;right:78px;top:42px}
+.cf-clean-circuit::after{width:105px;height:105px;right:28px;top:178px}
+.cf-clean-circuit i{position:absolute;display:block;background:#c9d4e1}
+.cf-clean-circuit .c1{width:1px;height:195px;right:240px;top:0}
+.cf-clean-circuit .c2{width:1px;height:130px;right:186px;top:0}
+.cf-clean-circuit .c3{width:1px;height:90px;right:315px;top:50px}
+.cf-clean-circuit .c4{width:150px;height:1px;right:175px;top:145px}
+.cf-clean-circuit .c5{width:95px;height:1px;right:50px;top:290px}
+.cf-clean-circuit i::after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:#bfcbd8;left:-2.5px;bottom:-2px}
+
+@media (max-width: 767px){
+  .cf-clean-shell{
+    width:min(100% - 38px, 560px);
+    min-height:100dvh;
+    padding:56px 0 34px;
+  }
+  .cf-clean-brand{font-size:40px;letter-spacing:-1.2px}
+  .cf-clean-kicker{
+    margin-top:90px;
+    min-height:42px;
+    padding:7px 14px;
+    font-size:16px;
+    border-radius:8px;
+  }
+  .cf-clean-hero-copy{margin-top:27px}
+  .cf-clean-hero-copy h1{
+    font-size:clamp(42px,11.2vw,58px);
+    line-height:1.03;
+    letter-spacing:-2.6px;
+  }
+  .cf-clean-hero-copy h1 span+span{margin-top:8px}
+  .cf-clean-hero-copy p{
+    margin-top:21px;
+    max-width:620px;
+    font-size:clamp(20px,5.4vw,28px);
+    line-height:1.28;
+  }
+  .cf-clean-platforms{
+    width:min(430px,100%);
+    margin-top:51px;
+    grid-template-columns:repeat(2,1fr);
+    gap:30px 34px;
+  }
+  .cf-clean-platform{width:132px;height:132px}
+  .cf-clean-platform-ring{width:132px;height:132px;padding:8px}
+  .cf-clean-platform-art{width:116px;height:116px}
+  .cf-clean-stats{
+    width:100%;
+    min-height:128px;
+    margin-top:53px;
+    padding:16px 7px;
+    border-radius:27px;
+  }
+  .cf-clean-stat{padding:0 6px;column-gap:5px}
+  .cf-clean-stat:not(:last-child)::after{top:8px;bottom:8px}
+  .cf-clean-stat svg{width:24px;height:24px}
+  .cf-clean-stat strong{font-size:clamp(24px,6.7vw,34px);letter-spacing:-.8px}
+  .cf-clean-stat span{margin-top:6px;font-size:clamp(13px,4vw,18px);line-height:1.08}
+  .cf-clean-trust{margin-top:37px;gap:4px}
+  .cf-clean-trust div{font-size:clamp(14px,4vw,18px);gap:9px}
+  .cf-clean-trust svg{width:31px;height:31px}
+  .cf-clean-circuit{width:72vw;height:330px;opacity:.18}
+  .cf-clean-circuit::before{width:125px;height:125px;right:34px;top:18px}
+  .cf-clean-circuit::after{width:78px;height:78px;right:-5px;top:132px}
+  .cf-clean-circuit .c1{right:145px;height:150px}
+  .cf-clean-circuit .c2{right:100px;height:94px}
+  .cf-clean-circuit .c3{right:200px;height:70px;top:28px}
+  .cf-clean-circuit .c4{right:92px;top:105px;width:105px}
+  .cf-clean-circuit .c5{right:0;top:215px;width:72px}
+}
+
+@media (max-width: 430px){
+  .cf-clean-shell{width:min(100% - 28px, 390px);padding-top:44px}
+  .cf-clean-brand{font-size:36px}
+  .cf-clean-kicker{margin-top:78px;font-size:14px;padding:7px 11px}
+  .cf-clean-hero-copy h1{font-size:39px;letter-spacing:-2.2px}
+  .cf-clean-hero-copy p{font-size:20px}
+  .cf-clean-platforms{margin-top:43px;gap:24px 26px}
+  .cf-clean-platform,.cf-clean-platform-ring{width:116px;height:116px}
+  .cf-clean-platform-art{width:101px;height:101px}
+  .cf-clean-stats{margin-top:42px;min-height:112px;border-radius:24px;padding:14px 4px}
+  .cf-clean-stat{column-gap:3px}
+  .cf-clean-stat svg{width:21px;height:21px}
+  .cf-clean-stat strong{font-size:22px}
+  .cf-clean-stat span{font-size:12.5px;max-width:102px}
+  .cf-clean-trust{margin-top:30px}
+  .cf-clean-trust div{font-size:13.5px}
+  .cf-clean-trust svg{width:28px;height:28px}
+}
+
+/* =========================================================
+   CLOUTFLOW HOME V36 — exact clean blue reference
+   Scoped to .cf-v36-home only.
+   ========================================================= */
+.cf-v36-home{
+  --blue:#1166e8;
+  --blue2:#0a5bd7;
+  --ink:#050505;
+  --muted:#202020;
+  min-height:100svh;
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 50% 43%,rgba(17,102,232,.025),transparent 28%),
+    linear-gradient(180deg,#fff 0%,#fff 100%);
+  color:var(--ink);
+}
+.cf-v36-home *{box-sizing:border-box}
+.cf-v36-shell{
+  position:relative;
+  z-index:3;
+  width:min(1200px,calc(100% - 48px));
+  min-height:100svh;
+  margin:0 auto;
+  padding:52px 0 34px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.cf-v36-brand{
+  font-weight:900;
+  letter-spacing:-1.7px;
+  font-size:42px;
+  line-height:1;
+  color:var(--blue);
+  margin-top:2px;
+}
+.cf-v36-kicker{
+  margin-top:23px;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:7px 18px 8px;
+  color:#1b5fba;
+  background:linear-gradient(180deg,#eef8ff 0%,#e9f5ff 100%);
+  border:1px solid #d9efff;
+  border-radius:11px;
+  box-shadow:0 8px 25px rgba(17,102,232,.06);
+  font-size:18px;
+  font-weight:700;
+  line-height:1;
+}
+.cf-v36-party{font-size:18px; transform:translateY(-1px)}
+.cf-v36-hero{text-align:center;margin-top:38px}
+.cf-v36-hero h1{
+  margin:0;
+  font-weight:900;
+  font-size:clamp(56px,5.15vw,78px);
+  line-height:.99;
+  letter-spacing:-4.1px;
+}
+.cf-v36-hero h1 span{display:block}
+.cf-v36-hero h1 span+span{margin-top:7px}
+.cf-v36-hero h1 b{color:var(--blue);font-weight:900}
+.cf-v36-hero p{
+  margin:30px auto 0;
+  max-width:720px;
+  font-size:24px;
+  line-height:1.42;
+  color:#171717;
+  font-weight:500;
+}
+.cf-v36-platforms{
+  width:min(930px,100%);
+  margin-top:58px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:44px;
+  align-items:center;
+}
+.cf-v36-platform{
+  text-decoration:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  min-height:154px;
+  border-radius:32px;
+  transition:transform .2s ease;
+}
+.cf-v36-platform:hover{transform:translateY(-4px) scale(1.03)}
+.cf-v36-icon-disc{
+  position:relative;
+  width:112px;
+  height:112px;
+  border-radius:50%;
+  background:transparent;
+  border:0;
+  box-shadow:none;
+  display:block;
+}
+.cf-v36-icon-original{
+  backface-visibility:hidden;
+  transform:translateZ(0);
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  filter:none !important;
+  mix-blend-mode:normal;
+  opacity:1;
+  image-rendering:auto;
+}
+.cf-v36-platform-name{
+  display:block;
+  color:#111827;
+  font-size:18px;
+  line-height:1;
+  font-weight:800;
+  letter-spacing:-.35px;
+  text-align:center;
+  white-space:nowrap;
+}
+.cf-v36-stats{
+  width:min(940px,100%);
+  margin-top:47px;
+  min-height:124px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  align-items:center;
+  padding:0 26px;
+  border-radius:20px;
+  background:rgba(255,255,255,.97);
+  box-shadow:0 15px 32px rgba(15,45,90,.11);
+  border:1px solid rgba(17,102,232,.035);
+}
+.cf-v36-stat{
+  position:relative;
+  min-height:76px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+}
+.cf-v36-stat:not(:last-child)::after{
+  content:"";
+  position:absolute;
+  right:0;
+  top:7px;
+  bottom:7px;
+  width:1px;
+  background:#e2e2e2;
+}
+.cf-v36-stat-top{display:flex;align-items:center;justify-content:center;gap:10px;color:var(--blue)}
+.cf-v36-stat-top svg{width:31px;height:31px;stroke-width:2.6}
+.cf-v36-stat-top strong{font-size:33px;line-height:1;font-weight:900;letter-spacing:-1px;color:var(--blue)}
+.cf-v36-stat>span{margin-top:8px;font-size:18px;line-height:1.1;color:#101010;font-weight:500}
+.cf-v36-trust{
+  width:min(780px,100%);
+  margin-top:38px;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  align-items:start;
+}
+.cf-v36-trust>div{display:flex;flex-direction:column;align-items:center;gap:11px;text-align:center;color:#080808;font-size:18px;font-weight:500}
+.cf-v36-trust svg{width:36px;height:36px;stroke-width:2.4;color:#000}
+.cf-v36-tech{position:absolute;z-index:1;pointer-events:none;color:#dce9fb;opacity:.7}
+.cf-v36-tech-top{right:-10px;top:-20px;width:350px;height:420px}
+.cf-v36-tech-bottom{left:-30px;bottom:-30px;width:300px;height:250px;transform:rotate(180deg)}
+.cf-v36-tech .hex{position:absolute;width:82px;height:72px;border:1.5px solid #dbe9fb;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}
+.cf-v36-tech .h1{right:32px;top:20px}.cf-v36-tech .h2{right:100px;top:96px;transform:scale(.72)}.cf-v36-tech .h3{right:-13px;top:178px;transform:scale(.9)}
+.cf-v36-tech .line{position:absolute;width:120px;height:120px;border-left:1.5px solid #dbe9fb;border-bottom:1.5px solid #dbe9fb}
+.cf-v36-tech .l1{right:130px;top:12px}.cf-v36-tech .l2{right:45px;top:116px}.cf-v36-tech .l3{right:175px;top:188px;transform:scale(.7)}
+.cf-v36-tech .line::before,.cf-v36-tech .line::after{content:"";position:absolute;width:6px;height:6px;border-radius:50%;background:#dbe9fb}
+.cf-v36-tech .line::before{left:-3.8px;top:27px}.cf-v36-tech .line::after{right:-3px;bottom:-3px}
+
+@media (max-width:767px){
+  .cf-v36-home{overflow-x:hidden;overflow-y:auto}
+  .cf-v36-shell{
+    width:min(100% - 28px,430px);
+    min-height:100svh;
+    padding:64px 0 28px;
+  }
+  .cf-v36-brand{font-size:35px;letter-spacing:-1.2px}
+  .cf-v36-kicker{
+    margin-top:78px;
+    padding:9px 14px 10px;
+    gap:7px;
+    font-size:14px;
+    border-radius:9px;
+  }
+  .cf-v36-party{font-size:14px}
+  .cf-v36-hero{margin-top:29px}
+  .cf-v36-hero h1{
+    font-size:clamp(43px,11.2vw,54px);
+    line-height:1.03;
+    letter-spacing:-2.4px;
+  }
+  .cf-v36-hero h1 span+span{margin-top:5px}
+  .cf-v36-hero p{
+    margin-top:21px;
+    max-width:365px;
+    font-size:20px;
+    line-height:1.38;
+  }
+  .cf-v36-platforms{
+    width:300px;
+    margin-top:44px;
+    grid-template-columns:repeat(2,1fr);
+    gap:22px 33px;
+  }
+  .cf-v36-platform{min-height:126px;gap:10px}
+  .cf-v36-icon-disc{
+    width:96px;
+    height:96px;
+  }
+  .cf-v36-platform-name{font-size:16px}
+  .cf-v36-stats{
+    width:100%;
+    margin-top:52px;
+    min-height:106px;
+    padding:0 9px;
+    border-radius:18px;
+    box-shadow:0 14px 30px rgba(15,45,90,.10);
+  }
+  .cf-v36-stat{min-height:75px}
+  .cf-v36-stat-top{gap:5px;flex-direction:row}
+  .cf-v36-stat-top svg{width:21px;height:21px}
+  .cf-v36-stat-top strong{font-size:21px;letter-spacing:-.5px;white-space:nowrap}
+  .cf-v36-stat>span{font-size:13px;line-height:1.15;margin-top:5px;max-width:92px}
+  .cf-v36-stat:not(:last-child)::after{top:8px;bottom:8px;background:#e4e4e4}
+  .cf-v36-trust{
+    width:100%;
+    margin-top:34px;
+    grid-template-columns:repeat(3,1fr);
+  }
+  .cf-v36-trust>div{gap:9px;font-size:13px;font-weight:500;white-space:nowrap}
+  .cf-v36-trust svg{width:27px;height:27px}
+  .cf-v36-tech-top{right:-72px;top:-8px;transform:scale(.84);opacity:.5}
+  .cf-v36-tech-bottom{left:-75px;bottom:0;transform:rotate(180deg) scale(.72);opacity:.45}
+}
+
+@media (max-width:390px){
+  .cf-v36-shell{width:calc(100% - 22px);padding-top:56px}
+  .cf-v36-brand{font-size:32px}
+  .cf-v36-kicker{margin-top:67px;font-size:13px}
+  .cf-v36-hero h1{font-size:40px}
+  .cf-v36-hero p{font-size:18px;max-width:340px}
+  .cf-v36-platforms{width:282px;gap:20px 28px}
+  .cf-v36-icon-disc{width:92px;height:92px}
+  .cf-v36-platform-name{font-size:15px}
+  .cf-v36-stat-top strong{font-size:19px}
+  .cf-v36-stat>span{font-size:12px}
+  .cf-v36-trust>div{font-size:12px}
+}
+
+
+/* =========================================================
+   V53 — Desktop compact/fixed Home
+   - max container: 1200px
+   - no horizontal scroll
+   - reduced typography, icon sizing and vertical spacing
+   - mobile/tablet rules above remain untouched
+   ========================================================= */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (min-width: 1024px) {
+  .cf-v36-page {
+    width: 100%;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  .cf-v36-shell {
+    width: min(100% - 48px, 1200px) !important;
+    max-width: 1200px !important;
+    min-height: 100vh;
+    margin: 0 auto !important;
+    padding: 30px 0 24px !important;
+    box-sizing: border-box;
+  }
+
+  .cf-v36-logo {
+    margin: 0 auto 14px !important;
+    font-size: 38px !important;
+    line-height: 1 !important;
+  }
+
+  .cf-v36-badge {
+    margin: 0 auto 30px !important;
+    min-height: 36px !important;
+    padding: 7px 18px !important;
+    font-size: 15px !important;
+  }
+
+  .cf-v36-title {
+    max-width: 900px !important;
+    margin: 0 auto !important;
+    font-size: clamp(48px, 4.55vw, 66px) !important;
+    line-height: .98 !important;
+    letter-spacing: -2.8px !important;
+  }
+
+  .cf-v36-subtitle {
+    margin: 28px auto 0 !important;
+    font-size: 19px !important;
+    line-height: 1.35 !important;
+  }
+
+  .cf-v36-platforms {
+    width: 100% !important;
+    max-width: 1040px !important;
+    margin: 42px auto 0 !important;
+    gap: 32px !important;
+  }
+
+  .cf-v36-platform {
+    min-height: 124px !important;
+    gap: 9px !important;
+  }
+
+  .cf-v36-icon-disc {
+    width: 86px !important;
+    height: 86px !important;
+  }
+
+  .cf-v36-platform-name {
+    font-size: 16px !important;
+    line-height: 1.1 !important;
+  }
+
+  .cf-v36-stats {
+    width: min(100%, 1040px) !important;
+    max-width: 1040px !important;
+    margin: 34px auto 0 !important;
+    min-height: 112px !important;
+    padding: 14px 20px !important;
+  }
+
+  .cf-v36-stat {
+    min-height: 72px !important;
+  }
+
+  .cf-v36-stat-value {
+    font-size: 27px !important;
+    line-height: 1 !important;
+  }
+
+  .cf-v36-stat-label {
+    margin-top: 6px !important;
+    font-size: 14px !important;
+    line-height: 1.15 !important;
+  }
+
+  .cf-v36-benefits {
+    width: min(100%, 900px) !important;
+    max-width: 900px !important;
+    margin: 28px auto 0 !important;
+    padding-bottom: 0 !important;
+    gap: 0 !important;
+  }
+
+  .cf-v36-benefit {
+    min-height: 70px !important;
+    font-size: 15px !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 820px) {
+  .cf-v36-shell { padding-top: 20px !important; padding-bottom: 16px !important; }
+  .cf-v36-logo { font-size: 34px !important; margin-bottom: 10px !important; }
+  .cf-v36-badge { margin-bottom: 22px !important; }
+  .cf-v36-title { font-size: clamp(44px, 4vw, 58px) !important; }
+  .cf-v36-subtitle { margin-top: 20px !important; font-size: 17px !important; }
+  .cf-v36-platforms { margin-top: 28px !important; }
+  .cf-v36-icon-disc { width: 76px !important; height: 76px !important; }
+  .cf-v36-platform { min-height: 108px !important; }
+  .cf-v36-stats { margin-top: 24px !important; min-height: 96px !important; }
+  .cf-v36-benefits { margin-top: 18px !important; }
+}
+
+
+/* V54 — Compact stats + benefits on desktop only */
+@media (min-width: 1024px) {
+  .cf-v36-stats {
+    width: min(100%, 900px) !important;
+    max-width: 900px !important;
+    min-height: 88px !important;
+    margin-top: 26px !important;
+    padding: 10px 16px !important;
+    border-radius: 18px !important;
+  }
+
+  .cf-v36-stat {
+    min-height: 58px !important;
+    padding: 4px 18px !important;
+  }
+
+  .cf-v36-stat-value {
+    font-size: 23px !important;
+    line-height: 1 !important;
+  }
+
+  .cf-v36-stat-label {
+    margin-top: 5px !important;
+    font-size: 12.5px !important;
+    line-height: 1.1 !important;
+  }
+
+  .cf-v36-stat svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  .cf-v36-benefits {
+    width: min(100%, 760px) !important;
+    max-width: 760px !important;
+    margin-top: 18px !important;
+  }
+
+  .cf-v36-benefit {
+    min-height: 54px !important;
+    padding: 2px 14px !important;
+    font-size: 13px !important;
+    line-height: 1.1 !important;
+    gap: 7px !important;
+  }
+
+  .cf-v36-benefit svg {
+    width: 22px !important;
+    height: 22px !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 820px) {
+  .cf-v36-stats {
+    width: min(100%, 860px) !important;
+    min-height: 80px !important;
+    margin-top: 20px !important;
+  }
+  .cf-v36-stat { min-height: 52px !important; }
+  .cf-v36-stat-value { font-size: 21px !important; }
+  .cf-v36-stat-label { font-size: 12px !important; }
+  .cf-v36-benefits {
+    width: min(100%, 720px) !important;
+    margin-top: 12px !important;
+  }
+  .cf-v36-benefit {
+    min-height: 46px !important;
+    font-size: 12.5px !important;
+  }
+  .cf-v36-benefit svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+}
+
+
+/* V55 — Desktop: aproximar os 4 ícones das redes sociais */
+@media (min-width: 1024px) {
+  .cf-v36-platforms {
+    width: min(100%, 760px) !important;
+    max-width: 760px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    column-gap: 42px !important;
+    justify-content: center !important;
+  }
+
+  .cf-v36-platform {
+    width: 158px !important;
+    min-width: 0 !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .cf-v36-platforms {
+    width: 800px !important;
+    max-width: 800px !important;
+    column-gap: 56px !important;
+  }
+}
+
+
+/* V57 — Desktop: compactar a linha inferior de benefícios */
+@media (min-width: 1024px) {
+  .cf-v36-benefits {
+    width: min(100%, 700px) !important;
+    max-width: 700px !important;
+    margin-top: 14px !important;
+  }
+
+  .cf-v36-benefit {
+    min-height: 42px !important;
+    padding: 0 10px !important;
+    gap: 5px !important;
+    font-size: 11.5px !important;
+    line-height: 1.05 !important;
+  }
+
+  .cf-v36-benefit svg {
+    width: 17px !important;
+    height: 17px !important;
+    stroke-width: 2.1 !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 820px) {
+  .cf-v36-benefits {
+    width: min(100%, 660px) !important;
+    margin-top: 10px !important;
+  }
+
+  .cf-v36-benefit {
+    min-height: 38px !important;
+    font-size: 11px !important;
+  }
+
+  .cf-v36-benefit svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+
+/* V58 — Desktop container máximo: 1000px */
+@media (min-width: 1024px) {
+  .cf-v36-shell {
+    width: min(100% - 48px, 1000px) !important;
+    max-width: 1000px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+}
+
+
+/* V59 — Desktop: reduzir em ~15% os dois conjuntos inferiores */
+@media (min-width: 1024px) {
+  /* Stats bar */
+  .cf-v36-stats {
+    width: min(100%, 765px) !important; /* 900 -> 765 */
+    max-width: 765px !important;
+    min-height: 75px !important;        /* 88 -> ~75 */
+    margin-top: 22px !important;
+    padding: 8px 14px !important;
+    border-radius: 15px !important;
+  }
+
+  .cf-v36-stat {
+    min-height: 49px !important;
+    padding: 3px 15px !important;
+  }
+
+  .cf-v36-stat-value {
+    font-size: 19.5px !important;
+  }
+
+  .cf-v36-stat-label {
+    margin-top: 4px !important;
+    font-size: 10.6px !important;
+  }
+
+  .cf-v36-stat svg {
+    width: 17px !important;
+    height: 17px !important;
+  }
+
+  /* Bottom benefits */
+  .cf-v36-benefits {
+    width: min(100%, 595px) !important; /* 700 -> 595 */
+    max-width: 595px !important;
+    margin-top: 12px !important;
+  }
+
+  .cf-v36-benefit {
+    min-height: 36px !important;
+    padding: 0 8px !important;
+    gap: 4px !important;
+    font-size: 9.8px !important;
+    line-height: 1.05 !important;
+  }
+
+  .cf-v36-benefit svg {
+    width: 14.5px !important;
+    height: 14.5px !important;
+    stroke-width: 2.1 !important;
+  }
+}
+
+
+/* V60 — Desktop: espaçamento de 6% entre os três conjuntos */
+@media (min-width: 1024px) {
+  .cf-v36-platforms {
+    margin-bottom: 0 !important;
+  }
+
+  .cf-v36-stats {
+    margin-top: 60px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .cf-v36-benefits {
+    margin-top: 60px !important;
+  }
+}
+
+/* Em telas desktop de menor altura, mantém a proporção sem criar overflow exagerado */
+@media (min-width: 1024px) and (max-height: 820px) {
+  .cf-v36-stats {
+    margin-top: 42px !important;
+  }
+
+  .cf-v36-benefits {
+    margin-top: 42px !important;
+  }
+}
+
+
+/* V61 — Desktop: reduzir em mais 15% somente os 3 benefícios inferiores */
+@media (min-width: 1024px) {
+  .cf-v36-benefits {
+    width: min(100%, 506px) !important;
+    max-width: 506px !important;
+    /* mantém o espaçamento de 6% definido na V60 */
+    margin-top: 60px !important;
+  }
+
+  .cf-v36-benefit {
+    min-height: 31px !important;
+    padding: 0 7px !important;
+    gap: 3.5px !important;
+    font-size: 8.3px !important;
+    line-height: 1.05 !important;
+  }
+
+  .cf-v36-benefit svg {
+    width: 12.3px !important;
+    height: 12.3px !important;
+    stroke-width: 2.1 !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 820px) {
+  .cf-v36-benefits {
+    margin-top: 42px !important;
+  }
+}
+
+
+/* V62 — Ajustes finais de tipografia somente no desktop */
+@media (min-width: 1024px) {
+  /* Header principal */
+  .cf-v36-title {
+    font-size: 59px !important;
+  }
+
+  /* Conjunto inferior solicitado */
+  .cf-v36-benefit {
+    font-size: 23px !important;
+  }
+}
+
+
+/* V63 — FORCED desktop typography correction */
+@media screen and (min-width: 1024px) {
+  .cf-v36-title,
+  .cf-v36-title *,
+  h1.cf-v36-title,
+  .cf-v36-title span {
+    font-size: 59px !important;
+    line-height: 0.99 !important;
+  }
+
+  .cf-v36-benefit,
+  .cf-v36-benefit span,
+  .cf-v36-benefit p,
+  .cf-v36-benefit div {
+    font-size: 23px !important;
+    line-height: 1.1 !important;
+  }
+}
+
+/* V64 — Desktop hero title: 55px */
+@media screen and (min-width: 1024px) {
+  .cf-v36-title,
+  .cf-v36-title *,
+  h1.cf-v36-title,
+  .cf-v36-title span {
+    font-size: 55px !important;
+    line-height: 0.99 !important;
+  }
+}
+
+
+/* V65 — Configuração solicitada exatamente para o H1 do hero */
+@media screen and (min-width: 1024px) {
+  .cf-v36-hero h1 {
+    letter-spacing: -4.1px !important;
+    margin: 0 !important;
+    font-size: clamp(56px, 5.15vw, 55px) !important;
+  }
+}
+
+
+/* V66 — H1 desktop: 58px */
+@media screen and (min-width: 1024px) {
+  .cf-v36-hero h1,
+  .cf-v36-title,
+  .cf-v36-title *,
+  h1.cf-v36-title,
+  .cf-v36-title span {
+    font-size: 58px !important;
+  }
+}
+
+
+/* V67 — Desktop only: subtitle 20px */
+@media screen and (min-width: 1024px) {
+  .cf-v36-subtitle {
+    font-size: 20px !important;
+  }
+}
+
+
+/* ==========================================================
+   V68 — New CloutFlow Home, desktop + mobile reference build
+   ========================================================== */
+.cf-v68-home{
+  min-height:100vh;
+  background:#fff;
+  color:#071126;
+  overflow-x:hidden;
+  position:relative;
+  isolation:isolate;
+}
+.cf-v68-home *{box-sizing:border-box}
+.cf-v68-page{
+  width:min(calc(100% - 40px),1200px);
+  margin:0 auto;
+  position:relative;
+  z-index:2;
+}
+.cf-v68-navbar{
+  height:76px;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:28px;
+  border-bottom:1px solid rgba(15,35,80,.05);
+}
+.cf-v68-logo{
+  display:inline-flex;
+  align-items:center;
+  color:#081126;
+  font-size:25px;
+  font-weight:800;
+  letter-spacing:-1.2px;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.cf-v68-logo b{color:#1376ff}
+.cf-v68-logo svg{width:17px;height:17px;color:#1376ff;margin-left:-2px;margin-top:-13px;stroke-width:2.6}
+.cf-v68-navlinks{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:28px;
+}
+.cf-v68-navlinks a{
+  position:relative;
+  color:#111827;
+  font-size:13px;
+  font-weight:600;
+  text-decoration:none;
+  white-space:nowrap;
+}
+.cf-v68-navlinks a.active{color:#1376ff}
+.cf-v68-navlinks a.active:after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-18px;
+  transform:translateX(-50%);
+  width:20px;
+  height:2px;
+  border-radius:99px;
+  background:#1376ff;
+}
+.cf-v68-nav-actions{display:flex;gap:12px;align-items:center}
+.cf-v68-login,.cf-v68-start{
+  min-height:40px;
+  padding:0 18px;
+  border-radius:8px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:13px;
+  font-weight:700;
+  text-decoration:none;
+}
+.cf-v68-login{border:1px solid #d9e0eb;color:#111827;background:#fff}
+.cf-v68-start{gap:8px;background:#1376ff;color:#fff;border:1px solid #1376ff}
+.cf-v68-start svg{width:16px;height:16px}
+.cf-v68-menu{display:none;background:transparent;border:0;color:#101827;padding:4px}
+.cf-v68-menu svg{width:30px;height:30px}
+
+.cf-v68-main{
+  width:min(100%,980px);
+  margin:0 auto;
+  padding:58px 0 36px;
+}
+.cf-v68-badge{
+  width:max-content;
+  max-width:100%;
+  margin:0 auto 24px;
+  padding:9px 16px;
+  border-radius:999px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  color:#0b67e8;
+  background:linear-gradient(90deg,#eff6ff,#f5f1ff);
+  font-size:13px;
+  font-weight:700;
+}
+.cf-v68-badge svg{width:16px;height:16px;fill:#1376ff;color:#1376ff}
+.cf-v68-hero{text-align:center}
+.cf-v68-hero h1{
+  margin:0;
+  font-size:clamp(54px,5.15vw,70px);
+  line-height:.98;
+  letter-spacing:-4.1px;
+  font-weight:900;
+  color:#070d23;
+}
+.cf-v68-hero h1 span{display:block}
+.cf-v68-hero h1 b{color:#1376ff}
+.cf-v68-hero p{
+  margin:24px auto 0;
+  color:#5b6780;
+  font-size:18px;
+  line-height:1.35;
+  font-weight:500;
+}
+.cf-v68-top-stats{
+  width:min(100%,650px);
+  margin:34px auto 0;
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+}
+.cf-v68-top-stats>div{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  min-width:0;
+}
+.cf-v68-top-stats>div+div{border-left:1px solid #dde4ef}
+.cf-v68-stat-icon{
+  width:42px;
+  height:42px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  flex:0 0 auto;
+  color:#fff;
+}
+.cf-v68-stat-icon svg{width:20px;height:20px}
+.cf-v68-stat-icon.blue{background:#1477ff}
+.cf-v68-stat-icon.green{background:#14c98b}
+.cf-v68-stat-icon.purple{background:#7c37ea}
+.cf-v68-top-stats p{margin:0;display:flex;flex-direction:column;line-height:1.05}
+.cf-v68-top-stats small{font-size:12px;color:#647088;margin-bottom:5px}
+.cf-v68-top-stats strong{font-size:22px;color:#0b1025;letter-spacing:-.5px}
+
+.cf-v68-platform-grid{
+  width:min(100%,900px);
+  margin:38px auto 0;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:18px;
+}
+.cf-v68-card{
+  min-width:0;
+  position:relative;
+  border:1px solid color-mix(in srgb,var(--accent) 45%,#dbe2eb);
+  background:#fff;
+  border-radius:14px;
+  padding:28px 16px 18px;
+  text-align:center;
+  box-shadow:0 10px 24px rgba(35,50,85,.07);
+}
+.cf-v68-card-instagram{box-shadow:0 10px 26px rgba(255,59,120,.10)}
+.cf-v68-card-tiktok{box-shadow:0 10px 26px rgba(16,199,217,.10)}
+.cf-v68-card-facebook{box-shadow:0 10px 26px rgba(19,118,255,.09)}
+.cf-v68-popular{
+  position:absolute;
+  top:-1px;
+  left:-1px;
+  padding:7px 13px;
+  border-radius:14px 0 12px 0;
+  background:#ff9eb9;
+  color:#fff;
+  font-size:11px;
+  font-weight:700;
+}
+.cf-v68-card-icon{
+  width:82px;
+  height:82px;
+  margin:0 auto 9px;
+  display:grid;
+  place-items:center;
+  text-decoration:none;
+}
+.cf-v68-card-icon img{width:76px!important;height:76px!important;object-fit:contain}
+.cf-v68-card h2{margin:0;color:#0c1328;font-size:20px;line-height:1.1}
+.cf-v68-card>p{
+  min-height:49px;
+  margin:13px auto 18px;
+  color:#667189;
+  font-size:12px;
+  line-height:1.5;
+  max-width:170px;
+}
+.cf-v68-card-primary,.cf-v68-card-secondary{
+  width:100%;
+  min-height:42px;
+  border-radius:7px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  text-decoration:none;
+  font-size:12px;
+  font-weight:700;
+}
+.cf-v68-card-primary{
+  background:var(--accent);
+  border:1px solid var(--accent);
+  color:#fff;
+  margin-bottom:10px;
+}
+.cf-v68-card-primary svg{width:15px;height:15px}
+.cf-v68-card-secondary{
+  color:var(--accent);
+  border:1px solid var(--accent);
+  background:#fff;
+}
+.cf-v68-card-secondary svg{width:15px;height:15px;fill:currentColor}
+
+.cf-v68-trustbar{
+  width:min(100%,760px);
+  min-height:64px;
+  margin:30px auto 0;
+  padding:12px 16px;
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  align-items:center;
+  border:1px solid #eef1f5;
+  border-radius:13px;
+  background:#fff;
+  box-shadow:0 9px 26px rgba(35,50,85,.06);
+}
+.cf-v68-trustbar>div{
+  min-height:36px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  color:#111827;
+  font-size:11px;
+  font-weight:700;
+  padding:0 10px;
+}
+.cf-v68-trustbar>div+div{border-left:1px solid #e0e5ec}
+.cf-v68-trustbar svg{width:17px;height:17px;flex:0 0 auto}
+
+/* 2D decorative background — intentionally faint */
+.cf-v68-deco{
+  position:absolute;
+  z-index:1;
+  pointer-events:none;
+  opacity:.09;
+}
+.cf-v68-deco-top{right:0;top:90px;width:310px;height:310px}
+.cf-v68-chip{
+  position:absolute;
+  top:18px;left:48px;
+  border:2px solid #8e6cf3;
+  color:#7a51ec;
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:800;
+}
+.cf-v68-heart{
+  position:absolute;top:42px;left:178px;
+  width:48px;height:48px;border:2px solid #ff5593;border-radius:50%;
+  display:grid;place-items:center;color:#ff5593;font-size:20px;
+}
+.cf-v68-growth-line{
+  position:absolute;right:31px;top:70px;width:145px;height:110px;
+  border-right:4px solid #3378ff;border-top:4px solid #3378ff;
+  border-radius:0 70px 0 0;
+  transform:skewY(-30deg) rotate(-8deg);
+}
+.cf-v68-growth-line:after{
+  content:"";position:absolute;right:-8px;top:-9px;width:16px;height:16px;
+  border-top:4px solid #3378ff;border-right:4px solid #3378ff;
+  transform:rotate(38deg);
+}
+.cf-v68-growth-bars{position:absolute;right:26px;top:175px;display:flex;align-items:end;gap:6px}
+.cf-v68-growth-bars i{display:block;width:14px;background:#3378ff;border-radius:4px 4px 0 0}
+.cf-v68-growth-bars i:nth-child(1){height:28px}.cf-v68-growth-bars i:nth-child(2){height:42px}.cf-v68-growth-bars i:nth-child(3){height:60px}.cf-v68-growth-bars i:nth-child(4){height:79px}
+.cf-v68-dotgrid{
+  position:absolute;right:15px;bottom:16px;width:80px;height:60px;
+  background-image:radial-gradient(#4e86ff 1.7px,transparent 1.7px);
+  background-size:12px 12px;
+}
+.cf-v68-deco-bottom{left:0;bottom:10px;width:250px;height:350px}
+.cf-v68-outline{position:absolute;font-weight:800;color:#6c61ff}
+.cf-v68-outline.ig{left:27px;top:30px;font-size:41px;color:#ff4d9a}
+.cf-v68-outline.tk{left:74px;top:94px;font-size:42px;color:#6f63ff}
+.cf-v68-outline.fb{left:35px;top:160px;font-size:35px;color:#2c7aff;border:2px solid currentColor;border-radius:50%;width:42px;height:42px;display:grid;place-items:center}
+.cf-v68-outline.x{left:103px;top:205px;font-size:32px;color:#fd52ae}
+.cf-v68-dashpath{
+  position:absolute;left:-25px;top:45px;width:185px;height:225px;
+  border:2px dashed #557cff;border-right-color:transparent;border-radius:55% 40%;
+  transform:rotate(-16deg);
+}
+.cf-v68-chip-bottom{top:auto;left:118px;bottom:18px;color:#1376ff;border-color:#1376ff}
+.cf-v68-dotgrid-bottom{right:auto;left:45px;bottom:3px}
+
+@media (max-width: 980px){
+  .cf-v68-page{width:min(calc(100% - 24px),760px)}
+  .cf-v68-navbar{height:70px;grid-template-columns:1fr auto}
+  .cf-v68-navlinks,.cf-v68-nav-actions{display:none}
+  .cf-v68-menu{display:block}
+  .cf-v68-logo{font-size:24px}
+  .cf-v68-main{padding:54px 14px 34px}
+  .cf-v68-platform-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-width:680px}
+}
+
+@media (max-width: 640px){
+  .cf-v68-page{width:100%}
+  .cf-v68-navbar{height:70px;padding:0 20px;border-bottom:1px solid #e8edf4}
+  .cf-v68-logo{font-size:23px}
+  .cf-v68-logo svg{width:15px;height:15px}
+  .cf-v68-main{padding:56px 20px 28px}
+  .cf-v68-badge{
+    margin:0 0 46px;
+    padding:9px 13px;
+    font-size:11px;
+  }
+  .cf-v68-badge svg{width:15px;height:15px}
+  .cf-v68-hero{text-align:left}
+  .cf-v68-hero h1{
+    font-size:clamp(43px,12.4vw,58px);
+    line-height:1.02;
+    letter-spacing:-2.8px;
+  }
+  .cf-v68-hero p{
+    margin:22px 0 0;
+    max-width:355px;
+    font-size:17px;
+    line-height:1.42;
+  }
+  .cf-v68-top-stats{
+    margin-top:36px;
+    width:100%;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+  }
+  .cf-v68-top-stats>div{
+    align-items:center;
+    justify-content:flex-start;
+    gap:7px;
+    padding:0 7px;
+  }
+  .cf-v68-top-stats>div:first-child{padding-left:0}
+  .cf-v68-top-stats>div:last-child{padding-right:0}
+  .cf-v68-stat-icon{width:36px;height:36px}
+  .cf-v68-stat-icon svg{width:16px;height:16px}
+  .cf-v68-top-stats small{font-size:12px;margin-bottom:4px;white-space:nowrap}
+  .cf-v68-top-stats strong{font-size:15px;white-space:nowrap}
+  .cf-v68-platform-grid{
+    margin-top:42px;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:14px;
+  }
+  .cf-v68-card{
+    border-radius:13px;
+    padding:26px 14px 17px;
+  }
+  .cf-v68-popular{padding:6px 10px;font-size:10px}
+  .cf-v68-card-icon{width:72px;height:72px}
+  .cf-v68-card-icon img{width:68px!important;height:68px!important}
+  .cf-v68-card h2{font-size:18px}
+  .cf-v68-card>p{
+    min-height:58px;
+    font-size:11.5px;
+    margin:12px auto 14px;
+  }
+  .cf-v68-card-primary,.cf-v68-card-secondary{
+    min-height:43px;
+    font-size:11.5px;
+  }
+  .cf-v68-trustbar{
+    width:100%;
+    min-height:76px;
+    margin-top:30px;
+    padding:10px 7px;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+  }
+  .cf-v68-trustbar>div{
+    min-height:53px;
+    padding:0 5px;
+    gap:5px;
+    flex-direction:column;
+    text-align:center;
+    font-size:8.5px;
+    line-height:1.25;
+  }
+  .cf-v68-trustbar svg{width:16px;height:16px}
+  .cf-v68-deco{opacity:.055}
+  .cf-v68-deco-top{
+    right:-82px;
+    top:92px;
+    transform:scale(.72);
+    transform-origin:top right;
+  }
+  .cf-v68-deco-bottom{
+    left:-72px;
+    bottom:-5px;
+    transform:scale(.68);
+    transform-origin:bottom left;
+  }
+}
+
+@media (max-width: 390px){
+  .cf-v68-main{padding-left:16px;padding-right:16px}
+  .cf-v68-hero h1{font-size:42px}
+  .cf-v68-hero p{font-size:16px}
+  .cf-v68-card{padding-left:10px;padding-right:10px}
+  .cf-v68-card-primary,.cf-v68-card-secondary{font-size:10.5px}
+}
+
+
+/* V69 — Top header simplificado */
+@media (min-width: 981px) {
+  .cf-v68-navbar {
+    grid-template-columns: 1fr auto !important;
+  }
+
+  .cf-v68-nav-actions {
+    justify-self: end !important;
+  }
+}
+
+
+/* V70 — Brand proposition replacing Get Started button */
+.cf-v70-brand-message {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #536176;
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -0.1px;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.cf-v70-brand-star {
+  color: #1376ff;
+  font-size: 15px;
+  line-height: 1;
+}
+
+/* Mobile keeps the current compact header; proposition stays desktop-only. */
+@media (max-width: 980px) {
+  .cf-v70-brand-message {
+    display: none;
+  }
+}
+
+
+/* ==========================================================
+   V71 — Mobile first-fold refresh
+   Desktop remains unchanged from V70.
+   ========================================================== */
+.cf-v71-mobile-mark {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  /* Header: cleaner and more compact */
+  .cf-v68-navbar {
+    height: 62px !important;
+    padding: 0 20px !important;
+    grid-template-columns: 1fr auto !important;
+  }
+
+  .cf-v68-logo {
+    font-size: 22px !important;
+    letter-spacing: -1px !important;
+  }
+
+  .cf-v68-logo svg {
+    width: 14px !important;
+    height: 14px !important;
+    margin-top: -11px !important;
+  }
+
+  .cf-v68-menu {
+    display: none !important;
+  }
+
+  .cf-v71-mobile-mark {
+    display: grid;
+    place-items: center;
+    color: #1376ff;
+    font-size: 19px;
+    line-height: 1;
+    justify-self: end;
+  }
+
+  /* Bring the content up and tighten the first fold */
+  .cf-v68-main {
+    padding: 34px 20px 26px !important;
+  }
+
+  .cf-v68-badge {
+    margin: 0 0 28px !important;
+    padding: 8px 12px !important;
+    font-size: 10.5px !important;
+    line-height: 1 !important;
+    border-radius: 999px !important;
+  }
+
+  .cf-v68-badge svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  /* Hero: still bold, but no longer consumes the entire screen */
+  .cf-v68-hero {
+    text-align: left !important;
+  }
+
+  .cf-v68-hero h1 {
+    font-size: clamp(39px, 10.8vw, 48px) !important;
+    line-height: 1.035 !important;
+    letter-spacing: -2.55px !important;
+  }
+
+  .cf-v68-hero h1 span {
+    display: block !important;
+  }
+
+  .cf-v68-hero p {
+    margin: 20px 0 0 !important;
+    max-width: 355px !important;
+    font-size: 16px !important;
+    line-height: 1.42 !important;
+    color: #59677f !important;
+  }
+
+  /* Stats now enter the first fold sooner */
+  .cf-v68-top-stats {
+    margin-top: 28px !important;
+    width: 100% !important;
+  }
+
+  .cf-v68-top-stats > div {
+    gap: 6px !important;
+    padding: 0 6px !important;
+  }
+
+  .cf-v68-stat-icon {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .cf-v68-stat-icon svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+
+  .cf-v68-top-stats small {
+    font-size: 7px !important;
+    margin-bottom: 3px !important;
+  }
+
+  .cf-v68-top-stats strong {
+    font-size: 14px !important;
+    letter-spacing: -0.25px !important;
+  }
+
+  /* Let users glimpse the social products earlier */
+  .cf-v68-platform-grid {
+    margin-top: 32px !important;
+  }
+
+  /* Decorative social-growth language stays almost transparent */
+  .cf-v68-deco {
+    opacity: .04 !important;
+  }
+
+  .cf-v68-deco-top {
+    right: -98px !important;
+    top: 66px !important;
+    transform: scale(.68) !important;
+    transform-origin: top right !important;
+  }
+
+  .cf-v68-deco-bottom {
+    left: -82px !important;
+    transform: scale(.62) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .cf-v68-main {
+    padding-left: 17px !important;
+    padding-right: 17px !important;
+  }
+
+  .cf-v68-hero h1 {
+    font-size: 39px !important;
+    letter-spacing: -2.25px !important;
+  }
+
+  .cf-v68-hero p {
+    font-size: 15.5px !important;
+  }
+}
+
+
+/* V116 — Home platform cards without secondary Find my audience CTA */
+.cf-v68-card{
+  padding-bottom:18px!important;
+}
+.cf-v68-card .cf-v68-card-primary{
+  margin-top:18px!important;
+  margin-bottom:0!important;
+}
+.cf-v68-card-secondary{
+  display:none!important;
+}
+
+
+
+/* V117 — Home security note matching Grow Your Service */
+.cf-v68-security-note{
+  margin:28px auto 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  color:#66738b;
+  font-size:12px;
+  font-weight:400;
+}
+.cf-v68-security-note svg{
+  width:16px;
+  height:16px;
+  color:#66738b;
+  stroke-width:1.8;
+  flex:0 0 auto;
+}
+
+
+/* V120 — Professional CTA microinteraction: Home */
+.cf-v68-card-primary{
+  position:relative;
+  overflow:hidden;
+  transition:transform 180ms ease,box-shadow 180ms ease,filter 180ms ease!important;
+}
+.cf-v68-card-primary svg{
+  transition:transform 180ms ease!important;
+}
+.cf-v68-card-primary::after{
+  content:"";
+  position:absolute;
+  top:-40%;
+  left:-35%;
+  width:22%;
+  height:180%;
+  background:rgba(255,255,255,.24);
+  transform:rotate(18deg);
+  opacity:0;
+  pointer-events:none;
+  transition:left 420ms ease,opacity 180ms ease;
+}
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-card-primary:hover{
+    transform:translateY(-2px)!important;
+    box-shadow:0 8px 18px rgba(15,23,42,.14)!important;
+    filter:brightness(1.03);
+  }
+  .cf-v68-card-primary:hover svg{
+    transform:translate(3px,-1px)!important;
+  }
+  .cf-v68-card-primary:hover::after{
+    left:115%;
+    opacity:1;
+  }
+}
+.cf-v68-card-primary:active{
+  transform:scale(.98)!important;
+  transition-duration:80ms!important;
+}
+@media(max-width:760px){
+  .cf-v68-card-primary{
+    transition:transform 90ms ease!important;
+  }
+  .cf-v68-card-primary:active{
+    transform:scale(.975)!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .cf-v68-card-primary,
+  .cf-v68-card-primary svg,
+  .cf-v68-card-primary::after{
+    transition:none!important;
+  }
+}
+
+
+
+/* TikTok primary CTA */
+.cf-v68-platform-card-tiktok .cf-v68-card-primary{
+  background:linear-gradient(
+    90deg,
+    #2ea8ad 0%,
+    #6f7e88 24%,
+    #b05270 50%,
+    #dc3d60 76%,
+    #b93459 100%
+  )!important;
+  border-color:transparent!important;
+  color:#fff!important;
+  box-shadow:0 8px 18px rgba(185,52,89,.10)!important;
+}
+
+/* TikTok logo/avatar ring */
+.cf-v68-platform-card-tiktok .cf-v68-platform-icon,
+.cf-v68-platform-card-tiktok .cf-v68-icon-wrap,
+.cf-v68-platform-card-tiktok .cf-v68-card-icon{
+  border:2px solid transparent!important;
+  background:
+    linear-gradient(#fff,#fff) padding-box,
+    linear-gradient(
+      135deg,
+      #25f4ee 0%,
+      #5ea9ad 30%,
+      #d65378 62%,
+      #fe2c55 100%
+    ) border-box!important;
+  box-shadow:
+    0 0 0 1px rgba(37,244,238,.04),
+    0 5px 12px rgba(254,44,85,.05)!important;
+}
+
+/* If the icon itself has a circular border */
+.cf-v68-platform-card-tiktok img,
+.cf-v68-platform-card-tiktok .cf-v68-platform-logo{
+  border-radius:50%;
+}
+
+/* Keep the TikTok CTA hover consistent with V120, but not neon */
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-platform-card-tiktok .cf-v68-card-primary:hover{
+    filter:brightness(1.03) saturate(.95)!important;
+    box-shadow:0 9px 20px rgba(185,52,89,.14)!important;
+  }
+}
+
+
+
+/* V126 — Home TikTok card: actual selectors fixed */
+.cf-v68-card-tiktok{
+  --accent:#d83f68!important;
+  border:1.5px solid transparent!important;
+  background:
+    linear-gradient(#fff,#fff) padding-box,
+    linear-gradient(
+      135deg,
+      #2aa9ae 0%,
+      #7b7680 28%,
+      #c65372 56%,
+      #e83b62 78%,
+      #b93459 100%
+    ) border-box!important;
+  box-shadow:
+    0 9px 22px rgba(42,169,174,.05),
+    0 8px 20px rgba(232,59,98,.055)!important;
+}
+
+/* TikTok Start Growing button */
+.cf-v68-card-tiktok .cf-v68-card-primary{
+  background:linear-gradient(
+    90deg,
+    #2aa9ae 0%,
+    #6f7c83 22%,
+    #b4516e 48%,
+    #df3f62 72%,
+    #b93459 100%
+  )!important;
+  border-color:transparent!important;
+  color:#fff!important;
+  box-shadow:0 7px 16px rgba(185,52,89,.10)!important;
+}
+
+/* Ring around the TikTok logo */
+.cf-v68-card-tiktok .cf-v68-card-icon{
+  width:82px!important;
+  height:82px!important;
+  border-radius:50%!important;
+  padding:3px!important;
+  border:2px solid transparent!important;
+  background:
+    linear-gradient(#fff,#fff) padding-box,
+    linear-gradient(
+      135deg,
+      #25d8d2 0%,
+      #6f8588 30%,
+      #cf526f 60%,
+      #fe2c55 100%
+    ) border-box!important;
+  box-shadow:0 5px 14px rgba(254,44,85,.07)!important;
+}
+
+/* Keep the actual logo untouched inside the new ring */
+.cf-v68-card-tiktok .cf-v68-card-icon img{
+  width:72px!important;
+  height:72px!important;
+  border-radius:50%!important;
+  object-fit:contain!important;
+}
+
+/* Professional hover, still restrained */
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-card-tiktok .cf-v68-card-primary:hover{
+    filter:brightness(1.025) saturate(.94)!important;
+    box-shadow:0 9px 18px rgba(185,52,89,.14)!important;
+  }
+}
+
+
+
+/* V127 — TikTok Home icon restored to original appearance */
+.cf-v68-card-tiktok .cf-v68-card-icon{
+  width:82px!important;
+  height:82px!important;
+  margin:0 auto 9px!important;
+  padding:0!important;
+  display:grid!important;
+  place-items:center!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+
+.cf-v68-card-tiktok .cf-v68-card-icon img{
+  width:76px!important;
+  height:76px!important;
+  object-fit:contain!important;
+  border-radius:0!important;
+}
+
+
+
+/* V128 — TikTok Home: remove metallic effect, keep clean TikTok identity */
+.cf-v68-card-tiktok{
+  --accent:#19c7cf!important;
+  border:1px solid #69d9dc!important;
+  background:#fff!important;
+  box-shadow:0 10px 24px rgba(25,199,207,.07)!important;
+}
+
+.cf-v68-card-tiktok .cf-v68-card-primary{
+  background:#19c7cf!important;
+  border:1px solid #19c7cf!important;
+  color:#fff!important;
+  box-shadow:0 7px 16px rgba(25,199,207,.12)!important;
+  filter:none!important;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-card-tiktok .cf-v68-card-primary:hover{
+    background:#17bcc4!important;
+    border-color:#17bcc4!important;
+    filter:none!important;
+    box-shadow:
+      0 8px 18px rgba(25,199,207,.15),
+      0 2px 8px rgba(254,44,85,.05)!important;
+  }
+}
+
+
+
+/* V129 — Home TikTok card using TikTok cyan #25F4EE */
+.cf-v68-card-tiktok{
+  --accent:#25F4EE!important;
+  border:1.5px solid #25F4EE!important;
+  background:#fff!important;
+  box-shadow:0 8px 22px rgba(37,244,238,.09)!important;
+}
+
+.cf-v68-card-tiktok .cf-v68-card-primary{
+  background:#25F4EE!important;
+  border:1px solid #25F4EE!important;
+  color:#07111f!important;
+  box-shadow:0 6px 15px rgba(37,244,238,.14)!important;
+  filter:none!important;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-card-tiktok .cf-v68-card-primary:hover{
+    background:#20ddd8!important;
+    border-color:#20ddd8!important;
+    color:#07111f!important;
+    filter:none!important;
+    box-shadow:0 8px 18px rgba(37,244,238,.18)!important;
+  }
+}
+
+
+
+/* V130 — TikTok CTA: white text/arrow on official cyan */
+.cf-v68-card-tiktok .cf-v68-card-primary{
+  background:#25F4EE!important;
+  border-color:#25F4EE!important;
+  color:#fff!important;
+}
+
+.cf-v68-card-tiktok .cf-v68-card-primary svg{
+  color:#fff!important;
+  stroke:#fff!important;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-card-tiktok .cf-v68-card-primary:hover{
+    background:#20d9d4!important;
+    border-color:#20d9d4!important;
+    color:#fff!important;
+  }
+
+  .cf-v68-card-tiktok .cf-v68-card-primary:hover svg{
+    color:#fff!important;
+    stroke:#fff!important;
+  }
+}
+
+
+
+/* V131 — TikTok Home approved soft cyan */
+.cf-v68-card-tiktok{
+  --accent:#35CBD3!important;
+  border:1.5px solid #35CBD3!important;
+  background:#fff!important;
+  box-shadow:0 8px 22px rgba(53,203,211,.07)!important;
+}
+
+.cf-v68-card-tiktok .cf-v68-card-primary{
+  background:#35CBD3!important;
+  border:1px solid #35CBD3!important;
+  color:#fff!important;
+  box-shadow:0 6px 15px rgba(53,203,211,.11)!important;
+  filter:none!important;
+}
+
+.cf-v68-card-tiktok .cf-v68-card-primary svg{
+  color:#fff!important;
+  stroke:#fff!important;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-card-tiktok .cf-v68-card-primary:hover{
+    background:#2DBEC7!important;
+    border-color:#2DBEC7!important;
+    color:#fff!important;
+    filter:none!important;
+    box-shadow:0 8px 18px rgba(53,203,211,.15)!important;
+  }
+
+  .cf-v68-card-tiktok .cf-v68-card-primary:hover svg{
+    color:#fff!important;
+    stroke:#fff!important;
+  }
+}
+
+
+
+/* V132 — TikTok Home: match Grow Your Service TikTok icon teal */
+.cf-v68-card-tiktok{
+  --accent:#4F8F94!important;
+  border:1.5px solid #4F8F94!important;
+  background:#fff!important;
+  box-shadow:0 8px 20px rgba(79,143,148,.08)!important;
+}
+
+.cf-v68-card-tiktok .cf-v68-card-primary{
+  background:#4F8F94!important;
+  border:1px solid #4F8F94!important;
+  color:#fff!important;
+  box-shadow:0 6px 14px rgba(79,143,148,.12)!important;
+  filter:none!important;
+}
+
+.cf-v68-card-tiktok .cf-v68-card-primary svg{
+  color:#fff!important;
+  stroke:#fff!important;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-card-tiktok .cf-v68-card-primary:hover{
+    background:#467F84!important;
+    border-color:#467F84!important;
+    color:#fff!important;
+    filter:none!important;
+    box-shadow:0 8px 17px rgba(79,143,148,.16)!important;
+  }
+
+  .cf-v68-card-tiktok .cf-v68-card-primary:hover svg{
+    color:#fff!important;
+    stroke:#fff!important;
+  }
+}
+
+
+
+/* V133 — TikTok Home card uses the exact visual mix from the supplied Grow Your Service icon */
+.cf-v68-card-tiktok{
+  --accent:#df3254!important;
+  border:1.5px solid transparent!important;
+  background:
+    linear-gradient(#fff,#fff) padding-box,
+    linear-gradient(
+      135deg,
+      #66909a 0%,
+      #7d8594 22%,
+      #a66f86 44%,
+      #c55272 66%,
+      #df3254 100%
+    ) border-box!important;
+  box-shadow:0 8px 20px rgba(166,111,134,.08)!important;
+}
+
+.cf-v68-card-tiktok .cf-v68-card-primary{
+  background:linear-gradient(
+    90deg,
+    #66909a 0%,
+    #7d8594 22%,
+    #a66f86 44%,
+    #c55272 66%,
+    #df3254 100%
+  )!important;
+  border:1px solid transparent!important;
+  color:#fff!important;
+  box-shadow:0 6px 14px rgba(197,82,114,.12)!important;
+  filter:none!important;
+}
+
+.cf-v68-card-tiktok .cf-v68-card-primary svg{
+  color:#fff!important;
+  stroke:#fff!important;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-card-tiktok .cf-v68-card-primary:hover{
+    background:linear-gradient(
+      90deg,
+      #5d858f 0%,
+      #757d8c 22%,
+      #9d687f 44%,
+      #bc4c6c 66%,
+      #d42e50 100%
+    )!important;
+    color:#fff!important;
+    filter:none!important;
+    box-shadow:0 8px 17px rgba(197,82,114,.16)!important;
+  }
+}
+
+
+
+/* V134 — Instagram Home card: Instagram brand gradient on border + CTA */
+.cf-v68-card-instagram{
+  --accent:#E1306C!important;
+  border:1.5px solid transparent!important;
+  background:
+    linear-gradient(#fff,#fff) padding-box,
+    linear-gradient(
+      135deg,
+      #833AB4 0%,
+      #C13584 28%,
+      #E1306C 52%,
+      #F56040 76%,
+      #FCAF45 100%
+    ) border-box!important;
+  box-shadow:0 8px 20px rgba(225,48,108,.08)!important;
+}
+
+.cf-v68-card-instagram .cf-v68-card-primary{
+  background:linear-gradient(
+    90deg,
+    #833AB4 0%,
+    #C13584 26%,
+    #E1306C 50%,
+    #F56040 74%,
+    #FCAF45 100%
+  )!important;
+  border:1px solid transparent!important;
+  color:#fff!important;
+  box-shadow:0 6px 14px rgba(225,48,108,.14)!important;
+  filter:none!important;
+}
+
+.cf-v68-card-instagram .cf-v68-card-primary svg{
+  color:#fff!important;
+  stroke:#fff!important;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-card-instagram .cf-v68-card-primary:hover{
+    background:linear-gradient(
+      90deg,
+      #7734A4 0%,
+      #B83279 26%,
+      #D82D66 50%,
+      #EA593C 74%,
+      #F2A63F 100%
+    )!important;
+    color:#fff!important;
+    filter:none!important;
+    box-shadow:0 8px 17px rgba(225,48,108,.18)!important;
+  }
+
+  .cf-v68-card-instagram .cf-v68-card-primary:hover svg{
+    color:#fff!important;
+    stroke:#fff!important;
+  }
+}
+
+
+
+/* V135 — Instagram Popular badge uses the same Instagram gradient */
+.cf-v68-card-instagram .cf-v68-card-badge,
+.cf-v68-card-instagram .cf-v68-popular,
+.cf-v68-card-instagram [class*="popular"],
+.cf-v68-card-instagram [class*="badge"]{
+  background:linear-gradient(
+    90deg,
+    #833AB4 0%,
+    #C13584 26%,
+    #E1306C 50%,
+    #F56040 74%,
+    #FCAF45 100%
+  )!important;
+  color:#fff!important;
+  border-color:transparent!important;
+  box-shadow:0 5px 12px rgba(225,48,108,.13)!important;
+}
+
+
+
+/* V136 — X/Twitter Home: black identity with a soft white/gray effect */
+.cf-v68-card-x,
+.cf-v68-card-twitter{
+  --accent:#111111!important;
+  border:1.5px solid transparent!important;
+  background:
+    linear-gradient(#fff,#fff) padding-box,
+    linear-gradient(135deg,#111111 0%,#3b3b3b 42%,#8b8b8b 72%,#d8d8d8 100%) border-box!important;
+  box-shadow:0 8px 20px rgba(17,17,17,.07)!important;
+}
+
+.cf-v68-card-x .cf-v68-card-primary,
+.cf-v68-card-twitter .cf-v68-card-primary{
+  background:linear-gradient(105deg,#0b0b0b 0%,#171717 48%,#343434 78%,#686868 100%)!important;
+  border:1px solid transparent!important;
+  color:#fff!important;
+  box-shadow:0 6px 14px rgba(17,17,17,.14)!important;
+  filter:none!important;
+}
+
+.cf-v68-card-x .cf-v68-card-primary svg,
+.cf-v68-card-twitter .cf-v68-card-primary svg{
+  color:#fff!important;
+  stroke:#fff!important;
+}
+
+/* Facebook Home: brand-blue dimensional effect matching the same visual system */
+.cf-v68-card-facebook{
+  --accent:#1877F2!important;
+  border:1.5px solid transparent!important;
+  background:
+    linear-gradient(#fff,#fff) padding-box,
+    linear-gradient(135deg,#0F5FD7 0%,#1877F2 45%,#4594F7 72%,#8CC0FF 100%) border-box!important;
+  box-shadow:0 8px 20px rgba(24,119,242,.08)!important;
+}
+
+.cf-v68-card-facebook .cf-v68-card-primary{
+  background:linear-gradient(100deg,#0F5FD7 0%,#1877F2 48%,#2E86F5 76%,#58A2F8 100%)!important;
+  border:1px solid transparent!important;
+  color:#fff!important;
+  box-shadow:0 6px 14px rgba(24,119,242,.14)!important;
+  filter:none!important;
+}
+
+.cf-v68-card-facebook .cf-v68-card-primary svg{
+  color:#fff!important;
+  stroke:#fff!important;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-card-x .cf-v68-card-primary:hover,
+  .cf-v68-card-twitter .cf-v68-card-primary:hover{
+    background:linear-gradient(105deg,#050505 0%,#111 48%,#2b2b2b 78%,#575757 100%)!important;
+    box-shadow:0 8px 17px rgba(17,17,17,.18)!important;
+    filter:none!important;
+  }
+
+  .cf-v68-card-facebook .cf-v68-card-primary:hover{
+    background:linear-gradient(100deg,#0D56C5 0%,#146DE1 48%,#287DEB 76%,#4A96EF 100%)!important;
+    box-shadow:0 8px 17px rgba(24,119,242,.18)!important;
+    filter:none!important;
+  }
+}
+
+
+
+/* V139 — Great Reviews: ONLY purple -> yellow; icon format untouched */
+.cf-v68-stat-icon.purple{
+  background:#FBBF24!important;
+}
+
+
+
+/* V156 — Desktop visual standardization
+   Followers Service remains the baseline. Home is tightened to match its visual scale. */
+@media (min-width: 1025px){
+  .cf-v68-page{
+    width:min(calc(100% - 48px),1000px)!important;
+    max-width:1000px!important;
+  }
+
+  .cf-v68-main{
+    width:min(100%,900px)!important;
+    padding-top:46px!important;
+    padding-bottom:30px!important;
+  }
+
+  .cf-v68-hero h1{
+    font-size:clamp(49px,4.6vw,63px)!important;
+    letter-spacing:-3.5px!important;
+  }
+
+  .cf-v68-hero p{
+    margin-top:20px!important;
+    font-size:16px!important;
+  }
+
+  .cf-v68-top-stats{
+    width:min(100%,610px)!important;
+    margin-top:30px!important;
+  }
+
+  .cf-v68-top-stats strong{
+    font-size:20px!important;
+  }
+
+  .cf-v68-platform-grid{
+    width:min(100%,840px)!important;
+    gap:16px!important;
+    margin-top:34px!important;
+  }
+
+  .cf-v68-trustbar{
+    width:min(100%,720px)!important;
+    min-height:60px!important;
+    margin-top:28px!important;
+  }
+}
+
+
+/* V158 — Home blue brand star remains exactly 15px */
+.cf-v70-brand-star{
+  font-size:15px!important;
+  line-height:1!important;
 }

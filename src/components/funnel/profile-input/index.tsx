@@ -27,8 +27,8 @@ export function ProfileInput() {
     setLoading(true);
     
     try {
-      if (platformSlug === 'instagram') {
-        const res = await fetch(`/api/instagram/profile?username=${encodeURIComponent(inputUsername)}`);
+        // Verify username across all platforms using our generic social endpoint
+        const res = await fetch(`/api/social/profile?username=${encodeURIComponent(inputUsername)}&platform=${platformSlug}`);
         const data = await res.json();
         
         if (data.success && data.data) {
@@ -37,11 +37,6 @@ export function ProfileInput() {
         } else {
           toast.error("Profile not found. Please check the username.");
         }
-      } else {
-        // Direct pass for non-instagram platforms for now
-        setUsername(inputUsername.replace('@', ''));
-        router.push(`/${platformSlug}/${serviceSlug}/plans`);
-      }
     } catch (error) {
       toast.error("Could not verify username at this moment.");
     } finally {
