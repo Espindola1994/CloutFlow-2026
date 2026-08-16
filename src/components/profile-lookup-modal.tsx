@@ -38,6 +38,16 @@ import avatar1 from "@/assets/facebook-followers/follower-1.jpg";
 import avatar2 from "@/assets/facebook-followers/follower-2.jpg";
 import avatar3 from "@/assets/facebook-followers/follower-3.jpg";
 import avatar4 from "@/assets/facebook-followers/follower-4.jpg";
+import { useFunnelStore } from "@/stores/funnel.store";
+
+import {
+  InstagramVerifiedProfile,
+  TikTokVerifiedProfile,
+  TwitterVerifiedProfile,
+  FacebookVerifiedProfile,
+  VerifiedSocialProfile,
+} from "@/lib/social/types";
+import { validateEmailFormat } from "@/lib/social/normalize";
 
 type PlatformId = "instagram" | "tiktok" | "twitter" | "facebook";
 type SearchMode = "username" | "link";
@@ -82,54 +92,25 @@ const platformMeta = {
   },
 } as const;
 
-const mediaImages = [avatar1, avatar2, avatar3];
-
-function Badge() {
-  return (
-    <span className="pl-verified" aria-label="Verified">
-      <svg viewBox="0 0 40 40" aria-hidden="true">
-        <path d="M20 1.8l4.15 3.02 5.1-.48 2.08 4.69 4.68 2.08-.47 5.1 3.01 4.15-3.01 4.15.47 5.1-4.68 2.08-2.08 4.69-5.1-.48L20 38.2l-4.15-3.02-5.1.48-2.08-4.69-4.68-2.08.47-5.1L1.45 20.36l3.01-4.15-.47-5.1 4.68-2.08 2.08-4.69 5.1.48L20 1.8Z" />
-        <path className="pl-check" d="M16.9 26.35 10.8 20.3l2.55-2.55 3.55 3.55 9.75-9.75 2.55 2.55-12.3 12.25Z" />
-      </svg>
-    </span>
-  );
+function formatCount(num: number): string {
+  if (num === undefined || num === null) return "0";
+  if (num >= 1_000_000) {
+    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+  }
+  if (num >= 1_000) {
+    return (num / 1_000).toFixed(1).replace(/\.0$/, "") + "k";
+  }
+  return num.toLocaleString();
 }
 
-function TopBar({ title, onClose }: { title: string; onClose: () => void }) {
-  return (
-    <div className="pl-topbar">
-      <button type="button" className="pl-icon-btn" aria-label="Back"><ArrowLeft /></button>
-      <strong>{title}</strong>
-      <button type="button" className="pl-icon-btn" onClick={onClose} aria-label="Close"><X /></button>
-    </div>
-  );
-}
+function InstagramProfile({ profile, onClose }: { profile: InstagramVerifiedProfile; onClose: () => void }) {
+  const posts = profile.posts && profile.posts.length > 0 ? profile.posts.slice(0, 3) : [];
 
-function PublicPill() {
-  return <span className="pl-public">Public</span>;
-}
-
-function MediaGrid({ platform }: { platform: PlatformId }) {
-  return (
-    <div className={`pl-media-grid ${platform}`}>
-      {mediaImages.map((img, index) => (
-        <div className="pl-media-tile" key={index}>
-          <Image src={img} alt="" fill sizes="120px" />
-          {platform === "tiktok" && <span className="pl-views">▷ {["2.3M","1.1M","3.7M"][index]}</span>}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-
-
-function InstagramProfile({ onClose }: { onClose: () => void }) {
   return (
     <section className="native-profile native-instagram">
       <div className="ig-ref-top">
-        <button type="button" className="ig-ref-icon"><ArrowLeft /></button>
-        <strong>flavia_mattos__</strong>
+        <button type="button" className="ig-ref-icon" aria-label="Back"><ArrowLeft /></button>
+        <strong>{profile.username}</strong>
         <div className="ig-ref-actions">
           <button type="button" className="ig-ref-icon" aria-label="Notifications">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></svg>
@@ -140,34 +121,29 @@ function InstagramProfile({ onClose }: { onClose: () => void }) {
 
       <div className="ig-ref-profile-row">
         <div className="native-avatar ig-ref-avatar">
-          <Image src={avatar1} alt="" fill sizes="92px" />
+          <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover rounded-full" />
         </div>
 
         <div className="ig-ref-profile-main">
-          <strong className="ig-ref-fullname">Flavia Alessandra Mattos</strong>
+          <strong className="ig-ref-fullname">{profile.full_name || profile.username}</strong>
           <div className="ig-ref-stats">
-            <div><b>69</b><span>posts</span></div>
-            <div><b>8.149</b><span>seguidores</span></div>
-            <div><b>2.254</b><span>seguindo</span></div>
+            <div><b>{formatCount(profile.posts_count)}</b><span>posts</span></div>
+            <div><b>{formatCount(profile.followers_count)}</b><span>seguidores</span></div>
+            <div><b>{formatCount(profile.following_count)}</b><span>seguindo</span></div>
           </div>
         </div>
       </div>
 
-      <div className="ig-ref-bio">
-        <p>🦋 | Tudo tem seu tempo.</p>
-        <p>🩸 | A+</p>
-        <p>⚙️ | Tecnologia em Logística / Eng. de Produção</p>
-        <p>💼 | <span>@flaviamattos.despachadoria</span></p>
-      </div>
-
-      <div className="ig-ref-followed">
-        <div className="ig-ref-faces">
-          {[avatar2, avatar3, avatar4].map((a, i) => (
-            <span key={i}><Image src={a} alt="" fill sizes="30px" /></span>
-          ))}
+      {profile.bio && (
+        <div className="ig-ref-bio">
+          <p className="line-clamp-3 whitespace-pre-line">{profile.bio}</p>
+          {profile.link && (
+            <p className="text-primary truncate font-medium mt-1">
+              🔗 <span className="truncate">{profile.link.replace(/^https?:\/\//, "")}</span>
+            </p>
+          )}
         </div>
-        <p>Seguido(a) por <b>pacifico.beachclub</b>, <b>omineiro2024</b> e outras 5 pessoas</p>
-      </div>
+      )}
 
       <div className="ig-ref-buttons">
         <button>Seguindo <ChevronDown /></button>
@@ -179,13 +155,6 @@ function InstagramProfile({ onClose }: { onClose: () => void }) {
             <path d="M18 8v6M15 11h6"/>
           </svg>
         </button>
-      </div>
-
-      <div className="ig-ref-highlight-wrap">
-        <div className="ig-ref-highlight">
-          <span><Image src={avatar4} alt="" fill sizes="64px" /></span>
-          <small>🌅</small>
-        </div>
       </div>
 
       <div className="ig-ref-tabs">
@@ -203,38 +172,33 @@ function InstagramProfile({ onClose }: { onClose: () => void }) {
             <path d="m10 12 5 3-5 3z"/>
           </svg>
         </button>
-        <button aria-label="Reposts">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M7 7h9l-2-2M17 17H8l2 2"/>
-            <path d="M17 7v4M7 17v-4"/>
-          </svg>
-        </button>
-        <button aria-label="Tagged">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <rect x="4" y="3" width="16" height="18" rx="3"/>
-            <circle cx="12" cy="10" r="3"/>
-            <path d="M8 18c.8-2.3 2.1-3.5 4-3.5s3.2 1.2 4 3.5"/>
-          </svg>
-        </button>
       </div>
 
       <div className="ig-ref-grid">
-        {[avatar1, avatar2, avatar3].map((img, i) => (
-          <div className="ig-ref-post" key={i}>
-            <Image src={img} alt="" fill sizes="140px" />
-            <span className="ig-ref-carousel">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="11" height="11" rx="2"/><rect x="9" y="3" width="11" height="11" rx="2"/></svg>
-            </span>
+        {posts.length > 0 ? (
+          posts.map((post, i) => (
+            <div className="ig-ref-post" key={post.id || i}>
+              <img src={post.thumbnail_url} alt="" className="w-full h-full object-cover" />
+              {post.is_video && (
+                <span className="ig-ref-carousel">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/></svg>
+                </span>
+              )}
+            </div>
+          ))
+        ) : (
+          <div className="col-span-3 py-6 text-center text-xs text-muted-foreground">
+            {profile.is_private ? "Esta conta é privada" : "Nenhuma publicação recente"}
           </div>
-        ))}
+        )}
       </div>
     </section>
   );
 }
 
+function TikTokProfile({ profile, onClose }: { profile: TikTokVerifiedProfile; onClose: () => void }) {
+  const videos = profile.videos && profile.videos.length > 0 ? profile.videos.slice(0, 3) : [];
 
-
-function TikTokProfile({ onClose }: { onClose: () => void }) {
   return (
     <section className="native-profile native-tiktok tk-v183">
       <div className="tk-v183-toolbar">
@@ -242,18 +206,9 @@ function TikTokProfile({ onClose }: { onClose: () => void }) {
           <button type="button" className="tk-v183-icon" aria-label="Edit profile">
             <Pencil />
           </button>
-          <span className="tk-v183-pcoin" aria-hidden="true"><b>P</b></span>
         </div>
 
         <div className="tk-v183-right-tools">
-          <button type="button" className="tk-v183-icon tk-v183-steps" aria-label="Profile views">
-            <svg viewBox="0 0 28 28" aria-hidden="true">
-              <path d="M9.2 4.2c1.7 1.4 2.2 3.9 1.1 5.6-1 1.7-3.2 2-4.9.6-1.7-1.4-2.2-3.9-1.1-5.6 1-1.7 3.2-2 4.9-.6Z"/>
-              <path d="M7.7 11.9c1.6.3 2.8 1.7 2.7 3.1-.1 1.4-1.4 2.3-3 2-1.6-.3-2.8-1.7-2.7-3.1.1-1.4 1.5-2.3 3-2Z"/>
-              <path d="M18.8 4.2c-1.7 1.4-2.2 3.9-1.1 5.6 1 1.7 3.2 2 4.9.6 1.7-1.4 2.2-3.9 1.1-5.6-1-1.7-3.2-2-4.9-.6Z"/>
-              <path d="M20.3 11.9c-1.6.3-2.8 1.7-2.7 3.1.1 1.4 1.4 2.3 3 2 1.6-.3 2.8-1.7 2.7-3.1-.1-1.4-1.5-2.3-3-2Z"/>
-            </svg>
-          </button>
           <button type="button" className="tk-v183-icon" aria-label="Add friends"><UserPlus /></button>
           <button type="button" className="tk-v183-icon" aria-label="Menu"><Menu /></button>
         </div>
@@ -262,23 +217,21 @@ function TikTokProfile({ onClose }: { onClose: () => void }) {
       <div className="tk-v183-identity">
         <div className="tk-v183-copy">
           <div className="tk-v183-name-row">
-            <h3>Guilherme Terra</h3>
-            <ChevronDown />
+            <h3>{profile.full_name || profile.username}</h3>
           </div>
-          <span className="tk-v183-handle">@guilhermeterra30</span>
+          <span className="tk-v183-handle">@{profile.username}</span>
 
           <div className="tk-v183-stats">
             <div>
-              <b>48</b>
+              <b>{formatCount(profile.following_count)}</b>
               <span>Seguindo</span>
             </div>
             <div className="tk-v183-followers">
-              <span className="tk-v183-plus1">+1</span>
-              <b>38</b>
+              <b>{formatCount(profile.followers_count)}</b>
               <span>Seguidores</span>
             </div>
             <div>
-              <b>0</b>
+              <b>{formatCount(profile.likes_count)}</b>
               <span>Curtidas</span>
             </div>
           </div>
@@ -286,135 +239,126 @@ function TikTokProfile({ onClose }: { onClose: () => void }) {
 
         <div className="tk-v183-avatar-wrap">
           <div className="native-avatar tk-v183-avatar">
-            <Image src={avatar2} alt="" fill sizes="110px" />
+            <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover rounded-full" />
           </div>
-          <span className="tk-v183-plus">+</span>
         </div>
       </div>
 
-      <button type="button" className="tk-v183-bio">
-        <strong>＋ Add biografia</strong>
-        <span className="tk-v183-dot">·</span>
-        <span className="tk-v183-smile" aria-hidden="true">
-          <svg viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="8.5"/>
-            <circle cx="9" cy="10" r="1"/>
-            <circle cx="15" cy="10" r="1"/>
-            <path d="M8.5 14c1 1.4 2.2 2 3.5 2s2.5-.6 3.5-2"/>
-          </svg>
-        </span>
-        <span className="tk-v183-bio-placeholder">Minha conta é sobre...</span>
-      </button>
-
-      <div className="tk-v183-pills">
-        <button type="button">
-          <span className="tk-v183-studio-mark">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <circle cx="8" cy="8" r="3"/>
-              <path d="M3.5 19v-3.2c0-2.7 2-4.8 4.5-4.8s4.5 2.1 4.5 4.8V19"/>
-              <path d="m16.5 10 1.1 2.2 2.4.3-1.7 1.7.4 2.4-2.2-1.1-2.1 1.1.4-2.4-1.8-1.7 2.4-.3z"/>
-            </svg>
-          </span>
-          TikTok Studio
-        </button>
-        <button type="button"><ShoppingBag /> Seus pedidos</button>
-      </div>
+      {profile.bio && (
+        <div className="px-4 py-2 text-xs text-foreground/80 line-clamp-2">
+          {profile.bio}
+        </div>
+      )}
 
       <div className="tk-v183-tabs">
         <button className="active" aria-label="Posts">
           <Grid3X3 />
-          <ChevronDown className="tk-v183-tab-arrow" />
         </button>
-        <button aria-label="Private"><Lock /></button>
-        <button aria-label="Reposts"><Repeat2 /></button>
-        <button aria-label="Saved"><Bookmark /></button>
         <button aria-label="Liked"><Heart /></button>
+        <button aria-label="Bookmark"><Bookmark /></button>
       </div>
 
-      <div className="tk-v183-memory">
-        <div className="tk-v183-memory-icon">
-          <svg viewBox="0 0 72 72" aria-hidden="true">
-            <rect x="18" y="14" width="30" height="36" rx="5"/>
-            <circle cx="38" cy="25" r="5"/>
-            <path d="M23 44c4-7 9-10 15-10 5.7 0 10.2 3 14 10"/>
-            <rect x="30" y="27" width="28" height="34" rx="5"/>
-          </svg>
-        </div>
-        <h4>Compartilhe uma foto de<br/>lembrança</h4>
-        <button type="button">Enviar</button>
+      <div className="grid grid-cols-3 gap-1.5 p-2">
+        {videos.length > 0 ? (
+          videos.map((vid, idx) => (
+            <div key={vid.id || idx} className="relative aspect-[3/4] bg-neutral-900 rounded-md overflow-hidden">
+              <img src={vid.thumbnail_url} alt="" className="w-full h-full object-cover" />
+              <span className="absolute left-1.5 bottom-1.5 text-[10px] font-bold text-white drop-shadow">
+                ▷ {formatCount(vid.views_count)}
+              </span>
+            </div>
+          ))
+        ) : (
+          <div className="col-span-3 py-6 text-center text-xs text-muted-foreground">
+            {profile.is_private ? "Esta conta é privada" : "Nenhum vídeo recente"}
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
-function XProfile({ onClose }: { onClose: () => void }) {
+function XProfile({ profile, onClose }: { profile: TwitterVerifiedProfile; onClose: () => void }) {
   return (
     <section className="native-profile native-x">
-      <div className="x-cover">
-        <div className="x-top"><ArrowLeft/><div><span>↻</span><Search/><MoreHorizontal/></div></div>
-        <p>Eu só quero "sim" ou um "au" como resposta.<br/>Não preciso de um cachorro que diz "não".</p>
+      <div className="x-cover relative">
+        {profile.cover_url ? (
+          <img src={profile.cover_url} alt="Cover" className="absolute inset-0 w-full h-full object-cover opacity-60" />
+        ) : null}
+        <div className="x-top relative z-10"><ArrowLeft/><div><Search/><MoreHorizontal/></div></div>
       </div>
       <div className="x-avatar-row">
-        <div className="native-avatar x"><Image src={avatar3} alt="" fill sizes="88px"/></div>
-        <span className="x-share">↥</span>
+        <div className="native-avatar x overflow-hidden rounded-full border-2 border-background">
+          <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
+        </div>
       </div>
       <div className="x-copy">
-        <h3>Letícia Shirayuki</h3>
-        <span>@LetciaShirayuk1</span>
-        <p className="translated">⊘ Translated from Japanese <b>Show original</b></p>
-        <p>Cosplay Model Pervert🌸🌸 <span className="native-link">threads.net/@dixxshirayuki</span></p>
-        <p className="x-meta">⌖ OnlyFans👉　🔗 <span className="native-link">linktr.ee/leticiashirayu...</span></p>
-        <p className="x-meta">◉ Born October 1　▣ Joined January 2020</p>
-        <p className="x-count"><b>365</b> Following　 <b>306.1K</b> Followers</p>
+        <h3>{profile.full_name || profile.username}</h3>
+        <span>@{profile.username}</span>
+        {profile.bio && <p className="line-clamp-3">{profile.bio}</p>}
+        <p className="x-count">
+          <b>{formatCount(profile.following_count)}</b> Following　 <b>{formatCount(profile.followers_count)}</b> Followers
+        </p>
       </div>
-      <div className="native-buttons x-buttons"><button>Message</button><button>Follow</button></div>
-      <div className="native-tabs x-tabs2"><span className="active">▣ Posts⌄</span><span>◯</span><span>↻</span><span>▣</span></div>
-      <div className="x-post">
-        <div className="native-avatar tiny"><Image src={avatar3} alt="" fill sizes="38px"/></div>
-        <div><small>📌 Pinned</small><p><b>Letícia Shirayuki</b> <span>@LetciaShiray... · 9/5/23</span><br/>Miau</p><div className="x-warning">◉<br/><b>Content warning:<br/>Sensitive content</b></div></div>
-      </div>
+      <div className="native-buttons x-buttons"><button>Follow</button></div>
+      <div className="native-tabs x-tabs2"><span className="active">Posts</span><span>Replies</span><span>Media</span></div>
+      {profile.pinned_tweet && (
+        <div className="x-post p-3 border-t border-border/50 text-xs">
+          <div className="font-semibold text-primary mb-1">📌 Pinned Tweet</div>
+          <p className="line-clamp-3">{profile.pinned_tweet.text}</p>
+        </div>
+      )}
     </section>
   );
 }
 
-function FacebookProfile({ onClose }: { onClose: () => void }) {
+function FacebookProfile({ profile, onClose }: { profile: FacebookVerifiedProfile; onClose: () => void }) {
   return (
     <section className="native-profile native-facebook">
-      <div className="fb-cover">
-        <Image src={avatar4} alt="" fill sizes="560px"/>
-        <div className="fb-top"><ArrowLeft/><div><Search/><MoreHorizontal/><span>↗</span></div></div>
+      <div className="fb-cover relative">
+        {profile.cover_url ? (
+          <img src={profile.cover_url} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
+        ) : null}
+        <div className="fb-top relative z-10"><ArrowLeft/><div><Search/><MoreHorizontal/></div></div>
       </div>
       <div className="fb-sheet">
         <div className="fb-head">
-          <div className="native-avatar fb"><Image src={avatar3} alt="" fill sizes="96px"/></div>
-          <div><h3>Mario Feliciano</h3><p><b>1,8 mil</b> amigos · <b>45</b> em comum<br/>· <b>471</b> posts</p></div>
+          <div className="native-avatar fb overflow-hidden rounded-full border-2 border-background">
+            <img src={profile.avatar_url} alt={profile.username} className="w-full h-full object-cover" />
+          </div>
+          <div>
+            <h3>{profile.full_name || profile.username}</h3>
+            <p><b>{formatCount(profile.followers_count)}</b> seguidores · <b>{formatCount(profile.following_count)}</b> seguindo</p>
+          </div>
         </div>
-        <p className="fb-line">● Rio das Ostras, RJ · 💼 Transpetro · 🎓 Fafima Macaé</p>
-        <div className="followed-by fb-mutual">
-          <div className="mini-faces">{[avatar1,avatar2,avatar4].map((a,i)=><span key={i}><Image src={a} alt="" fill sizes="28px"/></span>)}</div>
-          <p>Tem amizade com Marcus Vinicius, Pablo De Andrade Tavares, Cassius Pimentel e outras 42 pessoas</p>
-        </div>
-        <div className="native-buttons fb-buttons"><button>♟ Amigos</button><button>● Mensagem</button><button>⚑</button></div>
-        <div className="fb-pills"><span className="active">Tudo</span><span>Fotos</span><span>Reels</span></div>
-        <div className="fb-details2">
-          <h3>Dados pessoais</h3>
-          <p>⌖ <span>Rio das Ostras</span></p>
-          <p>♙ <span>26 de abril de 1964</span></p>
-          <p>♧ <span>Família<br/><small>4 membros da família</small></span></p>
-          <p>◉ <span>Masculino</span></p>
-          <h3>Trabalho</h3>
-          <p>💼 <span>Transpetro<br/><small>Ver mais trabalhos</small></span></p>
-        </div>
+        <div className="native-buttons fb-buttons mt-3"><button>Seguir</button><button>Mensagem</button></div>
+        {profile.details && profile.details.length > 0 && (
+          <div className="fb-details2 mt-3 text-xs space-y-1">
+            <h3>Detalhes</h3>
+            {profile.details.map((d, idx) => (
+              <p key={idx}><span>{d.label ? `${d.label}: ` : ""}{d.value}</span></p>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
-function ProfileFound({ platform, onClose }: { platform: PlatformId; onClose: () => void }) {
-  if (platform === "instagram") return <InstagramProfile onClose={onClose} />;
-  if (platform === "tiktok") return <TikTokProfile onClose={onClose} />;
-  if (platform === "twitter") return <XProfile onClose={onClose} />;
-  return <FacebookProfile onClose={onClose} />;
+function ProfileFound({ platform, profile, onClose }: { platform: PlatformId; profile: VerifiedSocialProfile; onClose: () => void }) {
+  if (platform === "instagram" && profile.platform === "instagram") {
+    return <InstagramProfile profile={profile} onClose={onClose} />;
+  }
+  if (platform === "tiktok" && profile.platform === "tiktok") {
+    return <TikTokProfile profile={profile} onClose={onClose} />;
+  }
+  if (platform === "twitter" && profile.platform === "twitter") {
+    return <XProfile profile={profile} onClose={onClose} />;
+  }
+  if (platform === "facebook" && profile.platform === "facebook") {
+    return <FacebookProfile profile={profile} onClose={onClose} />;
+  }
+  return null;
 }
 
 export default function ProfileLookupModal({ platform, service, open, onClose, onContinue }: Props) {
@@ -424,26 +368,13 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
   const [identifier, setIdentifier] = useState("");
   const [email, setEmail] = useState("");
   const [progress, setProgress] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [verifiedProfile, setVerifiedProfile] = useState<VerifiedSocialProfile | null>(null);
 
-  useEffect(() => {
-    if (!open) {
-      setStep(1);
-      setProgress(0);
-    }
-  }, [open]);
+  const { setUsername, setProfileData } = useFunnelStore();
 
-  useEffect(() => {
-    if (step !== 2) return;
-    setProgress(0);
-    const timers = [
-      setTimeout(() => setProgress(1), 350),
-      setTimeout(() => setProgress(2), 900),
-      setTimeout(() => setProgress(3), 1450),
-      setTimeout(() => setProgress(4), 2000),
-      setTimeout(() => setStep(3), 2500),
-    ];
-    return () => timers.forEach(clearTimeout);
-  }, [step]);
+  const pollingRef = useMemo(() => ({ active: false }), []);
 
   const handle = useMemo(() => {
     const raw = identifier.trim().replace(/^@/, "");
@@ -454,6 +385,131 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
     }
     return raw;
   }, [identifier, mode]);
+
+  useEffect(() => {
+    if (!open) {
+      pollingRef.active = false;
+      setStep(1);
+      setProgress(0);
+      setErrorMessage(null);
+      setVerifiedProfile(null);
+      setIsLoading(false);
+    }
+  }, [open, pollingRef]);
+
+  const handleStartSearch = async () => {
+    setErrorMessage(null);
+    pollingRef.active = true;
+
+    // 1. Email format local validation
+    const emailRes = validateEmailFormat(email);
+    if (!emailRes.isValid) {
+      setErrorMessage(emailRes.message || "Digite um email válido. Exemplo: nome@email.com");
+      return;
+    }
+
+    if (!identifier.trim()) {
+      setErrorMessage("Por favor, informe seu @username ou link de perfil/publicação.");
+      return;
+    }
+
+    // Go to Step 2 (Analysis)
+    setStep(2);
+    setProgress(0);
+    setIsLoading(true);
+
+    const progressTimer1 = setTimeout(() => setProgress(1), 350);
+    const progressTimer2 = setTimeout(() => setProgress(2), 800);
+    const progressTimer3 = setTimeout(() => setProgress(3), 1300);
+
+    try {
+      const res = await fetch("/api/search/resolve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          input: identifier.trim(),
+          selectedPlatform: platform,
+        }),
+      });
+
+      const data = await res.json();
+
+      // Caso 1: Retorno imediato completo
+      if (res.ok && data.success && data.data && data.resolvedType === "profile") {
+        setVerifiedProfile(data.data);
+        setUsername(data.data.username);
+        setProfileData(data.data);
+        setProgress(4);
+        setTimeout(() => {
+          setStep(3);
+          setIsLoading(false);
+        }, 600);
+        return;
+      }
+
+      // Caso 2: Processamento assíncrono (ex: Facebook) com Polling controlado
+      if (res.ok && data.success && data.status === "pending" && data.requestId) {
+        let currentRequestId = data.requestId;
+        const startTime = Date.now();
+        const maxPollDuration = 60000; // 60 segundos limite total
+
+        while (pollingRef.active && Date.now() - startTime < maxPollDuration) {
+          await new Promise((r) => setTimeout(r, 2500)); // 2.5s entre verificações
+          if (!pollingRef.active) break;
+
+          const statusRes = await fetch(`/api/search/status?requestId=${encodeURIComponent(currentRequestId)}`);
+          const statusJson = await statusRes.json().catch(() => null);
+
+          if (!statusJson) continue;
+
+          if (statusJson.status === "pending" && statusJson.requestId) {
+            currentRequestId = statusJson.requestId;
+          }
+
+          if (statusJson.status === "complete" && statusJson.data) {
+            setVerifiedProfile(statusJson.data);
+            setUsername(statusJson.data.username);
+            setProfileData(statusJson.data);
+            setProgress(4);
+            setTimeout(() => {
+              setStep(3);
+              setIsLoading(false);
+            }, 600);
+            return;
+          }
+
+          if (statusJson.status === "failed") {
+            setErrorMessage(statusJson.message || "Não encontramos esse perfil. Confira o @ ou link e tente novamente.");
+            setStep(1);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        if (pollingRef.active) {
+          setErrorMessage("Não foi possível concluir esta busca agora. Tente novamente.");
+          setStep(1);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      // Caso 3: Erro / não encontrado
+      clearTimeout(progressTimer1);
+      clearTimeout(progressTimer2);
+      clearTimeout(progressTimer3);
+      setErrorMessage(data.message || "Não encontramos esse perfil. Confira o @ ou link e tente novamente.");
+      setStep(1);
+      setIsLoading(false);
+    } catch (err) {
+      clearTimeout(progressTimer1);
+      clearTimeout(progressTimer2);
+      clearTimeout(progressTimer3);
+      setErrorMessage("A consulta demorou mais que o esperado ou falhou. Tente novamente.");
+      setStep(1);
+      setIsLoading(false);
+    }
+  };
 
   if (!open) return null;
 
@@ -473,15 +529,25 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
               <button className={mode === "username" ? "active" : ""} onClick={() => setMode("username")}>@ Username</button>
               <button className={mode === "link" ? "active" : ""} onClick={() => setMode("link")}>Profile Link</button>
             </div>
-            <label className="pl-label">{mode === "username" ? `${meta.label} Username` : `${meta.label} Profile Link`}</label>
+            <label className="pl-label">{mode === "username" ? `${meta.label} Username` : `${meta.label} Profile or Content Link`}</label>
             <div className="pl-field">
               {mode === "username" ? <span>@</span> : <Link2 />}
-              <input value={identifier} onChange={(e)=>setIdentifier(e.target.value)} placeholder={mode === "username" ? "yourusername" : `https://${platform}.com/yourprofile`} />
+              <input value={identifier} onChange={(e)=>setIdentifier(e.target.value)} placeholder={mode === "username" ? "yourusername" : `https://${platform}.com/...`} />
             </div>
             <label className="pl-label">Email Address</label>
             <div className="pl-field"><Mail /><input value={email} onChange={(e)=>setEmail(e.target.value)} type="email" placeholder="you@example.com" /></div>
-            <small className="pl-help">We&apos;ll use this to send your plan details and order confirmation.</small>
-            <button className="pl-primary" type="button" onClick={() => setStep(2)}>Find my profile <ArrowRight /></button>
+            
+            {errorMessage ? (
+              <div className="p-3 my-2 text-xs font-semibold text-destructive bg-destructive/10 border border-destructive/20 rounded-lg text-center">
+                {errorMessage}
+              </div>
+            ) : (
+              <small className="pl-help">We&apos;ll use this to send your plan details and order confirmation.</small>
+            )}
+
+            <button className="pl-primary" type="button" onClick={handleStartSearch} disabled={isLoading}>
+              {isLoading ? "Searching..." : "Find my profile"} <ArrowRight />
+            </button>
             <div className="pl-secure"><LockKeyhole /> Safe · No password needed · Takes less than 1 minute</div>
           </>
         )}
@@ -509,17 +575,17 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           </div>
         )}
 
-        {step === 3 && (
+        {step === 3 && verifiedProfile && (
           <div className="pl-found">
             <div className="pl-found-heading">
               <span>STEP 3 OF 3</span>
               <h2>Profile Found</h2>
-              <p>We found <strong>@{handle}</strong>. Review the details below.</p>
+              <p>We found <strong>@{verifiedProfile.username}</strong>. Review the details below.</p>
             </div>
-            <ProfileFound platform={platform} onClose={onClose} />
+            <ProfileFound platform={platform} profile={verifiedProfile} onClose={onClose} />
             <button className="pl-primary pl-continue" type="button" onClick={onContinue}>Looks good, continue <ArrowRight /></button>
             <button className="pl-try" type="button" onClick={() => setStep(1)}>Try another profile</button>
-            <div className="pl-secure"><LockKeyhole /> We only use public data　·　No password needed</div>
+            <div className="pl-secure"><LockKeyhole /> We only use public data · No password needed</div>
           </div>
         )}
       </div>
