@@ -21,7 +21,7 @@ export interface InstagramMedia {
   view_count?: number;
 }
 
-const HIKERAPI_KEY = process.env.HIKERAPI_KEY;
+const HIKER_API_KEY = process.env.HIKER_API_KEY;
 const API_TIMEOUT = parseInt(process.env.API_TIMEOUT || '15000', 10);
 
 function normalizeUsername(input: string): string {
@@ -60,8 +60,8 @@ export async function getInstagramUserByUsername(input: string): Promise<Instagr
   const username = normalizeUsername(input);
   if (!username) return null;
   
-  if (!HIKERAPI_KEY) {
-    console.warn('HIKERAPI_KEY not set, using mock data for development');
+  if (!HIKER_API_KEY) {
+    console.warn('HIKER_API_KEY not set, using mock data for development');
     return {
       pk: '123456789',
       username,
@@ -78,7 +78,7 @@ export async function getInstagramUserByUsername(input: string): Promise<Instagr
     // Current definitive HikerAPI v1 endpoint
     let response = await fetchWithTimeout(`https://api.hikerapi.com/v1/user/by/username?username=${username}`, {
       headers: {
-        'x-access-key': HIKERAPI_KEY,
+        'x-access-key': HIKER_API_KEY,
         'Accept': 'application/json'
       }
     });
@@ -87,7 +87,7 @@ export async function getInstagramUserByUsername(input: string): Promise<Instagr
       console.log(`HikerAPI standard endpoint failed with ${response.status}. Trying v2 legacy format...`);
       response = await fetchWithTimeout(`https://api.hikerapi.com/v2/user/by/username?v=${username}`, {
         headers: {
-          'x-access-key': HIKERAPI_KEY,
+          'x-access-key': HIKER_API_KEY,
           'Accept': 'application/json'
         }
       });
@@ -125,7 +125,7 @@ export async function getInstagramUserByUsername(input: string): Promise<Instagr
 }
 
 export async function getInstagramUserMedias(userId: string): Promise<InstagramMedia[]> {
-  if (!HIKERAPI_KEY) {
+  if (!HIKER_API_KEY) {
     return Array(12).fill(0).map((_, i) => ({
       id: `media_${i}`,
       pk: `pk_${i}`,
@@ -140,7 +140,7 @@ export async function getInstagramUserMedias(userId: string): Promise<InstagramM
   try {
     const response = await fetchWithTimeout(`https://api.hikerapi.com/v1/user/medias?user_id=${userId}`, {
       headers: {
-        'x-access-key': HIKERAPI_KEY,
+        'x-access-key': HIKER_API_KEY,
         'Accept': 'application/json'
       }
     });

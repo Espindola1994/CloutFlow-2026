@@ -6,7 +6,7 @@ import {
 import { socialCache } from "../cache";
 
 function getHikerConfig() {
-  const apiKey = process.env.HIKER_API_KEY || process.env.HIKERAPI_KEY;
+  const apiKey = process.env.HIKER_API_KEY;
   const timeout = parseInt(process.env.API_TIMEOUT || "15000", 10);
   return { apiKey, timeout };
 }
@@ -53,10 +53,11 @@ export async function resolveInstagramProfileByUsername(
   }
 
   if (!apiKey) {
+    console.error("[HikerAPI] HIKER_API_KEY environment variable is not configured on the server.");
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "HIKER_API_KEY não configurada no servidor.",
+      message: "Não foi possível consultar este perfil agora. Tente novamente.",
     };
   }
 
@@ -162,10 +163,11 @@ export async function resolveInstagramContentToProfile(
   }
 
   if (!apiKey) {
+    console.error("[HikerAPI] HIKER_API_KEY environment variable is not configured on the server.");
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "HIKER_API_KEY não configurada no servidor.",
+      message: "Não foi possível consultar este perfil agora. Tente novamente.",
     };
   }
 
