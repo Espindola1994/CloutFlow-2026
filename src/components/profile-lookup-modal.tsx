@@ -451,8 +451,8 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
       if (res.ok && data.success && data.status === "pending" && data.requestId) {
         let currentRequestId = data.requestId;
         const startTime = Date.now();
-        // 120s para Facebook, 45s para TikTok e X/Twitter
-        const maxPollDuration = platform === "facebook" ? 120000 : 45000;
+        // 240s (4 min) para Facebook, 45s para TikTok e X/Twitter
+        const maxPollDuration = platform === "facebook" ? 240000 : 45000;
 
         while (pollingRef.active && Date.now() - startTime < maxPollDuration) {
           await new Promise((r) => setTimeout(r, 2500)); // 2.5s entre verificações

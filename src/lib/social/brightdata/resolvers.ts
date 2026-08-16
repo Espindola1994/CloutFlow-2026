@@ -575,16 +575,39 @@ export function normalizeFacebookProfileData(rawData: any, fallbackId: string): 
   const details: FacebookDetailItem[] = [];
   if (item.work || item.job || item.current_work) details.push({ label: "Trabalho", value: String(item.work || item.job || item.current_work) });
   if (item.education || item.school) details.push({ label: "Educação", value: String(item.education || item.school) });
-  if (item.location || item.city || item.lives_in) details.push({ label: "Cidade", value: String(item.location || item.city || item.lives_in) });
+  if (item.current_city || item.location || item.city || item.lives_in) details.push({ label: "Cidade", value: String(item.current_city || item.location || item.city || item.lives_in) });
+  if (item.hometown) details.push({ label: "De", value: String(item.hometown) });
+  if (item.primary_category) details.push({ label: "Categoria", value: String(item.primary_category) });
+
+  const resolvedName = String(item.page_name || item.name || item.title || item.username || fallbackId);
+  const resolvedUsername = String(item.username || item.id || item.page_id || item.account_id || fallbackId);
+  const resolvedAvatar = String(item.logo || item.avatar || item.profile_pic || item.profile_image || item.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(resolvedName)}`);
+  const resolvedCover = item.header_image || item.cover || item.banner || item.cover_photo || undefined;
+  
+  let followersCount = 0;
+  if (item.followers !== null && item.followers !== undefined && typeof item.followers === 'number') {
+    followersCount = item.followers;
+  } else if (item.followers_count !== null && item.followers_count !== undefined) {
+    followersCount = Number(item.followers_count);
+  } else if (item.likes !== null && item.likes !== undefined) {
+    followersCount = Number(item.likes);
+  }
+
+  let followingCount = 0;
+  if (item.following !== null && item.following !== undefined && typeof item.following === 'number') {
+    followingCount = item.following;
+  } else if (item.following_count !== null && item.following_count !== undefined) {
+    followingCount = Number(item.following_count);
+  }
 
   return {
     platform: "facebook",
-    username: String(item.username || item.id || item.page_id || item.account_id || fallbackId),
-    full_name: String(item.page_name || item.name || item.title || fallbackId),
-    avatar_url: String(item.logo || item.avatar || item.profile_pic || item.profile_image || item.image || `https://ui-avatars.com/api/?name=${fallbackId}`),
-    cover_url: item.header_image || item.cover || item.banner || item.cover_photo || undefined,
-    followers_count: Number(item.followers !== null && item.followers !== undefined ? item.followers : (item.followers_count || item.likes || item.likes_count || 0)),
-    following_count: Number(item.following !== null && item.following !== undefined ? item.following : (item.following_count || 0)),
+    username: resolvedUsername,
+    full_name: resolvedName,
+    avatar_url: resolvedAvatar,
+    cover_url: resolvedCover,
+    followers_count: followersCount,
+    following_count: followingCount,
     is_verified: Boolean(item.is_verified || item.verified),
     details: details.length > 0 ? details : undefined,
   };

@@ -36,11 +36,11 @@ function base64UrlDecode(str: string): string {
 
 /**
  * Creates an opaque, HMAC-SHA256 signed token for tracking pending Bright Data jobs across serverless instances.
- * Lifetime default: 300 seconds (5 minutes).
+ * Lifetime default: 600 seconds (10 minutes).
  */
 export function createSignedJobToken(
   payload: Omit<PendingJobPayload, "issuedAt" | "expiresAt">,
-  ttlSeconds = 300
+  ttlSeconds = 600
 ): string {
   const secret = getJobSecret();
   const now = Date.now();
