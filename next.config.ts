@@ -13,6 +13,14 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "**.byteoversea.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.ibytedtos.com",
+      },
+      {
+        protocol: "https",
         hostname: "**.fbcdn.net",
       },
       {
@@ -22,6 +30,14 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "**.cdninstagram.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.googleusercontent.com",
+      },
+      {
+        protocol: "https",
+        hostname: "**.ytimg.com",
       },
       {
         protocol: "https",

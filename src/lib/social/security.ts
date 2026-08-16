@@ -4,7 +4,7 @@ export const ALLOWED_HOSTS: Record<PlatformId, string[]> = {
   instagram: ["instagram.com", "www.instagram.com"],
   tiktok: ["tiktok.com", "www.tiktok.com", "vm.tiktok.com", "vt.tiktok.com", "m.tiktok.com"],
   twitter: ["x.com", "www.x.com", "twitter.com", "www.twitter.com", "mobile.twitter.com"],
-  facebook: ["facebook.com", "www.facebook.com", "m.facebook.com", "web.facebook.com", "fb.com", "www.fb.com"],
+  youtube: ["youtube.com", "www.youtube.com", "m.youtube.com", "youtu.be"],
 };
 
 export const BLOCKED_HOST_PATTERNS = [

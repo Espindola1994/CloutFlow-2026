@@ -44,11 +44,15 @@ export async function resolveInstagramProfileByUsername(
     return { success: false, code: "INVALID_HANDLE", message: "Este @ não possui um formato válido." };
   }
 
+  const cleanUsername = username.trim().replace(/^@/, "");
   const { apiKey } = getHikerConfig();
 
-  const cacheKey = `ig:user:${username.toLowerCase()}`;
+  console.log(`[HikerAPI Log] Início da busca para: ${cleanUsername} | HIKER_API_KEY presente: ${Boolean(apiKey)}`);
+
+  const cacheKey = `ig:user:${cleanUsername.toLowerCase()}`;
   const cached = socialCache.get<InstagramVerifiedProfile>(cacheKey);
   if (cached) {
+    console.log(`[HikerAPI Log] Cache hit para: ${cleanUsername}`);
     return { success: true, data: cached };
   }
 
@@ -62,10 +66,13 @@ export async function resolveInstagramProfileByUsername(
   }
 
   try {
-    let res = await fetchHiker(`https://api.hikerapi.com/v1/user/by/username?username=${encodeURIComponent(username)}`);
+    const endpointV1 = `https://api.hikerapi.com/v1/user/by/username?username=${encodeURIComponent(cleanUsername)}`;
+    console.log(`[HikerAPI Log] Chamando endpoint: ${endpointV1}`);
+    let res = await fetchHiker(endpointV1);
+    console.log(`[HikerAPI Log] HTTP status recebido (v1): ${res.status} ${res.statusText}`);
 
     if (res.status === 404) {
-      socialCache.set(`ig:neg:${username.toLowerCase()}`, true, 60);
+      socialCache.set(`ig:neg:${cleanUsername.toLowerCase()}`, true, 60);
       return { success: false, code: "PROFILE_NOT_FOUND", message: "Não encontramos esse perfil. Confira o @ ou link e tente novamente." };
     }
 
@@ -74,22 +81,27 @@ export async function resolveInstagramProfileByUsername(
     }
 
     if (!res.ok) {
-      // Try legacy v2 fallback endpoint
-      res = await fetchHiker(`https://api.hikerapi.com/v2/user/by/username?v=${encodeURIComponent(username)}`);
+      const endpointV2 = `https://api.hikerapi.com/v2/user/by/username?v=${encodeURIComponent(cleanUsername)}`;
+      console.log(`[HikerAPI Log] Tentando fallback legado v2: ${endpointV2}`);
+      res = await fetchHiker(endpointV2);
+      console.log(`[HikerAPI Log] HTTP status recebido (v2): ${res.status} ${res.statusText}`);
     }
 
     if (!res.ok) {
+      console.error(`[HikerAPI Log] Falha em todos os endpoints para: ${cleanUsername} com status: ${res.status}`);
       return {
         success: false,
-        code: "PROFILE_NOT_FOUND",
+        code: res.status === 404 ? "PROFILE_NOT_FOUND" : "PROVIDER_ERROR",
         message: "Não encontramos esse perfil. Confira o @ ou link e tente novamente.",
       };
     }
 
     const json = await res.json();
+    console.log(`[HikerAPI Log] Resposta JSON recebida. Top-level keys:`, Object.keys(json));
     const userObj = json.user || json.data || json.graphql?.user || json;
 
     if (!userObj || (!userObj.username && !userObj.pk && !userObj.id)) {
+      console.error("[HikerAPI Log] userObj inválido:", userObj);
       return {
         success: false,
         code: "PROFILE_NOT_FOUND",
@@ -99,33 +111,47 @@ export async function resolveInstagramProfileByUsername(
 
     const userId = String(userObj.pk || userObj.id || "");
     const isPrivate = Boolean(userObj.is_private);
+    console.log(`[HikerAPI Log] Usuário identificado: ${userObj.username} | userId: ${userId} | isPrivate: ${isPrivate}`);
 
-    // Fetch user media posts (strictly whitelisted: max 6)
+    // Fetch user media posts (se falhar ou for privado, NÃO quebra o perfil!)
     let posts: InstagramPostItem[] = [];
     if (userId && !isPrivate) {
       try {
-        const mediaRes = await fetchHiker(`https://api.hikerapi.com/v1/user/medias?user_id=${userId}`);
+        console.log(`[HikerAPI Log] Buscando mídias para userId: ${userId}`);
+        const mediaRes = await fetchHiker(`https://api.hikerapi.com/v1/user/medias?user_id=${encodeURIComponent(userId)}`);
+        console.log(`[HikerAPI Log] Mídias HTTP status: ${mediaRes.status}`);
         if (mediaRes.ok) {
           const mediaJson = await mediaRes.json();
-          const items: any[] = mediaJson.items || mediaJson.data || [];
-          posts = items.slice(0, 6).map((m) => ({
-            id: String(m.id || m.pk || m.code || Math.random()),
-            thumbnail_url: String(m.thumbnail_url || m.image_versions2?.candidates?.[0]?.url || m.display_url || `https://ui-avatars.com/api/?name=${username}`),
-            is_video: Boolean(m.media_type === 2 || m.is_video),
-          }));
+          const items: any[] = Array.isArray(mediaJson) ? mediaJson : (mediaJson.items || mediaJson.data || Object.values(mediaJson) || []);
+          posts = items.slice(0, 6).map((m: any) => {
+            const rawUrl =
+              m.thumbnail_url ||
+              m.image_versions?.[0]?.url ||
+              m.image_versions2?.candidates?.[0]?.url ||
+              m.resources?.[0]?.thumbnail_url ||
+              m.resources?.[0]?.image_versions?.[0]?.url ||
+              m.display_url ||
+              `https://ui-avatars.com/api/?name=${cleanUsername}`;
+
+            return {
+              id: String(m.id || m.pk || m.code || Math.random()),
+              thumbnail_url: String(rawUrl),
+              is_video: Boolean(m.media_type === 2 || m.is_video || m.product_type === "clips" || m.product_type === "feed_video"),
+            };
+          });
+          console.log(`[HikerAPI Log] Mídias carregadas com sucesso: ${posts.length} posts`);
         }
       } catch (err) {
-        console.warn("Could not fetch Instagram user medias", err);
+        console.warn("[HikerAPI Log] Falha segura ao buscar mídias do usuário (perfil preservado):", err);
       }
     }
 
-    // Strictly whitelist only requested fields:
-    // avatar, posts count, followers count, following count, bio, link, highlights (if present), posts
+    // Normalização estrita dos dados
     const normalized: InstagramVerifiedProfile = {
       platform: "instagram",
-      username: String(userObj.username || username),
-      full_name: String(userObj.full_name || userObj.username || username),
-      avatar_url: String(userObj.profile_pic_url || userObj.profile_pic_url_hd || `https://ui-avatars.com/api/?name=${username}`),
+      username: String(userObj.username || cleanUsername),
+      full_name: String(userObj.full_name || userObj.username || cleanUsername),
+      avatar_url: String(userObj.profile_pic_url || userObj.profile_pic_url_hd || `https://ui-avatars.com/api/?name=${cleanUsername}`),
       posts_count: Number(userObj.media_count || userObj.edge_owner_to_timeline_media?.count || 0),
       followers_count: Number(userObj.follower_count || userObj.edge_followed_by?.count || 0),
       following_count: Number(userObj.following_count || userObj.edge_follow?.count || 0),
@@ -136,13 +162,14 @@ export async function resolveInstagramProfileByUsername(
       posts,
     };
 
+    console.log(`[HikerAPI Log] Perfil normalizado com sucesso para: ${normalized.username}`);
     socialCache.set(cacheKey, normalized, 180);
     return { success: true, data: normalized };
   } catch (err: any) {
     if (err.message === "PROVIDER_TIMEOUT") {
       return { success: false, code: "PROVIDER_TIMEOUT", message: "A consulta demorou mais que o esperado. Tente novamente." };
     }
-    console.error("HikerAPI profile resolution error:", err);
+    console.error("[HikerAPI Log] Erro não tratado:", err);
     return { success: false, code: "PROVIDER_ERROR", message: "Erro ao consultar provedor social. Tente novamente." };
   }
 }
@@ -206,7 +233,7 @@ export async function resolveInstagramContentToProfile(
     if (err.message === "PROVIDER_TIMEOUT") {
       return { success: false, code: "PROVIDER_TIMEOUT", message: "A consulta demorou mais que o esperado. Tente novamente." };
     }
-    console.error("HikerAPI content resolution error:", err);
+    console.error("[HikerAPI] Erro ao resolver conteúdo:", err);
     return { success: false, code: "PROVIDER_ERROR", message: "Erro ao consultar o conteúdo no Instagram." };
   }
 }

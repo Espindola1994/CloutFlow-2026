@@ -56,6 +56,55 @@
 }
 
 :root {
+  /* Instagram Official Token System (derived directly from the approved Home button) */
+  --instagram-accent: #E1306C;
+  --instagram-accent-soft: #FFF0F5;
+  --instagram-gradient: linear-gradient(90deg, #833AB4 0%, #C13584 26%, #E1306C 50%, #F56040 74%, #FCAF45 100%);
+  --instagram-gradient-border: linear-gradient(135deg, #833AB4 0%, #C13584 28%, #E1306C 52%, #F56040 76%, #FCAF45 100%);
+  --instagram-gradient-hover: linear-gradient(90deg, #7734A4 0%, #B83279 26%, #D82D66 50%, #EA593C 74%, #F2A63F 100%);
+  --instagram-shadow: 0 4px 10px rgba(225, 48, 108, 0.10);
+  --instagram-shadow-hover: 0 5px 12px rgba(225, 48, 108, 0.14);
+
+  /* TikTok Official Token System */
+  --tiktok-bg: #000000;
+  --tiktok-accent-cyan: #25F4EE;
+  --tiktok-accent-red: #FE2C55;
+  --tiktok-accent-soft: #FFF0F3;
+  --tiktok-border: linear-gradient(135deg, rgba(37, 244, 238, 0.72) 0%, rgba(254, 44, 85, 0.72) 100%);
+  --tiktok-shadow: -2px 3px 10px rgba(37, 244, 238, 0.07), 2px 3px 10px rgba(254, 44, 85, 0.07);
+  --tiktok-shadow-hover: -3px 5px 14px rgba(37, 244, 238, 0.10), 3px 5px 14px rgba(254, 44, 85, 0.10);
+
+  /* X / Twitter Official Token System (Monochrome Premium) */
+  --x-black: #000000;
+  --x-dark: #0F1419;
+  --x-graphite: #1F2933;
+  --x-gray: #536471;
+  --x-border: rgba(15, 20, 25, 0.72);
+  --x-border-strong: rgba(15, 20, 25, 0.82);
+  --x-border-service: rgba(15, 20, 25, 0.55);
+  --x-soft: rgba(15, 20, 25, 0.035);
+  --x-white: #FFFFFF;
+  --x-shadow: 0 4px 12px rgba(15, 20, 25, 0.06);
+  --x-shadow-hover: 0 6px 16px rgba(15, 20, 25, 0.10);
+  --x-cta-shadow: 0 4px 10px rgba(15, 20, 25, 0.10);
+  --x-cta-shadow-hover: 0 5px 12px rgba(15, 20, 25, 0.14);
+
+  /* YouTube Official Token System (Pure Red + White + Dark) */
+  --youtube-primary: #FF0000;
+  --youtube-primary-hover: #E60000;
+  --youtube-dark: #0F0F0F;
+  --youtube-secondary: #606060;
+  --youtube-border: rgba(255, 0, 0, 0.58);
+  --youtube-border-strong: rgba(255, 0, 0, 0.78);
+  --youtube-border-service: rgba(255, 0, 0, 0.52);
+  --youtube-soft-bg: rgba(255, 0, 0, 0.035);
+  --youtube-soft-bg-hover: rgba(255, 0, 0, 0.055);
+  --youtube-white: #FFFFFF;
+  --youtube-shadow: 0 4px 12px rgba(255, 0, 0, 0.045);
+  --youtube-shadow-hover: 0 6px 16px rgba(255, 0, 0, 0.075);
+  --youtube-cta-shadow: 0 4px 10px rgba(255, 0, 0, 0.08);
+  --youtube-cta-shadow-hover: 0 5px 13px rgba(255, 0, 0, 0.11);
+
   --background: #080B14;
   --background-secondary: #0D1120;
   --surface: #111728;
@@ -1684,7 +1733,7 @@ html, body {
 .cf-v68-outline{position:absolute;font-weight:800;color:#6c61ff}
 .cf-v68-outline.ig{left:27px;top:30px;font-size:41px;color:#ff4d9a}
 .cf-v68-outline.tk{left:74px;top:94px;font-size:42px;color:#6f63ff}
-.cf-v68-outline.fb{left:35px;top:160px;font-size:35px;color:#2c7aff;border:2px solid currentColor;border-radius:50%;width:42px;height:42px;display:grid;place-items:center}
+.cf-v68-outline.yt{left:35px;top:160px;font-size:28px;color:#ff0000;border:2px solid currentColor;border-radius:50%;width:42px;height:42px;display:grid;place-items:center;padding-left:2px}
 .cf-v68-outline.x{left:103px;top:205px;font-size:32px;color:#fd52ae}
 .cf-v68-dashpath{
   position:absolute;left:-25px;top:45px;width:185px;height:225px;
@@ -2396,35 +2445,25 @@ html, body {
 
 
 
-/* V133 — TikTok Home card uses the exact visual mix from the supplied Grow Your Service icon */
+/* V133 — TikTok Home card: refined clean border & CTA */
 .cf-v68-card-tiktok{
-  --accent:#df3254!important;
+  --accent:#111111!important;
   border:1.5px solid transparent!important;
   background:
     linear-gradient(#fff,#fff) padding-box,
     linear-gradient(
       135deg,
-      #66909a 0%,
-      #7d8594 22%,
-      #a66f86 44%,
-      #c55272 66%,
-      #df3254 100%
+      rgba(37, 244, 238, 0.72) 0%,
+      rgba(254, 44, 85, 0.72) 100%
     ) border-box!important;
-  box-shadow:0 8px 20px rgba(166,111,134,.08)!important;
+  box-shadow:-2px 3px 10px rgba(37,244,238,0.07), 2px 3px 10px rgba(254,44,85,0.07)!important;
 }
 
 .cf-v68-card-tiktok .cf-v68-card-primary{
-  background:linear-gradient(
-    90deg,
-    #66909a 0%,
-    #7d8594 22%,
-    #a66f86 44%,
-    #c55272 66%,
-    #df3254 100%
-  )!important;
+  background:#000000!important;
   border:1px solid transparent!important;
   color:#fff!important;
-  box-shadow:0 6px 14px rgba(197,82,114,.12)!important;
+  box-shadow:-2px 3px 10px rgba(37,244,238,0.07), 2px 3px 10px rgba(254,44,85,0.07)!important;
   filter:none!important;
 }
 
@@ -2435,17 +2474,10 @@ html, body {
 
 @media (hover:hover) and (pointer:fine){
   .cf-v68-card-tiktok .cf-v68-card-primary:hover{
-    background:linear-gradient(
-      90deg,
-      #5d858f 0%,
-      #757d8c 22%,
-      #9d687f 44%,
-      #bc4c6c 66%,
-      #d42e50 100%
-    )!important;
+    background:#111111!important;
     color:#fff!important;
     filter:none!important;
-    box-shadow:0 8px 17px rgba(197,82,114,.16)!important;
+    box-shadow:-3px 5px 14px rgba(37,244,238,0.10), 3px 5px 14px rgba(254,44,85,0.10)!important;
   }
 }
 
@@ -2531,67 +2563,97 @@ html, body {
 
 
 
-/* V136 — X/Twitter Home: black identity with a soft white/gray effect */
+/* V136 — X/Twitter Home: monochrome premium identity (black, white & graphite) */
 .cf-v68-card-x,
 .cf-v68-card-twitter{
-  --accent:#111111!important;
-  border:1.5px solid transparent!important;
-  background:
-    linear-gradient(#fff,#fff) padding-box,
-    linear-gradient(135deg,#111111 0%,#3b3b3b 42%,#8b8b8b 72%,#d8d8d8 100%) border-box!important;
-  box-shadow:0 8px 20px rgba(17,17,17,.07)!important;
+  --accent:#0F1419!important;
+  border:1.5px solid rgba(15, 20, 25, 0.72)!important;
+  background:#ffffff!important;
+  box-shadow:0 4px 12px rgba(15, 20, 25, 0.06)!important;
+  transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease!important;
+}
+
+.cf-v68-card-x:hover,
+.cf-v68-card-twitter:hover{
+  border-color:rgba(15, 20, 25, 0.82)!important;
+  box-shadow:0 6px 16px rgba(15, 20, 25, 0.10)!important;
+  transform:translateY(-1px)!important;
 }
 
 .cf-v68-card-x .cf-v68-card-primary,
 .cf-v68-card-twitter .cf-v68-card-primary{
-  background:linear-gradient(105deg,#0b0b0b 0%,#171717 48%,#343434 78%,#686868 100%)!important;
-  border:1px solid transparent!important;
-  color:#fff!important;
-  box-shadow:0 6px 14px rgba(17,17,17,.14)!important;
+  background:#0F1419!important;
+  border:0!important;
+  color:#ffffff!important;
+  box-shadow:0 4px 10px rgba(15, 20, 25, 0.10)!important;
   filter:none!important;
+  transition:background .18s ease, transform .18s ease, box-shadow .18s ease!important;
 }
 
 .cf-v68-card-x .cf-v68-card-primary svg,
 .cf-v68-card-twitter .cf-v68-card-primary svg{
-  color:#fff!important;
-  stroke:#fff!important;
-}
-
-/* Facebook Home: brand-blue dimensional effect matching the same visual system */
-.cf-v68-card-facebook{
-  --accent:#1877F2!important;
-  border:1.5px solid transparent!important;
-  background:
-    linear-gradient(#fff,#fff) padding-box,
-    linear-gradient(135deg,#0F5FD7 0%,#1877F2 45%,#4594F7 72%,#8CC0FF 100%) border-box!important;
-  box-shadow:0 8px 20px rgba(24,119,242,.08)!important;
-}
-
-.cf-v68-card-facebook .cf-v68-card-primary{
-  background:linear-gradient(100deg,#0F5FD7 0%,#1877F2 48%,#2E86F5 76%,#58A2F8 100%)!important;
-  border:1px solid transparent!important;
-  color:#fff!important;
-  box-shadow:0 6px 14px rgba(24,119,242,.14)!important;
-  filter:none!important;
-}
-
-.cf-v68-card-facebook .cf-v68-card-primary svg{
-  color:#fff!important;
-  stroke:#fff!important;
+  color:#ffffff!important;
+  stroke:#ffffff!important;
 }
 
 @media (hover:hover) and (pointer:fine){
   .cf-v68-card-x .cf-v68-card-primary:hover,
   .cf-v68-card-twitter .cf-v68-card-primary:hover{
-    background:linear-gradient(105deg,#050505 0%,#111 48%,#2b2b2b 78%,#575757 100%)!important;
-    box-shadow:0 8px 17px rgba(17,17,17,.18)!important;
+    background:#000000!important;
+    color:#ffffff!important;
     filter:none!important;
+    transform:translateY(-1px)!important;
+    box-shadow:0 5px 12px rgba(15, 20, 25, 0.14)!important;
   }
 
-  .cf-v68-card-facebook .cf-v68-card-primary:hover{
-    background:linear-gradient(100deg,#0D56C5 0%,#146DE1 48%,#287DEB 76%,#4A96EF 100%)!important;
-    box-shadow:0 8px 17px rgba(24,119,242,.18)!important;
+  .cf-v68-card-x .cf-v68-card-primary:hover svg,
+  .cf-v68-card-twitter .cf-v68-card-primary:hover svg{
+    color:#ffffff!important;
+    stroke:#ffffff!important;
+  }
+}
+
+/* V137 — YouTube Home card: clean red border, solid CTA and soft depth without glow */
+.cf-v68-card-youtube{
+  --accent:#FF0000!important;
+  border:1.5px solid rgba(255, 0, 0, 0.58)!important;
+  background:#ffffff!important;
+  box-shadow:0 4px 12px rgba(255, 0, 0, 0.045)!important;
+  transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease!important;
+}
+
+.cf-v68-card-youtube:hover{
+  border-color:rgba(255, 0, 0, 0.78)!important;
+  box-shadow:0 6px 16px rgba(255, 0, 0, 0.075)!important;
+  transform:translateY(-1px)!important;
+}
+
+.cf-v68-card-youtube .cf-v68-card-primary{
+  background:#FF0000!important;
+  border:0!important;
+  color:#ffffff!important;
+  box-shadow:0 4px 10px rgba(255, 0, 0, 0.08)!important;
+  filter:none!important;
+  transition:background .18s ease, transform .18s ease, box-shadow .18s ease!important;
+}
+
+.cf-v68-card-youtube .cf-v68-card-primary svg{
+  color:#ffffff!important;
+  stroke:#ffffff!important;
+}
+
+@media (hover:hover) and (pointer:fine){
+  .cf-v68-card-youtube .cf-v68-card-primary:hover{
+    background:#E60000!important;
+    color:#ffffff!important;
     filter:none!important;
+    transform:translateY(-1px)!important;
+    box-shadow:0 5px 13px rgba(255, 0, 0, 0.11)!important;
+  }
+
+  .cf-v68-card-youtube .cf-v68-card-primary:hover svg{
+    color:#ffffff!important;
+    stroke:#ffffff!important;
   }
 }
 

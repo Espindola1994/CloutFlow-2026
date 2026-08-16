@@ -3,8 +3,8 @@ import {
   TikTokVideoItem,
   TwitterVerifiedProfile,
   TwitterPinnedTweet,
-  FacebookVerifiedProfile,
-  FacebookDetailItem,
+  YouTubeVerifiedProfile,
+  YouTubeVideoItem,
   SearchErrorCode,
 } from "../types";
 import { socialCache } from "../cache";
@@ -193,16 +193,16 @@ export function normalizeTikTokProfileData(rawData: any, fallbackUsername: strin
   const rawVideos: any[] = item.top_videos || item.top_posts_data || item.videos || item.posts || [];
   
   videos = rawVideos.slice(0, 6).map((v: any) => ({
-    id: String(v.id || v.video_id || v.aweme_id || Math.random()),
-    thumbnail_url: String(v.cover_url || v.cover || v.thumbnail || v.dynamicCover || `https://ui-avatars.com/api/?name=${fallbackUsername}`),
-    views_count: Number(v.play_count || v.playCount || v.views || v.view_count || 0),
+    id: String(v.video_id || v.id || v.aweme_id || Math.random()),
+    thumbnail_url: String(v.cover_image || v.cover_url || v.cover || v.thumbnail_url || v.thumbnail || v.dynamicCover || v.dynamic_cover || ""),
+    views_count: Number(v.playcount !== undefined ? v.playcount : (v.play_count !== undefined ? v.play_count : (v.views || v.view_count || v.views_count || 0))),
   }));
 
   return {
     platform: "tiktok",
     username: String(item.account_id || item.uniqueId || item.username || fallbackUsername),
     full_name: String(item.nickname || item.full_name || item.name || fallbackUsername),
-    avatar_url: String(item.profile_pic_url_hd || item.profile_pic_url || item.avatarLarger || item.avatarThumb || `https://ui-avatars.com/api/?name=${fallbackUsername}`),
+    avatar_url: String(item.profile_pic_url_hd || item.profile_pic_url || item.avatarLarger || item.avatarThumb || `https://ui-avatars.com/api/?name=${encodeURIComponent(fallbackUsername)}`),
     following_count: Number(item.following !== undefined ? item.following : (item.followingCount || item.following_count || 0)),
     followers_count: Number(item.followers !== undefined ? item.followers : (item.followerCount || item.followers_count || 0)),
     likes_count: Number(item.likes !== undefined ? item.likes : (item.like_count || item.heartCount || item.likes_count || 0)),
@@ -397,10 +397,10 @@ export function normalizeTwitterProfileData(rawData: any, fallbackUsername: stri
 
   return {
     platform: "twitter",
-    username: String(item.id && !item.id.includes(" ") ? item.id : (item.screen_name || item.username || fallbackUsername)),
-    full_name: String(item.profile_name || item.name || item.id || fallbackUsername),
+    username: String(item.screen_name || item.username || (item.id && !item.id.includes(" ") ? item.id : fallbackUsername.replace(/^@/, ""))),
+    full_name: String(item.profile_name || item.name || item.id || fallbackUsername.replace(/^@/, "")),
     avatar_url: String(item.profile_image_link || item.profile_image_url_https || item.profile_image_url || item.avatar || `https://ui-avatars.com/api/?name=${fallbackUsername}`),
-    cover_url: item.header_image || item.profile_banner_url || item.cover_image || undefined,
+    cover_url: item.banner_image || item.banner_img || item.header_image || item.profile_banner_url || item.cover_image || undefined,
     followers_count: Number(item.followers !== undefined ? item.followers : (item.followers_count || item.follower_count || 0)),
     following_count: Number(item.following !== undefined ? item.following : (item.following_count || item.friends_count || 0)),
     bio: String(item.biography || item.description || item.bio || ""),
@@ -412,203 +412,11 @@ export function normalizeTwitterProfileData(rawData: any, fallbackUsername: stri
 }
 
 // -------------------------------------------------------------
-// FACEBOOK (gd_mf124a0511bauquyow / gd_lyclm1571iy3mv57zw)
+// YOUTUBE (exportado via youtube.ts)
 // -------------------------------------------------------------
-export async function resolveFacebookProfileByUsername(
-  usernameOrId: string
-): Promise<{
-  success: boolean;
-  data?: FacebookVerifiedProfile;
-  pending?: boolean;
-  requestId?: string;
-  code?: SearchErrorCode;
-  message?: string;
-}> {
-  if (!usernameOrId) {
-    return { success: false, code: "INVALID_HANDLE", message: "Identificador de perfil inválido." };
-  }
-
-  const { apiKey } = getBrightDataConfig();
-  const cacheKey = `fb:user:${usernameOrId.toLowerCase()}`;
-  const cached = socialCache.get<FacebookVerifiedProfile>(cacheKey);
-  if (cached) {
-    return { success: true, data: cached };
-  }
-
-  if (!apiKey) {
-    return {
-      success: false,
-      code: "PROVIDER_ERROR",
-      message: "BRIGHTDATA_API_KEY não configurada no servidor.",
-    };
-  }
-
-  const targetUrl = usernameOrId.startsWith("http")
-    ? usernameOrId
-    : (usernameOrId.match(/^\d+$/) ? `https://www.facebook.com/profile.php?id=${usernameOrId}` : `https://www.facebook.com/${usernameOrId}`);
-
-  const facebookDatasetId = process.env.BRIGHTDATA_FACEBOOK_DATASET;
-  if (facebookDatasetId) {
-    const scraperRes = await fetchBrightDataStructuredScraper(
-      facebookDatasetId,
-      { url: targetUrl },
-      true
-    );
-
-    console.log(`[Facebook Scraper] URL: ${targetUrl} | Status: ${scraperRes.status} | Pending: ${Boolean(scraperRes.pending)}`);
-
-    if (scraperRes.pending && scraperRes.snapshotId) {
-      const requestId = createSignedJobToken({
-        platform: "facebook",
-        snapshotId: scraperRes.snapshotId,
-        operation: "profile",
-        originalInput: usernameOrId,
-      }, 300);
-
-      return { success: true, pending: true, requestId };
-    }
-
-    if (scraperRes.ok && scraperRes.data) {
-      const normalized = normalizeFacebookProfileData(scraperRes.data, usernameOrId);
-      if (normalized) {
-        socialCache.set(cacheKey, normalized, 180);
-        return { success: true, data: normalized };
-      }
-    }
-
-    if (scraperRes.restricted) {
-      return {
-        success: false,
-        code: "PROVIDER_RESTRICTED",
-        message: "Esta consulta está temporariamente indisponível para esta plataforma.",
-      };
-    }
-  }
-
-  return {
-    success: false,
-    code: "PROFILE_NOT_FOUND",
-    message: "Não encontramos esse perfil no Facebook. Confira o @ ou link e tente novamente.",
-  };
-}
-
-export async function resolveFacebookContentToProfile(
-  contentUrl: string
-): Promise<{
-  success: boolean;
-  data?: FacebookVerifiedProfile;
-  pending?: boolean;
-  requestId?: string;
-  code?: SearchErrorCode;
-  message?: string;
-}> {
-  if (!contentUrl) {
-    return { success: false, code: "CONTENT_NOT_FOUND", message: "Esse conteúdo não foi encontrado ou não está mais disponível." };
-  }
-
-  const { apiKey } = getBrightDataConfig();
-  const cacheKey = `fb:content:${contentUrl}`;
-  const cached = socialCache.get<FacebookVerifiedProfile>(cacheKey);
-  if (cached) {
-    return { success: true, data: cached };
-  }
-
-  if (!apiKey) {
-    return {
-      success: false,
-      code: "PROVIDER_ERROR",
-      message: "BRIGHTDATA_API_KEY não configurada no servidor.",
-    };
-  }
-
-  const facebookPostDatasetId = process.env.BRIGHTDATA_FACEBOOK_POST_DATASET;
-  if (facebookPostDatasetId) {
-    const scraperRes = await fetchBrightDataStructuredScraper(
-      facebookPostDatasetId,
-      { url: contentUrl },
-      true
-    );
-
-    console.log(`[Facebook Post Scraper] URL: ${contentUrl} | Status: ${scraperRes.status} | Pending: ${Boolean(scraperRes.pending)}`);
-
-    if (scraperRes.pending && scraperRes.snapshotId) {
-      const requestId = createSignedJobToken({
-        platform: "facebook",
-        snapshotId: scraperRes.snapshotId,
-        operation: "content",
-        originalInput: contentUrl,
-      }, 300);
-
-      return { success: true, pending: true, requestId };
-    }
-
-    if (scraperRes.ok && scraperRes.data) {
-      const rawData = scraperRes.data;
-      const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
-      const authorIdentifier = item?.author?.username || item?.author?.id || item?.page?.username || item?.page?.id || item?.user_id || item?.owner;
-
-      if (authorIdentifier) {
-        return await resolveFacebookProfileByUsername(authorIdentifier);
-      }
-    }
-
-    if (scraperRes.restricted) {
-      return {
-        success: false,
-        code: "PROVIDER_RESTRICTED",
-        message: "Esta consulta está temporariamente indisponível para esta plataforma.",
-      };
-    }
-  }
-
-  return {
-    success: false,
-    code: "CONTENT_NOT_FOUND",
-    message: "Esse conteúdo do Facebook não foi encontrado ou não está mais disponível.",
-  };
-}
-
-export function normalizeFacebookProfileData(rawData: any, fallbackId: string): FacebookVerifiedProfile | null {
-  const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
-  if (!item) return null;
-
-  const details: FacebookDetailItem[] = [];
-  if (item.work || item.job || item.current_work) details.push({ label: "Trabalho", value: String(item.work || item.job || item.current_work) });
-  if (item.education || item.school) details.push({ label: "Educação", value: String(item.education || item.school) });
-  if (item.current_city || item.location || item.city || item.lives_in) details.push({ label: "Cidade", value: String(item.current_city || item.location || item.city || item.lives_in) });
-  if (item.hometown) details.push({ label: "De", value: String(item.hometown) });
-  if (item.primary_category) details.push({ label: "Categoria", value: String(item.primary_category) });
-
-  const resolvedName = String(item.page_name || item.name || item.title || item.username || fallbackId);
-  const resolvedUsername = String(item.username || item.id || item.page_id || item.account_id || fallbackId);
-  const resolvedAvatar = String(item.logo || item.avatar || item.profile_pic || item.profile_image || item.image || `https://ui-avatars.com/api/?name=${encodeURIComponent(resolvedName)}`);
-  const resolvedCover = item.header_image || item.cover || item.banner || item.cover_photo || undefined;
-  
-  let followersCount = 0;
-  if (item.followers !== null && item.followers !== undefined && typeof item.followers === 'number') {
-    followersCount = item.followers;
-  } else if (item.followers_count !== null && item.followers_count !== undefined) {
-    followersCount = Number(item.followers_count);
-  } else if (item.likes !== null && item.likes !== undefined) {
-    followersCount = Number(item.likes);
-  }
-
-  let followingCount = 0;
-  if (item.following !== null && item.following !== undefined && typeof item.following === 'number') {
-    followingCount = item.following;
-  } else if (item.following_count !== null && item.following_count !== undefined) {
-    followingCount = Number(item.following_count);
-  }
-
-  return {
-    platform: "facebook",
-    username: resolvedUsername,
-    full_name: resolvedName,
-    avatar_url: resolvedAvatar,
-    cover_url: resolvedCover,
-    followers_count: followersCount,
-    following_count: followingCount,
-    is_verified: Boolean(item.is_verified || item.verified),
-    details: details.length > 0 ? details : undefined,
-  };
-}
+export {
+  resolveYouTubeChannel,
+  resolveYouTubeVideo,
+  normalizeYouTubeChannelData,
+  normalizeYouTubeChannelUrl,
+} from "./youtube";

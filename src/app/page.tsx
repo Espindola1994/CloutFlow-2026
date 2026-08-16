@@ -17,10 +17,10 @@ import {
 import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
 import tiktokIcon from "@/assets/home-icons-vector/tiktok.svg";
 import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
-import facebookIcon from "@/assets/home-icons-vector/facebook.svg";
+import youtubeIcon from "@/assets/home-icons-vector/youtube.svg";
 
 type PlatformItem = {
-  key: "instagram" | "tiktok" | "twitter" | "facebook";
+  key: "instagram" | "tiktok" | "twitter" | "youtube";
   href: string;
   name: string;
   icon: any;
@@ -37,8 +37,8 @@ const platforms: PlatformItem[] = [
     name: "Instagram",
     icon: instagramIcon,
     description: "Real followers, likes and views for your growth.",
-    accent: "#ff3b78",
-    soft: "#fff0f5",
+    accent: "#E1306C",
+    soft: "#FFF0F5",
     popular: true,
   },
   {
@@ -47,8 +47,8 @@ const platforms: PlatformItem[] = [
     name: "TikTok",
     icon: tiktokIcon,
     description: "Boost followers, likes and video views.",
-    accent: "#10c7d9",
-    soft: "#ecfdff",
+    accent: "#000000",
+    soft: "#fff0f3",
   },
   {
     key: "twitter",
@@ -56,17 +56,17 @@ const platforms: PlatformItem[] = [
     name: "Twitter / X",
     icon: twitterIcon,
     description: "Grow your followers and increase engagement.",
-    accent: "#111111",
-    soft: "#f7f7f7",
+    accent: "#0F1419",
+    soft: "#f7f9fa",
   },
   {
-    key: "facebook",
-    href: "/facebook",
-    name: "Facebook",
-    icon: facebookIcon,
-    description: "Get real followers and boost your presence.",
-    accent: "#1376ff",
-    soft: "#eef5ff",
+    key: "youtube",
+    href: "/youtube",
+    name: "YouTube",
+    icon: youtubeIcon,
+    description: "Get real subscribers and boost your channel.",
+    accent: "#ff0000",
+    soft: "#fff0f0",
   },
 ];
 
@@ -84,7 +84,7 @@ export default function Home() {
       <div className="cf-v68-deco cf-v68-deco-bottom" aria-hidden="true">
         <span className="cf-v68-outline ig">◎</span>
         <span className="cf-v68-outline tk">♪</span>
-        <span className="cf-v68-outline fb">f</span>
+        <span className="cf-v68-outline yt">▶</span>
         <span className="cf-v68-outline x">X</span>
         <span className="cf-v68-dashpath" />
         <span className="cf-v68-chip cf-v68-chip-bottom">👥 +2.5K</span>

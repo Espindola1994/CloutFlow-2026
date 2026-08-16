@@ -4,12 +4,7 @@ import Image from "next/image";
 import instagramHomeIcon from "@/assets/home-icons-vector/instagram.svg";
 import tiktokHomeIcon from "@/assets/home-icons-vector/tiktok.svg";
 import twitterHomeIcon from "@/assets/home-icons-vector/twitter.svg";
-import facebookHomeIcon from "@/assets/home-icons-vector/facebook.svg";
-
-import fbFollower1 from "../../../assets/facebook-followers/follower-1.jpg";
-import fbFollower2 from "../../../assets/facebook-followers/follower-2.jpg";
-import fbFollower3 from "../../../assets/facebook-followers/follower-3.jpg";
-import fbFollower4 from "../../../assets/facebook-followers/follower-4.jpg";
+import youtubeHomeIcon from "@/assets/home-icons-vector/youtube.svg";
 
 import { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -33,10 +28,10 @@ import {
   Share2,
   Menu
 } from "lucide-react";
-import { FaInstagram, FaTiktok, FaFacebook } from "react-icons/fa";
+import { FaInstagram, FaTiktok, FaYoutube } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
 
-type Platform = "instagram" | "tiktok" | "twitter" | "facebook";
+type Platform = "instagram" | "tiktok" | "twitter" | "youtube";
 
 const THEMES: Record<Platform, {
   label: string;
@@ -48,30 +43,30 @@ const THEMES: Record<Platform, {
   instagram: {
     label: "Instagram",
     badge: "Instagram Growth",
-    primary: "#ff2d72",
-    soft: "#fff0f5",
-    gradient: "linear-gradient(90deg,#ff7a3d 0%,#ff2d72 48%,#c82ed5 100%)",
+    primary: "#E1306C",
+    soft: "#FFF0F5",
+    gradient: "linear-gradient(90deg, #833AB4 0%, #C13584 26%, #E1306C 50%, #F56040 74%, #FCAF45 100%)",
   },
   tiktok: {
     label: "TikTok",
     badge: "TikTok Growth",
-    primary: "#00c8d7",
+    primary: "#000000",
     soft: "#effdff",
-    gradient: "linear-gradient(90deg,#16d9e8 0%,#31b6d5 38%,#ff174f 100%)",
+    gradient: "linear-gradient(135deg, #25F4EE 0%, #FE2C55 100%)",
   },
   twitter: {
     label: "X / Twitter",
     badge: "X Growth",
-    primary: "#111827",
-    soft: "#f3f4f6",
-    gradient: "linear-gradient(90deg,#111827 0%,#334155 58%,#3182f6 100%)",
+    primary: "#0F1419",
+    soft: "#f7f9fa",
+    gradient: "linear-gradient(135deg, #0F1419 0%, #272C30 100%)",
   },
-  facebook: {
-    label: "Facebook",
-    badge: "Facebook Growth",
-    primary: "#1877f2",
-    soft: "#eef6ff",
-    gradient: "linear-gradient(90deg,#3189ff 0%,#1877f2 100%)",
+  youtube: {
+    label: "YouTube",
+    badge: "YouTube Growth",
+    primary: "#ff0000",
+    soft: "#fff0f0",
+    gradient: "linear-gradient(90deg,#ff0000 0%,#cc0000 100%)",
   },
 };
 
@@ -79,7 +74,7 @@ function PlatformIcon({ platform }: { platform: Platform }) {
   if (platform === "instagram") return <FaInstagram />;
   if (platform === "tiktok") return <FaTiktok />;
   if (platform === "twitter") return <FaXTwitter />;
-  return <FaFacebook />;
+  return <FaYoutube />;
 }
 
 function InstagramPreview() {
@@ -213,66 +208,45 @@ function TwitterPreview() {
   );
 }
 
-function FacebookPreview() {
+function YouTubePreview() {
   return (
-    <div className="cf82-preview cf82-preview-facebook">
-      <div className="cf82-facebook-top">
-        <div className="cf82-facebook-wordmark">facebook</div>
-        <div className="cf82-facebook-actions">
-          <span className="plus">+</span>
-          <Search />
-          <span className="cf82-messenger-icon" aria-label="Messenger">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M12 2C6.48 2 2 6.15 2 11.27c0 2.92 1.46 5.52 3.74 7.22V22l3.42-1.88c.91.25 1.87.39 2.84.39 5.52 0 10-4.15 10-9.24S17.52 2 12 2Zm1.03 12.48-2.55-2.72-4.98 2.72 5.48-5.82 2.61 2.72 4.91-2.72-5.47 5.82Z"/>
+    <div className="cf82-preview cf82-preview-youtube">
+      <div className="cf82-preview-top">
+        <ArrowLeft />
+        <div className="cf82-yt-wordmark font-bold text-red-600">YouTube</div>
+        <div className="cf82-top-actions"><FaYoutube className="text-red-600" /><Bell /></div>
+      </div>
+      <div className="cf82-yt-body">
+        <div className="cf82-platform-logo-slot"><Image src={youtubeHomeIcon} alt="YouTube" width={84} height={84} priority /></div>
+        <div className="cf82-yt-main">
+          <div className="cf82-name-row">Your Channel <span className="cf82-verified-badge" aria-label="Verified">
+            <svg viewBox="0 0 40 40" aria-hidden="true">
+              <path
+                className="cf82-verified-shape"
+                d="M20 1.8l4.15 3.02 5.1-.48 2.08 4.69 4.68 2.08-.47 5.1 3.01 4.15-3.01 4.15.47 5.1-4.68 2.08-2.08 4.69-5.1-.48L20 38.2l-4.15-3.02-5.1.48-2.08-4.69-4.68-2.08.47-5.1L1.45 20.36l3.01-4.15-.47-5.1 4.68-2.08 2.08-4.69 5.1.48L20 1.8Z"
+              />
+              <path className="check" d="M16.9 26.35 10.8 20.3l2.55-2.55 3.55 3.55 9.75-9.75 2.55 2.55-12.3 12.25Z"/>
             </svg>
           </span>
+          </div>
+          <div className="cf82-sub-row">@yourchannel <span>·</span> 100K subscribers</div>
         </div>
       </div>
 
-      <div className="cf82-facebook-body">
-        <div className="cf82-platform-logo-slot"><Image src={facebookHomeIcon} alt="Facebook" width={84} height={84} priority /></div>
-
-        <div className="cf82-facebook-main">
-          <div className="cf82-facebook-name">
-            <strong>Your Brand</strong>
-            <span className="cf82-facebook-verified" aria-label="Verified">
-              <svg viewBox="0 0 40 40" aria-hidden="true">
-                <path d="M20 1.8l4.15 3.02 5.1-.48 2.08 4.69 4.68 2.08-.47 5.1 3.01 4.15-3.01 4.15.47 5.1-4.68 2.08-2.08 4.69-5.1-.48L20 38.2l-4.15-3.02-5.1.48-2.08-4.69-4.68-2.08.47-5.1L1.45 20.36l3.01-4.15-.47-5.1 4.68-2.08 2.08-4.69 5.1.48L20 1.8Z"/>
-                <path className="check" d="M16.9 26.35 10.8 20.3l2.55-2.55 3.55 3.55 9.75-9.75 2.55 2.55-12.3 12.25Z"/>
-              </svg>
-            </span>
-          </div>
-          <div className="cf82-facebook-sub">13K likes <span>·</span> 13K followers</div>
-
-          <div className="cf82-facebook-followers" aria-label="Follower avatars">
-            <span className="a"><img src={fbFollower1.src} alt="" /></span>
-            <span className="a"><img src={fbFollower2.src} alt="" /></span>
-            <span className="a"><img src={fbFollower3.src} alt="" /></span>
-            <span className="a"><img src={fbFollower4.src} alt="" /></span>
-            <span className="a more">•••</span>
-          </div>
-        </div>
-
-        <div className="cf82-facebook-more">•••</div>
-      </div>
-
-      <div className="cf82-facebook-buttons">
-        <button className="follow">Follow</button>
-        <button className="neutral">
-          <span className="cf82-messenger-icon small" aria-hidden="true">
-            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.15 2 11.27c0 2.92 1.46 5.52 3.74 7.22V22l3.42-1.88c.91.25 1.87.39 2.84.39 5.52 0 10-4.15 10-9.24S17.52 2 12 2Zm1.03 12.48-2.55-2.72-4.98 2.72 5.48-5.82 2.61 2.72 4.91-2.72-5.47 5.82Z"/></svg>
-          </span>
-          Message
-        </button>
+      <div className="cf82-stats-row">
+        <div><strong>100K</strong><small>Subscribers</small></div>
+        <div><strong>2.4M</strong><small>Views</small></div>
+        <div><strong>48</strong><small>Videos</small></div>
       </div>
     </div>
   );
 }
+
 function NetworkPreview({ platform }: { platform: Platform }) {
   if (platform === "instagram") return <InstagramPreview />;
   if (platform === "tiktok") return <TikTokPreview />;
   if (platform === "twitter") return <TwitterPreview />;
-  return <FacebookPreview />;
+  return <YouTubePreview />;
 }
 
 export default function PlatformServicePage() {
@@ -280,7 +254,7 @@ export default function PlatformServicePage() {
   const params = useParams() as { platform: string; service: string };
   const { setPlatform, setService, followerType, setFollowerType } = useFunnelStore();
 
-  const platformIsValid = ["instagram", "tiktok", "twitter", "facebook"].includes(params.platform);
+  const platformIsValid = ["instagram", "tiktok", "twitter", "youtube"].includes(params.platform);
   const serviceIsValid = ["followers", "likes", "views", "comments"].includes(params.service);
   const platform = (platformIsValid ? params.platform : "instagram") as Platform;
 
@@ -567,7 +541,7 @@ const followersCss = `
 
 .cf82-ig-wordmark{font-family:cursive;font-size:21px;font-weight:700}
 .cf82-ig-body{display:grid;grid-template-columns:96px 1fr auto;gap:9px;align-items:center;padding:14px 17px 22px}
-.cf82-ig-avatar{width:82px;height:82px;border-radius:50%;padding:3px;background:conic-gradient(#d92ca6,#ff2d72,#ffb536,#d92ca6)}
+.cf82-ig-avatar{width:82px;height:82px;border-radius:50%;padding:3px;background:conic-gradient(#833AB4,#C13584,#E1306C,#F56040,#FCAF45,#833AB4)}
 .cf82-ig-avatar>div{width:100%;height:100%;border:4px solid #fff;border-radius:50%;background:linear-gradient(#f2f3f5,#d8dbe0);display:grid;place-items:center;color:#fff}
 .cf82-ig-avatar svg{width:36px;height:36px}
 .cf82-ig-main{min-width:0}

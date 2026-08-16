@@ -89,9 +89,9 @@ export function validateHandleFormat(handle: string, platform?: PlatformId): { i
     if (!/^[a-zA-Z0-9_]{1,15}$/.test(raw)) {
       return { isValid: false, error: "INVALID_HANDLE" };
     }
-  } else if (platform === "facebook") {
-    // Alphanumeric with dots, min 5 chars usually or id
-    if (!/^[a-zA-Z0-9.]{1,50}$/.test(raw)) {
+  } else if (platform === "youtube") {
+    // Letters, numbers, periods, underscores, dashes. Max 30 chars
+    if (!/^[a-zA-Z0-9._-]{1,30}$/.test(raw)) {
       return { isValid: false, error: "INVALID_HANDLE" };
     }
   } else {
@@ -377,60 +377,99 @@ export function detectSearchInput(
       };
     }
 
-    if (detectedPlatform === "facebook") {
+    if (detectedPlatform === "youtube") {
       // Formats:
-      // /username
-      // /profile.php?id=123
-      // /reel/ID
-      // /watch/?v=ID
-      // /username/videos/ID
-      const segments = pathname.split("/").filter(Boolean);
-      if (pathname.includes("profile.php")) {
-        const id = url.searchParams.get("id");
-        if (id) {
+      // https://www.youtube.com/@handle or @handle/about
+      // https://www.youtube.com/channel/CHANNEL_ID
+      // https://www.youtube.com/c/NAME or /user/NAME
+      // Content:
+      // https://www.youtube.com/watch?v=VIDEO_ID
+      // https://youtu.be/VIDEO_ID
+      // https://www.youtube.com/shorts/VIDEO_ID
+
+      // 1. Check youtu.be short domain
+      if (hostname.includes("youtu.be")) {
+        const videoId = pathname.replace(/^\//, "").split("/")[0].split("?")[0];
+        if (videoId) {
           return {
             originalInput: raw,
-            inputType: "profile_url",
-            platform: "facebook",
-            canonicalUrl: `${url.origin}/profile.php?id=${id}`,
-            username: id,
+            inputType: "content_url",
+            platform: "youtube",
+            canonicalUrl: `https://www.youtube.com/watch?v=${videoId}`,
+            contentId: videoId,
             isValid: true,
           };
         }
       }
 
-      if (segments.length > 0) {
-        const first = segments[0].toLowerCase();
-        if (first === "reel" || first === "reels" || first === "watch") {
-          const contentId = segments[1] || url.searchParams.get("v") || "";
+      // 2. Check watch?v= parameter
+      if (pathname.includes("watch")) {
+        const videoId = url.searchParams.get("v");
+        if (videoId) {
           return {
             originalInput: raw,
             inputType: "content_url",
-            platform: "facebook",
-            canonicalUrl: canonical.toString(),
-            contentId,
+            platform: "youtube",
+            canonicalUrl: `https://www.youtube.com/watch?v=${videoId}`,
+            contentId: videoId,
             isValid: true,
           };
         }
+      }
 
-        if (segments.length >= 3 && segments[1].toLowerCase() === "videos") {
+      // 3. Check /shorts/VIDEO_ID
+      if (pathname.includes("/shorts/")) {
+        const segments = pathname.split("/shorts/")[1]?.split("/")[0]?.split("?")[0];
+        if (segments) {
           return {
             originalInput: raw,
             inputType: "content_url",
-            platform: "facebook",
-            canonicalUrl: canonical.toString(),
-            username: segments[0],
-            contentId: segments[2],
+            platform: "youtube",
+            canonicalUrl: `https://www.youtube.com/watch?v=${segments}`,
+            contentId: segments,
             isValid: true,
           };
         }
+      }
 
+      const segments = pathname.split("/").filter(Boolean);
+
+      // 4. Check /channel/CHANNEL_ID
+      if (segments.length >= 2 && segments[0].toLowerCase() === "channel") {
+        const channelId = segments[1];
         return {
           originalInput: raw,
           inputType: "profile_url",
-          platform: "facebook",
-          canonicalUrl: canonical.toString(),
-          username: segments[0],
+          platform: "youtube",
+          canonicalUrl: `https://www.youtube.com/channel/${channelId}`,
+          username: channelId,
+          contentId: channelId,
+          isValid: true,
+        };
+      }
+
+      // 5. Check /@handle or /@handle/about
+      if (segments.length > 0 && segments[0].startsWith("@")) {
+        const handleClean = segments[0].substring(1);
+        return {
+          originalInput: raw,
+          inputType: "profile_url",
+          platform: "youtube",
+          canonicalUrl: `https://www.youtube.com/@${handleClean}/about`,
+          username: `@${handleClean}`,
+          isValid: true,
+        };
+      }
+
+      // 6. Check /c/NAME or /user/NAME or raw custom URL
+      if (segments.length > 0) {
+        const customName = segments[segments.length - 1].replace(/^@/, "");
+        return {
+          originalInput: raw,
+          inputType: "profile_url",
+          platform: "youtube",
+          canonicalUrl: `https://www.youtube.com/@${customName}/about`,
+          username: `@${customName}`,
           isValid: true,
         };
       }
@@ -438,10 +477,10 @@ export function detectSearchInput(
       return {
         originalInput: raw,
         inputType: "invalid",
-        platform: "facebook",
+        platform: "youtube",
         isValid: false,
         errorCode: "INVALID_URL",
-        errorMessage: "URL do Facebook não reconhecida.",
+        errorMessage: "URL do YouTube não reconhecida.",
       };
     }
   }

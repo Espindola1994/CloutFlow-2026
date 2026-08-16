@@ -1,5 +1,5 @@
 import React from "react";
-import { Grid3X3, Heart, Lock, Bookmark, Repeat2, UserPlus, MessageCircle, ChevronDown, Check } from "lucide-react";
+import { Grid3X3, Heart, Bookmark, Repeat2, UserPlus, MoreHorizontal, ArrowLeft } from "lucide-react";
 import { TikTokVerifiedProfile } from "@/lib/social/types";
 
 function formatCount(num: number): string {
@@ -27,36 +27,44 @@ export function TikTokPreview({ profile, onClose }: { profile: TikTokVerifiedPro
   const videos = hasValue(profile.videos) ? profile.videos.slice(0, 3) : [];
 
   return (
-    <div className="w-full bg-[#ffffff] text-[#161823] rounded-2xl overflow-hidden border border-neutral-200/80 shadow-sm select-none font-sans">
-      {/* Top Header / Username Centered */}
-      <div className="flex items-center justify-center relative py-2.5 px-4 border-b border-neutral-100">
-        <h4 className="text-sm font-bold text-neutral-900 truncate max-w-[200px]">
-          {profile.full_name || profile.username}
-        </h4>
+    <div className="w-full bg-[#ffffff] text-[#161823] rounded-[24px] overflow-hidden border border-neutral-200/90 shadow-sm select-none font-sans">
+      {/* Top Header: Back Arrow | Actions */}
+      <div className="flex items-center justify-between px-4 pt-3 pb-1">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Back"
+          className="text-neutral-900 p-1 -ml-1 active:opacity-70"
+        >
+          <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
+        </button>
+        <div className="flex items-center gap-3 text-neutral-900">
+          <MoreHorizontal className="w-5 h-5 stroke-[2.2]" />
+        </div>
       </div>
 
-      {/* Profile Header: Avatar & Info */}
-      <div className="px-4 pt-3 pb-2 flex items-center justify-between gap-3">
-        {/* Name & Handle */}
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1">
-            <h3 className="text-lg font-black text-neutral-900 leading-tight truncate">
+      {/* Main Profile Header: Name & Handle on Left + Huge Avatar on Right (01 Reference) */}
+      <div className="px-5 pt-1 pb-3 flex items-start justify-between gap-3">
+        {/* Left Column: Big Bold Name & @username */}
+        <div className="min-w-0 flex-1 pt-1">
+          <div className="flex items-center gap-1.5">
+            <h2 className="text-[24px] font-black text-neutral-900 leading-tight tracking-tight truncate">
               {profile.full_name || profile.username}
-            </h3>
+            </h2>
             {profile.is_verified && (
-              <span className="w-4 h-4 rounded-full bg-[#20D5EC] text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
+              <span className="w-[18px] h-[18px] rounded-full bg-[#20D5EC] text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
                 ✓
               </span>
             )}
           </div>
-          <span className="text-xs text-neutral-500 font-medium block truncate mt-0.5">
+          <span className="text-[13.5px] text-neutral-500 font-medium block truncate mt-0.5">
             @{profile.username}
           </span>
         </div>
 
-        {/* Large Circular Avatar on Right with visual border */}
+        {/* Right Column: Large Circular Avatar with border */}
         <div className="relative flex-shrink-0">
-          <div className="w-[72px] h-[72px] rounded-full p-[2px] bg-gradient-to-tr from-neutral-200 to-neutral-300 shadow-inner">
+          <div className="w-[88px] h-[88px] rounded-full p-[2.5px] bg-gradient-to-tr from-neutral-200 via-neutral-100 to-neutral-300 shadow-sm">
             <img
               src={profile.avatar_url}
               alt={profile.username}
@@ -66,91 +74,97 @@ export function TikTokPreview({ profile, onClose }: { profile: TikTokVerifiedPro
         </div>
       </div>
 
-      {/* Horizontal Counters (Following | Followers | Likes) */}
-      <div className="px-4 py-2 flex items-center gap-6 text-left">
+      {/* Horizontal Counters (Following | Followers | Likes) - 01 Reference */}
+      <div className="px-5 py-1.5 flex items-center gap-7 text-left">
         <div>
-          <b className="text-sm font-extrabold text-neutral-900 block leading-tight">
+          <b className="text-[18px] font-black text-neutral-900 block leading-tight tracking-tight">
             {formatCount(profile.following_count)}
           </b>
-          <span className="text-[11px] font-medium text-neutral-500 block">Following</span>
+          <span className="text-[11.5px] font-normal text-neutral-500 block mt-0.5">Following</span>
         </div>
         <div>
-          <b className="text-sm font-extrabold text-neutral-900 block leading-tight">
+          <b className="text-[18px] font-black text-neutral-900 block leading-tight tracking-tight">
             {formatCount(profile.followers_count)}
           </b>
-          <span className="text-[11px] font-medium text-neutral-500 block">Followers</span>
+          <span className="text-[11.5px] font-normal text-neutral-500 block mt-0.5">Followers</span>
         </div>
         <div>
-          <b className="text-sm font-extrabold text-neutral-900 block leading-tight">
+          <b className="text-[18px] font-black text-neutral-900 block leading-tight tracking-tight">
             {formatCount(profile.likes_count)}
           </b>
-          <span className="text-[11px] font-medium text-neutral-500 block">Likes</span>
+          <span className="text-[11.5px] font-normal text-neutral-500 block mt-0.5">Likes</span>
         </div>
       </div>
 
-      {/* Action Buttons: Follow (Red) | Message | Add Person */}
-      <div className="px-4 py-1.5 flex items-center gap-1.5">
+      {/* Action Buttons: Follow (Red/Pink) | Message | Add Person */}
+      <div className="px-5 py-2.5 flex items-center gap-2">
         <button
           type="button"
-          className="flex-1 h-8 rounded-md bg-[#FE2C55] text-white text-xs font-bold flex items-center justify-center hover:bg-[#e0264b] transition-colors shadow-sm"
+          className="flex-1 h-[40px] rounded-[6px] bg-[#FE2C55] text-white text-[14px] font-bold flex items-center justify-center hover:bg-[#ea264c] active:opacity-90 transition-colors shadow-sm"
         >
           Follow
         </button>
         <button
           type="button"
-          className="flex-1 h-8 rounded-md bg-neutral-100 text-neutral-900 text-xs font-semibold flex items-center justify-center hover:bg-neutral-200 transition-colors"
+          className="flex-1 h-[40px] rounded-[6px] bg-[#F1F1F2] text-neutral-900 text-[14px] font-semibold flex items-center justify-center hover:bg-[#e4e4e6] active:opacity-90 transition-colors"
         >
           Message
         </button>
         <button
           type="button"
           aria-label="Add person"
-          className="w-8 h-8 rounded-md bg-neutral-100 text-neutral-800 flex items-center justify-center hover:bg-neutral-200 transition-colors flex-shrink-0"
+          className="w-[40px] h-[40px] rounded-[6px] bg-[#F1F1F2] text-neutral-900 flex items-center justify-center hover:bg-[#e4e4e6] active:opacity-90 transition-colors flex-shrink-0"
         >
-          <UserPlus className="w-3.5 h-3.5" />
+          <UserPlus className="w-4 h-4 stroke-[2]" />
         </button>
       </div>
 
       {/* Bio Section */}
       {hasValue(profile.bio) && (
-        <div className="px-4 pt-2 text-xs text-neutral-700 leading-snug line-clamp-2">
+        <div className="px-5 pt-1 text-[13.5px] text-neutral-800 leading-snug line-clamp-2">
           {profile.bio}
         </div>
       )}
 
       {/* Bio Link */}
       {hasValue(profile.link) && (
-        <div className="px-4 pt-1 pb-1.5 text-xs font-semibold text-[#FE2C55] flex items-center gap-1">
-          <span>🔗</span>
-          <span className="truncate hover:underline">{profile.link?.replace(/^https?:\/\//, "")}</span>
+        <div className="px-5 pt-1.5 pb-1 text-[13px] font-semibold text-[#161823] flex items-center gap-1.5">
+          <span className="text-[12px] opacity-70">🔗</span>
+          <span className="truncate hover:underline text-[#2b5ba8]">{profile.link?.replace(/^https?:\/\//, "")}</span>
         </div>
       )}
 
-      {/* Tabs */}
-      <div className="flex items-center justify-around border-b border-neutral-100 mt-2 text-neutral-400">
-        <div className="flex-1 py-2 flex justify-center text-neutral-900 border-b-2 border-neutral-900">
-          <Grid3X3 className="w-4 h-4" />
+      {/* Visual Navigation Tabs */}
+      <div className="flex items-center justify-around border-b border-neutral-100 mt-2.5 text-neutral-400">
+        <div className="flex-1 py-2.5 flex justify-center text-neutral-900 border-b-[2px] border-neutral-900">
+          <Grid3X3 className="w-[19px] h-[19px] stroke-[2.2]" />
         </div>
-        <div className="flex-1 py-2 flex justify-center hover:text-neutral-600">
-          <Repeat2 className="w-4 h-4" />
+        <div className="flex-1 py-2.5 flex justify-center text-neutral-400">
+          <Repeat2 className="w-[19px] h-[19px] stroke-[2]" />
         </div>
-        <div className="flex-1 py-2 flex justify-center hover:text-neutral-600">
-          <Bookmark className="w-4 h-4" />
+        <div className="flex-1 py-2.5 flex justify-center text-neutral-400">
+          <Bookmark className="w-[19px] h-[19px] stroke-[2]" />
         </div>
-        <div className="flex-1 py-2 flex justify-center hover:text-neutral-600">
-          <Heart className="w-4 h-4" />
+        <div className="flex-1 py-2.5 flex justify-center text-neutral-400">
+          <Heart className="w-[19px] h-[19px] stroke-[2]" />
         </div>
       </div>
 
-      {/* 3-Column Video Grid */}
-      <div className="grid grid-cols-3 gap-0.5 p-0.5 bg-neutral-100">
+      {/* 3-Column Video Grid (Vertical Aspect 3:4 with views in lower left) */}
+      <div className="grid grid-cols-3 gap-[2px] p-[2px] bg-neutral-100">
         {videos.length > 0 ? (
           videos.map((vid, idx) => (
             <div key={vid.id || idx} className="relative aspect-[3/4] bg-neutral-900 overflow-hidden">
-              <img src={vid.thumbnail_url} alt="" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
-              <span className="absolute left-1.5 bottom-1.5 text-[10px] font-bold text-white flex items-center gap-0.5 drop-shadow">
-                <span>▷</span> {formatCount(vid.views_count)}
+              {vid.thumbnail_url ? (
+                <img src={vid.thumbnail_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-950 flex items-center justify-center text-white/20">
+                  <Grid3X3 className="w-6 h-6" />
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
+              <span className="absolute left-1.5 bottom-1.5 text-[11px] font-bold text-white flex items-center gap-1 drop-shadow-md">
+                <span className="text-[10px]">▷</span> {formatCount(vid.views_count)}
               </span>
             </div>
           ))

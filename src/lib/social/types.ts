@@ -1,4 +1,4 @@
-export type PlatformId = "instagram" | "tiktok" | "twitter" | "facebook";
+export type PlatformId = "instagram" | "tiktok" | "twitter" | "youtube";
 
 export type SearchInputType =
   | "handle"
@@ -118,29 +118,34 @@ export interface TwitterVerifiedProfile {
   pinned_tweet?: TwitterPinnedTweet | null;
 }
 
-export interface FacebookDetailItem {
-  icon?: string;
-  label?: string;
-  value: string;
+export interface YouTubeVideoItem {
+  id: string;
+  title?: string;
+  thumbnail_url: string;
+  views_count?: number;
 }
 
-export interface FacebookVerifiedProfile {
-  platform: "facebook";
-  username: string;
-  full_name: string;
+export interface YouTubeVerifiedProfile {
+  platform: "youtube";
+  channel_id: string;
+  username: string; // @handle
+  full_name: string; // Channel name
   avatar_url: string;
-  cover_url?: string;
-  followers_count: number;
-  following_count: number;
+  cover_url?: string; // banner_img
+  followers_count: number; // subscribers
+  video_count?: number;
+  total_views?: number;
+  bio?: string;
+  link?: string;
   is_verified?: boolean;
-  details?: FacebookDetailItem[];
+  videos?: YouTubeVideoItem[];
 }
 
 export type VerifiedSocialProfile =
   | InstagramVerifiedProfile
   | TikTokVerifiedProfile
   | TwitterVerifiedProfile
-  | FacebookVerifiedProfile;
+  | YouTubeVerifiedProfile;
 
 export interface EmailValidationResult {
   email: string;

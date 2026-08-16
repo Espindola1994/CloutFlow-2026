@@ -6,26 +6,27 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft,
+  ArrowRight,
   ArrowUpRight,
   Eye,
   Headphones,
   Heart,
   Lock,
   LockKeyhole,
-  MessageSquareText,
+  MessageCircleMore,
   ShieldCheck,
   Star,
-  UsersRound,
+  UserRoundPlus,
   Zap,
 } from "lucide-react";
 
 import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
 import tiktokIcon from "@/assets/home-icons-vector/tiktok.svg";
 import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
-import facebookIcon from "@/assets/home-icons-vector/facebook.svg";
+import youtubeIcon from "@/assets/home-icons-vector/youtube.svg";
 import ProfileLookupModal from "@/components/profile-lookup-modal";
 
-type PlatformId = "instagram" | "tiktok" | "twitter" | "facebook";
+type PlatformId = "instagram" | "tiktok" | "twitter" | "youtube";
 
 type PlatformTheme = {
   name: string;
@@ -41,38 +42,38 @@ const THEMES: Record<PlatformId, PlatformTheme> = {
   instagram: {
     name: "Instagram",
     shortName: "Instagram",
-    accent: "#ff3b79",
-    accent2: "#ff7a3d",
-    pale: "#fff1f6",
-    gradient: "linear-gradient(90deg,#ff7a3d 0%,#ff526d 40%,#d633a6 100%)",
+    accent: "#E1306C",
+    accent2: "#F56040",
+    pale: "#FFF0F5",
+    gradient: "linear-gradient(90deg, #833AB4 0%, #C13584 26%, #E1306C 50%, #F56040 74%, #FCAF45 100%)",
     icon: instagramIcon,
   },
   tiktok: {
     name: "TikTok",
     shortName: "TikTok",
-    accent: "#B5122B",
-    accent2: "#C91836",
+    accent: "#000000",
+    accent2: "#FE2C55",
     pale: "#FFF0F3",
-    gradient: "linear-gradient(90deg,#3e8f95 0%,#8f6473 24%,#b94b69 50%,#d63a60 74%,#b93459 100%)",
+    gradient: "linear-gradient(135deg, #25F4EE 0%, #FE2C55 100%)",
     icon: tiktokIcon,
   },
   twitter: {
     name: "X / Twitter",
     shortName: "X / Twitter",
-    accent: "#202938",
-    accent2: "#65738a",
-    pale: "#f4f6f8",
-    gradient: "linear-gradient(90deg,#111827 0%,#4b5563 100%)",
+    accent: "#0F1419",
+    accent2: "#536471",
+    pale: "#f7f9fa",
+    gradient: "linear-gradient(135deg, #0F1419 0%, #272C30 100%)",
     icon: twitterIcon,
   },
-  facebook: {
-    name: "Facebook",
-    shortName: "Facebook",
-    accent: "#1675ff",
-    accent2: "#0ca9ff",
-    pale: "#eef6ff",
-    gradient: "linear-gradient(90deg,#2387ff 0%,#1267ed 100%)",
-    icon: facebookIcon,
+  youtube: {
+    name: "YouTube",
+    shortName: "YouTube",
+    accent: "#ff0000",
+    accent2: "#cc0000",
+    pale: "#fff0f0",
+    gradient: "linear-gradient(90deg,#ff0000 0%,#cc0000 100%)",
+    icon: youtubeIcon,
   },
 };
 
@@ -80,48 +81,35 @@ const NAV = [
   { id: "instagram" as const, label: "Instagram", icon: instagramIcon },
   { id: "tiktok" as const, label: "TikTok", icon: tiktokIcon },
   { id: "twitter" as const, label: "X / Twitter", icon: twitterIcon },
-  { id: "facebook" as const, label: "Facebook", icon: facebookIcon },
+  { id: "youtube" as const, label: "YouTube", icon: youtubeIcon },
 ];
 
-
-function UserUpIcon() {
-  return <svg viewBox="0 0 48 48" aria-hidden="true"><circle cx="18" cy="14" r="6.5"/><path d="M7.5 35.5c0-7 4.7-11.5 10.5-11.5 4 0 7.2 2 9 5"/><path d="M29 35l9-9m0 0v7m0-7h-7"/></svg>;
-}
-function HeartUpIcon() {
-  return <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M23 35.5 10.5 23.8C4.8 18.5 8.1 9 16 9c3.3 0 6.2 1.8 7.8 4.5C25.4 10.8 28.3 9 31.6 9 39.3 9 42 18.2 37 23.2"/><path d="M29 36l9-9m0 0v7m0-7h-7"/></svg>;
-}
-function EyeChartUpIcon() {
-  return <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M5 21.5S11.5 12 22 12s17 9.5 17 9.5S32.5 31 22 31 5 21.5 5 21.5Z"/><circle cx="22" cy="21.5" r="4.5"/><path d="m28 38 5-5 3 2 7-8"/><path d="M37 27h6v6"/></svg>;
-}
-function MessageSquarePlusIcon() {
-  return <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M7 9h27a5 5 0 0 1 5 5v15a5 5 0 0 1-5 5H19l-9 6v-6H7a5 5 0 0 1-5-5V14a5 5 0 0 1 5-5Z"/><circle cx="13" cy="21.5" r="1"/><circle cx="20.5" cy="21.5" r="1"/><circle cx="28" cy="21.5" r="1"/><path d="M39 35v10M34 40h10"/></svg>;
-}
 
 const SERVICES = [
   {
     id: "followers",
     title: "Followers",
     description: "High quality real followers.",
-    Icon: UserUpIcon,
+    Icon: UserRoundPlus,
     bestSeller: true,
   },
   {
     id: "likes",
     title: "Likes",
     description: "Instant post likes from real users.",
-    Icon: HeartUpIcon,
+    Icon: Heart,
   },
   {
     id: "views",
     title: "Views",
     description: "Boost video views and reach.",
-    Icon: EyeChartUpIcon,
+    Icon: Eye,
   },
   {
     id: "comments",
     title: "Comments",
     description: "Custom relevant comments.",
-    Icon: MessageSquarePlusIcon,
+    Icon: MessageCircleMore,
   },
 ];
 
@@ -158,7 +146,7 @@ export default function PlatformPage() {
 
       <div className="cf-service-bg cf-service-bg-bottom" aria-hidden="true">
         <span className="cf-bg-social ig">◎</span>
-        <span className="cf-bg-social fb">f</span>
+        <span className="cf-bg-social yt">▶</span>
         <span className="cf-bg-social x">X</span>
         <span className="cf-bg-path" />
         <span className="cf-bg-chip lower">👥 +2.5K</span>
@@ -183,7 +171,7 @@ export default function PlatformPage() {
           <Link
             key={item.id}
             href={`/${item.id}`}
-            className={`cf-service-tab ${item.id === platform ? "active" : ""}`}
+            className={`cf-service-tab cf-tab-${item.id} ${item.id === platform ? "active" : ""}`}
           >
             <Image src={item.icon} alt="" width={34} height={34} priority />
             <span>{item.label}</span>
@@ -203,30 +191,41 @@ export default function PlatformPage() {
         </section>
 
         <section className="cf-service-grid" aria-label={`${theme.name} services`}>
-          {SERVICES.map(({ id, title, description, Icon, bestSeller }) => (
-            <button key={id} type="button" onClick={() => setLookupService(id)} className="cf-service-card-link cf-service-card-button">
-              <article className="cf-service-card">
-                {bestSeller && (
-                  <div className="cf-service-best">
-                    <Star fill="currentColor" />
-                    <span>BEST SELLER</span>
+          {SERVICES.map(({ id, title, description, Icon, bestSeller }) => {
+            const serviceCtaLabel =
+              platform === "youtube" && id === "followers"
+                ? "Get Subscribers"
+                : `Get ${title}`;
+
+            return (
+              <button key={id} type="button" onClick={() => setLookupService(id)} className="cf-service-card-link cf-service-card-button">
+                <article className="cf-service-card">
+                  {bestSeller && (
+                    <div className="cf-service-best">
+                      <Star fill="currentColor" />
+                      <span>BEST SELLER</span>
+                    </div>
+                  )}
+
+                  <div className="cf-service-icon">
+                    <Icon />
                   </div>
-                )}
 
-                <div className="cf-service-icon">
-                  <Icon />
-                </div>
+                  <h2>{title}</h2>
+                  <p>{description}</p>
 
-                <h2>{title}</h2>
-                <p>{description}</p>
-
-                <div className="cf-service-cta">
-                  <span>Start Growing</span>
-                  <ArrowUpRight />
-                </div>
-              </article>
-            </button>
-          ))}
+                  <div className={`cf-service-cta cf-service-cta-${platform}`}>
+                    <span className="cf-service-cta-text">{serviceCtaLabel}</span>
+                    <span className="cf-service-cta-circle-wrap">
+                      <span className="cf-service-cta-circle">
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </span>
+                  </div>
+                </article>
+              </button>
+            );
+          })}
         </section>
 
         <section className="cf-service-benefits" aria-label="CloutFlow benefits">
@@ -346,8 +345,8 @@ export default function PlatformPage() {
           grid-template-columns:repeat(4,1fr);
           align-items:center;
           border:1px solid #e3e8ef;
-          border-radius:999px;
-          background:rgba(255,255,255,.94);
+          border-radius:13px;
+          background:#fffffff0;
           box-shadow:0 8px 25px rgba(36,51,79,.10);
           position:relative;
           z-index:4;
@@ -363,7 +362,7 @@ export default function PlatformPage() {
           color:#35415a;
           font-size:14px;
           font-weight:700;
-          border-radius:999px;
+          border-radius:13px;
           transition:.2s ease;
         }
         .cf-service-tab img{width:27px!important;height:27px!important;object-fit:contain}
@@ -371,6 +370,99 @@ export default function PlatformPage() {
           color:var(--accent);
           background:var(--pale);
           box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 36%,transparent);
+        }
+
+        /* TikTok Active Platform Tab */
+        .cf-service-tab.cf-tab-tiktok.active{
+          color:#000000!important;
+          border:1.5px solid transparent!important;
+          background:
+            linear-gradient(#fff,#fff) padding-box,
+            linear-gradient(
+              135deg,
+              rgba(37, 244, 238, 0.72) 0%,
+              rgba(254, 44, 85, 0.72) 100%
+            ) border-box!important;
+          box-shadow:-2px 3px 10px rgba(37,244,238,0.07), 2px 3px 10px rgba(254,44,85,0.07)!important;
+        }
+
+        .cf-service-tab.cf-tab-tiktok:hover:not(.active){
+          color:#000000;
+          background:rgba(255,240,243,.6);
+          box-shadow:-1px 2px 8px rgba(37,244,238,0.05), 1px 2px 8px rgba(254,44,85,0.05);
+        }
+
+        /* YouTube Active Platform Tab: Red accent border, soft background and clean depth */
+        .cf-service-tab.cf-tab-youtube{
+          transition:background-color .18s ease, border-color .18s ease, box-shadow .18s ease, color .18s ease!important;
+        }
+
+        .cf-service-tab.cf-tab-youtube.active{
+          color:#FF0000!important;
+          border:1.5px solid rgba(255, 0, 0, 0.58)!important;
+          background:rgba(255, 0, 0, 0.035)!important;
+          box-shadow:0 3px 10px rgba(255, 0, 0, 0.045)!important;
+        }
+
+        .cf-service-tab.cf-tab-youtube.active:hover{
+          background:rgba(255, 0, 0, 0.05)!important;
+          border-color:rgba(255, 0, 0, 0.72)!important;
+          box-shadow:0 4px 12px rgba(255, 0, 0, 0.065)!important;
+        }
+
+        .cf-service-tab.cf-tab-youtube:hover:not(.active){
+          color:#FF0000!important;
+          background:rgba(255, 0, 0, 0.018)!important;
+          border-color:rgba(255, 0, 0, 0.24)!important;
+          box-shadow:0 2px 6px rgba(255, 0, 0, 0.03)!important;
+        }
+
+        /* X / Twitter Active Platform Tab: Monochrome premium border, soft background and subtle depth */
+        .cf-service-tab.cf-tab-twitter{
+          transition:background-color .18s ease, border-color .18s ease, box-shadow .18s ease, color .18s ease!important;
+        }
+
+        .cf-service-tab.cf-tab-twitter.active{
+          color:#0F1419!important;
+          border:1.5px solid rgba(15, 20, 25, 0.70)!important;
+          background:rgba(15, 20, 25, 0.035)!important;
+          box-shadow:0 3px 10px rgba(15, 20, 25, 0.055)!important;
+        }
+
+        .cf-service-tab.cf-tab-twitter.active:hover{
+          background:rgba(15, 20, 25, 0.055)!important;
+          border-color:rgba(15, 20, 25, 0.82)!important;
+          box-shadow:0 4px 12px rgba(15, 20, 25, 0.075)!important;
+        }
+
+        .cf-service-tab.cf-tab-twitter:hover:not(.active){
+          color:#0F1419!important;
+          background:rgba(15, 20, 25, 0.025)!important;
+          border-color:rgba(15, 20, 25, 0.30)!important;
+          box-shadow:0 2px 6px rgba(15, 20, 25, 0.03)!important;
+        }
+
+        /* Instagram Active Platform Tab: High fidelity gradient border & soft background */
+        .cf-service-tab.cf-tab-instagram.active{
+          color:#E1306C!important;
+          border:1.5px solid transparent!important;
+          background:
+            linear-gradient(#fff,#fff) padding-box,
+            linear-gradient(
+              135deg,
+              #833AB4 0%,
+              #C13584 28%,
+              #E1306C 52%,
+              #F56040 76%,
+              #FCAF45 100%
+            ) border-box!important;
+          box-shadow:0 4px 14px rgba(225,48,108,.10)!important;
+        }
+
+        .cf-service-tab.cf-tab-instagram:hover:not(.active){
+          color:#E1306C;
+          background:rgba(255,240,245,.6);
+          box-shadow:0 2px 8px rgba(225,48,108,.06);
         }
 
         .cf-service-shell{
@@ -447,6 +539,70 @@ export default function PlatformPage() {
             0 18px 34px color-mix(in srgb,var(--accent) 12%,transparent),
             inset 0 1px 0 rgba(255,255,255,.9);
         }
+
+        /* Instagram Card: Reusing the exact Home Instagram card border, background and shadow system */
+        .cf-platform-instagram .cf-service-card{
+          border:1.5px solid transparent!important;
+          background:
+            linear-gradient(#fff,#fff) padding-box,
+            linear-gradient(
+              135deg,
+              #833AB4 0%,
+              #C13584 28%,
+              #E1306C 52%,
+              #F56040 76%,
+              #FCAF45 100%
+            ) border-box!important;
+          box-shadow:0 8px 20px rgba(225,48,108,.08)!important;
+        }
+        .cf-platform-instagram .cf-service-card:hover{
+          transform:translateY(-3px);
+          box-shadow:0 12px 28px rgba(225,48,108,.14)!important;
+        }
+
+        /* TikTok Card: Elegant dual-accent border & subtle black shadow */
+        .cf-platform-tiktok .cf-service-card{
+          border:1.5px solid transparent!important;
+          background:
+            linear-gradient(#fff,#fff) padding-box,
+            linear-gradient(
+              135deg,
+              rgba(37, 244, 238, 0.72) 0%,
+              rgba(254, 44, 85, 0.72) 100%
+            ) border-box!important;
+          box-shadow:-2px 3px 10px rgba(37,244,238,0.07), 2px 3px 10px rgba(254,44,85,0.07)!important;
+        }
+        .cf-platform-tiktok .cf-service-card:hover{
+          transform:translateY(-3px);
+          box-shadow:-3px 5px 14px rgba(37,244,238,0.10), 3px 5px 14px rgba(254,44,85,0.10)!important;
+        }
+
+        /* X / Twitter Card: Monochrome premium graphite border & subtle shadow */
+        .cf-platform-twitter .cf-service-card{
+          border:1.5px solid rgba(15, 20, 25, 0.55)!important;
+          background:#ffffff!important;
+          box-shadow:0 4px 12px rgba(15, 20, 25, 0.06)!important;
+          transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease!important;
+        }
+        .cf-platform-twitter .cf-service-card:hover{
+          border-color:rgba(15, 20, 25, 0.82)!important;
+          transform:translateY(-3px);
+          box-shadow:0 6px 16px rgba(15, 20, 25, 0.10)!important;
+        }
+
+        /* YouTube Card: Clean red accent border & soft depth */
+        .cf-platform-youtube .cf-service-card{
+          border:1.5px solid rgba(255, 0, 0, 0.52)!important;
+          background:#ffffff!important;
+          box-shadow:0 4px 12px rgba(255, 0, 0, 0.045)!important;
+          transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease!important;
+        }
+        .cf-platform-youtube .cf-service-card:hover{
+          border-color:rgba(255, 0, 0, 0.76)!important;
+          transform:translateY(-3px);
+          box-shadow:0 6px 16px rgba(255, 0, 0, 0.055)!important;
+        }
+
         .cf-service-best{
           position:absolute;
           left:42px;
@@ -463,6 +619,32 @@ export default function PlatformPage() {
           font-size:12px;
           font-weight:900;
           letter-spacing:.2px;
+        }
+        .cf-platform-instagram .cf-service-best{
+          background:linear-gradient(
+            90deg,
+            #833AB4 0%,
+            #C13584 26%,
+            #E1306C 50%,
+            #F56040 74%,
+            #FCAF45 100%
+          )!important;
+          box-shadow:0 5px 12px rgba(225,48,108,.13)!important;
+        }
+        .cf-platform-tiktok .cf-service-best{
+          background:#000000!important;
+          color:#ffffff!important;
+          box-shadow:-2px 3px 8px rgba(37,244,238,0.12), 2px 3px 8px rgba(254,44,85,0.12)!important;
+        }
+        .cf-platform-twitter .cf-service-best{
+          background:#0F1419!important;
+          color:#ffffff!important;
+          box-shadow:0 4px 12px rgba(15,20,25,0.14)!important;
+        }
+        .cf-platform-youtube .cf-service-best{
+          background:#FF0000!important;
+          color:#ffffff!important;
+          box-shadow:0 4px 12px rgba(255,0,0,0.14)!important;
         }
         .cf-service-best svg{width:14px;height:14px}
         .cf-service-icon{
@@ -503,21 +685,122 @@ export default function PlatformPage() {
           line-height:1.55;
         }
         .cf-service-cta{
-          width:100%;
-          min-height:48px;
-          margin-top:auto;
-          border:1.5px solid var(--accent);
-          border-radius:999px;
-          display:flex;
-          align-items:center;
-          justify-content:space-between;
-          padding:0 19px 0 24px;
-          color:var(--accent);
-          background:#fff;
-          font-size:13px;
-          font-weight:900;
+          width: 100%;
+          min-height: 44px;
+          margin-top: auto;
+          border: 0;
+          border-radius: 10px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+          padding: 0 12px;
+          color: #ffffff;
+          font-size: 13.5px;
+          font-weight: 700;
+          cursor: pointer;
+          box-sizing: border-box;
+          text-decoration: none;
+          white-space: nowrap;
+          flex-wrap: nowrap;
+          transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease, background 200ms ease;
         }
-        .cf-service-cta svg{width:18px;height:18px}
+
+        .cf-service-cta-text{
+          color: #ffffff;
+          font-size: 11.5px;
+          line-height: 1;
+          font-weight: 700;
+          letter-spacing: -0.2px;
+          white-space: nowrap;
+          word-break: keep-all;
+          overflow-wrap: normal;
+          flex: 0 1 auto;
+          min-width: 0;
+        }
+
+        .cf-service-cta-circle-wrap{
+          flex: 0 0 auto;
+        }
+
+        .cf-service-cta-circle{
+          width: 24px;
+          height: 24px;
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 200ms ease;
+        }
+
+        .cf-service-cta-circle svg{
+          width: 14px;
+          height: 14px;
+          color: #ffffff;
+          transition: transform 200ms ease;
+        }
+
+        /* Platform specific styles */
+        .cf-service-cta-instagram{
+          background: var(--instagram-gradient, linear-gradient(90deg, #833AB4 0%, #C13584 26%, #E1306C 50%, #F56040 74%, #FCAF45 100%));
+          box-shadow: var(--instagram-shadow, 0 4px 10px rgba(225, 48, 108, 0.10));
+        }
+        .cf-service-cta-instagram .cf-service-cta-circle{
+          background: rgba(255, 255, 255, 0.16);
+        }
+        .cf-service-card-button:hover .cf-service-cta-instagram{
+          background: var(--instagram-gradient-hover, linear-gradient(90deg, #7734A4 0%, #B83279 26%, #D82D66 50%, #EA593C 74%, #F2A63F 100%));
+          transform: translateY(-1px);
+          filter: none;
+          box-shadow: var(--instagram-shadow-hover, 0 5px 12px rgba(225, 48, 108, 0.14));
+        }
+
+        .cf-service-cta-tiktok{
+          background: #000000;
+          box-shadow: -2px 3px 8px rgba(37, 244, 238, 0.06), 2px 3px 8px rgba(254, 44, 85, 0.06);
+        }
+        .cf-service-cta-tiktok .cf-service-cta-circle{
+          background: rgba(255, 255, 255, 0.12);
+        }
+        .cf-service-card-button:hover .cf-service-cta-tiktok{
+          background: #111111;
+          transform: translateY(-1px);
+          box-shadow: -2px 4px 10px rgba(37, 244, 238, 0.09), 2px 4px 10px rgba(254, 44, 85, 0.09);
+        }
+
+        .cf-service-cta-twitter{
+          background: #0F1419;
+          box-shadow: 0 4px 10px rgba(15, 20, 25, 0.10);
+        }
+        .cf-service-cta-twitter .cf-service-cta-circle{
+          background: rgba(255, 255, 255, 0.12);
+        }
+        .cf-service-card-button:hover .cf-service-cta-twitter{
+          background: #272C30;
+          transform: translateY(-1px);
+          box-shadow: 0 5px 12px rgba(15, 20, 25, 0.14);
+        }
+
+        .cf-service-cta-youtube{
+          background: #FF0000;
+          box-shadow: 0 4px 10px rgba(255, 0, 0, 0.10);
+        }
+        .cf-service-cta-youtube .cf-service-cta-circle{
+          background: rgba(255, 255, 255, 0.14);
+        }
+        .cf-service-card-button:hover .cf-service-cta-youtube{
+          background: #E60000;
+          transform: translateY(-1px);
+          filter: brightness(1.02);
+          box-shadow: 0 5px 12px rgba(255, 0, 0, 0.14);
+        }
+
+        .cf-service-card-button:hover .cf-service-cta .cf-service-cta-circle-wrap svg{
+          transform: translateX(2px);
+        }
+        .cf-service-card-button:active .cf-service-cta{
+          transform: scale(0.985);
+        }
 
         .cf-service-benefits{
           width:min(100%,1000px);
@@ -655,11 +938,11 @@ export default function PlatformPage() {
         .cf-service-bg-bottom{left:-4px;bottom:25px;width:250px;height:340px}
         .cf-bg-social{position:absolute;font-weight:900;color:#6865ff}
         .cf-bg-social.ig{left:20px;top:36px;font-size:38px;color:#ff4d9b}
-        .cf-bg-social.fb{
+        .cf-bg-social.yt{
           left:38px;top:148px;width:40px;height:40px;
           display:grid;place-items:center;
-          border:2px solid #2d7aff;border-radius:50%;
-          font-size:33px;color:#2d7aff;
+          border:2px solid #ff0000;border-radius:50%;
+          font-size:24px;color:#ff0000;padding-left:2px;
         }
         .cf-bg-social.x{left:112px;top:190px;font-size:31px;color:#fd55ae}
         .cf-bg-path{
@@ -695,11 +978,6 @@ export default function PlatformPage() {
             font-size:10px;
           }
           .cf-service-best svg{width:12px;height:12px}
-          .cf-service-icon{
-            width:61px;
-            height:61px;
-          }
-          .cf-service-icon svg{width:29px;height:29px}
           .cf-service-card h2{
             margin-top:20px;
             font-size:19px;
@@ -711,12 +989,6 @@ export default function PlatformPage() {
             font-size:12px;
             line-height:1.5;
           }
-          .cf-service-cta{
-            min-height:41px;
-            padding:0 16px 0 20px;
-            font-size:11px;
-          }
-          .cf-service-cta svg{width:15px;height:15px}
 
           .cf-service-benefits{
             width:85%;
@@ -768,13 +1040,14 @@ export default function PlatformPage() {
             min-height:52px;
             width:100%;
             padding:5px;
-            border-radius:999px;
+            border-radius:13px;
             overflow:hidden;
           }
           .cf-service-tab{
             min-height:40px;
             gap:5px;
             font-size:10px;
+            border-radius:13px;
           }
           .cf-service-tab img{width:22px!important;height:22px!important}
           .cf-service-tab span{white-space:nowrap}
@@ -817,10 +1090,6 @@ export default function PlatformPage() {
             font-size:9px;
           }
           .cf-service-best svg{width:12px;height:12px}
-          .cf-service-icon{
-            width:60px;height:60px;
-          }
-          .cf-service-icon svg{width:28px;height:28px}
           .cf-service-card h2{
             margin-top:22px;
             font-size:18px;
@@ -1010,14 +1279,6 @@ export default function PlatformPage() {
             min-height:31px !important;
             padding:0 9px !important;
             font-size:8.5px !important;
-          }
-          .cf-service-icon{
-            width:57px !important;
-            height:57px !important;
-          }
-          .cf-service-icon svg{
-            width:27px !important;
-            height:27px !important;
           }
           .cf-service-card h2{
             margin-top:20px !important;
@@ -1342,138 +1603,85 @@ export default function PlatformPage() {
 
 
 
-        /* V120 — Professional CTA microinteraction: Grow Your Service */
-        .cf-service-cta{
-          position:relative!important;
-          overflow:hidden!important;
-          transition:transform 180ms ease,box-shadow 180ms ease,filter 180ms ease!important;
-        }
-        .cf-service-cta svg{
-          transition:transform 180ms ease!important;
-        }
-        .cf-service-cta::after{
-          content:"";
-          position:absolute;
-          top:-40%;
-          left:-35%;
-          width:22%;
-          height:180%;
-          background:rgba(255,255,255,.24);
-          transform:rotate(18deg);
-          opacity:0;
-          pointer-events:none;
-          transition:left 420ms ease,opacity 180ms ease;
-        }
-        @media (hover:hover) and (pointer:fine){
-          .cf-service-cta:hover{
-            transform:translateY(-2px)!important;
-            box-shadow:0 8px 18px rgba(15,23,42,.14)!important;
-            filter:brightness(1.03);
-          }
-          .cf-service-cta:hover svg{
-            transform:translate(3px,-1px)!important;
-          }
-          .cf-service-cta:hover::after{
-            left:115%;
-            opacity:1;
-          }
-        }
-        .cf-service-cta:active{
-          transform:scale(.98)!important;
-          transition-duration:80ms!important;
-        }
-        @media(max-width:760px){
-          .cf-service-cta{
-            transition:transform 90ms ease!important;
-          }
-          .cf-service-cta:active{
-            transform:scale(.975)!important;
-          }
-        }
-        @media(prefers-reduced-motion:reduce){
-          .cf-service-cta,
-          .cf-service-cta svg,
-          .cf-service-cta::after{
-            transition:none!important;
-          }
-        }
-
-
-
-
-        /* V142 — definitive flat Growth Pro icons, no gradients */
+        /* Unified Service Icon: 56px soft squircle, 15px radius, 1px subtle themed border */
         .cf-service-icon{
-          width:64px!important;
-          height:64px!important;
-          display:grid!important;
-          place-items:center!important;
-          clip-path:none!important;
-          border-radius:16px!important;
-          background:var(--pale)!important;
+          width:56px!important;
+          height:56px!important;
+          display:flex!important;
+          align-items:center!important;
+          justify-content:center!important;
+          border-radius:15px!important;
+          background:rgba(15,23,42,.025)!important;
           color:var(--accent)!important;
-          border:1px solid color-mix(in srgb,var(--accent) 12%,transparent)!important;
-          box-shadow:0 5px 14px color-mix(in srgb,var(--accent) 7%,transparent)!important;
-          filter:none!important;
+          border:1px solid rgba(15,23,42,.08)!important;
+          box-shadow:0 3px 8px rgba(15,23,42,.035)!important;
+          transition:transform 180ms ease, border-color 180ms ease, background-color 180ms ease!important;
         }
 
         .cf-service-icon svg{
-          width:35.7px!important;
-          height:35.7px!important;
-          fill:none!important;
-          stroke:currentColor!important;
-          stroke-width:2.25!important;
+          width:26px!important;
+          height:26px!important;
+          stroke-width:2!important;
           stroke-linecap:round!important;
           stroke-linejoin:round!important;
-          overflow:visible!important;
-          filter:none!important;
         }
 
-        /* Instagram */
+        /* Instagram: Ultra-soft background + themed accent border */
         .cf-platform-instagram .cf-service-icon{
           color:#E1306C!important;
-          background:#FFF0F5!important;
-          border-color:rgba(225,48,108,.13)!important;
+          background:rgba(225,48,108,.035)!important;
+          border:1px solid rgba(225,48,108,.16)!important;
+          box-shadow:0 3px 8px rgba(15,23,42,.035)!important;
+        }
+        .cf-service-card-button:hover .cf-platform-instagram .cf-service-icon,
+        .cf-platform-instagram .cf-service-card:hover .cf-service-icon{
+          border-color:rgba(225,48,108,.28)!important;
+          background:rgba(225,48,108,.055)!important;
         }
 
-        /* TikTok — darker red requested, not green/cyan */
-        .cf-platform-tiktok{
-          --accent:#B5122B!important;
-          --accent-2:#C91836!important;
-          --pale:#FFF0F3!important;
-        }
+        /* TikTok: Dark icon + micro dual-accent effect */
         .cf-platform-tiktok .cf-service-icon{
-          color:#B5122B!important;
-          background:#FFF0F3!important;
-          border-color:rgba(181,18,43,.13)!important;
-          box-shadow:0 5px 14px rgba(181,18,43,.06)!important;
-          filter:none!important;
+          color:#0F0F0F!important;
+          background:rgba(0,0,0,.025)!important;
+          border:1px solid rgba(0,0,0,.08)!important;
+          box-shadow:-1px 1px 3px rgba(37,244,238,.12), 1px 1px 3px rgba(254,44,85,.12)!important;
+        }
+        .cf-service-card-button:hover .cf-platform-tiktok .cf-service-icon,
+        .cf-platform-tiktok .cf-service-card:hover .cf-service-icon{
+          border-color:rgba(0,0,0,.15)!important;
+          background:rgba(0,0,0,.045)!important;
+          box-shadow:-1px 2px 5px rgba(37,244,238,.18), 1px 2px 5px rgba(254,44,85,.18)!important;
         }
 
-        /* X / Twitter */
+        /* X / Twitter: Monochrome premium graphite */
         .cf-platform-twitter .cf-service-icon{
-          color:#111111!important;
-          background:#F5F6F7!important;
-          border-color:rgba(17,17,17,.10)!important;
+          color:#0F1419!important;
+          background:rgba(15,20,25,.025)!important;
+          border:1px solid rgba(15,20,25,.16)!important;
+          box-shadow:0 2px 5px rgba(15,20,25,.05)!important;
+        }
+        .cf-service-card-button:hover .cf-platform-twitter .cf-service-icon,
+        .cf-platform-twitter .cf-service-card:hover .cf-service-icon{
+          border-color:rgba(15,20,25,.28)!important;
+          background:rgba(15,20,25,.045)!important;
         }
 
-        /* Facebook */
-        .cf-platform-facebook .cf-service-icon{
-          color:#1877F2!important;
-          background:#EEF5FF!important;
-          border-color:rgba(24,119,242,.12)!important;
+        /* YouTube: Clean pure red icon + subtle border */
+        .cf-platform-youtube .cf-service-icon{
+          color:#FF0000!important;
+          background:rgba(255,0,0,.025)!important;
+          border:1px solid rgba(255,0,0,.16)!important;
+          box-shadow:0 2px 5px rgba(255,0,0,.04)!important;
+        }
+        .cf-service-card-button:hover .cf-platform-youtube .cf-service-icon,
+        .cf-platform-youtube .cf-service-card:hover .cf-service-icon{
+          border-color:rgba(255,0,0,.28)!important;
+          background:rgba(255,0,0,.045)!important;
         }
 
-
-
-
-        /* V159 — all internal service symbols stay static */
-        .cf-service-icon svg,
-        .cf-service-card:hover .cf-service-icon svg,
-        .cf-service-card:focus .cf-service-icon svg,
-        .cf-service-card:active .cf-service-icon svg{
-          animation:none!important;
-          transition:none!important;
-          transform:none!important;
+        /* Universal card hover subtle lift for icon */
+        .cf-service-card:hover .cf-service-icon{
+          transform:translateY(-1px)!important;
         }
 
 `}</style>

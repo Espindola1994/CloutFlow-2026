@@ -13,9 +13,11 @@ import {
   resolveTikTokContentToProfile,
   resolveTwitterProfileByUsername,
   resolveTwitterContentToProfile,
-  resolveFacebookProfileByUsername,
-  resolveFacebookContentToProfile,
 } from "./brightdata/resolvers";
+import {
+  resolveYouTubeChannel,
+  resolveYouTubeVideo,
+} from "./brightdata/youtube";
 
 export async function resolveSearchInput(
   rawInput: string,
@@ -214,16 +216,16 @@ export async function resolveSearchInput(
     }
   }
 
-  // 5. Facebook Resolution via Bright Data (com suporte síncrono e pending job assíncrono)
-  if (platform === "facebook") {
+  // 5. YouTube Resolution via Bright Data (suporte síncrono e assíncrono para Canais e Vídeos/Shorts)
+  if (platform === "youtube") {
     if (detected.inputType === "content_url" && (detected.canonicalUrl || detected.contentId)) {
-      const res = await resolveFacebookContentToProfile(detected.canonicalUrl || detected.contentId || "");
-      
+      const res = await resolveYouTubeVideo(detected.canonicalUrl || detected.contentId || "");
+
       if (res.pending && res.requestId) {
         return {
           success: true,
           status: "pending",
-          platform: "facebook",
+          platform: "youtube",
           requestId: res.requestId,
         };
       }
@@ -232,26 +234,26 @@ export async function resolveSearchInput(
         return {
           success: false,
           code: res.code || "CONTENT_NOT_FOUND",
-          message: res.message || "Esse conteúdo do Facebook não foi encontrado ou não está mais disponível.",
+          message: res.message || "Esse vídeo do YouTube não foi encontrado ou não está mais disponível.",
         };
       }
       return {
         success: true,
         status: "complete",
         inputType: "content_url",
-        platform: "facebook",
+        platform: "youtube",
         resolvedType: "profile",
         data: res.data,
       };
     } else {
-      const username = detected.username || rawInput.trim().replace(/^@/, "");
-      const res = await resolveFacebookProfileByUsername(username);
+      const targetIdentifier = detected.canonicalUrl || detected.username || rawInput.trim();
+      const res = await resolveYouTubeChannel(targetIdentifier);
 
       if (res.pending && res.requestId) {
         return {
           success: true,
           status: "pending",
-          platform: "facebook",
+          platform: "youtube",
           requestId: res.requestId,
         };
       }
@@ -260,14 +262,14 @@ export async function resolveSearchInput(
         return {
           success: false,
           code: res.code || "PROFILE_NOT_FOUND",
-          message: res.message || "Não encontramos esse perfil no Facebook. Confira o @ ou link e tente novamente.",
+          message: res.message || "Não encontramos esse canal no YouTube. Confira o @ ou link e tente novamente.",
         };
       }
       return {
         success: true,
         status: "complete",
         inputType: detected.inputType as "handle" | "profile_url",
-        platform: "facebook",
+        platform: "youtube",
         resolvedType: "profile",
         data: res.data,
       };

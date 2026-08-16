@@ -2,13 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { socialCache } from "@/lib/social/cache";
 import { checkBrightDataSnapshot } from "@/lib/social/brightdata/scraper";
 import {
-  normalizeFacebookProfileData,
-  resolveFacebookProfileByUsername,
   normalizeTikTokProfileData,
   resolveTikTokProfileByUsername,
   normalizeTwitterProfileData,
   resolveTwitterProfileByUsername,
 } from "@/lib/social/brightdata/resolvers";
+import {
+  normalizeYouTubeChannelData,
+  resolveYouTubeChannel,
+} from "@/lib/social/brightdata/youtube";
 import { verifySignedJobToken } from "@/lib/social/tokens";
 
 export async function GET(req: NextRequest) {
@@ -67,17 +69,17 @@ export async function GET(req: NextRequest) {
 
     if (snapshotRes.status === "ready" && snapshotRes.data) {
       // -------------------------------------------------------------
-      // CASO FACEBOOK
+      // CASO YOUTUBE
       // -------------------------------------------------------------
-      if (job.platform === "facebook") {
+      if (job.platform === "youtube") {
         if (job.operation === "profile") {
-          const normalized = normalizeFacebookProfileData(snapshotRes.data, job.originalInput || "facebook_user");
+          const normalized = normalizeYouTubeChannelData(snapshotRes.data, job.originalInput || "youtube_channel");
           if (normalized) {
-            socialCache.set(`fb:user:${normalized.username.toLowerCase()}`, normalized, 180);
+            socialCache.set(`yt:channel:${normalized.username.toLowerCase()}`, normalized, 180);
             return NextResponse.json({
               success: true,
               status: "complete",
-              platform: "facebook",
+              platform: "youtube",
               resolvedType: "profile",
               data: normalized,
             });
@@ -87,16 +89,16 @@ export async function GET(req: NextRequest) {
         if (job.operation === "content") {
           const rawData = snapshotRes.data;
           const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
-          const authorIdentifier = item?.author?.username || item?.author?.id || item?.page?.username || item?.page?.id || item?.user_id || item?.owner;
+          const channelTarget = item?.channel_url || item?.channel_url_decoded || item?.handle_name || item?.youtuber || item?.uploader_url;
 
-          if (authorIdentifier) {
-            const profileRes = await resolveFacebookProfileByUsername(authorIdentifier);
+          if (channelTarget) {
+            const profileRes = await resolveYouTubeChannel(channelTarget);
 
             if (profileRes.pending && profileRes.requestId) {
               return NextResponse.json({
                 success: true,
                 status: "pending",
-                platform: "facebook",
+                platform: "youtube",
                 requestId: profileRes.requestId,
               });
             }
@@ -105,7 +107,7 @@ export async function GET(req: NextRequest) {
               return NextResponse.json({
                 success: true,
                 status: "complete",
-                platform: "facebook",
+                platform: "youtube",
                 resolvedType: "profile",
                 data: profileRes.data,
               });
@@ -117,7 +119,7 @@ export async function GET(req: NextRequest) {
           success: false,
           status: "failed",
           code: "PROFILE_NOT_FOUND",
-          message: "Não encontramos esse perfil no Facebook. Confira o @ ou link e tente novamente.",
+          message: "Não encontramos esse canal no YouTube. Confira o @ ou link e tente novamente.",
         });
       }
 
