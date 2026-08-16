@@ -98,6 +98,16 @@ export async function resolveSearchInput(
   if (platform === "tiktok") {
     if (detected.inputType === "content_url" && (detected.canonicalUrl || detected.contentId)) {
       const res = await resolveTikTokContentToProfile(detected.canonicalUrl || detected.contentId || "");
+
+      if (res.pending && res.requestId) {
+        return {
+          success: true,
+          status: "pending",
+          platform: "tiktok",
+          requestId: res.requestId,
+        };
+      }
+
       if (!res.success || !res.data) {
         return {
           success: false,
@@ -116,6 +126,16 @@ export async function resolveSearchInput(
     } else {
       const username = detected.username || rawInput.trim().replace(/^@/, "");
       const res = await resolveTikTokProfileByUsername(username);
+
+      if (res.pending && res.requestId) {
+        return {
+          success: true,
+          status: "pending",
+          platform: "tiktok",
+          requestId: res.requestId,
+        };
+      }
+
       if (!res.success || !res.data) {
         return {
           success: false,
@@ -138,6 +158,16 @@ export async function resolveSearchInput(
   if (platform === "twitter") {
     if (detected.inputType === "content_url" && (detected.canonicalUrl || detected.contentId)) {
       const res = await resolveTwitterContentToProfile(detected.canonicalUrl || detected.contentId || "");
+
+      if (res.pending && res.requestId) {
+        return {
+          success: true,
+          status: "pending",
+          platform: "twitter",
+          requestId: res.requestId,
+        };
+      }
+
       if (!res.success || !res.data) {
         return {
           success: false,
@@ -156,6 +186,16 @@ export async function resolveSearchInput(
     } else {
       const username = detected.username || rawInput.trim().replace(/^@/, "");
       const res = await resolveTwitterProfileByUsername(username);
+
+      if (res.pending && res.requestId) {
+        return {
+          success: true,
+          status: "pending",
+          platform: "twitter",
+          requestId: res.requestId,
+        };
+      }
+
       if (!res.success || !res.data) {
         return {
           success: false,

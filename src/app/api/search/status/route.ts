@@ -1,7 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { socialCache } from "@/lib/social/cache";
 import { checkBrightDataSnapshot } from "@/lib/social/brightdata/scraper";
-import { normalizeFacebookProfileData, resolveFacebookProfileByUsername } from "@/lib/social/brightdata/resolvers";
+import {
+  normalizeFacebookProfileData,
+  resolveFacebookProfileByUsername,
+  normalizeTikTokProfileData,
+  resolveTikTokProfileByUsername,
+  normalizeTwitterProfileData,
+  resolveTwitterProfileByUsername,
+} from "@/lib/social/brightdata/resolvers";
 import { verifySignedJobToken } from "@/lib/social/tokens";
 
 export async function GET(req: NextRequest) {
@@ -16,7 +23,7 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // 1. Valida o token assinado HMAC-SHA256 (independente de memória / serverless instance)
+    // 1. Valida o token assinado HMAC-SHA256 (stateless / serverless-safe)
     const verification = verifySignedJobToken(requestId);
 
     if (!verification.valid) {
@@ -45,8 +52,10 @@ export async function GET(req: NextRequest) {
 
     const job = verification.payload;
 
-    // 2. Consulta o status do snapshot na Bright Data diretamente pelo snapshotId extraído no servidor
+    // 2. Consulta o status do snapshot na Bright Data
     const snapshotRes = await checkBrightDataSnapshot(job.snapshotId);
+
+    console.log(`[Status API] Request: ${job.platform}/${job.operation} | Snapshot: ${job.snapshotId} | Status: ${snapshotRes.status}`);
 
     if (snapshotRes.status === "pending") {
       return NextResponse.json({
@@ -57,58 +66,170 @@ export async function GET(req: NextRequest) {
     }
 
     if (snapshotRes.status === "ready" && snapshotRes.data) {
-      // Caso 1: Consulta de perfil do Facebook
-      if (job.operation === "profile") {
-        const normalized = normalizeFacebookProfileData(snapshotRes.data, job.originalInput || "facebook_user");
-        if (normalized) {
-          socialCache.set(`fb:user:${normalized.username.toLowerCase()}`, normalized, 180);
-
-          return NextResponse.json({
-            success: true,
-            status: "complete",
-            platform: "facebook",
-            resolvedType: "profile",
-            data: normalized,
-          });
-        }
-      }
-
-      // Caso 2: Consulta de conteúdo / post / reel do Facebook -> autor -> perfil
-      if (job.operation === "content") {
-        const rawData = snapshotRes.data;
-        const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
-        const authorIdentifier = item?.author?.username || item?.author?.id || item?.page?.username || item?.page?.id || item?.user_id || item?.owner;
-
-        if (authorIdentifier) {
-          const profileRes = await resolveFacebookProfileByUsername(authorIdentifier);
-
-          if (profileRes.pending && profileRes.requestId) {
-            return NextResponse.json({
-              success: true,
-              status: "pending",
-              platform: "facebook",
-              requestId: profileRes.requestId,
-            });
-          }
-
-          if (profileRes.success && profileRes.data) {
+      // -------------------------------------------------------------
+      // CASO FACEBOOK
+      // -------------------------------------------------------------
+      if (job.platform === "facebook") {
+        if (job.operation === "profile") {
+          const normalized = normalizeFacebookProfileData(snapshotRes.data, job.originalInput || "facebook_user");
+          if (normalized) {
+            socialCache.set(`fb:user:${normalized.username.toLowerCase()}`, normalized, 180);
             return NextResponse.json({
               success: true,
               status: "complete",
               platform: "facebook",
               resolvedType: "profile",
-              data: profileRes.data,
+              data: normalized,
             });
           }
         }
+
+        if (job.operation === "content") {
+          const rawData = snapshotRes.data;
+          const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
+          const authorIdentifier = item?.author?.username || item?.author?.id || item?.page?.username || item?.page?.id || item?.user_id || item?.owner;
+
+          if (authorIdentifier) {
+            const profileRes = await resolveFacebookProfileByUsername(authorIdentifier);
+
+            if (profileRes.pending && profileRes.requestId) {
+              return NextResponse.json({
+                success: true,
+                status: "pending",
+                platform: "facebook",
+                requestId: profileRes.requestId,
+              });
+            }
+
+            if (profileRes.success && profileRes.data) {
+              return NextResponse.json({
+                success: true,
+                status: "complete",
+                platform: "facebook",
+                resolvedType: "profile",
+                data: profileRes.data,
+              });
+            }
+          }
+        }
+
+        return NextResponse.json({
+          success: false,
+          status: "failed",
+          code: "PROFILE_NOT_FOUND",
+          message: "Não encontramos esse perfil no Facebook. Confira o @ ou link e tente novamente.",
+        });
       }
 
-      return NextResponse.json({
-        success: false,
-        status: "failed",
-        code: "PROFILE_NOT_FOUND",
-        message: "Não encontramos esse perfil no Facebook. Confira o @ ou link e tente novamente.",
-      });
+      // -------------------------------------------------------------
+      // CASO TIKTOK
+      // -------------------------------------------------------------
+      if (job.platform === "tiktok") {
+        if (job.operation === "profile") {
+          const normalized = normalizeTikTokProfileData(snapshotRes.data, job.originalInput || "tiktok_user");
+          if (normalized) {
+            socialCache.set(`tk:user:${normalized.username.toLowerCase()}`, normalized, 180);
+            return NextResponse.json({
+              success: true,
+              status: "complete",
+              platform: "tiktok",
+              resolvedType: "profile",
+              data: normalized,
+            });
+          }
+        }
+
+        if (job.operation === "content") {
+          const rawData = snapshotRes.data;
+          const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
+          const authorIdentifier = item?.author?.uniqueId || item?.author?.username || item?.author_username || item?.account_id || item?.username;
+
+          if (authorIdentifier) {
+            const profileRes = await resolveTikTokProfileByUsername(authorIdentifier);
+
+            if (profileRes.pending && profileRes.requestId) {
+              return NextResponse.json({
+                success: true,
+                status: "pending",
+                platform: "tiktok",
+                requestId: profileRes.requestId,
+              });
+            }
+
+            if (profileRes.success && profileRes.data) {
+              return NextResponse.json({
+                success: true,
+                status: "complete",
+                platform: "tiktok",
+                resolvedType: "profile",
+                data: profileRes.data,
+              });
+            }
+          }
+        }
+
+        return NextResponse.json({
+          success: false,
+          status: "failed",
+          code: "PROFILE_NOT_FOUND",
+          message: "Não encontramos esse perfil no TikTok. Confira o @ ou link e tente novamente.",
+        });
+      }
+
+      // -------------------------------------------------------------
+      // CASO TWITTER / X
+      // -------------------------------------------------------------
+      if (job.platform === "twitter") {
+        if (job.operation === "profile") {
+          const normalized = normalizeTwitterProfileData(snapshotRes.data, job.originalInput || "twitter_user");
+          if (normalized) {
+            socialCache.set(`tw:user:${normalized.username.toLowerCase()}`, normalized, 180);
+            return NextResponse.json({
+              success: true,
+              status: "complete",
+              platform: "twitter",
+              resolvedType: "profile",
+              data: normalized,
+            });
+          }
+        }
+
+        if (job.operation === "content") {
+          const rawData = snapshotRes.data;
+          const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
+          const authorIdentifier = item?.user?.screen_name || item?.author?.username || item?.author_username || item?.user_id || item?.screen_name;
+
+          if (authorIdentifier) {
+            const profileRes = await resolveTwitterProfileByUsername(authorIdentifier);
+
+            if (profileRes.pending && profileRes.requestId) {
+              return NextResponse.json({
+                success: true,
+                status: "pending",
+                platform: "twitter",
+                requestId: profileRes.requestId,
+              });
+            }
+
+            if (profileRes.success && profileRes.data) {
+              return NextResponse.json({
+                success: true,
+                status: "complete",
+                platform: "twitter",
+                resolvedType: "profile",
+                data: profileRes.data,
+              });
+            }
+          }
+        }
+
+        return NextResponse.json({
+          success: false,
+          status: "failed",
+          code: "PROFILE_NOT_FOUND",
+          message: "Não encontramos esse perfil no X/Twitter. Confira o @ ou link e tente novamente.",
+        });
+      }
     }
 
     if (snapshotRes.status === "failed") {

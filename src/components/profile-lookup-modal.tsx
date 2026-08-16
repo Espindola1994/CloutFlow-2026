@@ -447,11 +447,12 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
         return;
       }
 
-      // Caso 2: Processamento assíncrono (ex: Facebook) com Polling controlado
+      // Caso 2: Processamento assíncrono (ex: Facebook / TikTok / Twitter com snapshot) com Polling controlado
       if (res.ok && data.success && data.status === "pending" && data.requestId) {
         let currentRequestId = data.requestId;
         const startTime = Date.now();
-        const maxPollDuration = 60000; // 60 segundos limite total
+        // 120s para Facebook, 45s para TikTok e X/Twitter
+        const maxPollDuration = platform === "facebook" ? 120000 : 45000;
 
         while (pollingRef.active && Date.now() - startTime < maxPollDuration) {
           await new Promise((r) => setTimeout(r, 2500)); // 2.5s entre verificações
