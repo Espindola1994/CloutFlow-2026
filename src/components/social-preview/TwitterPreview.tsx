@@ -1,6 +1,8 @@
 import React from "react";
 import { ArrowLeft, Search, MoreHorizontal, Bell, MapPin, Link2, Calendar, Share, Mail } from "lucide-react";
 import { TwitterVerifiedProfile } from "@/lib/social/types";
+import { VerifiedBadge } from "./VerifiedBadge";
+import { RestrictedProfileNotice } from "./RestrictedProfileNotice";
 
 function formatCount(num: number): string {
   if (num === undefined || num === null) return "0";
@@ -88,10 +90,8 @@ export function TwitterPreview({ profile, onClose }: { profile: TwitterVerifiedP
             <h2 className="text-[21px] font-black text-neutral-900 leading-tight tracking-tight truncate">
               {profile.full_name || profile.username}
             </h2>
-            {profile.is_verified && (
-              <span className="w-[18px] h-[18px] rounded-full bg-[#1D9BF0] text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-                ✓
-              </span>
+            {Boolean(profile.is_verified || (profile as any).verified) && (
+              <VerifiedBadge platform="twitter" size={18} />
             )}
           </div>
           <span className="text-[14px] text-neutral-500 font-normal block truncate mt-0.5">
@@ -150,14 +150,23 @@ export function TwitterPreview({ profile, onClose }: { profile: TwitterVerifiedP
           </div>
         </div>
 
-        {/* Pinned Tweet (Apenas se existir real no dataset) */}
-        {profile.pinned_tweet && hasValue(profile.pinned_tweet.text) && (
-          <div className="mt-2.5 p-3 rounded-[12px] bg-neutral-50 border border-neutral-200/80 text-xs">
-            <div className="font-bold text-neutral-500 mb-1 text-[11px] flex items-center gap-1">
-              <span>📌</span> Pinned Tweet
-            </div>
-            <p className="text-neutral-800 text-[13px] leading-snug line-clamp-2">{profile.pinned_tweet.text}</p>
+        {/* Pinned Tweet ou Aviso Protected */}
+        {Boolean(profile.is_private || (profile as any).is_protected || (profile as any).protected) ? (
+          <div className="mt-3">
+            <RestrictedProfileNotice
+              title="This account is protected"
+              description="Make your account public to continue."
+            />
           </div>
+        ) : (
+          profile.pinned_tweet && hasValue(profile.pinned_tweet.text) && (
+            <div className="mt-2.5 p-3 rounded-[12px] bg-neutral-50 border border-neutral-200/80 text-xs">
+              <div className="font-bold text-neutral-500 mb-1 text-[11px] flex items-center gap-1">
+                <span>📌</span> Pinned Tweet
+              </div>
+              <p className="text-neutral-800 text-[13px] leading-snug line-clamp-2">{profile.pinned_tweet.text}</p>
+            </div>
+          )
         )}
       </div>
     </div>

@@ -219,21 +219,23 @@ function YouTubePreview() {
       <div className="cf82-yt-body">
         <div className="cf82-platform-logo-slot"><Image src={youtubeHomeIcon} alt="YouTube" width={84} height={84} priority /></div>
         <div className="cf82-yt-main">
-          <div className="cf82-name-row">Your Channel <span className="cf82-verified-badge" aria-label="Verified">
-            <svg viewBox="0 0 40 40" aria-hidden="true">
-              <path
-                className="cf82-verified-shape"
-                d="M20 1.8l4.15 3.02 5.1-.48 2.08 4.69 4.68 2.08-.47 5.1 3.01 4.15-3.01 4.15.47 5.1-4.68 2.08-2.08 4.69-5.1-.48L20 38.2l-4.15-3.02-5.1.48-2.08-4.69-4.68-2.08.47-5.1L1.45 20.36l3.01-4.15-.47-5.1 4.68-2.08 2.08-4.69 5.1.48L20 1.8Z"
-              />
-              <path className="check" d="M16.9 26.35 10.8 20.3l2.55-2.55 3.55 3.55 9.75-9.75 2.55 2.55-12.3 12.25Z"/>
-            </svg>
-          </span>
+          <div className="cf82-name-row">
+            <span className="truncate block" style={{ maxWidth: "150px" }}>Your Channel</span>
+            <span className="cf82-verified-badge shrink-0" aria-label="Verified">
+              <svg viewBox="0 0 40 40" aria-hidden="true">
+                <path
+                  className="cf82-verified-shape"
+                  d="M20 1.8l4.15 3.02 5.1-.48 2.08 4.69 4.68 2.08-.47 5.1 3.01 4.15-3.01 4.15.47 5.1-4.68 2.08-2.08 4.69-5.1-.48L20 38.2l-4.15-3.02-5.1.48-2.08-4.69-4.68-2.08.47-5.1L1.45 20.36l3.01-4.15-.47-5.1 4.68-2.08 2.08-4.69 5.1.48L20 1.8Z"
+                />
+                <path className="check" d="M16.9 26.35 10.8 20.3l2.55-2.55 3.55 3.55 9.75-9.75 2.55 2.55-12.3 12.25Z"/>
+              </svg>
+            </span>
           </div>
-          <div className="cf82-sub-row">@yourchannel <span>·</span> 100K subscribers</div>
+          <div className="cf82-sub-row truncate">@yourchannel <span>·</span> 100K subscribers</div>
         </div>
       </div>
 
-      <div className="cf82-stats-row">
+      <div className="cf82-stats-row grid grid-cols-3 w-full">
         <div><strong>100K</strong><small>Subscribers</small></div>
         <div><strong>2.4M</strong><small>Views</small></div>
         <div><strong>48</strong><small>Videos</small></div>
@@ -280,11 +282,11 @@ export default function PlatformServicePage() {
     return (
       <main className="cf82-profile-flow">
         <header className="cf82-header">
-          <button onClick={() => {
+          <button className="cf-back-link" onClick={() => {
             if (followerType) setFollowerType(null);
             else router.push(`/${platform}`);
           }}>
-            <ArrowLeft />
+            <ArrowLeft className="cf-back-link-icon" />
             {followerType ? "Back to Follower Types" : "Back to Services"}
           </button>
 
@@ -334,8 +336,8 @@ export default function PlatformServicePage() {
       </div>
 
       <header className="cf82-header cf82-header-followers">
-        <button onClick={() => router.push(`/${platform}`)}>
-          <ArrowLeft /> Back to Services
+        <button className="cf-back-link" onClick={() => router.push(`/${platform}`)}>
+          <ArrowLeft className="cf-back-link-icon" /> Back to Services
         </button>
         <span className="cf82-motto"><i>✦</i> Grow. Engage. Get Noticed.</span>
       </header>
@@ -424,7 +426,7 @@ const followersCss = `
   position:relative;
   overflow-x:hidden;
   padding:0 22px 34px;
-  font-family:Arial,Helvetica,sans-serif;
+  font-family:var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   isolation:isolate;
 }
 .cf82-page *{box-sizing:border-box}
@@ -877,6 +879,82 @@ const followersCss = `
 }
 
 
+/* YouTube specific preview styles */
+.cf82-preview-youtube .cf82-yt-wordmark {
+  font-size: 18px !important;
+}
+.cf82-preview-youtube .cf82-yt-body {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 35px;
+  align-items: center;
+  padding: 5px 16px 2px;
+}
+.cf82-preview-youtube .cf82-platform-logo-slot {
+  width: 54px;
+  height: 54px;
+  max-width: 54px;
+  max-height: 54px;
+}
+.cf82-preview-youtube .cf82-platform-logo-slot img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: contain;
+}
+.cf82-preview-youtube .cf82-yt-main {
+  min-width: 0;
+}
+.cf82-preview-youtube .cf82-name-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.1;
+  color: #0f0f0f;
+}
+.cf82-preview-youtube .cf82-name-row span {
+  color: #292c2f;
+  font-size: 14px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+.cf82-preview-youtube .cf82-sub-row {
+  font-size: 12px;
+  color: #606060;
+  line-height: 1.15;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.cf82-preview-youtube .cf82-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px 20px 7px;
+  text-align: center;
+  margin-top: 0;
+}
+.cf82-preview-youtube .cf82-stats-row strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  color: #0f0f0f;
+}
+.cf82-preview-youtube .cf82-stats-row small {
+  display: block;
+  font-size: 12px;
+  color: #606060;
+  line-height: 1;
+  margin-top: 2px;
+  white-space: nowrap;
+}
+
 .cf82-facebook-wordmark{justify-self:start;color:#1877f2;font-size:23px;font-weight:900;letter-spacing:-1px}
 .cf82-facebook-body{display:grid;grid-template-columns:82px 1fr auto;gap:10px;align-items:center;padding:8px 17px 2px}.cf82-facebook-avatar{width:74px;height:74px;border-radius:50%;background:#1877f2;color:#fff;display:grid;place-items:center}.cf82-facebook-avatar svg{width:74px;height:74px}.cf82-facebook-main{min-width:0}.cf82-facebook-sub{font-size:9px;color:#5d6779;margin-top:4px}.cf82-face-dots{font-size:8px;color:#6b7280;letter-spacing:2px;margin-top:8px}
 .cf82-facebook-buttons{display:grid;grid-template-columns:1fr 1fr;gap:7px;padding:14px 17px 17px}.cf82-facebook-buttons button{height:32px;border:0;border-radius:4px;background:#1877f2;color:#fff;font-size:10px;font-weight:800}.cf82-facebook-buttons .neutral{background:#e7e9ed;color:#111;display:flex;align-items:center;justify-content:center;gap:5px}.cf82-facebook-buttons .neutral svg{width:13px;height:13px}
@@ -985,7 +1063,7 @@ const followersCss = `
 }
 .cf82-facebook-wordmark{
   color:#0866ff;
-  font-family:Arial,Helvetica,sans-serif;
+  font-family:var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size:20px;
   font-weight:800;
   letter-spacing:-1.05px;
@@ -998,7 +1076,7 @@ const followersCss = `
   color:#101820;
 }
 .cf82-facebook-actions .plus{
-  font-family:Arial,sans-serif;
+  font-family:var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size:24px;
   font-weight:300;
   line-height:1;
@@ -1041,7 +1119,7 @@ const followersCss = `
 }
 .cf82-facebook-avatar span{
   color:#fff;
-  font-family:Arial,Helvetica,sans-serif;
+  font-family:var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size:64px;
   line-height:.82;
   font-weight:800;

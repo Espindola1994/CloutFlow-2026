@@ -1,6 +1,8 @@
 import React from "react";
-import { Grid3X3, Heart, Bookmark, Repeat2, UserPlus, MoreHorizontal, ArrowLeft } from "lucide-react";
+import { Grid3X3, Bookmark, Repeat2, UserPlus, ArrowLeft, Bell, Share2, Link2, Play } from "lucide-react";
 import { TikTokVerifiedProfile } from "@/lib/social/types";
+import { VerifiedBadge } from "./VerifiedBadge";
+import { RestrictedProfileNotice } from "./RestrictedProfileNotice";
 
 function formatCount(num: number): string {
   if (num === undefined || num === null) return "0";
@@ -25,155 +27,231 @@ function hasValue(val: any): boolean {
 
 export function TikTokPreview({ profile, onClose }: { profile: TikTokVerifiedProfile; onClose: () => void }) {
   const videos = hasValue(profile.videos) ? profile.videos.slice(0, 3) : [];
+  const isVerified = Boolean(profile.is_verified || (profile as any).verified || (profile as any).isVerified);
+  const hasStory = Boolean(profile.has_active_story || (profile as any).has_story || (profile as any).has_stories || (profile as any).story_available);
 
   return (
     <div className="w-full bg-[#ffffff] text-[#161823] rounded-[24px] overflow-hidden border border-neutral-200/90 shadow-sm select-none font-sans">
       {/* Top Header: Back Arrow | Actions */}
-      <div className="flex items-center justify-between px-4 pt-3 pb-1">
+      <div className="flex items-center justify-between px-[18px] pt-[14px]">
         <button
           type="button"
           onClick={onClose}
           aria-label="Back"
-          className="text-neutral-900 p-1 -ml-1 active:opacity-70"
+          className="active:opacity-70"
         >
-          <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
+          <ArrowLeft size={26} strokeWidth={2.1} color="#111111" />
         </button>
-        <div className="flex items-center gap-3 text-neutral-900">
-          <MoreHorizontal className="w-5 h-5 stroke-[2.2]" />
+        <div className="flex items-center gap-[18px]">
+          <Bell size={26} strokeWidth={2.1} color="#111111" />
+          <Share2 size={27} strokeWidth={2.1} color="#111111" />
         </div>
       </div>
 
-      {/* Main Profile Header: Name & Handle on Left + Huge Avatar on Right (01 Reference) */}
-      <div className="px-5 pt-1 pb-3 flex items-start justify-between gap-3">
-        {/* Left Column: Big Bold Name & @username */}
-        <div className="min-w-0 flex-1 pt-1">
-          <div className="flex items-center gap-1.5">
-            <h2 className="text-[24px] font-black text-neutral-900 leading-tight tracking-tight truncate">
+      {/* Main Profile Header: Identity, Avatar, Metrics in CSS Grid */}
+      <div
+        className="px-[18px] mt-[18px] mb-[12px] w-full grid"
+        style={{
+          gridTemplateColumns: "minmax(0, 1fr) 82px",
+          gridTemplateAreas: `
+            "identity avatar"
+            "metrics  avatar"
+          `,
+          columnGap: "12px",
+        }}
+      >
+        {/* Left Top: Identity */}
+        <div style={{ gridArea: "identity" }} className="min-w-0 flex flex-col justify-end">
+          <div className="flex items-center gap-[5px]">
+            <h2 className="text-[20px] min-[390px]:text-[21px] min-[430px]:text-[22px] font-[800] leading-[1.05] text-[#111111] truncate">
               {profile.full_name || profile.username}
             </h2>
-            {profile.is_verified && (
-              <span className="w-[18px] h-[18px] rounded-full bg-[#20D5EC] text-white flex items-center justify-center text-[10px] font-bold flex-shrink-0">
-                ✓
-              </span>
-            )}
+            {isVerified && <VerifiedBadge platform="tiktok" size={16} />}
           </div>
-          <span className="text-[13.5px] text-neutral-500 font-medium block truncate mt-0.5">
+          <span className="text-[12.5px] font-[500] leading-[1.2] text-[#8A8A8A] mt-[4px] block truncate">
             @{profile.username}
           </span>
         </div>
 
-        {/* Right Column: Large Circular Avatar with border */}
-        <div className="relative flex-shrink-0">
-          <div className="w-[88px] h-[88px] rounded-full p-[2.5px] bg-gradient-to-tr from-neutral-200 via-neutral-100 to-neutral-300 shadow-sm">
-            <img
-              src={profile.avatar_url}
-              alt={profile.username}
-              className="w-full h-full object-cover rounded-full bg-neutral-100"
-            />
+        {/* Right: Avatar with Conditional Story Ring */}
+        <div
+          className="justify-self-end self-start rounded-full shrink-0 flex items-center justify-center"
+          style={{ gridArea: "avatar" }}
+        >
+          {hasStory ? (
+            <div
+              className="rounded-full flex items-center justify-center p-[4px] w-[76px] h-[76px] min-[390px]:w-[78px] min-[390px]:h-[78px] min-[430px]:w-[82px] min-[430px]:h-[82px]"
+              style={{
+                background: "conic-gradient(from 0deg, #25F4EE, #20D5EC, #2AD5C4, #25F4EE)",
+              }}
+            >
+              <div className="w-full h-full rounded-full bg-white p-[3px] flex items-center justify-center">
+                <img
+                  src={profile.avatar_url}
+                  alt={profile.username}
+                  className="w-full h-full object-cover rounded-full bg-neutral-100"
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="w-[76px] h-[76px] min-[390px]:w-[78px] min-[390px]:h-[78px] min-[430px]:w-[82px] min-[430px]:h-[82px] rounded-full p-[1px] border border-[#E5E5E5] bg-white flex items-center justify-center">
+              <img
+                src={profile.avatar_url}
+                alt={profile.username}
+                className="w-full h-full object-cover rounded-full bg-neutral-100"
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Left Bottom: Metrics */}
+        <div
+          style={{ gridArea: "metrics" }}
+          className="grid grid-cols-3 w-full whitespace-nowrap mt-[14px]"
+        >
+          <div className="text-left">
+            <b className="text-[16.5px] font-[800] leading-none text-[#111111] block">
+              {formatCount(profile.following_count)}
+            </b>
+            <span className="text-[10.5px] font-[400] leading-[1.1] text-[#8A8A8A] block mt-[3px]">
+              Following
+            </span>
+          </div>
+          <div className="text-center">
+            <b className="text-[16.5px] font-[800] leading-none text-[#111111] block">
+              {formatCount(profile.followers_count)}
+            </b>
+            <span className="text-[10.5px] font-[400] leading-[1.1] text-[#8A8A8A] block mt-[3px]">
+              Followers
+            </span>
+          </div>
+          <div className="text-center">
+            <b className="text-[16.5px] font-[800] leading-none text-[#111111] block">
+              {formatCount(profile.likes_count)}
+            </b>
+            <span className="text-[10.5px] font-[400] leading-[1.1] text-[#8A8A8A] block mt-[3px]">
+              Likes
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Horizontal Counters (Following | Followers | Likes) - 01 Reference */}
-      <div className="px-5 py-1.5 flex items-center gap-7 text-left">
-        <div>
-          <b className="text-[18px] font-black text-neutral-900 block leading-tight tracking-tight">
-            {formatCount(profile.following_count)}
-          </b>
-          <span className="text-[11.5px] font-normal text-neutral-500 block mt-0.5">Following</span>
-        </div>
-        <div>
-          <b className="text-[18px] font-black text-neutral-900 block leading-tight tracking-tight">
-            {formatCount(profile.followers_count)}
-          </b>
-          <span className="text-[11.5px] font-normal text-neutral-500 block mt-0.5">Followers</span>
-        </div>
-        <div>
-          <b className="text-[18px] font-black text-neutral-900 block leading-tight tracking-tight">
-            {formatCount(profile.likes_count)}
-          </b>
-          <span className="text-[11.5px] font-normal text-neutral-500 block mt-0.5">Likes</span>
-        </div>
-      </div>
-
-      {/* Action Buttons: Follow (Red/Pink) | Message | Add Person */}
-      <div className="px-5 py-2.5 flex items-center gap-2">
+      {/* Action Buttons: Follow | Message | User+ */}
+      <div className="px-[18px] mb-[16px] grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_40px] gap-[7px] w-full">
         <button
           type="button"
-          className="flex-1 h-[40px] rounded-[6px] bg-[#FE2C55] text-white text-[14px] font-bold flex items-center justify-center hover:bg-[#ea264c] active:opacity-90 transition-colors shadow-sm"
+          className="h-[40px] rounded-[10px] bg-[#FE2C55] text-[#FFFFFF] text-[13.5px] font-[700] leading-none flex items-center justify-center border-0 cursor-pointer whitespace-nowrap hover:bg-[#E9274D] hover:-translate-y-[1px] active:opacity-90 transition-all duration-[180ms] ease-out"
         >
           Follow
         </button>
         <button
           type="button"
-          className="flex-1 h-[40px] rounded-[6px] bg-[#F1F1F2] text-neutral-900 text-[14px] font-semibold flex items-center justify-center hover:bg-[#e4e4e6] active:opacity-90 transition-colors"
+          className="h-[40px] rounded-[10px] bg-[#F1F1F2] text-[#111111] text-[13.5px] font-[600] leading-none flex items-center justify-center border-0 cursor-pointer whitespace-nowrap hover:bg-[#E7E7E9] active:opacity-90 transition-colors duration-[180ms] ease-out"
         >
           Message
         </button>
         <button
           type="button"
           aria-label="Add person"
-          className="w-[40px] h-[40px] rounded-[6px] bg-[#F1F1F2] text-neutral-900 flex items-center justify-center hover:bg-[#e4e4e6] active:opacity-90 transition-colors flex-shrink-0"
+          className="w-[40px] h-[40px] rounded-[10px] bg-[#F1F1F2] text-[#111111] flex items-center justify-center border-0 cursor-pointer hover:bg-[#E7E7E9] active:opacity-90 transition-colors duration-[180ms] ease-out shrink-0"
         >
-          <UserPlus className="w-4 h-4 stroke-[2]" />
+          <UserPlus size={19} strokeWidth={2} color="#111111" />
         </button>
       </div>
 
-      {/* Bio Section */}
-      {hasValue(profile.bio) && (
-        <div className="px-5 pt-1 text-[13.5px] text-neutral-800 leading-snug line-clamp-2">
-          {profile.bio}
-        </div>
-      )}
-
-      {/* Bio Link */}
-      {hasValue(profile.link) && (
-        <div className="px-5 pt-1.5 pb-1 text-[13px] font-semibold text-[#161823] flex items-center gap-1.5">
-          <span className="text-[12px] opacity-70">🔗</span>
-          <span className="truncate hover:underline text-[#2b5ba8]">{profile.link?.replace(/^https?:\/\//, "")}</span>
+      {/* Bio Section & Bio Link */}
+      {(hasValue(profile.bio) || hasValue(profile.link)) && (
+        <div className="px-[18px] mb-[20px] text-left">
+          {hasValue(profile.bio) && (
+            <div className="text-[13.5px] min-[390px]:text-[14px] min-[430px]:text-[14.5px] leading-[1.38] font-[400] text-[#171717] whitespace-pre-line line-clamp-4">
+              {profile.bio}
+            </div>
+          )}
+          {hasValue(profile.link) && (
+            <div className="mt-[6px] flex items-center gap-[6px] text-[13.5px] min-[390px]:text-[14px] font-[600] text-[#2b5ba8]">
+              <Link2 size={16} strokeWidth={2} className="shrink-0" />
+              <span className="truncate hover:underline">
+                {profile.link?.replace(/^https?:\/\//, "")}
+              </span>
+            </div>
+          )}
         </div>
       )}
 
       {/* Visual Navigation Tabs */}
-      <div className="flex items-center justify-around border-b border-neutral-100 mt-2.5 text-neutral-400">
-        <div className="flex-1 py-2.5 flex justify-center text-neutral-900 border-b-[2px] border-neutral-900">
-          <Grid3X3 className="w-[19px] h-[19px] stroke-[2.2]" />
+      <div className="grid grid-cols-2 w-full h-[42px] border-b border-[#EFEFEF]">
+        {/* Posts Tab */}
+        <div className="relative flex items-center justify-center h-full">
+          {/* Custom 3-column x 3-row TikTok posts icon */}
+          <div className="w-[22px] h-[22px] flex items-center justify-center">
+            <div className="grid grid-cols-3 gap-[2px] w-[18px] h-[19px]">
+              <span className="w-[4.5px] h-[5px] bg-[#111111] rounded-[1px]" />
+              <span className="w-[4.5px] h-[5px] bg-[#111111] rounded-[1px]" />
+              <span className="w-[4.5px] h-[5px] bg-[#111111] rounded-[1px]" />
+
+              <span className="w-[4.5px] h-[5px] bg-[#111111] rounded-[1px]" />
+              <span className="w-[4.5px] h-[5px] bg-[#111111] rounded-[1px]" />
+              <span className="w-[4.5px] h-[5px] bg-[#111111] rounded-[1px]" />
+
+              <span className="w-[4.5px] h-[5px] bg-[#111111] rounded-[1px]" />
+              <span className="w-[4.5px] h-[5px] bg-[#111111] rounded-[1px]" />
+              <span className="w-[4.5px] h-[5px] bg-[#111111] rounded-[1px]" />
+            </div>
+          </div>
+          <div className="absolute bottom-0 w-[32px] h-[3px] bg-[#111111] rounded-[2px]" />
         </div>
-        <div className="flex-1 py-2.5 flex justify-center text-neutral-400">
-          <Repeat2 className="w-[19px] h-[19px] stroke-[2]" />
-        </div>
-        <div className="flex-1 py-2.5 flex justify-center text-neutral-400">
-          <Bookmark className="w-[19px] h-[19px] stroke-[2]" />
-        </div>
-        <div className="flex-1 py-2.5 flex justify-center text-neutral-400">
-          <Heart className="w-[19px] h-[19px] stroke-[2]" />
+
+        {/* Repost Tab */}
+        <div className="flex items-center justify-center h-full">
+          <Repeat2 size={21} strokeWidth={2} color="#8A8A8A" />
         </div>
       </div>
 
-      {/* 3-Column Video Grid (Vertical Aspect 3:4 with views in lower left) */}
-      <div className="grid grid-cols-3 gap-[2px] p-[2px] bg-neutral-100">
-        {videos.length > 0 ? (
-          videos.map((vid, idx) => (
-            <div key={vid.id || idx} className="relative aspect-[3/4] bg-neutral-900 overflow-hidden">
-              {vid.thumbnail_url ? (
-                <img src={vid.thumbnail_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full bg-gradient-to-br from-neutral-800 to-neutral-950 flex items-center justify-center text-white/20">
-                  <Grid3X3 className="w-6 h-6" />
+      {/* 3-Column Video Grid or Private Notice */}
+      {profile.is_private && videos.length === 0 ? (
+        <div className="p-[16px] bg-white">
+          <RestrictedProfileNotice
+            title="This profile is private"
+            description="Make your profile public to continue."
+          />
+        </div>
+      ) : (
+        <div className="grid grid-cols-3 gap-[1px] w-full mt-[1px] bg-white">
+          {videos.length > 0 ? (
+            videos.map((vid: any, idx) => (
+              <div key={vid.id || idx} className="relative w-full aspect-[3/4] overflow-hidden rounded-[0px] bg-neutral-900">
+                {vid.thumbnail_url ? (
+                  <img src={vid.thumbnail_url} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-neutral-800 flex items-center justify-center text-white/20">
+                    <Grid3X3 className="w-6 h-6" />
+                  </div>
+                )}
+
+                {/* Pinned Badge (rendered only if real data indicates pinned) */}
+                {Boolean(vid.is_pinned || vid.pinned || vid.isPinned || vid.is_top || vid.isTop) && (
+                  <div className="absolute top-[6px] left-[6px] bg-[#FE2C55] text-[#FFFFFF] text-[10px] min-[390px]:text-[10.5px] font-[700] px-[6px] py-[3px] rounded-[3.5px] leading-none select-none pointer-events-none">
+                    Pinned
+                  </div>
+                )}
+
+                {/* Views Counter */}
+                <div
+                  className="absolute left-[6px] bottom-[5px] flex items-center gap-[4px] text-[#FFFFFF] text-[12px] font-[600] leading-none pointer-events-none"
+                  style={{ textShadow: "0 1px 2px rgba(0,0,0,0.45)" }}
+                >
+                  <Play size={11} className="fill-[#FFFFFF] text-[#FFFFFF]" />
+                  <span>{formatCount(vid.views_count ?? vid.play_count ?? vid.views ?? 0)}</span>
                 </div>
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
-              <span className="absolute left-1.5 bottom-1.5 text-[11px] font-bold text-white flex items-center gap-1 drop-shadow-md">
-                <span className="text-[10px]">▷</span> {formatCount(vid.views_count)}
-              </span>
+              </div>
+            ))
+          ) : (
+            <div className="col-span-3 py-6 text-center text-xs text-neutral-400 bg-white">
+              {profile.is_private ? "This account is private" : "No recent videos"}
             </div>
-          ))
-        ) : (
-          <div className="col-span-3 py-6 text-center text-xs text-neutral-400 bg-white">
-            {profile.is_private ? "Esta conta é privada" : "Nenhum vídeo recente"}
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

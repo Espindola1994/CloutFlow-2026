@@ -154,8 +154,8 @@ export default function PlatformPage() {
       </div>
 
       <header className="cf-service-header">
-        <button className="cf-service-back" type="button" onClick={() => router.push("/")}>
-          <ArrowLeft />
+        <button className="cf-service-back cf-back-link" type="button" onClick={() => router.push("/")}>
+          <ArrowLeft className="cf-back-link-icon" />
           <span>Back to Home</span>
         </button>
 
@@ -276,7 +276,7 @@ export default function PlatformPage() {
           position:relative;
           overflow:hidden;
           padding:0 24px 28px;
-          font-family:Arial,Helvetica,sans-serif;
+          font-family:var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           isolation:isolate;
         }
         .cf-service-page *{box-sizing:border-box}
@@ -756,43 +756,95 @@ export default function PlatformPage() {
         }
 
         .cf-service-cta-tiktok{
-          background: #000000;
-          box-shadow: -2px 3px 8px rgba(37, 244, 238, 0.06), 2px 3px 8px rgba(254, 44, 85, 0.06);
+          background: linear-gradient(
+            110deg,
+            #080808 0%,
+            #0a0d0e 30%,
+            #155054 66%,
+            #9b2948 100%
+          );
+          box-shadow: none;
+          filter: none;
+          transition: transform 180ms ease;
         }
         .cf-service-cta-tiktok .cf-service-cta-circle{
           background: rgba(255, 255, 255, 0.12);
         }
         .cf-service-card-button:hover .cf-service-cta-tiktok{
-          background: #111111;
+          background: linear-gradient(
+            110deg,
+            #080808 0%,
+            #0a0d0e 30%,
+            #155054 66%,
+            #9b2948 100%
+          );
+          filter: none;
           transform: translateY(-1px);
-          box-shadow: -2px 4px 10px rgba(37, 244, 238, 0.09), 2px 4px 10px rgba(254, 44, 85, 0.09);
+          box-shadow: none;
+        }
+        .cf-service-card-button:active .cf-service-cta-tiktok{
+          filter: none;
+          transform: translateY(1px);
         }
 
         .cf-service-cta-twitter{
-          background: #0F1419;
-          box-shadow: 0 4px 10px rgba(15, 20, 25, 0.10);
+          background: linear-gradient(
+            110deg,
+            #050505 0%,
+            #101010 28%,
+            #242424 58%,
+            #151515 78%,
+            #050505 100%
+          );
+          box-shadow: none;
+          filter: none;
+          transition: transform 180ms ease;
         }
         .cf-service-cta-twitter .cf-service-cta-circle{
           background: rgba(255, 255, 255, 0.12);
         }
         .cf-service-card-button:hover .cf-service-cta-twitter{
-          background: #272C30;
+          background: linear-gradient(
+            110deg,
+            #050505 0%,
+            #101010 28%,
+            #242424 58%,
+            #151515 78%,
+            #050505 100%
+          );
+          filter: none;
           transform: translateY(-1px);
-          box-shadow: 0 5px 12px rgba(15, 20, 25, 0.14);
+          box-shadow: none;
         }
 
         .cf-service-cta-youtube{
-          background: #FF0000;
-          box-shadow: 0 4px 10px rgba(255, 0, 0, 0.10);
+          background: linear-gradient(
+            110deg,
+            #C9000B 0%,
+            #E6000C 28%,
+            #FF0000 55%,
+            #F21822 76%,
+            #D5000C 100%
+          );
+          box-shadow: none;
+          filter: none;
+          transition: transform 180ms ease;
         }
         .cf-service-cta-youtube .cf-service-cta-circle{
           background: rgba(255, 255, 255, 0.14);
         }
         .cf-service-card-button:hover .cf-service-cta-youtube{
-          background: #E60000;
+          background: linear-gradient(
+            110deg,
+            #C9000B 0%,
+            #E6000C 28%,
+            #FF0000 55%,
+            #F21822 76%,
+            #D5000C 100%
+          );
+          filter: none;
           transform: translateY(-1px);
-          filter: brightness(1.02);
-          box-shadow: 0 5px 12px rgba(255, 0, 0, 0.14);
+          box-shadow: none;
         }
 
         .cf-service-card-button:hover .cf-service-cta .cf-service-cta-circle-wrap svg{

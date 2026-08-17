@@ -72,7 +72,7 @@ const platforms: PlatformItem[] = [
 
 export default function Home() {
   return (
-    <main className="cf-v68-home">
+    <main className="cf-v68-home font-sans">
       <div className="cf-v68-deco cf-v68-deco-top" aria-hidden="true">
         <span className="cf-v68-chip">👥 +1K</span>
         <span className="cf-v68-heart">♥</span>

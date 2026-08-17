@@ -54,21 +54,21 @@ const platformMeta = {
     color: "#000000",
     soft: "#fff0f3",
     icon: tiktokIcon,
-    button: "#000000",
+    button: "linear-gradient(110deg, #080808 0%, #0a0d0e 30%, #155054 66%, #9b2948 100%)",
   },
   twitter: {
     label: "X / Twitter",
     color: "#0F1419",
     soft: "#f7f9fa",
     icon: twitterIcon,
-    button: "#0F1419",
+    button: "linear-gradient(110deg, #050505 0%, #101010 28%, #242424 58%, #151515 78%, #050505 100%)",
   },
   youtube: {
     label: "YouTube",
     color: "#ff0000",
     soft: "#fff0f0",
     icon: youtubeIcon,
-    button: "linear-gradient(90deg,#ff0000,#cc0000)",
+    button: "linear-gradient(110deg, #C9000B 0%, #E6000C 28%, #FF0000 55%, #F21822 76%, #D5000C 100%)",
   },
 } as const;
 
@@ -130,6 +130,42 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
       setIsLoading(false);
     }
   }, [open, pollingRef]);
+
+  const isProfileRestricted = useMemo(() => {
+    if (!verifiedProfile) return false;
+    if (verifiedProfile.platform === "instagram") {
+      return Boolean(verifiedProfile.is_private);
+    }
+    if (verifiedProfile.platform === "tiktok") {
+      return Boolean(verifiedProfile.is_private || (verifiedProfile as any).private_account || (verifiedProfile as any).privateAccount);
+    }
+    if (verifiedProfile.platform === "twitter") {
+      return Boolean(verifiedProfile.is_private || (verifiedProfile as any).is_protected || (verifiedProfile as any).protected);
+    }
+    if (verifiedProfile.platform === "youtube") {
+      return Boolean(verifiedProfile.is_private || verifiedProfile.is_restricted || (verifiedProfile as any).restricted || (verifiedProfile as any).unavailable);
+    }
+    return false;
+  }, [verifiedProfile]);
+
+  const ctaLabel = useMemo(() => {
+    if (!isProfileRestricted) return "Use this profile";
+    if (platform === "instagram" || platform === "tiktok") {
+      return "Make profile public to continue";
+    }
+    if (platform === "twitter") {
+      return "Make account public to continue";
+    }
+    return "Channel unavailable";
+  }, [isProfileRestricted, platform]);
+
+  const handleContinue = () => {
+    // Logical Guard: Do not proceed if profile is private or restricted
+    if (isProfileRestricted || !verifiedProfile) {
+      return;
+    }
+    onContinue();
+  };
 
   const handleStartSearch = async () => {
     setErrorMessage(null);
@@ -252,23 +288,22 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
       <div className={`pl-modal pl-${platform} pl-step-${step}`} style={{ "--pl-accent": meta.color, "--pl-soft": meta.soft, "--pl-button": meta.button } as React.CSSProperties}>
         {/* Subtle Ambient Background Watermark (CloutFlow Brand Signature) */}
         <div className="pl-ambient-bg" aria-hidden="true">
-          <span className="pl-amb-chip top-left">👥 +1K</span>
-          <span className="pl-amb-heart top-left">♥</span>
-          <span className="pl-amb-growth-bars top-right"><i /><i /><i /><i /></span>
           <span className="pl-amb-dotgrid top-right" />
           
           <span className="pl-amb-social ig bottom-left">◎</span>
           <span className="pl-amb-social tk bottom-left">♪</span>
-          <span className="pl-amb-social yt bottom-right">▶</span>
           <span className="pl-amb-social x bottom-right">X</span>
           
           <span className="pl-amb-dashpath bottom-left" />
-          <span className="pl-amb-chip bottom-right">👥 +2.5K</span>
           <span className="pl-amb-dotgrid bottom-left" />
         </div>
 
         {step === 1 && (
           <div className="pl-step-container">
+            <div className="pl-platform-badge">
+              <Image src={meta.icon} alt="" width={18} height={18} />
+              <span>{meta.label}</span>
+            </div>
             <button className="pl-close" type="button" onClick={onClose} aria-label="Close"><X /></button>
             <div className="pl-heading">
               <span className="pl-step-tag">STEP 1 OF 3</span>
@@ -408,7 +443,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
             <div className="pl-heading">
               <span className="pl-step-tag">STEP 3 OF 3</span>
               <h2>Profile Found</h2>
-              <p className="pl-sub">We found <strong>@{verifiedProfile.username.replace(/^@+/, '')}</strong>. Review the details.</p>
+              <p className="pl-sub">Review <strong>@{verifiedProfile.username.replace(/^@+/, '')}</strong> before continuing.</p>
             </div>
 
             <div className="pl-preview-wrapper">
@@ -416,10 +451,15 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
             </div>
 
             <div className="pl-confirm-block">
-              <button className="pl-confirm-btn" type="button" onClick={onContinue}>
-                <Check className="w-4 h-4 text-white stroke-[2.5]" />
-                <span>Use this profile</span>
-                <ArrowRight className="w-4 h-4 text-white stroke-[2.2]" />
+              <button
+                className="pl-confirm-btn"
+                type="button"
+                onClick={handleContinue}
+                disabled={isProfileRestricted}
+              >
+                {!isProfileRestricted && <Check className="w-4 h-4 text-white stroke-[2.5]" />}
+                <span>{ctaLabel}</span>
+                {!isProfileRestricted && <ArrowRight className="w-4 h-4 text-white stroke-[2.2]" />}
               </button>
 
               <button className="pl-search-another-btn" type="button" onClick={() => setStep(1)}>
@@ -449,7 +489,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           min-height:520px;
           margin:auto;
           position:relative;
-          border-radius:26px;
+          border-radius:19px;
           background:
             radial-gradient(circle at 10% 0%,color-mix(in srgb,var(--pl-accent) 7%,transparent),transparent 28%),
             #ffffff;
@@ -457,7 +497,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           padding:22px 20px 20px;
           box-shadow:0 28px 75px rgba(8,17,38,.28), 0 0 0 1px rgba(226,232,240,.8);
           border:1px solid rgba(214,222,234,.9);
-          font-family:Arial,Helvetica,sans-serif;
+          font-family:var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
           box-sizing:border-box;
           display:flex;
           flex-direction:column;
@@ -475,7 +515,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
             max-width: 100% !important;
             min-height: auto;
             padding: 18px 16px 18px;
-            border-radius: 22px;
+            border-radius: 19px;
           }
         }
 
@@ -499,48 +539,6 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           opacity:0.045;
         }
 
-        .pl-amb-chip{
-          position:absolute;
-          font-size:11px;
-          font-weight:800;
-          color:#1376ff;
-          border:1px solid #1376ff;
-          border-radius:999px;
-          padding:2px 8px;
-          line-height:1.2;
-        }
-        .pl-amb-chip.top-left{left:14px;top:18px}
-        .pl-amb-chip.bottom-right{right:16px;bottom:18px}
-
-        .pl-amb-heart{
-          position:absolute;
-          left:105px;
-          top:20px;
-          color:#ff2d78;
-          font-size:18px;
-          line-height:1;
-        }
-
-        .pl-amb-growth-bars{
-          position:absolute;
-          right:18px;
-          top:16px;
-          display:flex;
-          align-items:flex-end;
-          gap:3px;
-          height:32px;
-        }
-        .pl-amb-growth-bars i{
-          width:5px;
-          background:#3378ff;
-          border-radius:2px 2px 0 0;
-          display:block;
-        }
-        .pl-amb-growth-bars i:nth-child(1){height:10px}
-        .pl-amb-growth-bars i:nth-child(2){height:16px}
-        .pl-amb-growth-bars i:nth-child(3){height:23px}
-        .pl-amb-growth-bars i:nth-child(4){height:30px}
-
         .pl-amb-dotgrid{
           position:absolute;
           width:70px;
@@ -558,11 +556,6 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
         }
         .pl-amb-social.ig{left:16px;bottom:68px;font-size:26px;color:#ff4d9a}
         .pl-amb-social.tk{left:52px;bottom:26px;font-size:24px;color:#25f4ee}
-        .pl-amb-social.yt{
-          right:58px;bottom:28px;width:26px;height:26px;
-          border:1.5px solid #ff0000;border-radius:50%;
-          display:grid;place-items:center;font-size:13px;color:#ff0000;padding-left:2px;
-        }
         .pl-amb-social.x{right:18px;bottom:64px;font-size:22px;color:#111111}
 
         .pl-amb-dashpath{
@@ -577,6 +570,13 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           transform:rotate(-16deg);
         }
 
+        .pl-modal.pl-tiktok.pl-step-1{
+          background:
+            radial-gradient(circle at 12% 8%, rgba(37, 244, 238, 0.07), transparent 34%),
+            radial-gradient(circle at 88% 10%, rgba(254, 44, 85, 0.055), transparent 36%),
+            #ffffff !important;
+        }
+
         .pl-step-container{
           display:flex;
           flex-direction:column;
@@ -588,8 +588,71 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           background:transparent;
         }
 
+        /* Platform Badge (Step 1 Top-Left Context Badge) */
+        .pl-platform-badge{
+          position:absolute;
+          left:0;
+          top:0;
+          height:30px;
+          padding:0 10px 0 6px;
+          border-radius:10px;
+          display:inline-flex;
+          align-items:center;
+          gap:7px;
+          font-size:12.5px;
+          font-weight:650;
+          line-height:1;
+          z-index:20;
+          background:#f8fafc;
+          border:1px solid #e2e8f0;
+          color:#0f172a;
+          box-shadow:0 1px 3px rgba(15,23,42,.04);
+          user-select:none;
+        }
+        .pl-platform-badge img{
+          width:19px!important;
+          height:19px!important;
+          object-fit:contain;
+          flex-shrink:0;
+        }
+
+        /* Subtle platform accents for badge */
+        .pl-modal.pl-instagram .pl-platform-badge{
+          background:rgba(225,48,108,.035);
+          border-color:rgba(225,48,108,.16);
+          color:#0f172a;
+        }
+        .pl-modal.pl-tiktok .pl-platform-badge{
+          background:rgba(0,0,0,.025);
+          border-color:rgba(0,0,0,.08);
+          color:#0f172a;
+        }
+        .pl-modal.pl-twitter .pl-platform-badge{
+          background:rgba(15,20,25,.025);
+          border-color:rgba(15,20,25,.14);
+          color:#0f172a;
+        }
+        .pl-modal.pl-youtube .pl-platform-badge{
+          background:rgba(255,0,0,.025);
+          border-color:rgba(255,0,0,.15);
+          color:#0f172a;
+        }
+
+        @media (max-width: 480px) {
+          .pl-platform-badge{
+            height:28px;
+            padding:0 8px 0 5px;
+            font-size:11.5px;
+            gap:5px;
+          }
+          .pl-platform-badge img{
+            width:17px!important;
+            height:17px!important;
+          }
+        }
+
         .pl-close{
-          position:absolute;right:16px;top:16px;width:32px;height:32px;border:0;background:rgba(241,245,249,.8);border-radius:50%;display:grid;place-items:center;color:#4b5565;cursor:pointer;z-index:20;transition:background .2s;
+          position:absolute;right:0;top:0;width:32px;height:32px;border:0;background:rgba(241,245,249,.8);border-radius:50%;display:grid;place-items:center;color:#4b5565;cursor:pointer;z-index:20;transition:background .2s;
         }
         .pl-close:hover{background:#e2e8f0}
         .pl-close svg{width:16px;height:16px}
@@ -601,8 +664,8 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
         }
         .pl-step-tag{
           display:inline-block;
-          font-size:10.5px;
-          font-weight:900;
+          font-size:11px;
+          font-weight:700;
           letter-spacing:.6px;
           color:var(--pl-accent);
           text-transform:uppercase;
@@ -611,8 +674,8 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
         .pl-heading h2{
           margin:0;
           font-size:25px;
-          font-weight:900;
-          letter-spacing:-.6px;
+          font-weight:700;
+          letter-spacing:-.4px;
           color:#0f172a;
         }
         .pl-sub{
@@ -653,7 +716,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
         }
         .pl-tab-btn.active{
           color:var(--pl-accent);
-          font-weight:800;
+          font-weight:700;
         }
         .pl-tab-btn.active::after{
           content:"";
@@ -673,7 +736,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
         .pl-label{
           display:block;
           font-size:13px;
-          font-weight:750;
+          font-weight:600;
           color:#334155;
           margin:0 0 5px;
         }
@@ -687,16 +750,26 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           padding:0 12px;
           background:#ffffff;
           margin-bottom:11px;
-          transition:border-color .2s, box-shadow .2s;
+          transition:border-color 160ms ease, box-shadow 160ms ease;
         }
         .pl-field:focus-within{
           border-color:var(--pl-accent);
           box-shadow:0 0 0 3px color-mix(in srgb,var(--pl-accent) 15%,transparent);
         }
+        .pl-modal.pl-tiktok .pl-field:focus-within{
+          border-color:#111111;
+          box-shadow:
+            0 0 0 1px rgba(37, 244, 238, 0.45),
+            0 0 0 3px rgba(254, 44, 85, 0.22);
+        }
         .pl-field.pl-field-error{
           border-color:var(--pl-accent) !important;
           box-shadow:0 0 0 3px color-mix(in srgb, var(--pl-accent) 8%, transparent) !important;
           margin-bottom:0 !important;
+        }
+        .pl-modal.pl-tiktok .pl-field.pl-field-error{
+          border-color:#fe2c55 !important;
+          box-shadow:0 0 0 3px rgba(254, 44, 85, 0.16) !important;
         }
         .pl-field-message{
           display:flex;
@@ -704,7 +777,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           gap:5px;
           margin:6px 0 12px 0;
           padding-left:3px;
-          font-size:11.5px;
+          font-size:12px;
           font-weight:500;
           line-height:1.3;
           color:var(--pl-accent);
@@ -715,19 +788,19 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           to{opacity:1;transform:translateY(0)}
         }
         .pl-field-icon{width:16px;height:16px;color:#94a3b8}
-        .pl-field-prefix{font-weight:800;color:#94a3b8;font-size:15px}
+        .pl-field-prefix{font-weight:700;color:#94a3b8;font-size:15px}
         .pl-field input{width:100%;border:0;outline:0;background:transparent;font:inherit;font-size:14px;color:#0f172a}
         .pl-field input::placeholder{color:#94a3b8}
-        .pl-help{display:block;color:#64748b;font-size:11.5px;margin:-4px 0 12px;line-height:1.35}
+        .pl-help{display:block;color:#64748b;font-size:12px;margin:-4px 0 12px;line-height:1.35}
 
         .pl-primary-btn{
           width:100%;
           min-height:46px;
           border:0;
-          border-radius:13px;
+          border-radius:11px;
           color:#ffffff;
           font-size:14.5px;
-          font-weight:850;
+          font-weight:700;
           display:flex;
           align-items:center;
           justify-content:center;
@@ -753,41 +826,52 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
 
         .pl-modal.pl-tiktok .pl-primary-btn,
         .pl-modal.pl-tiktok .pl-confirm-btn{
-          background:#000000 !important;
-          box-shadow:0 6px 18px rgba(37, 244, 238, 0.18), 0 6px 18px rgba(254, 44, 85, 0.18) !important;
-          transition:background 180ms ease, transform 180ms ease, box-shadow 180ms ease !important;
+          background:linear-gradient(110deg, #080808 0%, #0a0d0e 30%, #155054 66%, #9b2948 100%) !important;
+          box-shadow:none !important;
+          filter:none !important;
+          transition:transform 180ms ease !important;
         }
         .pl-modal.pl-tiktok .pl-primary-btn:hover,
         .pl-modal.pl-tiktok .pl-confirm-btn:hover{
-          background:#111111 !important;
-          transform:translateY(-1px);
-          box-shadow:0 8px 24px rgba(37, 244, 238, 0.28), 0 8px 24px rgba(254, 44, 85, 0.28) !important;
+          background:linear-gradient(110deg, #080808 0%, #0a0d0e 30%, #155054 66%, #9b2948 100%) !important;
+          transform:translateY(-1px) !important;
+          filter:none !important;
+          box-shadow:none !important;
+        }
+        .pl-modal.pl-tiktok .pl-primary-btn:active,
+        .pl-modal.pl-tiktok .pl-confirm-btn:active{
+          filter:none !important;
+          transform:translateY(1px) !important;
         }
 
         .pl-modal.pl-twitter .pl-primary-btn,
         .pl-modal.pl-twitter .pl-confirm-btn{
-          background:#0F1419 !important;
-          box-shadow:0 7px 18px rgba(15, 20, 25, 0.18) !important;
-          transition:background 180ms ease, transform 180ms ease, box-shadow 180ms ease !important;
+          background:linear-gradient(110deg, #050505 0%, #101010 28%, #242424 58%, #151515 78%, #050505 100%) !important;
+          box-shadow:none !important;
+          filter:none !important;
+          transition:transform 180ms ease !important;
         }
         .pl-modal.pl-twitter .pl-primary-btn:hover,
         .pl-modal.pl-twitter .pl-confirm-btn:hover{
-          background:#272C30 !important;
-          transform:translateY(-1px);
-          box-shadow:0 9px 22px rgba(15, 20, 25, 0.26) !important;
+          background:linear-gradient(110deg, #050505 0%, #101010 28%, #242424 58%, #151515 78%, #050505 100%) !important;
+          transform:translateY(-1px) !important;
+          filter:none !important;
+          box-shadow:none !important;
         }
 
         .pl-modal.pl-youtube .pl-primary-btn,
         .pl-modal.pl-youtube .pl-confirm-btn{
-          background:#FF0000 !important;
-          box-shadow:0 7px 18px rgba(255, 0, 0, 0.20) !important;
-          transition:background 180ms ease, transform 180ms ease, box-shadow 180ms ease !important;
+          background:linear-gradient(110deg, #C9000B 0%, #E6000C 28%, #FF0000 55%, #F21822 76%, #D5000C 100%) !important;
+          box-shadow:none !important;
+          filter:none !important;
+          transition:transform 180ms ease !important;
         }
         .pl-modal.pl-youtube .pl-primary-btn:hover,
         .pl-modal.pl-youtube .pl-confirm-btn:hover{
-          background:#E60000 !important;
-          transform:translateY(-1px);
-          box-shadow:0 9px 24px rgba(255, 0, 0, 0.32) !important;
+          background:linear-gradient(110deg, #C9000B 0%, #E6000C 28%, #FF0000 55%, #F21822 76%, #D5000C 100%) !important;
+          transform:translateY(-1px) !important;
+          filter:none !important;
+          box-shadow:none !important;
         }
 
         .pl-primary-btn:active,
@@ -809,7 +893,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           max-width:300px;
           height:42px;
           border:0;
-          border-radius:12px;
+          border-radius:11px;
           color:#ffffff;
           font-size:13.5px;
           font-weight:700;
@@ -821,12 +905,20 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           cursor:pointer;
           box-sizing:border-box;
         }
+        
+        .pl-confirm-btn:disabled {
+          cursor: not-allowed !important;
+          opacity: 0.55 !important;
+          transform: none !important;
+          filter: none !important;
+          box-shadow: none !important;
+        }
 
         .pl-search-another-btn{
           background:transparent!important;
           border:0!important;
           color:#64748b!important;
-          font-size:12.5px!important;
+          font-size:13px!important;
           font-weight:600!important;
           margin:16px auto 0!important;
           padding:0!important;

@@ -69,6 +69,7 @@ export interface InstagramVerifiedProfile {
   link?: string;
   is_private: boolean;
   is_verified?: boolean;
+  has_active_story?: boolean;
   highlights?: Array<{ title: string; cover_url: string }>;
   posts: InstagramPostItem[];
 }
@@ -91,6 +92,7 @@ export interface TikTokVerifiedProfile {
   link?: string;
   is_private: boolean;
   is_verified?: boolean;
+  has_active_story?: boolean;
   videos: TikTokVideoItem[];
 }
 
@@ -114,6 +116,7 @@ export interface TwitterVerifiedProfile {
   bio: string;
   location?: string;
   link?: string;
+  is_private?: boolean;
   is_verified?: boolean;
   pinned_tweet?: TwitterPinnedTweet | null;
 }
@@ -137,6 +140,8 @@ export interface YouTubeVerifiedProfile {
   total_views?: number;
   bio?: string;
   link?: string;
+  is_private?: boolean;
+  is_restricted?: boolean;
   is_verified?: boolean;
   videos?: YouTubeVideoItem[];
 }

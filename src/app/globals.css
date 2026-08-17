@@ -67,6 +67,14 @@
 
   /* TikTok Official Token System */
   --tiktok-bg: #000000;
+  /* TikTok Official Token System (Monochrome Dark + Subtle Brand Accents) */
+  --tiktok-primary-gradient: linear-gradient(
+    110deg,
+    #080808 0%,
+    #0a0d0e 30%,
+    #155054 66%,
+    #9b2948 100%
+  );
   --tiktok-accent-cyan: #25F4EE;
   --tiktok-accent-red: #FE2C55;
   --tiktok-accent-soft: #FFF0F3;
@@ -206,10 +214,16 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
   html {
     @apply font-sans;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 }
 
@@ -422,7 +436,7 @@
     radial-gradient(circle at 50% 48%, rgba(21,117,233,.035), transparent 28%),
     linear-gradient(180deg,#ffffff 0%,#fefefe 64%,#fbfbfb 100%);
   color:var(--cf-ink);
-  font-family:var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family:var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 .cf-clean-home *{box-sizing:border-box}
 .cf-clean-shell{
@@ -2213,50 +2227,42 @@ html, body {
 /* TikTok Start Growing button */
 .cf-v68-card-tiktok .cf-v68-card-primary{
   background:linear-gradient(
-    90deg,
-    #2aa9ae 0%,
-    #6f7c83 22%,
-    #b4516e 48%,
-    #df3f62 72%,
-    #b93459 100%
+    110deg,
+    #080808 0%,
+    #0a0d0e 30%,
+    #155054 66%,
+    #9b2948 100%
   )!important;
   border-color:transparent!important;
   color:#fff!important;
-  box-shadow:0 7px 16px rgba(185,52,89,.10)!important;
+  box-shadow:none!important;
+  filter:none!important;
+  transition:transform 180ms ease!important;
 }
 
-/* Ring around the TikTok logo */
-.cf-v68-card-tiktok .cf-v68-card-icon{
-  width:82px!important;
-  height:82px!important;
-  border-radius:50%!important;
-  padding:3px!important;
-  border:2px solid transparent!important;
-  background:
-    linear-gradient(#fff,#fff) padding-box,
-    linear-gradient(
-      135deg,
-      #25d8d2 0%,
-      #6f8588 30%,
-      #cf526f 60%,
-      #fe2c55 100%
-    ) border-box!important;
-  box-shadow:0 5px 14px rgba(254,44,85,.07)!important;
+.cf-v68-card-tiktok .cf-v68-card-primary svg{
+  color:#fff!important;
+  stroke:#fff!important;
 }
 
-/* Keep the actual logo untouched inside the new ring */
-.cf-v68-card-tiktok .cf-v68-card-icon img{
-  width:72px!important;
-  height:72px!important;
-  border-radius:50%!important;
-  object-fit:contain!important;
+.cf-v68-card-tiktok .cf-v68-card-primary:active{
+  filter:none!important;
+  transform:translateY(1px)!important;
 }
 
-/* Professional hover, still restrained */
+/* Professional hover, perfectly color-neutral */
 @media (hover:hover) and (pointer:fine){
   .cf-v68-card-tiktok .cf-v68-card-primary:hover{
-    filter:brightness(1.025) saturate(.94)!important;
-    box-shadow:0 9px 18px rgba(185,52,89,.14)!important;
+    background:linear-gradient(
+      110deg,
+      #080808 0%,
+      #0a0d0e 30%,
+      #155054 66%,
+      #9b2948 100%
+    )!important;
+    filter:none!important;
+    transform:translateY(-1px)!important;
+    box-shadow:none!important;
   }
 }
 
@@ -2460,11 +2466,18 @@ html, body {
 }
 
 .cf-v68-card-tiktok .cf-v68-card-primary{
-  background:#000000!important;
+  background:linear-gradient(
+    110deg,
+    #080808 0%,
+    #0a0d0e 30%,
+    #155054 66%,
+    #9b2948 100%
+  )!important;
   border:1px solid transparent!important;
   color:#fff!important;
-  box-shadow:-2px 3px 10px rgba(37,244,238,0.07), 2px 3px 10px rgba(254,44,85,0.07)!important;
+  box-shadow:none!important;
   filter:none!important;
+  transition:transform 180ms ease!important;
 }
 
 .cf-v68-card-tiktok .cf-v68-card-primary svg{
@@ -2472,12 +2485,23 @@ html, body {
   stroke:#fff!important;
 }
 
+.cf-v68-card-tiktok .cf-v68-card-primary:active{
+  filter:none!important;
+  transform:translateY(1px)!important;
+}
+
 @media (hover:hover) and (pointer:fine){
   .cf-v68-card-tiktok .cf-v68-card-primary:hover{
-    background:#111111!important;
-    color:#fff!important;
+    background:linear-gradient(
+      110deg,
+      #080808 0%,
+      #0a0d0e 30%,
+      #155054 66%,
+      #9b2948 100%
+    )!important;
     filter:none!important;
-    box-shadow:-3px 5px 14px rgba(37,244,238,0.10), 3px 5px 14px rgba(254,44,85,0.10)!important;
+    transform:translateY(-1px)!important;
+    box-shadow:none!important;
   }
 }
 
@@ -2582,12 +2606,19 @@ html, body {
 
 .cf-v68-card-x .cf-v68-card-primary,
 .cf-v68-card-twitter .cf-v68-card-primary{
-  background:#0F1419!important;
+  background:linear-gradient(
+    110deg,
+    #050505 0%,
+    #101010 28%,
+    #242424 58%,
+    #151515 78%,
+    #050505 100%
+  )!important;
   border:0!important;
   color:#ffffff!important;
-  box-shadow:0 4px 10px rgba(15, 20, 25, 0.10)!important;
+  box-shadow:none!important;
   filter:none!important;
-  transition:background .18s ease, transform .18s ease, box-shadow .18s ease!important;
+  transition:transform 180ms ease!important;
 }
 
 .cf-v68-card-x .cf-v68-card-primary svg,
@@ -2596,14 +2627,27 @@ html, body {
   stroke:#ffffff!important;
 }
 
+.cf-v68-card-x .cf-v68-card-primary:active,
+.cf-v68-card-twitter .cf-v68-card-primary:active{
+  filter:none!important;
+  transform:translateY(1px)!important;
+}
+
 @media (hover:hover) and (pointer:fine){
   .cf-v68-card-x .cf-v68-card-primary:hover,
   .cf-v68-card-twitter .cf-v68-card-primary:hover{
-    background:#000000!important;
+    background:linear-gradient(
+      110deg,
+      #050505 0%,
+      #101010 28%,
+      #242424 58%,
+      #151515 78%,
+      #050505 100%
+    )!important;
     color:#ffffff!important;
     filter:none!important;
     transform:translateY(-1px)!important;
-    box-shadow:0 5px 12px rgba(15, 20, 25, 0.14)!important;
+    box-shadow:none!important;
   }
 
   .cf-v68-card-x .cf-v68-card-primary:hover svg,
@@ -2613,7 +2657,7 @@ html, body {
   }
 }
 
-/* V137 — YouTube Home card: clean red border, solid CTA and soft depth without glow */
+/* V137 — YouTube Home card: clean red border, refined red gradient CTA and soft depth without glow */
 .cf-v68-card-youtube{
   --accent:#FF0000!important;
   border:1.5px solid rgba(255, 0, 0, 0.58)!important;
@@ -2629,12 +2673,19 @@ html, body {
 }
 
 .cf-v68-card-youtube .cf-v68-card-primary{
-  background:#FF0000!important;
+  background:linear-gradient(
+    110deg,
+    #C9000B 0%,
+    #E6000C 28%,
+    #FF0000 55%,
+    #F21822 76%,
+    #D5000C 100%
+  )!important;
   border:0!important;
   color:#ffffff!important;
-  box-shadow:0 4px 10px rgba(255, 0, 0, 0.08)!important;
+  box-shadow:none!important;
   filter:none!important;
-  transition:background .18s ease, transform .18s ease, box-shadow .18s ease!important;
+  transition:transform 180ms ease!important;
 }
 
 .cf-v68-card-youtube .cf-v68-card-primary svg{
@@ -2642,13 +2693,25 @@ html, body {
   stroke:#ffffff!important;
 }
 
+.cf-v68-card-youtube .cf-v68-card-primary:active{
+  filter:none!important;
+  transform:translateY(1px)!important;
+}
+
 @media (hover:hover) and (pointer:fine){
   .cf-v68-card-youtube .cf-v68-card-primary:hover{
-    background:#E60000!important;
+    background:linear-gradient(
+      110deg,
+      #C9000B 0%,
+      #E6000C 28%,
+      #FF0000 55%,
+      #F21822 76%,
+      #D5000C 100%
+    )!important;
     color:#ffffff!important;
     filter:none!important;
     transform:translateY(-1px)!important;
-    box-shadow:0 5px 13px rgba(255, 0, 0, 0.11)!important;
+    box-shadow:none!important;
   }
 
   .cf-v68-card-youtube .cf-v68-card-primary:hover svg{
@@ -2718,3 +2781,62 @@ html, body {
   font-size:15px!important;
   line-height:1!important;
 }
+
+/* Global Microinteraction: Back Links (Back to Home / Back to Services) */
+.cf-back-link {
+  transition: transform 180ms ease, color 180ms ease, opacity 180ms ease !important;
+  will-change: transform;
+}
+
+.cf-back-link svg,
+.cf-back-link .cf-back-link-icon {
+  transition: transform 180ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  will-change: transform;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .cf-back-link:hover {
+    transform: translateY(-1px);
+    color: #0f172a !important;
+  }
+
+  .cf-back-link:hover svg,
+  .cf-back-link:hover .cf-back-link-icon {
+    transform: translateX(-3px);
+  }
+}
+
+.cf-back-link:active {
+  transform: translateY(1px) scale(0.985) !important;
+  transition-duration: 100ms !important;
+}
+
+.cf-back-link:active svg,
+.cf-back-link:active .cf-back-link-icon {
+  transform: translateX(-2px) !important;
+  transition-duration: 100ms !important;
+}
+
+.cf-back-link:focus-visible {
+  outline: 2px solid #1376ff;
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cf-back-link,
+  .cf-back-link svg,
+  .cf-back-link .cf-back-link-icon {
+    transition: none !important;
+    transform: none !important;
+  }
+  .cf-back-link:hover,
+  .cf-back-link:active,
+  .cf-back-link:hover svg,
+  .cf-back-link:active svg,
+  .cf-back-link:hover .cf-back-link-icon,
+  .cf-back-link:active .cf-back-link-icon {
+    transform: none !important;
+  }
+}
+

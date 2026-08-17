@@ -1,6 +1,8 @@
 import React from "react";
 import { ArrowLeft, Search, MoreVertical, Bell, ChevronRight, Play } from "lucide-react";
 import { YouTubeVerifiedProfile } from "@/lib/social/types";
+import { VerifiedBadge } from "./VerifiedBadge";
+import { RestrictedProfileNotice } from "./RestrictedProfileNotice";
 
 function formatSubscribers(num: number): string {
   if (num === undefined || num === null) return "0";
@@ -106,10 +108,8 @@ export function YouTubePreview({ profile, onClose }: { profile: YouTubeVerifiedP
               <h2 className="text-[21px] font-bold text-[#0f0f0f] leading-tight tracking-tight truncate">
                 {profile.full_name || profile.username}
               </h2>
-              {profile.is_verified && (
-                <span className="w-4 h-4 rounded-full bg-neutral-600 text-white flex items-center justify-center text-[9px] font-bold flex-shrink-0">
-                  ✓
-                </span>
+              {Boolean(profile.is_verified || (profile as any).verified) && (
+                <VerifiedBadge platform="youtube" size={16} />
               )}
             </div>
 
@@ -182,14 +182,21 @@ export function YouTubePreview({ profile, onClose }: { profile: YouTubeVerifiedP
           </div>
         </div>
 
-        {/* 7. FIRST VIDEO PREVIEW (Se disponível nos dados reais) */}
-        {firstVideo ? (
+        {/* 7. FIRST VIDEO PREVIEW ou Restricted Notice */}
+        {Boolean(profile.is_private || profile.is_restricted || (profile as any).restricted || (profile as any).unavailable) ? (
+          <div className="mt-3">
+            <RestrictedProfileNotice
+              title="Channel unavailable"
+              description="This channel is restricted or unavailable."
+            />
+          </div>
+        ) : firstVideo ? (
           <div className="mt-3">
             <div className="relative w-full aspect-video rounded-[10px] overflow-hidden bg-neutral-900 shadow-xs">
               <img src={firstVideo.thumbnail_url} alt="" className="w-full h-full object-cover" />
               {firstVideo.views_count !== undefined && (
                 <span className="absolute bottom-1.5 right-1.5 px-1.5 py-0.5 rounded bg-black/80 text-[10.5px] font-bold text-white leading-none">
-                  {formatViews(firstVideo.views_count)} visualizações
+                  {formatViews(firstVideo.views_count)} views
                 </span>
               )}
             </div>
@@ -201,7 +208,7 @@ export function YouTubePreview({ profile, onClose }: { profile: YouTubeVerifiedP
           </div>
         ) : (
           <div className="py-3 text-center text-xs text-neutral-400 font-medium">
-            Canal verificado com sucesso
+            Channel verified successfully
           </div>
         )}
       </div>
