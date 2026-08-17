@@ -106,10 +106,14 @@ export async function getOrderByPublicId(publicId: string) {
   
   if (!order) return null;
   
-  const [customer] = await db.query.customers.findMany({
-    where: eq(customers.id, order.customerId),
-    limit: 1
-  });
+  let customer = null;
+  if (order.customerId) {
+    const [foundCustomer] = await db.query.customers.findMany({
+      where: eq(customers.id, order.customerId),
+      limit: 1
+    });
+    customer = foundCustomer || null;
+  }
   
   const items = await db.query.orderItems.findMany({
     where: eq(orderItems.orderId, order.id)

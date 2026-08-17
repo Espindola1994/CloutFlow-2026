@@ -18,14 +18,26 @@ import { boolean } from 'drizzle-orm/pg-core'; // Re-import missing boolean
 
 export const orders = pgTable('orders', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
-  publicId: varchar('public_id', { length: 50 }).notNull().unique(),
+  publicId: varchar('public_id', { length: 50 }).notNull().unique(), // CF-XXXXXXXX
   
-  customerId: text('customer_id').notNull().references(() => customers.id),
+  externalOrderId: varchar('external_order_id', { length: 255 }),
+  externalPaymentId: varchar('external_payment_id', { length: 255 }),
+  paymentGateway: varchar('payment_gateway', { length: 50 }).default('perfectpay').notNull(),
+  
+  customerId: text('customer_id').references(() => customers.id),
+  customerEmail: varchar('customer_email', { length: 255 }),
+  customerName: varchar('customer_name', { length: 255 }),
+  customerPhone: varchar('customer_phone', { length: 100 }),
+  
   platformId: text('platform_id').references(() => platforms.id),
+  platform: varchar('platform', { length: 50 }), // instagram, tiktok, twitter, youtube
   serviceId: text('service_id').references(() => services.id),
+  service: varchar('service', { length: 100 }),
   planId: text('plan_id').references(() => plans.id),
+  offerId: text('offer_id'),
   
   username: varchar('username', { length: 255 }),
+  socialUsername: varchar('social_username', { length: 255 }),
   profileUrl: varchar('profile_url', { length: 1024 }),
   targetUrl: varchar('target_url', { length: 1024 }),
   
@@ -42,8 +54,21 @@ export const orders = pgTable('orders', {
   couponId: text('coupon_id').references(() => coupons.id),
   
   status: varchar('status', { length: 50 }).notNull().default('PENDING_PAYMENT'), // PENDING_PAYMENT, PAID, PROCESSING, COMPLETED, PARTIAL, CANCELED, FAILED, REFUNDED
-  paymentStatus: varchar('payment_status', { length: 50 }).notNull().default('PENDING'), // PENDING, PAID, FAILED, REFUNDED, PARTIALLY_REFUNDED
-  fulfillmentStatus: varchar('fulfillment_status', { length: 50 }).notNull().default('PENDING'), // PENDING, SUBMITTING, PROCESSING, PARTIAL, COMPLETED, FAILED, CANCELED, REFILL_REQUESTED, REFILLING
+  paymentStatus: varchar('payment_status', { length: 50 }).notNull().default('PENDING'), // pre_checkout, pending, approved, rejected, cancelled, refunded, chargeback, completed, checkout_error, unknown
+  perfectpayRawStatus: varchar('perfectpay_raw_status', { length: 100 }),
+  fulfillmentStatus: varchar('fulfillment_status', { length: 50 }).notNull().default('NOT_DISPATCHED'), // NOT_DISPATCHED, PENDING, SUBMITTING, PROCESSING, PARTIAL, COMPLETED, FAILED, CANCELED, REFILL_REQUESTED, REFILLING
+  
+  // UTM & Attribution tracking
+  utmSource: varchar('utm_source', { length: 255 }),
+  utmMedium: varchar('utm_medium', { length: 255 }),
+  utmCampaign: varchar('utm_campaign', { length: 255 }),
+  utmContent: varchar('utm_content', { length: 255 }),
+  utmTerm: varchar('utm_term', { length: 255 }),
+  src: varchar('src', { length: 255 }),
+  sck: varchar('sck', { length: 255 }),
+  referrer: varchar('referrer', { length: 1024 }),
+  landingPage: varchar('landing_page', { length: 1024 }),
+  checkoutReference: varchar('checkout_reference', { length: 255 }),
   
   customerNotes: text('customer_notes'),
   adminNotes: text('admin_notes'),

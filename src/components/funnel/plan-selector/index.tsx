@@ -13,7 +13,6 @@ export function PlanSelector({ plans }: { plans: any[] }) {
 
   const handleSelectPlan = (planId: string) => {
     setPlan(planId);
-    router.push("/checkout");
   };
 
   return (

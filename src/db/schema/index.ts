@@ -6,3 +6,4 @@ export * from './payments';
 export * from './fulfillment';
 export * from './analytics';
 export * from './settings';
+export * from './offers';
