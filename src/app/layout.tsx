@@ -9,16 +9,27 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://cloutflow.co"),
   title: "CloutFlow | Premium Social Media Growth",
   description: "Accelerate your social media presence with premium growth services.",
   manifest: "/manifest.json",
+  alternates: {
+    canonical: "/",
+  },
+  openGraph: {
+    title: "CloutFlow | Premium Social Media Growth",
+    description: "Accelerate your social media presence with premium growth services.",
+    url: "https://cloutflow.co",
+    siteName: "CloutFlow",
+    type: "website",
+  },
   appleWebApp: {
     capable: true,
     title: "CloutFlow",
     statusBarStyle: "black-translucent",
   },
   icons: {
-    apple: "/cloutflow-logo.png", // Using the available logo as a fallback
+    apple: "/cloutflow-logo.png",
   },
 };
 

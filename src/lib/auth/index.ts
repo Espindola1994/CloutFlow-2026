@@ -104,7 +104,7 @@ export async function getSession(): Promise<AdminSession | null> {
     user: {
       id: 'admin_root',
       name: 'Administrator',
-      email: 'admin@cloutflow.com',
+      email: 'admin@cloutflow.co',
       role: 'SUPER_ADMIN',
     },
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),

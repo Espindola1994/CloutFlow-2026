@@ -66,7 +66,7 @@ export async function POST(request: Request) {
         user: {
           id: 'admin_root',
           name: 'Administrator',
-          email: 'admin@cloutflow.com',
+          email: 'admin@cloutflow.co',
           role: 'SUPER_ADMIN',
         },
       },
