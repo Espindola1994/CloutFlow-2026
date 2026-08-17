@@ -7,11 +7,13 @@ import {
   Percent, 
   Split, 
   Plus, 
-  RefreshCw,
-  ExternalLink,
-  CheckCircle2,
-  XCircle,
-  X
+  RefreshCw, 
+  ExternalLink, 
+  CheckCircle2, 
+  XCircle, 
+  X,
+  Edit3,
+  Power
 } from "lucide-react";
 import { Plan, OrderBumpOffer, UpsellOffer, Coupon, AbTest, Platform } from "../types";
 
@@ -31,16 +33,22 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
   const [loadingOffers, setLoadingOffers] = useState(true);
   const [offersError, setOffersError] = useState<string | null>(null);
 
-  // New Offer Modal
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [createLoading, setCreateLoading] = useState(false);
-  const [newPlatform, setNewPlatform] = useState<Platform>("instagram");
-  const [newService, setNewService] = useState("followers");
-  const [newName, setNewName] = useState("");
-  const [newQuantity, setNewQuantity] = useState("1000");
-  const [newPrice, setNewPrice] = useState("9.99");
-  const [newOldPrice, setNewOldPrice] = useState("19.99");
-  const [newCheckoutUrl, setNewCheckoutUrl] = useState("");
+  // Modal State (Create & Edit)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingOfferId, setEditingOfferId] = useState<string | null>(null);
+  const [formLoading, setFormLoading] = useState(false);
+
+  // Form Fields
+  const [formPlatform, setFormPlatform] = useState<Platform>("instagram");
+  const [formService, setFormService] = useState("followers");
+  const [formName, setFormName] = useState("");
+  const [formQuantity, setFormQuantity] = useState("1000");
+  const [formPrice, setFormPrice] = useState("9.99");
+  const [formOldPrice, setFormOldPrice] = useState("19.99");
+  const [formCheckoutUrl, setFormCheckoutUrl] = useState("");
+  const [formProductId, setFormProductId] = useState("");
+  const [formPlanId, setFormPlanId] = useState("");
+  const [formActive, setFormActive] = useState(true);
 
   const fetchOffers = async () => {
     try {
@@ -66,46 +74,117 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
     }
   }, [activeTab]);
 
-  const handleCreateOffer = async (e: React.FormEvent) => {
+  const openCreateModal = () => {
+    setEditingOfferId(null);
+    setFormPlatform("instagram");
+    setFormService("followers");
+    setFormName("");
+    setFormQuantity("1000");
+    setFormPrice("9.99");
+    setFormOldPrice("19.99");
+    setFormCheckoutUrl("");
+    setFormProductId("");
+    setFormPlanId("");
+    setFormActive(true);
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (offer: Plan) => {
+    setEditingOfferId(offer.id);
+    setFormPlatform(offer.platform);
+    setFormService(offer.service);
+    setFormName(offer.name);
+    setFormQuantity(offer.quantity.toString());
+    setFormPrice(offer.price.toFixed(2));
+    setFormOldPrice(offer.oldPrice ? offer.oldPrice.toFixed(2) : "");
+    setFormCheckoutUrl(offer.checkoutUrl || "");
+    setFormProductId(offer.perfectpayProductId || "");
+    setFormPlanId(offer.perfectpayPlanId || "");
+    setFormActive(offer.active);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveOffer = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newName || !newQuantity || !newPrice) return;
+    if (!formName || !formQuantity || !formPrice) return;
 
-    setCreateLoading(true);
+    setFormLoading(true);
     try {
-      const priceCents = Math.round(parseFloat(newPrice) * 100);
-      const oldPriceCents = newOldPrice ? Math.round(parseFloat(newOldPrice) * 100) : undefined;
-      const slug = `${newPlatform}-${newService}-${newQuantity}`.toLowerCase();
+      const priceCents = Math.round(parseFloat(formPrice) * 100);
+      const oldPriceCents = formOldPrice ? Math.round(parseFloat(formOldPrice) * 100) : null;
+      const slug = `${formPlatform}-${formService}-${formQuantity}`.toLowerCase();
 
-      const res = await fetch("/api/admin/offers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          platform: newPlatform,
-          service: newService,
-          name: newName,
-          slug,
-          quantity: parseInt(newQuantity, 10),
-          priceCents,
-          oldPriceCents,
-          currency: "USD",
-          externalCheckoutUrl: newCheckoutUrl ? newCheckoutUrl.trim() : null,
-          active: true,
-        }),
-      });
-
-      const json = await res.json();
-      if (res.ok && json.success) {
-        setIsCreateModalOpen(false);
-        setNewName("");
-        setNewCheckoutUrl("");
-        fetchOffers();
+      if (editingOfferId) {
+        // PATCH existing offer
+        const res = await fetch(`/api/admin/offers/${editingOfferId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: formName,
+            quantity: parseInt(formQuantity, 10),
+            priceCents,
+            oldPriceCents,
+            currency: "USD",
+            externalCheckoutUrl: formCheckoutUrl ? formCheckoutUrl.trim() : null,
+            perfectpayProductId: formProductId ? formProductId.trim() : null,
+            perfectpayPlanId: formPlanId ? formPlanId.trim() : null,
+            active: formActive,
+          }),
+        });
+        const json = await res.json();
+        if (res.ok && json.success) {
+          setIsModalOpen(false);
+          fetchOffers();
+        } else {
+          alert(json.error?.message || "Error updating offer");
+        }
       } else {
-        alert(json.error?.message || "Error creating offer");
+        // POST new offer
+        const res = await fetch("/api/admin/offers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            platform: formPlatform,
+            service: formService,
+            name: formName,
+            slug,
+            quantity: parseInt(formQuantity, 10),
+            priceCents,
+            oldPriceCents: oldPriceCents || undefined,
+            currency: "USD",
+            externalCheckoutUrl: formCheckoutUrl ? formCheckoutUrl.trim() : null,
+            perfectpayProductId: formProductId ? formProductId.trim() : null,
+            perfectpayPlanId: formPlanId ? formPlanId.trim() : null,
+            active: true,
+          }),
+        });
+        const json = await res.json();
+        if (res.ok && json.success) {
+          setIsModalOpen(false);
+          fetchOffers();
+        } else {
+          alert(json.error?.message || "Error creating offer");
+        }
       }
     } catch {
       alert("Error submitting offer to server");
     } finally {
-      setCreateLoading(false);
+      setFormLoading(false);
+    }
+  };
+
+  const handleToggleActive = async (offer: Plan) => {
+    try {
+      const res = await fetch(`/api/admin/offers/${offer.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: !offer.active }),
+      });
+      if (res.ok) {
+        fetchOffers();
+      }
+    } catch {
+      // safe fallback
     }
   };
 
@@ -117,7 +196,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
         <div>
           <h2 className="text-xl font-bold text-white tracking-tight">Growth & Offers</h2>
-          <p className="text-xs text-neutral-400 mt-0.5">Manage real offer packages, external checkouts, coupons and A/B experiments</p>
+          <p className="text-xs text-neutral-400 mt-0.5">Manage real offer packages, PerfectPay product linkage, coupons and A/B experiments</p>
         </div>
 
         <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-xl p-1 text-xs font-semibold">
@@ -178,7 +257,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
 
             <button
               type="button"
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={openCreateModal}
               className="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Plus className="w-4 h-4" /> Add Offer
@@ -204,7 +283,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
                 <Sparkles className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
                 <h4 className="text-sm font-bold text-neutral-300">No offer records created yet</h4>
                 <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
-                  Click &quot;Add Offer&quot; above to persist a new commercial package linked to an external checkout URL.
+                  Click &quot;Add Offer&quot; above to persist a new commercial package linked to PerfectPay.
                 </p>
               </div>
             ) : (
@@ -216,37 +295,75 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
                       <th className="pb-3 font-semibold">Service</th>
                       <th className="pb-3 font-semibold">Package Name</th>
                       <th className="pb-3 font-semibold">Quantity</th>
-                      <th className="pb-3 font-semibold">Price</th>
-                      <th className="pb-3 font-semibold">External Checkout</th>
+                      <th className="pb-3 font-semibold">Price (USD)</th>
+                      <th className="pb-3 font-semibold">PerfectPay Linkage</th>
                       <th className="pb-3 font-semibold">Status</th>
+                      <th className="pb-3 font-semibold text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-800/60 text-neutral-300 font-medium">
-                    {filteredPlans.map((p) => (
-                      <tr key={p.id} className="hover:bg-neutral-800/20 transition-colors">
-                        <td className="py-3.5 capitalize font-semibold">{p.platform}</td>
-                        <td className="py-3.5 capitalize">{p.service}</td>
-                        <td className="py-3.5 font-bold text-white">{p.name}</td>
-                        <td className="py-3.5">{p.quantity.toLocaleString()}</td>
-                        <td className="py-3.5 font-bold text-emerald-400">${p.price.toFixed(2)}</td>
-                        <td className="py-3.5">
-                          {p.checkoutUrl ? (
-                            <span className="text-blue-400 flex items-center gap-1 font-mono text-[11px] truncate max-w-[200px]" title={p.checkoutUrl}>
-                              <ExternalLink className="w-3 h-3 shrink-0" /> {p.checkoutUrl}
+                    {filteredPlans.map((p) => {
+                      const hasLinkage = Boolean(p.perfectpayProductId && p.perfectpayPlanId);
+                      const hasCheckout = Boolean(p.checkoutUrl);
+
+                      return (
+                        <tr key={p.id} className="hover:bg-neutral-800/20 transition-colors">
+                          <td className="py-3.5 capitalize font-semibold">{p.platform}</td>
+                          <td className="py-3.5 capitalize">{p.service}</td>
+                          <td className="py-3.5 font-bold text-white">{p.name}</td>
+                          <td className="py-3.5">{p.quantity.toLocaleString()}</td>
+                          <td className="py-3.5 font-bold text-emerald-400">${p.price.toFixed(2)}</td>
+                          <td className="py-3.5">
+                            <div className="space-y-0.5 font-mono text-[11px]">
+                              {hasLinkage ? (
+                                <span className="text-emerald-400 flex items-center gap-1 font-semibold">
+                                  <CheckCircle2 className="w-3 h-3 shrink-0" />
+                                  <span>Prod: {p.perfectpayProductId} · Plan: {p.perfectpayPlanId}</span>
+                                </span>
+                              ) : (
+                                <span className="text-amber-400/90 text-[10px]">
+                                  Missing {!p.perfectpayProductId ? "Product Code" : "Plan Code"}
+                                </span>
+                              )}
+                              {hasCheckout && (
+                                <span className="text-neutral-500 flex items-center gap-1 text-[10px] truncate max-w-[200px]" title={p.checkoutUrl}>
+                                  <ExternalLink className="w-2.5 h-2.5 shrink-0" /> {p.checkoutUrl}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3.5">
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              p.active ? "bg-emerald-500/10 text-emerald-400" : "bg-neutral-800 text-neutral-500"
+                            }`}>
+                              {p.active ? "ACTIVE" : "INACTIVE"}
                             </span>
-                          ) : (
-                            <span className="text-neutral-500 text-[11px]">None configured</span>
-                          )}
-                        </td>
-                        <td className="py-3.5">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            p.active ? "bg-emerald-500/10 text-emerald-400" : "bg-neutral-800 text-neutral-500"
-                          }`}>
-                            {p.active ? "ACTIVE" : "INACTIVE"}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td className="py-3.5 text-right">
+                            <div className="flex items-center justify-end gap-2">
+                              <button
+                                type="button"
+                                onClick={() => openEditModal(p)}
+                                className="p-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
+                                title="Edit Offer"
+                              >
+                                <Edit3 className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleToggleActive(p)}
+                                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                  p.active ? "bg-red-500/10 text-red-400 hover:bg-red-500/20" : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
+                                }`}
+                                title={p.active ? "Deactivate Offer" : "Activate Offer"}
+                              >
+                                <Power className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -330,29 +447,32 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
         </div>
       )}
 
-      {/* Create Offer Modal */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-xs">
-          <div className="bg-[#12161f] border border-neutral-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+      {/* Create / Edit Offer Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+          <div className="bg-[#12161f] border border-neutral-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
-              <h3 className="text-base font-bold text-white">Create New Offer</h3>
+              <h3 className="text-base font-bold text-white">
+                {editingOfferId ? "Edit Offer Package" : "Create New Offer"}
+              </h3>
               <button
                 type="button"
-                onClick={() => setIsCreateModalOpen(false)}
+                onClick={() => setIsModalOpen(false)}
                 className="text-neutral-400 hover:text-white p-1"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleCreateOffer} className="space-y-3 text-xs">
+            <form onSubmit={handleSaveOffer} className="space-y-4 text-xs">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-neutral-300 font-semibold block mb-1">Platform</label>
                   <select
-                    value={newPlatform}
-                    onChange={(e) => setNewPlatform(e.target.value as Platform)}
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
+                    value={formPlatform}
+                    disabled={Boolean(editingOfferId)}
+                    onChange={(e) => setFormPlatform(e.target.value as Platform)}
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white disabled:opacity-50"
                   >
                     <option value="instagram">Instagram</option>
                     <option value="tiktok">TikTok</option>
@@ -363,9 +483,10 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
                 <div>
                   <label className="text-neutral-300 font-semibold block mb-1">Service</label>
                   <select
-                    value={newService}
-                    onChange={(e) => setNewService(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
+                    value={formService}
+                    disabled={Boolean(editingOfferId)}
+                    onChange={(e) => setFormService(e.target.value)}
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white disabled:opacity-50"
                   >
                     <option value="followers">Followers</option>
                     <option value="likes">Likes</option>
@@ -380,8 +501,8 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
                 <input
                   type="text"
                   placeholder="e.g. 1,000 High-Quality Followers"
-                  value={newName}
-                  onChange={(e) => setNewName(e.target.value)}
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
                   className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-500"
                   required
                 />
@@ -392,28 +513,28 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
                   <label className="text-neutral-300 font-semibold block mb-1">Quantity</label>
                   <input
                     type="number"
-                    value={newQuantity}
-                    onChange={(e) => setNewQuantity(e.target.value)}
+                    value={formQuantity}
+                    onChange={(e) => setFormQuantity(e.target.value)}
                     className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-neutral-300 font-semibold block mb-1">Price ($)</label>
+                  <label className="text-neutral-300 font-semibold block mb-1">Price ($ USD)</label>
                   <input
                     type="text"
-                    value={newPrice}
-                    onChange={(e) => setNewPrice(e.target.value)}
+                    value={formPrice}
+                    onChange={(e) => setFormPrice(e.target.value)}
                     className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
                     required
                   />
                 </div>
                 <div>
-                  <label className="text-neutral-300 font-semibold block mb-1">Old Price ($)</label>
+                  <label className="text-neutral-300 font-semibold block mb-1">Old Price ($ USD)</label>
                   <input
                     type="text"
-                    value={newOldPrice}
-                    onChange={(e) => setNewOldPrice(e.target.value)}
+                    value={formOldPrice}
+                    onChange={(e) => setFormOldPrice(e.target.value)}
                     className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
                   />
                 </div>
@@ -423,27 +544,77 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
                 <label className="text-neutral-300 font-semibold block mb-1">External Checkout URL (https://)</label>
                 <input
                   type="url"
-                  placeholder="https://checkout.gateway.com/pay/..."
-                  value={newCheckoutUrl}
-                  onChange={(e) => setNewCheckoutUrl(e.target.value)}
+                  placeholder="https://checkout.perfectpay.com.br/pay/..."
+                  value={formCheckoutUrl}
+                  onChange={(e) => setFormCheckoutUrl(e.target.value)}
                   className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-500 font-mono text-[11px]"
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2">
+              {/* PerfectPay Integration Section */}
+              <div className="pt-3 border-t border-neutral-800/80 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <span>PerfectPay Integration</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-neutral-900 text-neutral-400 font-semibold text-[10px] border border-neutral-800">
+                    Gateway: PerfectPay
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-neutral-400 font-semibold block mb-1">PerfectPay Product Code (`product.code`)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. PP_PROD_123"
+                      value={formProductId}
+                      onChange={(e) => setFormProductId(e.target.value)}
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-600 font-mono text-[11px]"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-neutral-400 font-semibold block mb-1">PerfectPay Plan Code (`plan.code`)</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. PP_PLAN_456"
+                      value={formPlanId}
+                      onChange={(e) => setFormPlanId(e.target.value)}
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-600 font-mono text-[11px]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {editingOfferId && (
+                <div className="flex items-center gap-2 pt-1">
+                  <input
+                    type="checkbox"
+                    id="formActive"
+                    checked={formActive}
+                    onChange={(e) => setFormActive(e.target.checked)}
+                    className="rounded-sm border-neutral-700 bg-neutral-900 text-blue-600"
+                  />
+                  <label htmlFor="formActive" className="text-neutral-300 font-medium cursor-pointer">
+                    Offer is active and visible in the public funnel
+                  </label>
+                </div>
+              )}
+
+              <div className="pt-3 border-t border-neutral-800 flex items-center justify-end gap-2">
                 <button
                   type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={createLoading}
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl font-bold cursor-pointer disabled:opacity-50"
+                  disabled={formLoading}
+                  className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-bold cursor-pointer disabled:opacity-50 shadow-xs"
                 >
-                  {createLoading ? "Saving..." : "Save Offer"}
+                  {formLoading ? "Saving..." : editingOfferId ? "Update Offer" : "Save Offer"}
                 </button>
               </div>
             </form>

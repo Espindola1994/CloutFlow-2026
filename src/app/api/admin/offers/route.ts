@@ -26,6 +26,8 @@ const offerCreateSchema = z.object({
     })
     .optional()
     .nullable(),
+  perfectpayProductId: z.string().optional().nullable(),
+  perfectpayPlanId: z.string().optional().nullable(),
   active: z.boolean().default(true),
   sortOrder: z.number().int().default(0),
 });
@@ -53,6 +55,8 @@ export async function GET() {
       tag: o.badge || undefined,
       popular: o.isPopular,
       checkoutUrl: o.externalCheckoutUrl || undefined,
+      perfectpayProductId: o.perfectpayProductId || undefined,
+      perfectpayPlanId: o.perfectpayPlanId || undefined,
       active: o.active,
       sortOrder: o.sortOrder,
     }));
@@ -91,6 +95,8 @@ export async function POST(request: Request) {
         badge: data.badge,
         isPopular: data.isPopular,
         externalCheckoutUrl: data.externalCheckoutUrl || null,
+        perfectpayProductId: data.perfectpayProductId ? data.perfectpayProductId.trim() : null,
+        perfectpayPlanId: data.perfectpayPlanId ? data.perfectpayPlanId.trim() : null,
         active: data.active,
         sortOrder: data.sortOrder,
       })

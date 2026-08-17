@@ -119,14 +119,19 @@ export interface Plan {
   platform: Platform;
   service: string;
   name: string;
+  slug?: string;
   quantity: number;
   bonus?: number;
   price: number;
   oldPrice?: number;
+  currency?: string;
   tag?: string;
   popular?: boolean;
   checkoutUrl?: string;
+  perfectpayProductId?: string;
+  perfectpayPlanId?: string;
   active: boolean;
+  sortOrder?: number;
 }
 
 export interface OrderBumpOffer {
