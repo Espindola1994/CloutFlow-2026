@@ -105,7 +105,23 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, data: { offer: created } }, { status: 201 });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, error: { message: 'Invalid offer input', details: error.issues } }, { status: 400 });
+      const firstIssue = error.issues[0];
+      let customMessage = 'Invalid offer input';
+      if (firstIssue) {
+        const pathStr = firstIssue.path.join('.');
+        if (pathStr.includes('quantity')) {
+          customMessage = 'Quantity must be a positive integer.';
+        } else if (pathStr.includes('externalCheckoutUrl')) {
+          customMessage = 'External checkout URL must be a valid secure URL (https://).';
+        } else if (pathStr.includes('priceCents')) {
+          customMessage = 'Price is invalid or missing.';
+        } else if (pathStr.includes('name')) {
+          customMessage = 'Offer name is required.';
+        } else {
+          customMessage = `${firstIssue.message} (${pathStr})`;
+        }
+      }
+      return NextResponse.json({ success: false, error: { message: customMessage, details: error.issues } }, { status: 400 });
     }
     const err = error as Error;
     if (err.message === 'Unauthorized' || err.message === 'Forbidden') {

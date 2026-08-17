@@ -124,7 +124,23 @@ export async function PATCH(
     return NextResponse.json({ success: true, data: { offer: updated } });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, error: { message: 'Invalid update payload', details: error.issues } }, { status: 400 });
+      const firstIssue = error.issues[0];
+      let customMessage = 'Invalid update payload';
+      if (firstIssue) {
+        const pathStr = firstIssue.path.join('.');
+        if (pathStr.includes('quantity')) {
+          customMessage = 'Quantity must be a positive integer.';
+        } else if (pathStr.includes('externalCheckoutUrl')) {
+          customMessage = 'External checkout URL must be a valid secure URL (https://).';
+        } else if (pathStr.includes('priceCents')) {
+          customMessage = 'Price is invalid.';
+        } else if (pathStr.includes('name')) {
+          customMessage = 'Offer name cannot be empty.';
+        } else {
+          customMessage = `${firstIssue.message} (${pathStr})`;
+        }
+      }
+      return NextResponse.json({ success: false, error: { message: customMessage, details: error.issues } }, { status: 400 });
     }
     const err = error as Error;
     if (err.message === 'Unauthorized' || err.message === 'Forbidden') {
