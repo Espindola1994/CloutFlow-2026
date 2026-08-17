@@ -77,17 +77,21 @@ vi.mock('@/db', () => ({
 }));
 
 describe('PerfectPay Webhook Service - Phase 2.1A Validation Tests', () => {
+  const TEST_TOKEN = 'test_token_phase2_1a';
+
   beforeEach(() => {
     mockDb.webhookEvents = [];
     mockDb.orders = [];
     mockDb.orderItems = [];
     mockDb.orderEvents = [];
     mockDb.paymentLeads = [];
+    process.env.PERFECTPAY_WEBHOOK_TOKEN = TEST_TOKEN;
     process.env.PERFECTPAY_WEBHOOK_VERIFIED = 'true';
   });
 
   it('1. Same external_event_id twice -> Second is safely ignored as DUPLICATE_IGNORED', async () => {
     const payload = {
+      token: TEST_TOKEN,
       event_id: 'evt_unique_101',
       sale_status: 'approved',
       sale_code: 'PP-ORD-001',
@@ -105,6 +109,7 @@ describe('PerfectPay Webhook Service - Phase 2.1A Validation Tests', () => {
 
   it('2. external_event_id absent + same fingerprint twice -> Second is blocked by deduplicationKey', async () => {
     const payloadWithoutId = {
+      token: TEST_TOKEN,
       sale_status: 'approved',
       sale_code: 'PP-ORD-002',
       product_id: 'PROD_XYZ',
@@ -121,6 +126,7 @@ describe('PerfectPay Webhook Service - Phase 2.1A Validation Tests', () => {
 
   it('3. Approved -> Completed for the same sale -> Exactly 1 Order updated over time', async () => {
     const approvedPayload = {
+      token: TEST_TOKEN,
       event_id: 'evt_approved_201',
       sale_status: 'approved',
       sale_code: 'PP-ORD-003',
@@ -133,6 +139,7 @@ describe('PerfectPay Webhook Service - Phase 2.1A Validation Tests', () => {
     expect(mockDb.orders[0].paymentStatus).toBe('PAID');
 
     const completedPayload = {
+      token: TEST_TOKEN,
       event_id: 'evt_completed_202',
       sale_status: 'completed',
       sale_code: 'PP-ORD-003',
@@ -147,6 +154,7 @@ describe('PerfectPay Webhook Service - Phase 2.1A Validation Tests', () => {
 
   it('4. Refund after Approved -> Preserves distinct REFUNDED status and logs event', async () => {
     const approvedPayload = {
+      token: TEST_TOKEN,
       event_id: 'evt_app_301',
       sale_status: 'approved',
       sale_code: 'PP-ORD-004',
@@ -155,6 +163,7 @@ describe('PerfectPay Webhook Service - Phase 2.1A Validation Tests', () => {
     await processPerfectPayWebhook(approvedPayload);
 
     const refundPayload = {
+      token: TEST_TOKEN,
       event_id: 'evt_ref_302',
       sale_status: 'refunded',
       sale_code: 'PP-ORD-004',
@@ -167,6 +176,7 @@ describe('PerfectPay Webhook Service - Phase 2.1A Validation Tests', () => {
 
   it('5. Chargeback after Approved -> Preserves distinct CHARGEBACK status and logs event', async () => {
     const approvedPayload = {
+      token: TEST_TOKEN,
       event_id: 'evt_app_401',
       sale_status: 'approved',
       sale_code: 'PP-ORD-005',
@@ -175,6 +185,7 @@ describe('PerfectPay Webhook Service - Phase 2.1A Validation Tests', () => {
     await processPerfectPayWebhook(approvedPayload);
 
     const chargebackPayload = {
+      token: TEST_TOKEN,
       event_id: 'evt_chb_402',
       sale_status: 'chargeback',
       sale_code: 'PP-ORD-005',

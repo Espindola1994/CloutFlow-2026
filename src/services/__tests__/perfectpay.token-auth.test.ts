@@ -77,7 +77,7 @@ vi.mock('@/db', () => ({
   },
 }));
 
-describe('PerfectPay Webhook Service - Phase 2.2A Observation Mode & Security Gates', () => {
+describe('PerfectPay Webhook Service - Phase 2.2D Public Token Authentication & Gates', () => {
   const TEST_VALID_TOKEN = 'pp_pub_token_valid_12345';
 
   beforeEach(() => {
@@ -90,52 +90,86 @@ describe('PerfectPay Webhook Service - Phase 2.2A Observation Mode & Security Ga
     delete process.env.PERFECTPAY_WEBHOOK_VERIFIED;
   });
 
-  it('A) Unverified + Approved payload -> Does NOT create Order, logs OBSERVED_AUTHENTICATED audit event', async () => {
-    process.env.PERFECTPAY_WEBHOOK_VERIFIED = 'false';
-
+  it('A) Token correto -> authenticated = true', async () => {
     const payload = {
       token: TEST_VALID_TOKEN,
-      event_id: 'evt_unverified_001',
+      event_id: 'evt_auth_001',
       sale_status: 'approved',
-      sale_code: 'PP-TEST-001',
-      amount_cents: 2990,
-      customer: { email: 'test@buyer.com' },
+      sale_code: 'PP-AUTH-001',
     };
 
     const res = await processPerfectPayWebhook(payload);
     expect(res.authenticated).toBe(true);
     expect(res.action).toBe('OBSERVED_AUTHENTICATED');
-    expect(res.mode).toBe('OBSERVATION');
+  });
+
+  it('B) Token incorreto -> authenticated = false (UNAUTHENTICATED_IGNORED)', async () => {
+    const payload = {
+      token: 'wrong_invalid_token',
+      event_id: 'evt_auth_002',
+      sale_status: 'approved',
+      sale_code: 'PP-AUTH-002',
+    };
+
+    const res = await processPerfectPayWebhook(payload);
+    expect(res.authenticated).toBe(false);
+    expect(res.action).toBe('UNAUTHENTICATED_IGNORED');
+    expect(mockDb.webhookEvents[0].processingStatus).toBe('UNAUTHENTICATED');
+  });
+
+  it('C) Token ausente -> authenticated = false', async () => {
+    const payload = {
+      event_id: 'evt_auth_003',
+      sale_status: 'approved',
+      sale_code: 'PP-AUTH-003',
+    };
+
+    const res = await processPerfectPayWebhook(payload);
+    expect(res.authenticated).toBe(false);
+    expect(res.action).toBe('UNAUTHENTICATED_IGNORED');
+  });
+
+  it('D) ENV ausente -> authenticated = false', async () => {
+    delete process.env.PERFECTPAY_WEBHOOK_TOKEN;
+
+    const payload = {
+      token: TEST_VALID_TOKEN,
+      event_id: 'evt_auth_004',
+      sale_status: 'approved',
+      sale_code: 'PP-AUTH-004',
+    };
+
+    const res = await processPerfectPayWebhook(payload);
+    expect(res.authenticated).toBe(false);
+    expect(res.action).toBe('UNAUTHENTICATED_IGNORED');
+  });
+
+  it('E) Token correto + VERIFIED=false -> NÃO cria Order', async () => {
+    process.env.PERFECTPAY_WEBHOOK_VERIFIED = 'false';
+
+    const payload = {
+      token: TEST_VALID_TOKEN,
+      event_id: 'evt_obs_001',
+      sale_status: 'approved',
+      sale_code: 'PP-OBS-001',
+      amount_cents: 9900,
+    };
+
+    const res = await processPerfectPayWebhook(payload);
+    expect(res.authenticated).toBe(true);
+    expect(res.action).toBe('OBSERVED_AUTHENTICATED');
     expect(mockDb.orders.length).toBe(0);
-    expect(mockDb.orderItems.length).toBe(0);
-    expect(mockDb.webhookEvents.length).toBe(1);
     expect(mockDb.webhookEvents[0].processingStatus).toBe('OBSERVED_AUTHENTICATED');
   });
 
-  it('B) Unverified + Completed payload -> Does NOT create or update Order', async () => {
+  it('F) Token correto + VERIFIED=false -> NÃO cria payment_lead', async () => {
     process.env.PERFECTPAY_WEBHOOK_VERIFIED = 'false';
 
     const payload = {
       token: TEST_VALID_TOKEN,
-      event_id: 'evt_unverified_002',
-      sale_status: 'completed',
-      sale_code: 'PP-TEST-002',
-    };
-
-    const res = await processPerfectPayWebhook(payload);
-    expect(res.authenticated).toBe(true);
-    expect(res.action).toBe('OBSERVED_AUTHENTICATED');
-    expect(mockDb.orders.length).toBe(0);
-  });
-
-  it('C) Unverified + Pre_checkout -> Does NOT create operational payment_lead', async () => {
-    process.env.PERFECTPAY_WEBHOOK_VERIFIED = 'false';
-
-    const payload = {
-      token: TEST_VALID_TOKEN,
-      event_id: 'evt_unverified_003',
+      event_id: 'evt_obs_002',
       sale_status: 'pre_checkout',
-      customer: { email: 'lead@buyer.com' },
+      customer: { email: 'lead@test.com' },
     };
 
     const res = await processPerfectPayWebhook(payload);
@@ -144,14 +178,51 @@ describe('PerfectPay Webhook Service - Phase 2.2A Observation Mode & Security Ga
     expect(mockDb.paymentLeads.length).toBe(0);
   });
 
-  it('D) Unverified duplicate event -> Idempotency is preserved and returns DUPLICATE_IGNORED', async () => {
-    process.env.PERFECTPAY_WEBHOOK_VERIFIED = 'false';
-
+  it('G) Aprovado + Token correto + Observation Mode -> Somente observado', async () => {
     const payload = {
       token: TEST_VALID_TOKEN,
-      event_id: 'evt_unverified_dup_001',
-      sale_status: 'approved',
-      sale_code: 'PP-TEST-DUP',
+      event_id: 'evt_obs_003',
+      sale_status: 'aprovado',
+      sale_code: 'PP-OBS-003',
+    };
+
+    const res = await processPerfectPayWebhook(payload);
+    expect(res.action).toBe('OBSERVED_AUTHENTICATED');
+    expect(mockDb.orders.length).toBe(0);
+  });
+
+  it('H) Abandono + Token correto + Observation Mode -> Somente observado', async () => {
+    const payload = {
+      token: TEST_VALID_TOKEN,
+      event_id: 'evt_obs_004',
+      sale_status: 'abandono',
+      customer: { email: 'abandono@test.com' },
+    };
+
+    const res = await processPerfectPayWebhook(payload);
+    expect(res.action).toBe('OBSERVED_AUTHENTICATED');
+    expect(mockDb.paymentLeads.length).toBe(0);
+  });
+
+  it('I) Token NÃO aparece em metadata_safe', async () => {
+    const payload = {
+      token: TEST_VALID_TOKEN,
+      public_token: 'secret_token_val',
+      event_id: 'evt_safe_001',
+      sale_code: 'PP-SAFE-001',
+    };
+
+    await processPerfectPayWebhook(payload);
+    const event = mockDb.webhookEvents[0];
+    expect(event.metadataSafe.token).toBeUndefined();
+    expect(event.metadataSafe.public_token).toBeUndefined();
+  });
+
+  it('J) Duplicate webhook -> DUPLICATE_IGNORED', async () => {
+    const payload = {
+      token: TEST_VALID_TOKEN,
+      event_id: 'evt_dup_001',
+      sale_code: 'PP-DUP-001',
     };
 
     const first = await processPerfectPayWebhook(payload);
@@ -162,23 +233,29 @@ describe('PerfectPay Webhook Service - Phase 2.2A Observation Mode & Security Ga
     expect(mockDb.webhookEvents.length).toBe(1);
   });
 
-  it('E) Verified Processing Mode Enabled -> Processes sales and creates Order as normal', async () => {
+  it('K) Verified Mode Enabled -> Pipeline financeiro funciona SOMENTE com token válido', async () => {
     process.env.PERFECTPAY_WEBHOOK_VERIFIED = 'true';
 
-    const payload = {
-      token: TEST_VALID_TOKEN,
-      event_id: 'evt_verified_001',
+    // 1. Inválido -> Rejeitado
+    const badRes = await processPerfectPayWebhook({
+      token: 'bad_token',
+      event_id: 'evt_vf_001',
       sale_status: 'approved',
-      sale_code: 'PP-VERIFIED-001',
-      amount_cents: 4990,
-    };
+      sale_code: 'PP-VF-001',
+    });
+    expect(badRes.authenticated).toBe(false);
+    expect(mockDb.orders.length).toBe(0);
 
-    const res = await processPerfectPayWebhook(payload);
-    expect(res.authenticated).toBe(true);
-    expect(res.action).toBe('ORDER_CREATED');
-    expect(res.mode).toBe('VERIFIED');
+    // 2. Válido -> Processado
+    const goodRes = await processPerfectPayWebhook({
+      token: TEST_VALID_TOKEN,
+      event_id: 'evt_vf_002',
+      sale_status: 'approved',
+      sale_code: 'PP-VF-002',
+      amount_cents: 4900,
+    });
+    expect(goodRes.authenticated).toBe(true);
+    expect(goodRes.action).toBe('ORDER_CREATED');
     expect(mockDb.orders.length).toBe(1);
-    expect(mockDb.orders[0].paymentStatus).toBe('PAID');
-    expect(mockDb.webhookEvents[0].processingStatus).toBe('PROCESSED');
   });
 });

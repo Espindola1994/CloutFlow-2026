@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import { db } from '@/db';
 import { orders, orderItems, orderEvents, webhookEvents, paymentLeads, offers } from '@/db/schema';
 import { eq, and, or } from 'drizzle-orm';
@@ -5,7 +6,15 @@ import { normalizePerfectPayPayload } from '@/lib/perfectpay/normalize';
 
 export interface ProcessWebhookResult {
   success: boolean;
-  action: 'ORDER_CREATED' | 'ORDER_UPDATED' | 'LEAD_RECORDED' | 'EVENT_LOGGED' | 'DUPLICATE_IGNORED' | 'OBSERVED_UNVERIFIED';
+  action:
+    | 'ORDER_CREATED'
+    | 'ORDER_UPDATED'
+    | 'LEAD_RECORDED'
+    | 'EVENT_LOGGED'
+    | 'DUPLICATE_IGNORED'
+    | 'OBSERVED_AUTHENTICATED'
+    | 'UNAUTHENTICATED_IGNORED';
+  authenticated: boolean;
   orderId?: string;
   publicId?: string;
   leadId?: string;
@@ -14,18 +23,37 @@ export interface ProcessWebhookResult {
 }
 
 /**
- * Robust, idempotent processor for PerfectPay webhook events with dual-layer deduplication
- * and secure Observation Mode protection.
+ * Constant-time string comparison to prevent timing attacks.
+ */
+function secureCompare(a?: string, b?: string): boolean {
+  if (!a || !b) return false;
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+/**
+ * Robust, idempotent processor for PerfectPay webhook events with dual-layer deduplication,
+ * Public Token authentication validation, and secure Observation Mode protection.
  */
 export async function processPerfectPayWebhook(rawPayload: Record<string, unknown>): Promise<ProcessWebhookResult> {
   const parsed = normalizePerfectPayPayload(rawPayload);
 
-  // Security Gate: Check if Webhook is authorized for operational processing
-  // Default is FALSE (Observation Mode)
+  // --- GATE 1: AUTHENTICATION VALIDATION ---
+  const configuredToken = process.env.PERFECTPAY_WEBHOOK_TOKEN;
+  const isAuthenticated = Boolean(
+    configuredToken &&
+    parsed.rawToken &&
+    secureCompare(parsed.rawToken, configuredToken)
+  );
+
+  // --- GATE 2: PROCESSING AUTHORIZATION MODE ---
   const isVerifiedProcessing = process.env.PERFECTPAY_WEBHOOK_VERIFIED === 'true';
 
-  // Diagnostic logging of safe payload shape for first real webhook verification
+  // Diagnostic logging of safe payload shape (Zero secrets / tokens logged)
   console.log('[PerfectPayWebhook] Received Event Shape:', {
+    authenticated: isAuthenticated,
     mode: isVerifiedProcessing ? 'VERIFIED_PROCESSING' : 'OBSERVATION_MODE',
     hasExternalEventId: Boolean(parsed.externalEventId),
     hasExternalOrderId: Boolean(parsed.externalOrderId),
@@ -71,6 +99,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
       if (existingEvent) {
         return {
           success: true,
+          authenticated: isAuthenticated,
           action: 'DUPLICATE_IGNORED',
           message: `Webhook event already processed (matched ID: ${existingEvent.id}).`,
           mode: isVerifiedProcessing ? 'VERIFIED' : 'OBSERVATION',
@@ -79,7 +108,12 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
     }
 
     // 2. Insert Webhook Event Record safely
-    const initialProcessingStatus = isVerifiedProcessing ? 'PROCESSED' : 'UNVERIFIED';
+    const initialProcessingStatus = !isAuthenticated
+      ? 'UNAUTHENTICATED'
+      : isVerifiedProcessing
+      ? 'PROCESSED'
+      : 'OBSERVED_AUTHENTICATED';
+
     let loggedEvent;
     try {
       const [inserted] = await tx
@@ -123,6 +157,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
       if (err.code === '23505' || err.message?.includes('duplicate key')) {
         return {
           success: true,
+          authenticated: isAuthenticated,
           action: 'DUPLICATE_IGNORED',
           message: 'Concurrent duplicate webhook blocked by database constraint.',
           mode: isVerifiedProcessing ? 'VERIFIED' : 'OBSERVATION',
@@ -131,19 +166,29 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
       throw err;
     }
 
-    // OBSERVATION MODE GATE:
-    // If webhook origin / secret is not explicitly verified, record the event audit
-    // but DO NOT create Orders, DO NOT create operational leads, and DO NOT trigger automations.
+    // --- GATE 1 ENFORCEMENT: UNAUTHENTICATED EVENTS CANNOT PROCEED ---
+    if (!isAuthenticated) {
+      return {
+        success: true,
+        authenticated: false,
+        action: 'UNAUTHENTICATED_IGNORED',
+        message: 'Webhook token missing or invalid. Recorded as UNAUTHENTICATED with no operational effects.',
+        mode: isVerifiedProcessing ? 'VERIFIED' : 'OBSERVATION',
+      };
+    }
+
+    // --- GATE 2 ENFORCEMENT: OBSERVATION MODE CANNOT CREATE ORDERS OR CRM LEADS ---
     if (!isVerifiedProcessing) {
       return {
         success: true,
-        action: 'OBSERVED_UNVERIFIED',
-        message: `Webhook observed and safely logged in Observation Mode with status ${parsed.normalizedStatus}. No orders created.`,
+        authenticated: true,
+        action: 'OBSERVED_AUTHENTICATED',
+        message: `Authenticated webhook observed and safely logged in Observation Mode with status ${parsed.normalizedStatus}. No orders created.`,
         mode: 'OBSERVATION',
       };
     }
 
-    // --- BELOW LOGIC ONLY EXECUTES IN VERIFIED PROCESSING MODE ---
+    // --- BELOW PIPELINE ONLY RUNS WHEN BOTH GATES PASS: AUTHENTICATED === TRUE AND VERIFIED_PROCESSING === TRUE ---
 
     // 3. Match configured Offer by perfectpay_product_id or perfectpay_plan_id
     let matchedOffer = null;
@@ -198,6 +243,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
 
       return {
         success: true,
+        authenticated: true,
         action: 'LEAD_RECORDED',
         leadId: lead.id,
         mode: 'VERIFIED',
@@ -241,6 +287,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
 
         return {
           success: true,
+          authenticated: true,
           action: 'ORDER_UPDATED',
           orderId: existingOrder.id,
           publicId: existingOrder.publicId,
@@ -328,6 +375,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
 
       return {
         success: true,
+        authenticated: true,
         action: 'ORDER_CREATED',
         orderId: newOrder.id,
         publicId: newOrder.publicId,
@@ -371,6 +419,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
 
           return {
             success: true,
+            authenticated: true,
             action: 'ORDER_UPDATED',
             orderId: existingOrder.id,
             publicId: existingOrder.publicId,
@@ -382,6 +431,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
 
     return {
       success: true,
+      authenticated: true,
       action: 'EVENT_LOGGED',
       message: `Webhook event logged with status ${parsed.normalizedStatus}`,
       mode: 'VERIFIED',

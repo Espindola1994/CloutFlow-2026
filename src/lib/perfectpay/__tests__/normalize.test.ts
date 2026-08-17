@@ -4,6 +4,7 @@ import { normalizePerfectPayPayload } from '../normalize';
 describe('PerfectPay Adapter - Unit Tests (Controlled Fixtures)', () => {
   it('correctly normalizes pre_checkout / abandonment event', () => {
     const fixture = {
+      token: 'test_token_123',
       event: 'pre_checkout',
       id: 'evt_test_01',
       customer: { email: 'buyer@example.com', name: 'John Doe', phone: '+123456789' },
@@ -12,9 +13,11 @@ describe('PerfectPay Adapter - Unit Tests (Controlled Fixtures)', () => {
     };
     const result = normalizePerfectPayPayload(fixture);
     expect(result.normalizedStatus).toBe('pre_checkout');
+    expect(result.rawToken).toBe('test_token_123');
     expect(result.customerEmail).toBe('buyer@example.com');
     expect(result.amountCents).toBe(1999);
     expect(result.utmSource).toBe('instagram_ads');
+    expect(result.metadataSafe.token).toBeUndefined(); // Stripped from metadataSafe
   });
 
   it('correctly normalizes pending payment (billet/pix generated)', () => {

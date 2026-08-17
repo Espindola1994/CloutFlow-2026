@@ -40,14 +40,25 @@ export interface PerfectPayParsedEvent {
   src?: string;
   sck?: string;
   checkoutReference?: string;
+  rawToken?: string;
   metadataSafe: Record<string, unknown>;
 }
 
 /**
  * Defensively parses and normalizes incoming PerfectPay webhook payloads.
  * Computes deterministic deduplicationKey when externalEventId is absent.
+ * Strips tokens, secrets, passwords and sensitive payment data from metadataSafe.
  */
 export function normalizePerfectPayPayload(body: Record<string, unknown>): PerfectPayParsedEvent {
+  // 0. Extract Public Token for validation before sanitization
+  const rawToken = String(
+    body.token ||
+    body.public_token ||
+    body.webhook_token ||
+    body.api_token ||
+    ''
+  ).trim() || undefined;
+
   // 1. Extract raw identifiers
   const rawStatus = String(
     body.status ||
@@ -66,12 +77,15 @@ export function normalizePerfectPayPayload(body: Record<string, unknown>): Perfe
     rawStatus.includes('pre_checkout') ||
     rawStatus.includes('init_checkout') ||
     rawStatus.includes('abandonment') ||
+    rawStatus.includes('abandono') ||
     rawEventType.includes('pre_checkout') ||
-    rawEventType.includes('abandonment')
+    rawEventType.includes('abandonment') ||
+    rawEventType.includes('abandono')
   ) {
     normalizedStatus = 'pre_checkout';
   } else if (
     rawStatus.includes('approved') ||
+    rawStatus.includes('aprovado') ||
     rawStatus.includes('paid') ||
     rawStatus === '1' ||
     rawStatus === 'approved'
@@ -79,12 +93,14 @@ export function normalizePerfectPayPayload(body: Record<string, unknown>): Perfe
     normalizedStatus = 'approved';
   } else if (
     rawStatus.includes('completed') ||
-    rawStatus.includes('complete')
+    rawStatus.includes('complete') ||
+    rawStatus.includes('completo')
   ) {
     normalizedStatus = 'completed';
   } else if (
     rawStatus.includes('waiting') ||
     rawStatus.includes('pending') ||
+    rawStatus.includes('pendente') ||
     rawStatus.includes('billet_printed') ||
     rawStatus.includes('pix_generated')
   ) {
@@ -92,22 +108,28 @@ export function normalizePerfectPayPayload(body: Record<string, unknown>): Perfe
   } else if (
     rawStatus.includes('refused') ||
     rawStatus.includes('rejected') ||
+    rawStatus.includes('rejeitado') ||
     rawStatus.includes('denied')
   ) {
     normalizedStatus = 'rejected';
   } else if (
     rawStatus.includes('cancelled') ||
+    rawStatus.includes('cancelado') ||
     rawStatus.includes('expired')
   ) {
     normalizedStatus = 'cancelled';
   } else if (
     rawStatus.includes('refunded') ||
+    rawStatus.includes('devolvido') ||
     rawStatus.includes('returned')
   ) {
     normalizedStatus = 'refunded';
   } else if (
     rawStatus.includes('chargeback') ||
-    rawStatus.includes('dispute')
+    rawStatus.includes('charge_back') ||
+    rawStatus.includes('dispute') ||
+    rawStatus.includes('disputa') ||
+    rawStatus.includes('em_disputa')
   ) {
     normalizedStatus = 'chargeback';
   } else if (
@@ -206,18 +228,21 @@ export function normalizePerfectPayPayload(body: Record<string, unknown>): Perfe
   const sck = String(body.sck || '').trim() || undefined;
   const checkoutReference = String(body.checkout_reference || body.custom_id || body.metadata_ref || '').trim() || undefined;
 
-  // 8. Build Sanitized Metadata
+  // 8. Build Sanitized Metadata (Strict security stripping: token, passwords, cards, secrets)
   const metadataSafe: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(body)) {
     const lower = key.toLowerCase();
     if (
-      !lower.includes('secret') &&
       !lower.includes('token') &&
-      !lower.includes('card_number') &&
-      !lower.includes('cvv') &&
+      !lower.includes('secret') &&
       !lower.includes('password') &&
       !lower.includes('auth') &&
-      !lower.includes('authorization')
+      !lower.includes('authorization') &&
+      !lower.includes('card_number') &&
+      !lower.includes('cardnumber') &&
+      !lower.includes('cvv') &&
+      !lower.includes('api_key') &&
+      !lower.includes('apikey')
     ) {
       metadataSafe[key] = value;
     }
@@ -260,6 +285,7 @@ export function normalizePerfectPayPayload(body: Record<string, unknown>): Perfe
     src,
     sck,
     checkoutReference,
+    rawToken,
     metadataSafe,
   };
 }
