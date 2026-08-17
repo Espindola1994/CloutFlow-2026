@@ -384,7 +384,12 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
     }
 
     // 6. Handle Refunds & Chargebacks & Cancellations (Distinct statuses preserved)
-    if (parsed.normalizedStatus === 'refunded' || parsed.normalizedStatus === 'chargeback' || parsed.normalizedStatus === 'cancelled') {
+    if (
+      parsed.normalizedStatus === 'refunded' ||
+      parsed.normalizedStatus === 'chargeback' ||
+      parsed.normalizedStatus === 'charged_back' ||
+      parsed.normalizedStatus === 'cancelled'
+    ) {
       if (parsed.externalOrderId) {
         const [existingOrder] = await tx.query.orders.findMany({
           where: and(
@@ -397,7 +402,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
         if (existingOrder) {
           const newPaymentStatus = 
             parsed.normalizedStatus === 'refunded' ? 'REFUNDED' :
-            parsed.normalizedStatus === 'chargeback' ? 'CHARGEBACK' : 'CANCELLED';
+            (parsed.normalizedStatus === 'chargeback' || parsed.normalizedStatus === 'charged_back') ? 'CHARGEBACK' : 'CANCELLED';
 
           await tx
             .update(orders)

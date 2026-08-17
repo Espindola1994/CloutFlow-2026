@@ -83,7 +83,7 @@ describe('PerfectPay Adapter - Unit Tests (Controlled Fixtures)', () => {
       sale_code: 'PP-SALE-007',
     };
     const result = normalizePerfectPayPayload(fixture);
-    expect(result.normalizedStatus).toBe('chargeback');
+    expect(result.normalizedStatus).toBe('charged_back');
   });
 
   it('safely falls back to unknown on unrecognized status without crashing', () => {
