@@ -131,7 +131,13 @@ describe('PerfectPay Webhook Service - Phase 2.3B Strict Product + Plan Matching
     const res = await processPerfectPayWebhook(payload);
     expect(res.action).toBe('ORDER_CREATED');
     expect(mockDb.orders.length).toBe(1);
-    expect(mockDb.orders[0].offerId).toBeUndefined(); // NO match with Starter
+    expect(mockDb.orders[0].offerId).toBeNull(); // Nullified since no matchedOffer
+    expect(mockDb.orders[0].quantity).toBe(0); // quantity fallback to 0
+    expect(mockDb.orders[0].platform).toBeNull(); // platform fallback to null
+    expect(mockDb.orders[0].service).toBeNull(); // service fallback to null
+    expect(mockDb.orders[0].totalCents).toBe(3990); // Preserves exact real financial amount
+    expect(mockDb.orders[0].paymentStatus).toBe('PAID');
+    expect(mockDb.orders[0].fulfillmentStatus).toBe('NOT_DISPATCHED');
     expect(mockDb.orders[0].currency).toBe('USD');
     expect(mockDb.webhookEvents[0].processingStatus).toBe('UNMATCHED_OFFER');
   });

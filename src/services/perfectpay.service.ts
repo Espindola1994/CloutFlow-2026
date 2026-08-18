@@ -296,10 +296,10 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
       const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
       const publicId = `CF-${Date.now().toString().slice(-4)}${randomSuffix}`;
 
-      const totalCents = parsed.amountCents || (matchedOffer ? Number(matchedOffer.priceCents) : 0);
-      const quantity = matchedOffer ? Number(matchedOffer.quantity) : 1000;
-      const platform = matchedOffer?.platform || 'instagram';
-      const service = matchedOffer?.service || 'followers';
+      const totalCents = parsed.amountCents !== undefined ? parsed.amountCents : (matchedOffer ? Number(matchedOffer.priceCents) : 0);
+      const quantity = matchedOffer ? Number(matchedOffer.quantity) : 0;
+      const platform = matchedOffer?.platform || null;
+      const service = matchedOffer?.service || null;
 
       const [newOrder] = await tx
         .insert(orders)
@@ -313,8 +313,8 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
           customerPhone: parsed.customerPhone,
           platform,
           service,
-          offerId: matchedOffer?.id,
-          socialUsername: parsed.checkoutReference || undefined,
+          offerId: matchedOffer?.id || null,
+          socialUsername: parsed.checkoutReference || null,
           quantity,
           subtotalCents: totalCents,
           discountCents: 0,
@@ -335,18 +335,18 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
         })
         .returning();
 
-      // Snapshot order item
+      // Snapshot order item only if it's a generic unmapped sale or matched offer
       await tx.insert(orderItems).values({
         orderId: newOrder.id,
-        serviceName: service,
-        planName: matchedOffer?.name || `${quantity.toLocaleString()} ${service}`,
+        serviceName: service || 'unmatched_service',
+        planName: matchedOffer?.name || parsed.planName || 'Unmatched Package',
         quantity,
         unitPriceCents: totalCents,
         totalPriceCents: totalCents,
         currency: parsed.currency || 'USD',
         metadata: {
-          matchedOfferId: matchedOffer?.id,
-          matchedOfferName: matchedOffer?.name,
+          matchedOfferId: matchedOffer?.id || null,
+          matchedOfferName: matchedOffer?.name || null,
           rawPayloadPreview: parsed.metadataSafe,
         },
       });
@@ -356,7 +356,9 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
         orderId: newOrder.id,
         status: 'PROCESSING',
         paymentStatus: parsed.normalizedStatus === 'completed' ? 'COMPLETED' : 'PAID',
-        description: 'Order created and payment approved via PerfectPay webhook',
+        description: matchedOffer
+          ? 'Order created and payment approved via PerfectPay webhook'
+          : 'Payment approved but offer unmatched. Manual review required.',
         metadata: parsed.metadataSafe,
       });
 

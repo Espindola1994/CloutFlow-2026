@@ -510,14 +510,16 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="text-neutral-300 font-semibold block mb-1">Quantity</label>
+                  <label className="text-neutral-300 font-semibold block mb-1">Service Quantity</label>
                   <input
                     type="number"
+                    placeholder="e.g. 2000"
                     value={formQuantity}
                     onChange={(e) => setFormQuantity(e.target.value)}
                     className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
                     required
                   />
+                  <span className="text-[10px] text-neutral-500 block mt-0.5">Delivered per order</span>
                 </div>
                 <div>
                   <label className="text-neutral-300 font-semibold block mb-1">Price ($ USD)</label>
