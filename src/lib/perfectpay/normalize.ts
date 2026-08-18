@@ -248,7 +248,17 @@ export function normalizePerfectPayPayload(body: Record<string, unknown>): Perfe
     }
   }
 
-  const currency = String(body.currency_enum || body.currency || 'USD').toUpperCase();
+  // Safe currency mapping prioritizing currency_paid, then currency_enum mapping (2 = USD, 1 = BRL)
+  let currency = 'USD';
+  if (body.currency_paid) {
+    currency = String(body.currency_paid).toUpperCase().trim();
+  } else if (body.currency_enum !== undefined) {
+    const enumVal = Number(body.currency_enum);
+    currency = enumVal === 2 ? 'USD' : enumVal === 1 ? 'BRL' : String(enumVal);
+  } else if (body.currency) {
+    currency = String(body.currency).toUpperCase().trim();
+  }
+
   const paymentMethodEnum = body.payment_method_enum !== undefined ? Number(body.payment_method_enum) : undefined;
   const paymentTypeEnum = body.payment_type_enum !== undefined ? Number(body.payment_type_enum) : undefined;
   const paymentMethod = String(body.payment_method || body.paymentMethod || (paymentMethodEnum !== undefined ? `enum_${paymentMethodEnum}` : '')).toLowerCase() || undefined;

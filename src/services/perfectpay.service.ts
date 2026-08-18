@@ -35,7 +35,8 @@ function secureCompare(a?: string, b?: string): boolean {
 
 /**
  * Robust, idempotent processor for PerfectPay webhook events with dual-layer deduplication,
- * Public Token authentication validation, and secure Observation Mode protection.
+ * Public Token authentication validation, strict simultaneous Product+Plan offer matching,
+ * and secure Observation Mode protection.
  */
 export async function processPerfectPayWebhook(rawPayload: Record<string, unknown>): Promise<ProcessWebhookResult> {
   const parsed = normalizePerfectPayPayload(rawPayload);
@@ -64,6 +65,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
     hasCustomerName: Boolean(parsed.customerName),
     hasCustomerPhone: Boolean(parsed.customerPhone),
     hasAmountCents: Boolean(parsed.amountCents),
+    currency: parsed.currency,
     hasUtmSource: Boolean(parsed.utmSource),
     hasSrcOrSck: Boolean(parsed.src || parsed.sck),
     rawStatus: parsed.rawStatus,
@@ -190,23 +192,18 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
 
     // --- BELOW PIPELINE ONLY RUNS WHEN BOTH GATES PASS: AUTHENTICATED === TRUE AND VERIFIED_PROCESSING === TRUE ---
 
-    // 3. Match configured Offer by perfectpay_product_id or perfectpay_plan_id
+    // 3. Strict Offer Matching: Requires Active === true AND Product Code AND Plan Code simultaneously
     let matchedOffer = null;
-    if (parsed.productId || parsed.planId) {
-      if (parsed.productId) {
-        const [foundByProd] = await tx.query.offers.findMany({
-          where: eq(offers.perfectpayProductId, parsed.productId),
-          limit: 1,
-        });
-        matchedOffer = foundByProd || null;
-      }
-      if (!matchedOffer && parsed.planId) {
-        const [foundByPlan] = await tx.query.offers.findMany({
-          where: eq(offers.perfectpayPlanId, parsed.planId),
-          limit: 1,
-        });
-        matchedOffer = foundByPlan || null;
-      }
+    if (parsed.productId && parsed.planId) {
+      const [foundOffer] = await tx.query.offers.findMany({
+        where: and(
+          eq(offers.active, true),
+          eq(offers.perfectpayProductId, parsed.productId),
+          eq(offers.perfectpayPlanId, parsed.planId)
+        ),
+        limit: 1,
+      });
+      matchedOffer = foundOffer || null;
     }
 
     // 4. Handle Pre Checkout & Non-Payment events -> Lead Pipeline (CRM)
