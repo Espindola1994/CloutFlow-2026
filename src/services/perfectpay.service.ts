@@ -148,6 +148,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
           transactionId: parsed.externalPaymentId || parsed.externalOrderId,
           payload: rawPayload,
           metadataSafe: parsed.metadataSafe,
+          errorMessage: parsed.rawStatusDetail ? parsed.rawStatusDetail.slice(0, 1000) : null,
           processed: true,
           processingStatus: initialProcessingStatus,
           processedAt: new Date(),

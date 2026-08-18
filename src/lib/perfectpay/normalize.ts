@@ -127,8 +127,17 @@ export function normalizePerfectPayPayload(body: Record<string, unknown>): Perfe
   // 4. Status Mapping via Official `sale_status_enum` or raw text fallback
   const saleStatusEnum = body.sale_status_enum !== undefined ? Number(body.sale_status_enum) : undefined;
   const saleStatusDetail = body.sale_status_detail ? String(body.sale_status_detail).trim() : undefined;
-  const rawStatus = saleStatusDetail || String(body.status || body.sale_status || body.event || body.type || (saleStatusEnum !== undefined ? saleStatusEnum : '')).toLowerCase().trim();
-  const rawEventType = String(body.event_type || body.event || body.type || 'webhook').toLowerCase().trim();
+  
+  // Concise, deterministic rawStatus guaranteed to fit varchar(100)
+  const rawStatus = (
+    saleStatusEnum !== undefined ? String(saleStatusEnum) :
+    body.status ? String(body.status).slice(0, 50).toLowerCase().trim() :
+    body.sale_status ? String(body.sale_status).slice(0, 50).toLowerCase().trim() :
+    body.event ? String(body.event).slice(0, 50).toLowerCase().trim() :
+    'unknown'
+  );
+  
+  const rawEventType = String(body.event_type || body.event || body.type || 'webhook').slice(0, 50).toLowerCase().trim();
 
   let normalizedStatus: PerfectPayNormalizedStatus = 'unknown';
 
@@ -180,7 +189,7 @@ export function normalizePerfectPayPayload(body: Record<string, unknown>): Perfe
         normalizedStatus = 'unknown';
     }
   } else {
-    // Textual fallback
+    // Textual fallback based on concise status (never detail)
     if (
       rawStatus.includes('pre_checkout') ||
       rawStatus.includes('init_checkout') ||
