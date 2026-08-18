@@ -361,16 +361,55 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
         },
       });
 
-      // Log initial order event
+      // Log initial order event with explicit NOT_DISPATCHED fulfillment snapshot
       await tx.insert(orderEvents).values({
         orderId: newOrder.id,
         status: 'PROCESSING',
         paymentStatus: parsed.normalizedStatus === 'completed' ? 'COMPLETED' : 'PAID',
+        fulfillmentStatus: 'NOT_DISPATCHED',
         description: matchedOffer
           ? 'Order created and payment approved via PerfectPay webhook'
           : 'Payment approved but offer unmatched. Manual review required.',
         metadata: parsed.metadataSafe,
       });
+
+      // Fail-Safe Lead Conversion:
+      // Match candidate leads strictly by customer_email + product_id + plan_id within 48 hours
+      // Convert ONLY if there is exactly 1 unequivocal candidate (0 = skip, >1 = ambiguous, do not convert)
+      if (parsed.customerEmail && parsed.productId && parsed.planId) {
+        try {
+          const windowThreshold = new Date(Date.now() - 48 * 60 * 60 * 1000);
+          const candidateLeads = await tx.query.paymentLeads.findMany({
+            where: and(
+              eq(paymentLeads.customerEmail, parsed.customerEmail),
+              eq(paymentLeads.productId, parsed.productId),
+              eq(paymentLeads.planId, parsed.planId),
+              eq(paymentLeads.provider, 'perfectpay')
+            ),
+          });
+
+          // Filter unconverted candidates within the 48-hour window
+          const validCandidates = candidateLeads.filter(
+            (lead) => !lead.convertedOrderId && new Date(lead.firstSeenAt) >= windowThreshold
+          );
+
+          if (validCandidates.length === 1) {
+            await tx
+              .update(paymentLeads)
+              .set({
+                convertedOrderId: newOrder.id,
+                convertedAt: new Date(),
+                updatedAt: new Date(),
+              })
+              .where(eq(paymentLeads.id, validCandidates[0].id));
+          } else if (validCandidates.length > 1) {
+            console.log('[PerfectPay] Lead conversion ambiguous: multiple unconverted leads found. Skipping auto-conversion.');
+          }
+        } catch (leadErr) {
+          // Analytical enrichment failure MUST NEVER abort or roll back financial order creation
+          console.error('[PerfectPay] Safe lead enrichment skipped:', leadErr);
+        }
+      }
 
       if (loggedEvent) {
         await tx
@@ -413,6 +452,8 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
             parsed.normalizedStatus === 'refunded' ? 'REFUNDED' :
             (parsed.normalizedStatus === 'chargeback' || parsed.normalizedStatus === 'charged_back') ? 'CHARGEBACK' : 'CANCELLED';
 
+          const currentFulfillmentSnapshot = existingOrder.fulfillmentStatus || 'NOT_DISPATCHED';
+
           await tx
             .update(orders)
             .set({
@@ -427,6 +468,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
             orderId: existingOrder.id,
             status: 'CANCELLED',
             paymentStatus: newPaymentStatus,
+            fulfillmentStatus: currentFulfillmentSnapshot,
             description: `Payment status updated to ${newPaymentStatus} via PerfectPay webhook`,
             metadata: parsed.metadataSafe,
           });
