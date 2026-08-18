@@ -336,7 +336,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
         })
         .returning();
 
-      // Snapshot order item only if it's a generic unmapped sale or matched offer
+      // Snapshot order item: minimal, secure, and useful snapshot (no duplicate PII, tokens, or raw body)
       await tx.insert(orderItems).values({
         orderId: newOrder.id,
         serviceName: service || 'unmatched_service',
@@ -348,7 +348,16 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
         metadata: {
           matchedOfferId: matchedOffer?.id || null,
           matchedOfferName: matchedOffer?.name || null,
-          rawPayloadPreview: parsed.metadataSafe,
+          perfectpay: {
+            externalOrderId: parsed.externalOrderId || null,
+            productCode: parsed.productId || null,
+            productName: parsed.productName || null,
+            planCode: parsed.planId || null,
+            planName: parsed.planName || null,
+            saleStatusEnum: parsed.rawStatus || null,
+            currency: parsed.currency || 'USD',
+            amountCents: totalCents,
+          },
         },
       });
 
