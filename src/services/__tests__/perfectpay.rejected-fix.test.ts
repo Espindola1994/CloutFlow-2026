@@ -22,8 +22,10 @@ vi.mock('@/db', () => ({
             const item = { id: `id_${Date.now()}_${Math.random()}`, ...values };
             if (values.publicId) {
               mockDb.orders.push(item);
-            } else if (values.provider && !values.publicId) {
+            } else if (values.provider && values.payload) {
               mockDb.webhookEvents.push(item);
+            } else if (values.provider && !values.payload) {
+              mockDb.paymentLeads.push(item);
             }
             return {
               returning: vi.fn().mockResolvedValue([item]),
@@ -53,7 +55,7 @@ describe('PerfectPay Rejected & Raw Status Fix Tests', () => {
     delete process.env.PERFECTPAY_WEBHOOK_VERIFIED;
   });
 
-  it('A) Rejected with bank error detail > 100 chars -> normalizedStatus=rejected, rawStatus="5", errorMessage stored, HTTP 200, OBSERVED_AUTHENTICATED', async () => {
+  it('A) Rejected with bank error detail > 100 chars -> normalizedStatus=rejected, rawStatus="5", errorMessage stored, HTTP 200, LEAD_RECORDED in Observation Mode', async () => {
     const longBankMessage = "Transaction not authorized. Please check the entered data. If the error persists, contact the card's customer service center. ECOM 57";
     expect(longBankMessage.length).toBeGreaterThan(100);
 
@@ -74,7 +76,8 @@ describe('PerfectPay Rejected & Raw Status Fix Tests', () => {
     const res = await processPerfectPayWebhook(payload);
     expect(res.success).toBe(true);
     expect(res.authenticated).toBe(true);
-    expect(res.action).toBe('OBSERVED_AUTHENTICATED');
+    expect(res.action).toBe('LEAD_RECORDED');
+    expect(res.mode).toBe('OBSERVATION');
     expect(mockDb.webhookEvents.length).toBe(1);
     expect(mockDb.webhookEvents[0].rawStatus).toBe('5');
     expect(mockDb.webhookEvents[0].errorMessage).toBe(longBankMessage);

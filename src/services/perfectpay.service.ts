@@ -180,18 +180,64 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
       };
     }
 
-    // --- GATE 2 ENFORCEMENT: OBSERVATION MODE CANNOT CREATE ORDERS OR CRM LEADS ---
+    // Lead-like event statuses destined for CRM/Analytics pipeline
+    const isLeadStatus =
+      parsed.normalizedStatus === 'pre_checkout' ||
+      parsed.normalizedStatus === 'pending' ||
+      parsed.normalizedStatus === 'rejected' ||
+      parsed.normalizedStatus === 'checkout_error';
+
+    // --- GATE 2 ENFORCEMENT & LEAD RECORDING ---
+    // In Observation Mode:
+    // 1. Lead events (pre_checkout, pending, rejected, checkout_error) are recorded in payment_leads without financial side-effects.
+    // 2. Financial/Order operations (approved, completed, refunded, cancelled, chargeback, etc.) are strictly blocked from mutating Orders.
     if (!isVerifiedProcessing) {
+      if (isLeadStatus) {
+        const [lead] = await tx
+          .insert(paymentLeads)
+          .values({
+            provider: 'perfectpay',
+            externalReference: parsed.externalOrderId || parsed.externalEventId || parsed.deduplicationKey,
+            productId: parsed.productId,
+            planId: parsed.planId,
+            customerEmail: parsed.customerEmail,
+            customerName: parsed.customerName,
+            customerPhone: parsed.customerPhone,
+            rawStatus: parsed.rawStatus,
+            normalizedStatus: parsed.normalizedStatus,
+            amountCents: parsed.amountCents,
+            currency: parsed.currency || 'USD',
+            paymentMethod: parsed.paymentMethod,
+            utmSource: parsed.utmSource,
+            utmMedium: parsed.utmMedium,
+            utmCampaign: parsed.utmCampaign,
+            utmContent: parsed.utmContent,
+            utmTerm: parsed.utmTerm,
+            src: parsed.src,
+            sck: parsed.sck,
+          })
+          .returning();
+
+        return {
+          success: true,
+          authenticated: true,
+          action: 'LEAD_RECORDED',
+          leadId: lead.id,
+          message: `Authenticated lead event observed and safely recorded in payment_leads (ID: ${lead.id}) in Observation Mode. No orders created.`,
+          mode: 'OBSERVATION',
+        };
+      }
+
       return {
         success: true,
         authenticated: true,
         action: 'OBSERVED_AUTHENTICATED',
-        message: `Authenticated webhook observed and safely logged in Observation Mode with status ${parsed.normalizedStatus}. No orders created.`,
+        message: `Authenticated webhook observed and safely logged in Observation Mode with status ${parsed.normalizedStatus}. No orders created or modified.`,
         mode: 'OBSERVATION',
       };
     }
 
-    // --- BELOW PIPELINE ONLY RUNS WHEN BOTH GATES PASS: AUTHENTICATED === TRUE AND VERIFIED_PROCESSING === TRUE ---
+    // --- BELOW PIPELINE ONLY RUNS IN VERIFIED PROCESSING MODE (PERFECTPAY_WEBHOOK_VERIFIED === true) ---
 
     // 3. Strict Offer Matching: Requires Active === true AND Product Code AND Plan Code simultaneously
     let matchedOffer = null;
@@ -207,13 +253,8 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
       matchedOffer = foundOffer || null;
     }
 
-    // 4. Handle Pre Checkout & Non-Payment events -> Lead Pipeline (CRM)
-    if (
-      parsed.normalizedStatus === 'pre_checkout' ||
-      parsed.normalizedStatus === 'pending' ||
-      parsed.normalizedStatus === 'rejected' ||
-      parsed.normalizedStatus === 'checkout_error'
-    ) {
+    // 4. Handle Pre Checkout & Non-Payment events -> Lead Pipeline (CRM) in Verified Mode
+    if (isLeadStatus) {
       const [lead] = await tx
         .insert(paymentLeads)
         .values({

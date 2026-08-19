@@ -162,7 +162,7 @@ describe('PerfectPay Webhook Service - Phase 2.2D Public Token Authentication & 
     expect(mockDb.webhookEvents[0].processingStatus).toBe('OBSERVED_AUTHENTICATED');
   });
 
-  it('F) Token correto + VERIFIED=false -> NÃO cria payment_lead', async () => {
+  it('F) Token correto + VERIFIED=false (pre_checkout) -> Cria payment_lead em Observation Mode sem criar Order', async () => {
     process.env.PERFECTPAY_WEBHOOK_VERIFIED = 'false';
 
     const payload = {
@@ -174,8 +174,10 @@ describe('PerfectPay Webhook Service - Phase 2.2D Public Token Authentication & 
 
     const res = await processPerfectPayWebhook(payload);
     expect(res.authenticated).toBe(true);
-    expect(res.action).toBe('OBSERVED_AUTHENTICATED');
-    expect(mockDb.paymentLeads.length).toBe(0);
+    expect(res.action).toBe('LEAD_RECORDED');
+    expect(res.mode).toBe('OBSERVATION');
+    expect(mockDb.paymentLeads.length).toBe(1);
+    expect(mockDb.orders.length).toBe(0);
   });
 
   it('G) Aprovado + Token correto + Observation Mode -> Somente observado', async () => {
@@ -191,7 +193,7 @@ describe('PerfectPay Webhook Service - Phase 2.2D Public Token Authentication & 
     expect(mockDb.orders.length).toBe(0);
   });
 
-  it('H) Abandono + Token correto + Observation Mode -> Somente observado', async () => {
+  it('H) Abandono + Token correto + Observation Mode -> Registra payment_lead e webhook_event', async () => {
     const payload = {
       token: TEST_VALID_TOKEN,
       event_id: 'evt_obs_004',
@@ -200,8 +202,10 @@ describe('PerfectPay Webhook Service - Phase 2.2D Public Token Authentication & 
     };
 
     const res = await processPerfectPayWebhook(payload);
-    expect(res.action).toBe('OBSERVED_AUTHENTICATED');
-    expect(mockDb.paymentLeads.length).toBe(0);
+    expect(res.action).toBe('LEAD_RECORDED');
+    expect(res.mode).toBe('OBSERVATION');
+    expect(mockDb.paymentLeads.length).toBe(1);
+    expect(mockDb.orders.length).toBe(0);
   });
 
   it('I) Token NÃO aparece em metadata_safe', async () => {
