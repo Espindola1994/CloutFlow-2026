@@ -13,19 +13,23 @@ export interface ClaimOrderResult {
 
 /**
  * Maps Peakerr status response strings to standard internal fulfillmentStatus enums.
+ * Returns null if status is unrecognized, allowing callers to handle unknown status safely without state regression.
  */
-export function mapPeakerrStatusToInternal(peakerrStatus?: string | null): string {
-  if (!peakerrStatus) return 'PROCESSING';
+export function mapPeakerrStatusToLocal(peakerrStatus?: string | null): string | null {
+  if (!peakerrStatus || typeof peakerrStatus !== 'string') return null;
   const s = peakerrStatus.toLowerCase().trim();
 
   if (s === 'completed') return 'COMPLETED';
-  if (s === 'in progress' || s === 'processing') return 'PROCESSING';
+  if (s === 'in progress' || s === 'processing' || s === 'pending') return 'PROCESSING';
   if (s === 'partial') return 'PARTIAL';
   if (s === 'canceled' || s === 'cancelled') return 'CANCELED';
-  if (s === 'pending') return 'PENDING';
-  if (s === 'failed') return 'FAILED';
 
-  return 'PROCESSING';
+  return null;
+}
+
+export function mapPeakerrStatusToInternal(peakerrStatus?: string | null): string {
+  const mapped = mapPeakerrStatusToLocal(peakerrStatus);
+  return mapped || 'PROCESSING';
 }
 
 /**

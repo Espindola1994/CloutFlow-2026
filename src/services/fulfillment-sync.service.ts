@@ -1,0 +1,237 @@
+import { db } from '@/db';
+import { orders, fulfillmentOrders, orderEvents } from '@/db/schema';
+import { eq, and, inArray, isNotNull, ne } from 'drizzle-orm';
+import { peakerrClient } from '@/providers/peakerr/peakerr.client';
+import { mapPeakerrStatusToLocal } from './fulfillment.service';
+
+export interface SyncPeakerrStatusResult {
+  success: boolean;
+  checked: number;
+  updated: number;
+  completed: number;
+  partial: number;
+  canceled: number;
+  unchanged: number;
+  errors: number;
+  details?: string[];
+  error?: string;
+}
+
+export interface SanitizedProviderStatusPayload {
+  status: string;
+  charge?: string | null;
+  start_count?: string | null;
+  remains?: string | null;
+  currency?: string | null;
+}
+
+const BATCH_SIZE = 50; // Conservative batch size for multi-status query
+
+/**
+ * CENTRAL STATUS SYNC FUNCTION (READ-ONLY MONITORING):
+ * 1. Queries active (non-terminal) fulfillment_orders with provider='peakerr' and valid externalOrderId.
+ * 2. Fetches status from Peakerr in batches using action=status (or multi-status).
+ * 3. Applies strict status mapping (mapPeakerrStatusToLocal) and state transition guards (no regression from COMPLETED).
+ * 4. Atomically persists new status, sanitized response payload, and completedAt in short independent DB transactions.
+ * 5. Records order_events only upon real status transitions.
+ * 6. ZERO action=add calls, ZERO new fulfillment_order records.
+ */
+export async function syncPeakerrFulfillmentStatuses(options?: {
+  forceAllActive?: boolean;
+}): Promise<SyncPeakerrStatusResult> {
+  const result: SyncPeakerrStatusResult = {
+    success: true,
+    checked: 0,
+    updated: 0,
+    completed: 0,
+    partial: 0,
+    canceled: 0,
+    unchanged: 0,
+    errors: 0,
+    details: [],
+  };
+
+  try {
+    // 1. SELECT ACTIVE (NON-TERMINAL) PEAKERR FULFILLMENT ORDERS
+    // Eligible active statuses: SUBMITTING, PROCESSING, PARTIAL (also PENDING if any exists)
+    const activeStatuses = ['SUBMITTING', 'PROCESSING', 'PARTIAL', 'PENDING'];
+
+    const activeFulfillments = await db
+      .select({
+        id: fulfillmentOrders.id,
+        orderId: fulfillmentOrders.orderId,
+        provider: fulfillmentOrders.provider,
+        externalOrderId: fulfillmentOrders.externalOrderId,
+        status: fulfillmentOrders.status,
+        orderFulfillmentStatus: orders.fulfillmentStatus,
+        orderCompletedAt: orders.completedAt,
+      })
+      .from(fulfillmentOrders)
+      .innerJoin(orders, eq(fulfillmentOrders.orderId, orders.id))
+      .where(
+        and(
+          eq(fulfillmentOrders.provider, 'peakerr'),
+          isNotNull(fulfillmentOrders.externalOrderId),
+          ne(fulfillmentOrders.externalOrderId, ''),
+          inArray(fulfillmentOrders.status, activeStatuses)
+        )
+      );
+
+    if (!activeFulfillments || activeFulfillments.length === 0) {
+      return result;
+    }
+
+    result.checked = activeFulfillments.length;
+
+    // 2. CHUNK INTO BATCHES FOR HTTP EXECUTION OUTSIDE DB TRANSACTIONS
+    const batches: typeof activeFulfillments[] = [];
+    for (let i = 0; i < activeFulfillments.length; i += BATCH_SIZE) {
+      batches.push(activeFulfillments.slice(i, i + BATCH_SIZE));
+    }
+
+    for (const batch of batches) {
+      const orderIds = batch.map((f) => f.externalOrderId as string);
+
+      let multiStatusResponse: Record<string, any> = {};
+
+      try {
+        if (orderIds.length === 1) {
+          // Single status call
+          const singleRes = await peakerrClient.getStatus(orderIds[0]);
+          if (singleRes && !singleRes.error) {
+            multiStatusResponse[orderIds[0]] = singleRes;
+          } else {
+            result.errors += 1;
+            result.details?.push(`Provider error for order ${orderIds[0]}: ${singleRes?.error || 'Unknown error'}`);
+            continue;
+          }
+        } else {
+          // Multi-status call
+          const multiRes = await peakerrClient.getMultiStatus(orderIds);
+          if (multiRes && typeof multiRes === 'object' && !('error' in multiRes)) {
+            multiStatusResponse = multiRes;
+          } else {
+            result.errors += batch.length;
+            result.details?.push(`Batch provider error: ${(multiRes as any)?.error || 'Failed to fetch multi-status'}`);
+            continue;
+          }
+        }
+      } catch (err: any) {
+        // Network / HTTP failure - preserve local statuses safely
+        result.errors += batch.length;
+        result.details?.push(`Network failure connecting to Peakerr: ${err?.message || 'Provider unreachable'}`);
+        continue;
+      }
+
+      // 3. PROCESS EACH RECORD INDEPENDENTLY WITH GUARDS AND SHORT ATOMIC TRANSACTIONS
+      for (const item of batch) {
+        const extId = item.externalOrderId!;
+        const rawStatusItem = multiStatusResponse[extId];
+
+        if (!rawStatusItem || typeof rawStatusItem !== 'object' || rawStatusItem.error) {
+          result.unchanged += 1;
+          continue;
+        }
+
+        const rawStatus = rawStatusItem.status;
+        const mappedStatus = mapPeakerrStatusToLocal(rawStatus);
+
+        if (!mappedStatus) {
+          // UNKNOWN_PROVIDER_STATUS: do not invent state, preserve existing local state
+          result.unchanged += 1;
+          result.details?.push(`UNKNOWN_PROVIDER_STATUS for provider order #${extId}: "${rawStatus}"`);
+          continue;
+        }
+
+        // GUARD: TERMINAL STATE REGRESSION PROTECTION
+        // Never downgrade a COMPLETED order to PROCESSING or other non-completed states
+        if (item.status === 'COMPLETED' || item.orderFulfillmentStatus === 'COMPLETED') {
+          result.unchanged += 1;
+          continue;
+        }
+
+        // Sanitize response payload
+        const sanitizedPayload: SanitizedProviderStatusPayload = {
+          status: String(rawStatusItem.status || ''),
+          charge: rawStatusItem.charge !== undefined && rawStatusItem.charge !== null ? String(rawStatusItem.charge) : undefined,
+          start_count: rawStatusItem.start_count !== undefined && rawStatusItem.start_count !== null ? String(rawStatusItem.start_count) : undefined,
+          remains: rawStatusItem.remains !== undefined && rawStatusItem.remains !== null ? String(rawStatusItem.remains) : undefined,
+          currency: rawStatusItem.currency ? String(rawStatusItem.currency) : 'USD',
+        };
+
+        const isStatusChanged = item.status !== mappedStatus || item.orderFulfillmentStatus !== mappedStatus;
+
+        if (!isStatusChanged) {
+          // Update payload if fresh but keep counts as unchanged
+          await db
+            .update(fulfillmentOrders)
+            .set({
+              responsePayload: sanitizedPayload,
+              updatedAt: new Date(),
+            })
+            .where(eq(fulfillmentOrders.id, item.id));
+
+          result.unchanged += 1;
+          continue;
+        }
+
+        // ATOMIC LOCAL UPDATE
+        await db.transaction(async (tx) => {
+          // 1. Update fulfillment_orders
+          await tx
+            .update(fulfillmentOrders)
+            .set({
+              status: mappedStatus,
+              responsePayload: sanitizedPayload,
+              updatedAt: new Date(),
+            })
+            .where(eq(fulfillmentOrders.id, item.id));
+
+          // 2. Update orders
+          const orderUpdateData: Record<string, any> = {
+            fulfillmentStatus: mappedStatus,
+            updatedAt: new Date(),
+          };
+
+          if (mappedStatus === 'COMPLETED' && !item.orderCompletedAt) {
+            orderUpdateData.completedAt = new Date();
+          }
+
+          await tx.update(orders).set(orderUpdateData).where(eq(orders.id, item.orderId));
+
+          // 3. Create order_event on real transition
+          let eventDescription = `Peakerr fulfillment status changed to ${mappedStatus}`;
+          if (mappedStatus === 'COMPLETED') {
+            eventDescription = 'Peakerr fulfillment completed';
+          } else if (mappedStatus === 'PARTIAL') {
+            eventDescription = `Peakerr fulfillment partial (remains: ${sanitizedPayload.remains || '0'})`;
+          } else if (mappedStatus === 'CANCELED') {
+            eventDescription = 'Peakerr fulfillment canceled by provider';
+          }
+
+          await tx.insert(orderEvents).values({
+            orderId: item.orderId,
+            status: mappedStatus,
+            fulfillmentStatus: mappedStatus,
+            description: eventDescription,
+            metadata: sanitizedPayload as any,
+          });
+        });
+
+        result.updated += 1;
+        if (mappedStatus === 'COMPLETED') result.completed += 1;
+        else if (mappedStatus === 'PARTIAL') result.partial += 1;
+        else if (mappedStatus === 'CANCELED') result.canceled += 1;
+      }
+    }
+
+    return result;
+  } catch (error: any) {
+    console.error('[SyncPeakerrFulfillmentStatuses] Unexpected error:', error);
+    return {
+      ...result,
+      success: false,
+      error: error?.message || 'Unexpected error during status sync execution',
+    };
+  }
+}
