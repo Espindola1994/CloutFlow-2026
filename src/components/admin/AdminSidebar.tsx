@@ -11,10 +11,11 @@ import {
   ShieldBan, 
   Server, 
   LogOut,
-  X
+  X,
+  PackageOpen
 } from "lucide-react";
 
-export type AdminTab = "dashboard" | "orders" | "dropshield" | "growth" | "crm" | "blacklist" | "infra";
+export type AdminTab = "dashboard" | "orders" | "dropshield" | "fulfillment" | "growth" | "crm" | "blacklist" | "infra";
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -35,6 +36,7 @@ export function AdminSidebar({
     { id: "dashboard" as const, label: "Dashboard", icon: LayoutDashboard },
     { id: "orders" as const, label: "Orders & Margins", icon: ShoppingBag },
     { id: "dropshield" as const, label: "Drop Shield 24/7", icon: ShieldCheck },
+    { id: "fulfillment" as const, label: "Fulfillment & Peakerr", icon: PackageOpen },
     { id: "growth" as const, label: "Growth / Offers", icon: Sparkles },
     { id: "crm" as const, label: "CRM & Communication", icon: Users },
     { id: "blacklist" as const, label: "Anti-Fraud Blacklist", icon: ShieldBan },

@@ -229,11 +229,11 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
           <p className="text-xs text-neutral-400 mt-0.5">Manage real offer packages, PerfectPay product linkage, coupons and A/B experiments</p>
         </div>
 
-        <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-xl p-1 text-xs font-semibold">
+        <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-xl p-1 text-xs font-semibold overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab("plans")}
-            className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
+            className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
               activeTab === "plans" ? "bg-neutral-800 text-white shadow-xs" : "text-neutral-400 hover:text-neutral-200"
             }`}
           >
@@ -242,7 +242,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
           <button
             type="button"
             onClick={() => setActiveTab("offers")}
-            className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
+            className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
               activeTab === "offers" ? "bg-neutral-800 text-white shadow-xs" : "text-neutral-400 hover:text-neutral-200"
             }`}
           >

@@ -8,3 +8,4 @@ export * from './analytics';
 export * from './settings';
 export * from './offers';
 export * from './checkout-contexts';
+export * from './fulfillment-chains';

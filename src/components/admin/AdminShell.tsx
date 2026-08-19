@@ -10,6 +10,7 @@ import { DashboardOverview } from "./dashboard/DashboardOverview";
 import { OrdersModule } from "./orders/OrdersModule";
 import { DropShieldModule } from "./dropshield/DropShieldModule";
 import { GrowthModule } from "./growth/GrowthModule";
+import { PeakerrChainsModule } from "./fulfillment/PeakerrChainsModule";
 import { CrmModule } from "./crm/CrmModule";
 import { BlacklistModule } from "./blacklist/BlacklistModule";
 import { InfrastructureModule } from "./infrastructure/InfrastructureModule";
@@ -67,6 +68,8 @@ export function AdminShell() {
         return <OrdersModule />;
       case "dropshield":
         return <DropShieldModule monitoredProfiles={monitoredProfiles} />;
+      case "fulfillment":
+        return <PeakerrChainsModule />;
       case "growth":
         return (
           <GrowthModule 
