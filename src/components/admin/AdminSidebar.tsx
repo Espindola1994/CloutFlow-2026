@@ -14,6 +14,7 @@ import {
   X,
   PackageOpen
 } from "lucide-react";
+import { BUILD_INFO } from "@/lib/build-info";
 
 export type AdminTab = "dashboard" | "orders" | "dropshield" | "fulfillment" | "growth" | "crm" | "blacklist" | "infra";
 
@@ -97,7 +98,7 @@ export function AdminSidebar({
       </div>
 
       {/* Logout Action Footer */}
-      <div className="p-4 border-t border-neutral-800/80">
+      <div className="p-4 border-t border-neutral-800/80 space-y-2">
         <button
           type="button"
           onClick={onLogout}
@@ -106,6 +107,9 @@ export function AdminSidebar({
           <LogOut className="w-4 h-4 shrink-0" />
           <span>Sign Out</span>
         </button>
+        <div className="text-[10px] font-mono text-neutral-500 text-center select-none pt-1">
+          Build: <span className="text-neutral-300 font-bold">{BUILD_INFO.shortSha}</span>
+        </div>
       </div>
     </aside>
   );
