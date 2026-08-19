@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { orders, fulfillmentOrders, orderEvents, offers } from '@/db/schema';
-import { eq, and, inArray, desc } from 'drizzle-orm';
+import { eq, and, inArray, desc, or } from 'drizzle-orm';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { resolveFulfillmentChainAndPreview } from './fulfillment-chain.service';
 
@@ -15,8 +15,18 @@ export interface ClaimOrderResult {
  * ATOMIC CLAIM HELPER:
  * Uses an atomic UPDATE ... WHERE condition to safely acquire an exclusive lock on an order
  * without race conditions and without keeping database transactions open during long HTTP calls.
+ * Accepts both orders.id (UUID) and orders.publicId (CF-XXXXXXXX).
  */
-export async function claimOrderForFulfillment(orderId: string): Promise<ClaimOrderResult> {
+export async function claimOrderForFulfillment(orderIdentifier: string): Promise<ClaimOrderResult> {
+  const cleanInput = (orderIdentifier || '').trim();
+  if (!cleanInput) {
+    return {
+      success: false,
+      code: 'ORDER_NOT_CLAIMABLE',
+      error: 'Order identifier is required.',
+    };
+  }
+
   const [claimedOrder] = await db
     .update(orders)
     .set({
@@ -25,7 +35,10 @@ export async function claimOrderForFulfillment(orderId: string): Promise<ClaimOr
     })
     .where(
       and(
-        eq(orders.id, orderId),
+        or(
+          eq(orders.id, cleanInput),
+          eq(orders.publicId, cleanInput)
+        ),
         eq(orders.fulfillmentStatus, 'NOT_DISPATCHED'),
         inArray(orders.paymentStatus, ['PAID', 'COMPLETED'])
       )
@@ -228,19 +241,44 @@ export async function submitOrderToPeakerrManual(orderId: string) {
 /**
  * MANUAL STATUS CHECK HELPER:
  * Queries Peakerr for the live status of an order's externalOrderId (action=status, order=<id>).
+ * Resolves by orders.id OR orders.publicId.
  */
-export async function checkPeakerrOrderStatus(orderId: string) {
+export async function checkPeakerrOrderStatus(orderIdentifier: string) {
+  const cleanInput = (orderIdentifier || '').trim();
+  if (!cleanInput) {
+    return {
+      success: false,
+      error: 'NO_PROVIDER_ORDER: Order identifier is required.',
+    };
+  }
+
+  // Look up order first to find its UUID
+  const [order] = await db.query.orders.findMany({
+    where: or(
+      eq(orders.id, cleanInput),
+      eq(orders.publicId, cleanInput)
+    ),
+    limit: 1,
+  });
+
+  if (!order) {
+    return {
+      success: false,
+      error: `ORDER_NOT_FOUND: Order with identifier "${cleanInput}" does not exist.`,
+    };
+  }
+
   const [latestFulfillment] = await db
     .select()
     .from(fulfillmentOrders)
-    .where(eq(fulfillmentOrders.orderId, orderId))
+    .where(eq(fulfillmentOrders.orderId, order.id))
     .orderBy(desc(fulfillmentOrders.createdAt))
     .limit(1);
 
   if (!latestFulfillment || !latestFulfillment.externalOrderId) {
     return {
       success: false,
-      error: 'NO_PROVIDER_ORDER: No external Peakerr order ID registered for this order.',
+      error: 'NO_PROVIDER_ORDER_YET: No external Peakerr order ID registered for this order yet. Submit the order to Peakerr first.',
     };
   }
 
@@ -256,6 +294,7 @@ export async function checkPeakerrOrderStatus(orderId: string) {
   return {
     success: true,
     data: {
+      publicId: order.publicId,
       providerOrderId: latestFulfillment.externalOrderId,
       status: statusRes.status,
       charge: statusRes.charge,

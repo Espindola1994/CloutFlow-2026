@@ -36,6 +36,8 @@ export async function GET(request: Request) {
         or(
           ilike(orders.publicId, `%${search}%`),
           ilike(orders.username, `%${search}%`),
+          ilike(orders.socialUsername, `%${search}%`),
+          ilike(orders.targetUrl, `%${search}%`),
           ilike(orders.customerEmail, `%${search}%`),
           ilike(orders.externalOrderId, `%${search}%`)
         )
@@ -61,23 +63,52 @@ export async function GET(request: Request) {
       offset,
     });
 
-    const formattedOrders = items.map((o) => ({
-      id: o.id,
-      publicId: o.publicId,
-      platform: (o.platform || 'instagram') as any,
-      username: o.username || 'unknown',
-      email: o.customerEmail || 'anonymous',
-      service: o.service || 'Followers',
-      plan: `${o.quantity.toLocaleString()} units`,
-      amount: Number(o.totalCents) / 100,
-      status: (o.paymentStatus === 'PAID' ? 'paid' : o.status?.toLowerCase() || 'pending') as any,
-      date: new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      gateway: o.paymentGateway,
-      providerStatus: o.fulfillmentStatus,
-      utmSource: o.utmSource || undefined,
-      utmCampaign: o.utmCampaign || undefined,
-      utmMedium: o.utmMedium || undefined,
-    }));
+    const formattedOrders = items.map((o) => {
+      // Resolve username / target display prioritizing social_username -> username -> derived from profile/target url
+      let displayTarget = o.socialUsername || o.username || null;
+      if (!displayTarget && o.profileUrl) {
+        try {
+          const url = new URL(o.profileUrl);
+          const pathParts = url.pathname.split('/').filter(Boolean);
+          if (pathParts.length > 0) {
+            displayTarget = pathParts[0].replace(/^@+/, '');
+          }
+        } catch {
+          // ignore
+        }
+      }
+      if (!displayTarget && o.targetUrl) {
+        try {
+          const url = new URL(o.targetUrl);
+          const pathParts = url.pathname.split('/').filter(Boolean);
+          if (pathParts.length > 0) {
+            displayTarget = pathParts[pathParts.length - 1];
+          }
+        } catch {
+          // ignore
+        }
+      }
+
+      const cleanHandle = displayTarget ? displayTarget.replace(/^@+/, '') : 'target';
+
+      return {
+        id: o.id,
+        publicId: o.publicId,
+        platform: (o.platform || 'instagram') as any,
+        username: cleanHandle,
+        email: o.customerEmail || 'anonymous',
+        service: o.service || 'Followers',
+        plan: `${o.quantity.toLocaleString()} units`,
+        amount: Number(o.totalCents) / 100,
+        status: (o.paymentStatus === 'PAID' ? 'paid' : o.status?.toLowerCase() || 'pending') as any,
+        date: new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        gateway: o.paymentGateway,
+        providerStatus: o.fulfillmentStatus,
+        utmSource: o.utmSource || undefined,
+        utmCampaign: o.utmCampaign || undefined,
+        utmMedium: o.utmMedium || undefined,
+      };
+    });
 
     return NextResponse.json({
       success: true,

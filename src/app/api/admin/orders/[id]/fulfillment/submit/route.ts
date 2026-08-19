@@ -17,13 +17,14 @@ export async function POST(
     // 1. Strict Admin Authentication Guard
     await requireAdmin();
     const { id } = await params;
+    const cleanId = (id || '').trim();
 
     // 2. Validate explicit confirmation payload
     const body = await request.json().catch(() => ({}));
     submitSchema.parse(body);
 
     // 3. Execute live manual submit with all server-side reload & atomic claim rules
-    const result = await submitOrderToPeakerrManual(id);
+    const result = await submitOrderToPeakerrManual(cleanId);
 
     if (!result.success) {
       const status = result.code === 'LIVE_FULFILLMENT_DISABLED' ? 403 : 422;

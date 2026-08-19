@@ -9,8 +9,9 @@ export async function GET(
   try {
     await requireAdmin();
     const { id } = await params;
+    const cleanId = (id || '').trim();
 
-    const result = await checkPeakerrOrderStatus(id);
+    const result = await checkPeakerrOrderStatus(cleanId);
 
     if (!result.success) {
       return NextResponse.json(

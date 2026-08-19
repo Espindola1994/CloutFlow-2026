@@ -9,6 +9,7 @@ export async function POST(
   try {
     await requireAdmin();
     const { id } = await params;
+    const cleanId = (id || '').trim();
 
     let variant = 'standard';
     try {
@@ -20,7 +21,7 @@ export async function POST(
       // optional body
     }
 
-    const preview = await generateFulfillmentPreview(id, variant);
+    const preview = await generateFulfillmentPreview(cleanId, variant);
 
     if (!preview.success) {
       return NextResponse.json(

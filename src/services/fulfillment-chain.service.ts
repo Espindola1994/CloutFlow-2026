@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { orders, fulfillmentChains, fulfillmentChainServices } from '@/db/schema';
-import { eq, and, asc } from 'drizzle-orm';
+import { eq, and, asc, or } from 'drizzle-orm';
 
 export interface ChainServiceEvaluation {
   serviceId: string;
@@ -333,18 +333,30 @@ export async function resolveFulfillmentChainAndPreview(params: {
 }
 
 /**
- * Generates Dry Run for an EXISTING Order ID using the shared resolver.
+ * Generates Dry Run for an EXISTING Order ID or Public ID using the shared resolver.
  */
-export async function generateFulfillmentPreview(orderId: string, variant = 'standard'): Promise<FulfillmentSimulationResult> {
+export async function generateFulfillmentPreview(orderIdentifier: string, variant = 'standard'): Promise<FulfillmentSimulationResult> {
+  const cleanInput = (orderIdentifier || '').trim();
+  if (!cleanInput) {
+    return {
+      success: false,
+      error: { code: 'ORDER_NOT_FOUND', message: 'Order UUID or Public ID is required.' },
+    };
+  }
+
+  // Lookup by ID (UUID) OR Public ID (CF-XXXXXXXX)
   const [order] = await db.query.orders.findMany({
-    where: eq(orders.id, orderId),
+    where: or(
+      eq(orders.id, cleanInput),
+      eq(orders.publicId, cleanInput)
+    ),
     limit: 1,
   });
 
   if (!order) {
     return {
       success: false,
-      error: { code: 'ORDER_NOT_FOUND', message: `Order with ID ${orderId} does not exist.` },
+      error: { code: 'ORDER_NOT_FOUND', message: `Order with identifier "${cleanInput}" does not exist.` },
     };
   }
 

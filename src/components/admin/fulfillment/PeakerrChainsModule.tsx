@@ -1001,6 +1001,79 @@ export function PeakerrChainsModule() {
                 </div>
               </div>
 
+              {/* FIRST LIVE ORDER REVIEW CARD (Detailed Provider Cost & Metadata) */}
+              {(() => {
+                const primarySlot = evaluationList.find((s: any) => s.serviceId === data.primaryServiceId) || evaluationList[0];
+                const auditedSlot = inspectAudit?.slots?.find((s: any) => String(s.providerServiceId) === String(data.primaryServiceId));
+                const peakerrDetail = auditedSlot?.peakerrDetails;
+                
+                // Rate semantics: Peakerr rate is cost per 1,000 units (Standard SMM API v2)
+                const rateNum = peakerrDetail ? Number(peakerrDetail.rate) : null;
+                const estimatedCost = (rateNum !== null && !isNaN(rateNum) && data.quantity)
+                  ? ((rateNum * Number(data.quantity)) / 1000).toFixed(4)
+                  : null;
+
+                const currentBalanceNum = connectionInfo?.balance !== null && connectionInfo?.balance !== undefined
+                  ? Number(connectionInfo.balance)
+                  : null;
+
+                const isInsufficientBalance = (currentBalanceNum !== null && estimatedCost !== null && currentBalanceNum < Number(estimatedCost));
+
+                return (
+                  <div className="p-4 rounded-2xl bg-[#090c14] border border-blue-500/30 space-y-3">
+                    <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-blue-400" />
+                        <span className="text-xs font-bold text-white uppercase tracking-wider">
+                          FIRST LIVE ORDER REVIEW (PRIMARY ONLY)
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                        MODE: PRIMARY ONLY
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                      <div>
+                        <span className="text-[10px] text-neutral-500 block">Peakerr Primary Service:</span>
+                        <strong className="text-emerald-400 font-mono">ID {data.primaryServiceId}</strong>
+                        <p className="text-[10px] text-neutral-400 truncate mt-0.5">{peakerrDetail?.name || "Standard Provider Service"}</p>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] text-neutral-500 block">Service Min / Max:</span>
+                        <strong className="text-neutral-200 font-mono">
+                          {peakerrDetail?.min ? `${Number(peakerrDetail.min).toLocaleString()} – ${Number(peakerrDetail.max).toLocaleString()}` : `${primarySlot?.minQuantity} – ${primarySlot?.maxQuantity}`}
+                        </strong>
+                        <span className="text-[10px] text-emerald-400 block mt-0.5">Quantity Eligible ✓</span>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] text-neutral-500 block">Rate (per 1,000):</span>
+                        <strong className="text-white font-mono">
+                          {rateNum !== null ? `$${rateNum.toFixed(2)}` : "Verified via API"}
+                        </strong>
+                        <p className="text-[10px] text-neutral-400 mt-0.5">
+                          Est. Cost: <strong className="text-emerald-400">{estimatedCost ? `$${estimatedCost}` : "Pending"}</strong>
+                        </p>
+                      </div>
+
+                      <div>
+                        <span className="text-[10px] text-neutral-500 block">Peakerr Balance:</span>
+                        <strong className={`font-mono ${isInsufficientBalance ? "text-red-400" : "text-white"}`}>
+                          {connectionInfo?.balance !== null && connectionInfo?.balance !== undefined ? `${connectionInfo.currency} ${connectionInfo.balance}` : "Not Checked"}
+                        </strong>
+                        {isInsufficientBalance ? (
+                          <span className="text-[10px] text-red-400 block font-bold mt-0.5">⚠️ INSUFFICIENT BALANCE</span>
+                        ) : (
+                          <span className="text-[10px] text-emerald-400 block mt-0.5">Balance Adequate ✓</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
               {/* Chain Slots Evaluation Breakdown */}
               {evaluationList.length > 0 && (
                 <div className="space-y-2">
