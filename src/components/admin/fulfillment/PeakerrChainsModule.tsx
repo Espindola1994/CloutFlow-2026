@@ -965,17 +965,53 @@ export function PeakerrChainsModule() {
               {/* Header Status & Platform/Service Metadata */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-neutral-800">
                 <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-1 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-bold text-xs">
-                    DRY_RUN_READY
+                  <span className={`px-2.5 py-1 rounded-md font-mono font-bold text-xs ${
+                    data.alreadyDispatched
+                      ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                      : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                  }`}>
+                    {data.action || (data.alreadyDispatched ? "INSPECTION_MODE" : "DRY_RUN_READY")}
                   </span>
                   <span className="text-neutral-400 font-semibold">
                     {data.platform?.toUpperCase()} • {data.service?.toUpperCase()} ({data.variant})
                   </span>
                 </div>
                 <span className="text-[11px] font-mono text-amber-400 font-semibold">
-                  SIMULATION ONLY • NO REQUEST SENT
+                  {data.alreadyDispatched ? "ALREADY DISPATCHED • READ-ONLY" : "SIMULATION ONLY • NO REQUEST SENT"}
                 </span>
               </div>
+
+              {/* Already Dispatched Banner / Provider Order Info */}
+              {data.alreadyDispatched && (
+                <div className="p-4 rounded-2xl bg-[#090e1a] border border-blue-500/30 text-xs font-mono space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-blue-400">
+                      ✓ ALREADY DISPATCHED — Provider Order #{data.latestFulfillment?.externalOrderId || "Registered"}
+                    </span>
+                    <span className="text-neutral-400 text-[11px]">
+                      Provider: {data.latestFulfillment?.provider || "Peakerr"} • Status: <strong className="text-white">{data.fulfillmentStatus || data.latestFulfillment?.status || "PROCESSING"}</strong>
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-neutral-300 pt-1 border-t border-neutral-800/80">
+                    <div>
+                      <span className="text-neutral-500 block">Provider Order ID:</span>
+                      <strong className="text-white">{data.latestFulfillment?.externalOrderId || "N/A"}</strong>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500 block">Provider Service ID:</span>
+                      <strong className="text-emerald-400">{data.latestFulfillment?.externalServiceId || data.primaryServiceId}</strong>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500 block">Submitted At:</span>
+                      <span>{data.latestFulfillment?.submittedAt ? new Date(data.latestFulfillment.submittedAt).toLocaleString() : "Recently"}</span>
+                    </div>
+                    <div>
+                      <span className="text-neutral-500 block">Fulfillment State:</span>
+                      <strong className="text-blue-300">{data.fulfillmentStatus || "PROCESSING"}</strong>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Summary Metrics */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -1134,7 +1170,7 @@ export function PeakerrChainsModule() {
                     <button
                       type="button"
                       onClick={handleCheckLiveStatus}
-                      disabled={statusCheckLoading}
+                      disabled={statusCheckLoading || (!data.latestFulfillment?.externalOrderId && data.fulfillmentStatus === 'NOT_DISPATCHED')}
                       className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 text-xs"
                     >
                       {statusCheckLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
@@ -1143,7 +1179,12 @@ export function PeakerrChainsModule() {
                   </div>
 
                   <div className="flex items-center gap-2 justify-end">
-                    {!runtimeFlags.liveFulfillment ? (
+                    {data.alreadyDispatched ? (
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-950/40 border border-blue-500/30 text-blue-300 text-xs font-semibold">
+                        <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
+                        <span>ALREADY DISPATCHED — Provider Order #{data.latestFulfillment?.externalOrderId || "Active"}</span>
+                      </div>
+                    ) : !runtimeFlags.liveFulfillment ? (
                       <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-400 text-xs font-semibold">
                         <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
                         <span>LIVE FULFILLMENT DISABLED (Kill Switch Active)</span>

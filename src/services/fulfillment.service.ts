@@ -12,6 +12,23 @@ export interface ClaimOrderResult {
 }
 
 /**
+ * Maps Peakerr status response strings to standard internal fulfillmentStatus enums.
+ */
+export function mapPeakerrStatusToInternal(peakerrStatus?: string | null): string {
+  if (!peakerrStatus) return 'PROCESSING';
+  const s = peakerrStatus.toLowerCase().trim();
+
+  if (s === 'completed') return 'COMPLETED';
+  if (s === 'in progress' || s === 'processing') return 'PROCESSING';
+  if (s === 'partial') return 'PARTIAL';
+  if (s === 'canceled' || s === 'cancelled') return 'CANCELED';
+  if (s === 'pending') return 'PENDING';
+  if (s === 'failed') return 'FAILED';
+
+  return 'PROCESSING';
+}
+
+/**
  * HELPER: Resolves the canonical target URL for an order with exact consistency between Preview, Dry Run and Live Submit.
  * Followers: orders.profileUrl -> orders.targetUrl (if profile url) -> orders.socialUsername (normalized to platform canonical URL)
  * Likes/Views/Comments: orders.targetUrl (strictly content URL)
@@ -318,9 +335,10 @@ export async function submitOrderToPeakerrManual(orderIdentifier: string) {
 }
 
 /**
- * MANUAL STATUS CHECK HELPER:
+ * MANUAL STATUS CHECK HELPER (READ-ONLY INSPECTION):
  * Queries Peakerr for the live status of an order's externalOrderId (action=status, order=<id>).
- * Resolves by orders.id OR orders.publicId.
+ * Synchronizes the verified status back to fulfillment_orders and orders safely.
+ * Executes ZERO action=add calls.
  */
 export async function checkPeakerrOrderStatus(orderIdentifier: string) {
   const cleanInput = (orderIdentifier || '').trim();
@@ -361,6 +379,7 @@ export async function checkPeakerrOrderStatus(orderIdentifier: string) {
     };
   }
 
+  // Execute READ-ONLY action=status request
   const statusRes = await peakerrClient.getStatus(latestFulfillment.externalOrderId);
 
   if (statusRes.error) {
@@ -370,11 +389,41 @@ export async function checkPeakerrOrderStatus(orderIdentifier: string) {
     };
   }
 
+  // Synchronize status safely to database
+  const mappedStatus = mapPeakerrStatusToInternal(statusRes.status);
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(fulfillmentOrders)
+      .set({
+        status: mappedStatus,
+        responsePayload: statusRes as any,
+        updatedAt: new Date(),
+      })
+      .where(eq(fulfillmentOrders.id, latestFulfillment.id));
+
+    // Only update orders.fulfillmentStatus if status progressed
+    if (mappedStatus === 'COMPLETED' || mappedStatus === 'PARTIAL' || mappedStatus === 'CANCELED') {
+      const updateData: Record<string, any> = {
+        fulfillmentStatus: mappedStatus,
+        updatedAt: new Date(),
+      };
+      if (mappedStatus === 'COMPLETED') {
+        updateData.completedAt = new Date();
+      }
+      await tx.update(orders).set(updateData).where(eq(orders.id, order.id));
+    }
+  });
+
   return {
     success: true,
     data: {
       publicId: order.publicId,
-      providerOrderId: latestFulfillment.externalOrderId,
+      orderId: order.id,
+      provider: latestFulfillment.provider || 'peakerr',
+      externalOrderId: latestFulfillment.externalOrderId,
+      externalServiceId: latestFulfillment.externalServiceId,
+      localStatus: mappedStatus,
       status: statusRes.status,
       charge: statusRes.charge,
       startCount: statusRes.start_count,

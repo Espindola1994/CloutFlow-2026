@@ -1,6 +1,6 @@
 import { db } from '@/db';
-import { orders, fulfillmentChains, fulfillmentChainServices } from '@/db/schema';
-import { eq, and, asc, or } from 'drizzle-orm';
+import { orders, fulfillmentChains, fulfillmentChainServices, fulfillmentOrders } from '@/db/schema';
+import { eq, and, asc, or, desc } from 'drizzle-orm';
 
 export interface ChainServiceEvaluation {
   serviceId: string;
@@ -22,7 +22,8 @@ export interface PeakerrSimulatedPayload {
 
 export interface FulfillmentSimulationSuccess {
   success: true;
-  action: 'DRY_RUN_READY';
+  action: 'DRY_RUN_READY' | 'INSPECTION_MODE';
+  mode: 'PREVIEW' | 'INSPECTION';
   orderId?: string;
   publicId?: string;
   platform: string;
@@ -31,6 +32,18 @@ export interface FulfillmentSimulationSuccess {
   quantity: number;
   target: string;
   targetType: string;
+  paymentStatus?: string;
+  fulfillmentStatus?: string;
+  alreadyDispatched?: boolean;
+  latestFulfillment?: {
+    id: string;
+    provider: string;
+    externalOrderId: string | null;
+    externalServiceId: string | null;
+    status: string;
+    submittedAt: string | null;
+    lastError: string | null;
+  } | null;
   chain: {
     id: string;
     name: string;
@@ -40,7 +53,7 @@ export interface FulfillmentSimulationSuccess {
   fallbacks: string[];
   chainServicesEvaluation: ChainServiceEvaluation[];
   peakerrRequestPayload: PeakerrSimulatedPayload;
-  notice: 'SIMULATION ONLY - NO REQUEST SENT TO PEAKERR';
+  notice: string;
   dryRunMode: true;
 }
 
@@ -188,7 +201,7 @@ export function resolveAndValidateTarget(
 /**
  * SHARED CORE CHAIN RESOLVER:
  * Resolves fulfillment chains from Supabase, evaluates min/max bounds, applies auto_fallback logic,
- * and formats the exact Peakerr payload preview.
+ * and formats the exact Peakerr payload preview or inspection object.
  */
 export async function resolveFulfillmentChainAndPreview(params: {
   platform: string;
@@ -199,8 +212,32 @@ export async function resolveFulfillmentChainAndPreview(params: {
   targetType: string;
   orderId?: string;
   publicId?: string;
+  paymentStatus?: string;
+  fulfillmentStatus?: string;
+  isInspection?: boolean;
+  latestFulfillment?: {
+    id: string;
+    provider: string;
+    externalOrderId: string | null;
+    externalServiceId: string | null;
+    status: string;
+    submittedAt: string | null;
+    lastError: string | null;
+  } | null;
 }): Promise<FulfillmentSimulationResult> {
-  const { platform, service, quantity, target, targetType, orderId, publicId } = params;
+  const {
+    platform,
+    service,
+    quantity,
+    target,
+    targetType,
+    orderId,
+    publicId,
+    paymentStatus,
+    fulfillmentStatus,
+    isInspection,
+    latestFulfillment,
+  } = params;
   const variant = params.variant || 'standard';
 
   // 1. Fetch Active Chain from Database
@@ -267,7 +304,7 @@ export async function resolveFulfillmentChainAndPreview(params: {
 
   const eligibleServices = chainServicesEvaluation.filter((s) => s.eligible);
 
-  if (eligibleServices.length === 0) {
+  if (eligibleServices.length === 0 && !isInspection) {
     return {
       success: false,
       error: {
@@ -281,7 +318,7 @@ export async function resolveFulfillmentChainAndPreview(params: {
   const primaryCandidate = chainServicesEvaluation.find((s) => s.priority === 1);
   const isPrimaryEligible = primaryCandidate?.eligible ?? false;
 
-  if (!isPrimaryEligible && !chain.autoFallback) {
+  if (!isPrimaryEligible && !chain.autoFallback && !isInspection) {
     return {
       success: false,
       error: {
@@ -291,15 +328,17 @@ export async function resolveFulfillmentChainAndPreview(params: {
     };
   }
 
-  const selectedPrimary = isPrimaryEligible
+  const selectedPrimary = latestFulfillment?.externalServiceId
+    ? latestFulfillment.externalServiceId
+    : isPrimaryEligible
     ? primaryCandidate!.serviceId
-    : eligibleServices[0].serviceId;
+    : eligibleServices[0]?.serviceId || chainServices[0].providerServiceId;
 
   const eligibleFallbacks = chain.autoFallback
     ? eligibleServices.filter((s) => s.serviceId !== selectedPrimary).map((s) => s.serviceId)
     : [];
 
-  // 5. Construct Simulated Peakerr Payload (Exact JSON structure for future execution)
+  // 5. Construct Simulated Peakerr Payload (Exact JSON structure)
   const peakerrRequestPayload: PeakerrSimulatedPayload = {
     provider: 'peakerr',
     service: selectedPrimary,
@@ -307,9 +346,14 @@ export async function resolveFulfillmentChainAndPreview(params: {
     quantity,
   };
 
+  const isAlreadyDispatched = Boolean(
+    isInspection || (fulfillmentStatus && fulfillmentStatus !== 'NOT_DISPATCHED')
+  );
+
   return {
     success: true,
-    action: 'DRY_RUN_READY',
+    action: isAlreadyDispatched ? 'INSPECTION_MODE' : 'DRY_RUN_READY',
+    mode: isAlreadyDispatched ? 'INSPECTION' : 'PREVIEW',
     orderId,
     publicId,
     platform: platform.toLowerCase(),
@@ -318,6 +362,10 @@ export async function resolveFulfillmentChainAndPreview(params: {
     quantity,
     target,
     targetType,
+    paymentStatus,
+    fulfillmentStatus,
+    alreadyDispatched: isAlreadyDispatched,
+    latestFulfillment,
     chain: {
       id: chain.id,
       name: chain.name,
@@ -327,13 +375,18 @@ export async function resolveFulfillmentChainAndPreview(params: {
     fallbacks: eligibleFallbacks,
     chainServicesEvaluation,
     peakerrRequestPayload,
-    notice: 'SIMULATION ONLY - NO REQUEST SENT TO PEAKERR',
+    notice: isAlreadyDispatched
+      ? 'READ-ONLY INSPECTION MODE - ORDER ALREADY DISPATCHED'
+      : 'SIMULATION ONLY - NO REQUEST SENT TO PEAKERR',
     dryRunMode: true,
   };
 }
 
 /**
- * Generates Dry Run for an EXISTING Order ID or Public ID using the shared resolver.
+ * Generates Dry Run OR Read-Only Inspection for an EXISTING Order ID or Public ID.
+ * If order.fulfillmentStatus === 'NOT_DISPATCHED': Returns PREVIEW (Dry Run).
+ * If order.fulfillmentStatus !== 'NOT_DISPATCHED' (e.g. PROCESSING, COMPLETED, SUBMITTING):
+ * Returns INSPECTION mode with attached fulfillment_order details and blocks new submit.
  */
 export async function generateFulfillmentPreview(orderIdentifier: string, variant = 'standard'): Promise<FulfillmentSimulationResult> {
   const cleanInput = (orderIdentifier || '').trim();
@@ -370,14 +423,38 @@ export async function generateFulfillmentPreview(orderIdentifier: string, varian
     };
   }
 
-  if (order.fulfillmentStatus !== 'NOT_DISPATCHED') {
-    return {
-      success: false,
-      error: {
-        code: 'FULFILLMENT_STATUS_INVALID',
-        message: `Order fulfillment status is ${order.fulfillmentStatus}; cannot preview already dispatched orders.`,
-      },
-    };
+  const isDispatched = order.fulfillmentStatus !== 'NOT_DISPATCHED';
+
+  // If already dispatched, load the latest fulfillment_order record for inspection
+  let latestFulfillmentData: {
+    id: string;
+    provider: string;
+    externalOrderId: string | null;
+    externalServiceId: string | null;
+    status: string;
+    submittedAt: string | null;
+    lastError: string | null;
+  } | null = null;
+
+  if (isDispatched) {
+    const [fOrder] = await db
+      .select()
+      .from(fulfillmentOrders)
+      .where(eq(fulfillmentOrders.orderId, order.id))
+      .orderBy(desc(fulfillmentOrders.createdAt))
+      .limit(1);
+
+    if (fOrder) {
+      latestFulfillmentData = {
+        id: fOrder.id,
+        provider: fOrder.provider,
+        externalOrderId: fOrder.externalOrderId,
+        externalServiceId: fOrder.externalServiceId,
+        status: fOrder.status,
+        submittedAt: fOrder.submittedAt ? fOrder.submittedAt.toISOString() : null,
+        lastError: fOrder.lastError,
+      };
+    }
   }
 
   const quantity = Number(order.quantity);
@@ -416,5 +493,9 @@ export async function generateFulfillmentPreview(orderIdentifier: string, varian
     targetType: targetRes.targetType,
     orderId: order.id,
     publicId: order.publicId,
+    paymentStatus: order.paymentStatus,
+    fulfillmentStatus: order.fulfillmentStatus,
+    isInspection: isDispatched,
+    latestFulfillment: latestFulfillmentData,
   });
 }

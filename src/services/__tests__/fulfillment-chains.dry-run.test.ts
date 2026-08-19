@@ -6,6 +6,15 @@ import { db } from '@/db';
 
 vi.mock('@/db', () => ({
   db: {
+    select: vi.fn().mockReturnValue({
+      from: vi.fn().mockReturnValue({
+        where: vi.fn().mockReturnValue({
+          orderBy: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      }),
+    }),
     query: {
       orders: {
         findMany: vi.fn(),
@@ -166,11 +175,12 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
     }
   });
 
-  it('M) Wrong fulfillment status (PENDING / PROCESSING / SUBMITTED / COMPLETED) is blocked', async () => {
+  it('M) Already dispatched fulfillment status (PENDING / PROCESSING / SUBMITTED / COMPLETED) triggers Inspection Mode', async () => {
     const statuses = ['PENDING', 'SUBMITTED', 'PROCESSING', 'COMPLETED'];
     for (const st of statuses) {
       const mockOrder = {
         id: `ord_${st}`,
+        publicId: `CF-${st}`,
         paymentStatus: 'PAID',
         fulfillmentStatus: st,
         platform: 'instagram',
@@ -180,11 +190,18 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
       };
 
       (db.query.orders.findMany as any).mockResolvedValue([mockOrder]);
+      (db.query.fulfillmentChains.findMany as any).mockResolvedValue([
+        { id: 'c1', platform: 'instagram', service: 'followers', variant: 'standard', name: 'IG', autoFallback: true, active: true },
+      ]);
+      (db.query.fulfillmentChainServices.findMany as any).mockResolvedValue([
+        { providerServiceId: '31714', priority: 1, minQuantity: 10, maxQuantity: 1000000, active: true },
+      ]);
 
       const res = await generateFulfillmentPreview(`ord_${st}`);
-      expect(res.success).toBe(false);
-      if (!res.success) {
-        expect(res.error.code).toBe('FULFILLMENT_STATUS_INVALID');
+      expect(res.success).toBe(true);
+      if (res.success) {
+        expect(res.mode).toBe('INSPECTION');
+        expect(res.alreadyDispatched).toBe(true);
       }
     }
   });
