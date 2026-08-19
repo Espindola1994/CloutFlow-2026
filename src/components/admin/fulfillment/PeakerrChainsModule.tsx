@@ -218,6 +218,56 @@ export function PeakerrChainsModule() {
   const [manualResult, setManualResult] = useState<any>(null);
   const [manualLoading, setManualLoading] = useState(false);
 
+  // Peakerr Connection State
+  const [connectionInfo, setConnectionInfo] = useState<{
+    connected: boolean;
+    balance: string | number | null;
+    currency: string;
+    servicesCount: number;
+    lastCheckedAt: string | null;
+    error?: string | null;
+  } | null>(null);
+  const [inspectAudit, setInspectAudit] = useState<any>(null);
+  const [inspectLoading, setInspectLoading] = useState(false);
+
+  const fetchPeakerrInspection = useCallback(async () => {
+    try {
+      setInspectLoading(true);
+      const res = await fetch("/api/admin/fulfillment/peakerr/inspect", {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        setConnectionInfo(json.connection);
+        setInspectAudit(json.audit);
+      } else {
+        setConnectionInfo({
+          connected: false,
+          balance: null,
+          currency: "USD",
+          servicesCount: 0,
+          lastCheckedAt: new Date().toISOString(),
+          error: json.error?.message || "Failed to inspect Peakerr connection.",
+        });
+      }
+    } catch {
+      setConnectionInfo({
+        connected: false,
+        balance: null,
+        currency: "USD",
+        servicesCount: 0,
+        lastCheckedAt: new Date().toISOString(),
+        error: "Network error inspecting Peakerr.",
+      });
+    } finally {
+      setInspectLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchPeakerrInspection();
+  }, [fetchPeakerrInspection]);
+
   const services = ["followers", "likes", "views", "comments"];
 
   // Fetch real persistent chains from Supabase database
@@ -438,6 +488,48 @@ export function PeakerrChainsModule() {
               {p === "twitter" ? "X (Twitter)" : p}
             </button>
           ))}
+        </div>
+      </div>
+
+      {/* PEAKERR CONNECTION STATUS BAR (Live Read-Only Inspect) */}
+      <div className="p-4 rounded-2xl bg-[#0e131f] border border-neutral-800/90 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className={`w-3 h-3 rounded-full ${connectionInfo?.connected ? "bg-emerald-400 animate-pulse" : "bg-red-400"}`} />
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-white uppercase tracking-wider">Peakerr Connection:</span>
+              <span className={`text-xs font-bold ${connectionInfo?.connected ? "text-emerald-400" : "text-red-400"}`}>
+                {inspectLoading ? "Inspecting..." : connectionInfo?.connected ? "Connected" : "Not Connected / Misconfigured"}
+              </span>
+            </div>
+            {connectionInfo?.error && (
+              <p className="text-[11px] text-red-400">{connectionInfo.error}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-4 text-xs font-mono">
+          <div className="px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800">
+            <span className="text-neutral-500 mr-1.5">Balance:</span>
+            <strong className="text-white">
+              {connectionInfo?.balance !== null && connectionInfo?.balance !== undefined
+                ? `${connectionInfo.currency} ${connectionInfo.balance}`
+                : "—"}
+            </strong>
+          </div>
+          <div className="px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800">
+            <span className="text-neutral-500 mr-1.5">Services Loaded:</span>
+            <strong className="text-white">{connectionInfo?.servicesCount ?? 0}</strong>
+          </div>
+          <button
+            type="button"
+            onClick={fetchPeakerrInspection}
+            disabled={inspectLoading}
+            className="px-3.5 py-1.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-sans text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+          >
+            {inspectLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+            <span>Refresh Peakerr</span>
+          </button>
         </div>
       </div>
 

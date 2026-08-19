@@ -1,23 +1,23 @@
-export interface PeakerrServiceInfo {
-  service: string;
+export interface PeakerrService {
+  service: string | number;
   name: string;
   type: string;
   category: string;
-  rate: string;
-  min: string;
-  max: string;
-  dripfeed: boolean;
-  refill: boolean;
-  cancel: boolean;
+  rate: string | number;
+  min: string | number;
+  max: string | number;
+  refill: boolean | string | number;
+  cancel: boolean | string | number;
+  dripfeed?: boolean | string | number;
 }
 
 export interface PeakerrBalanceResponse {
-  balance: string;
+  balance: string | number;
   currency: string;
 }
 
 export interface PeakerrOrderRequest {
-  service: string;
+  service: string | number;
   link: string;
   quantity: number;
   runs?: number;
@@ -25,17 +25,46 @@ export interface PeakerrOrderRequest {
   comments?: string;
 }
 
-export interface PeakerrOrderResponse {
-  order?: number | string;
+export interface PeakerrCreateOrderSuccess {
+  success: true;
+  order: string | number;
+  rawResponse: Record<string, unknown>;
+}
+
+export interface PeakerrCreateOrderError {
+  success: false;
+  error: string;
+  errorKind: PeakerrErrorKind;
+  isAmbiguous?: boolean;
+  rawResponse?: unknown;
+}
+
+export type PeakerrCreateOrderResult = PeakerrCreateOrderSuccess | PeakerrCreateOrderError;
+
+export interface PeakerrOrderStatusResponse {
+  status?: 'Pending' | 'In progress' | 'Completed' | 'Partial' | 'Canceled' | 'Processing' | string;
+  charge?: string | number;
+  start_count?: string | number;
+  remains?: string | number;
+  currency?: string;
   error?: string;
 }
 
-export interface PeakerrOrderStatusResponse {
-  charge?: string;
-  start_count?: string;
-  status?: 'Pending' | 'In progress' | 'Completed' | 'Partial' | 'Canceled' | 'Processing';
-  remains?: string;
-  currency?: string;
+export type PeakerrMultiStatusResponse = Record<string, PeakerrOrderStatusResponse>;
+
+export interface PeakerrRefillResponse {
+  refill?: string | number;
+  error?: string;
+}
+
+export interface PeakerrRefillStatusResponse {
+  status?: string;
+  error?: string;
+}
+
+export interface PeakerrCancelResponse {
+  order?: string | number;
+  cancel?: string | number | boolean;
   error?: string;
 }
 
@@ -48,4 +77,8 @@ export type PeakerrErrorKind =
   | 'TEMPORARY_UNAVAILABLE'
   | 'INVALID_LINK'
   | 'INVALID_QUANTITY'
+  | 'AMBIGUOUS_SUBMISSION'
+  | 'LIVE_FULFILLMENT_DISABLED'
+  | 'CONFIG_MISSING'
+  | 'PROVIDER_INVALID_RESPONSE'
   | 'UNKNOWN_ERROR';
