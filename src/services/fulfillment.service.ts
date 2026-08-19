@@ -2,7 +2,7 @@ import { db } from '@/db';
 import { orders, fulfillmentOrders, orderEvents, offers } from '@/db/schema';
 import { eq, and, inArray, desc, or } from 'drizzle-orm';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
-import { resolveFulfillmentChainAndPreview } from './fulfillment-chain.service';
+import { resolveFulfillmentChainAndPreview, resolveAndValidateTarget } from './fulfillment-chain.service';
 
 export interface ClaimOrderResult {
   success: boolean;
@@ -12,62 +12,57 @@ export interface ClaimOrderResult {
 }
 
 /**
- * ATOMIC CLAIM HELPER:
- * Uses an atomic UPDATE ... WHERE condition to safely acquire an exclusive lock on an order
- * without race conditions and without keeping database transactions open during long HTTP calls.
- * Accepts both orders.id (UUID) and orders.publicId (CF-XXXXXXXX).
+ * HELPER: Resolves the canonical target URL for an order with exact consistency between Preview, Dry Run and Live Submit.
+ * Followers: orders.profileUrl -> orders.targetUrl (if profile url) -> orders.socialUsername (normalized to platform canonical URL)
+ * Likes/Views/Comments: orders.targetUrl (strictly content URL)
  */
-export async function claimOrderForFulfillment(orderIdentifier: string): Promise<ClaimOrderResult> {
-  const cleanInput = (orderIdentifier || '').trim();
-  if (!cleanInput) {
-    return {
-      success: false,
-      code: 'ORDER_NOT_CLAIMABLE',
-      error: 'Order identifier is required.',
-    };
+export function resolveCanonicalFulfillmentTarget(order: {
+  platform?: string | null;
+  service?: string | null;
+  profileUrl?: string | null;
+  socialUsername?: string | null;
+  targetUrl?: string | null;
+}) {
+  const p = order.platform || '';
+  const s = order.service || '';
+  const isFollowers = s.toLowerCase() === 'followers';
+
+  let rawTarget: string | null = null;
+
+  if (isFollowers) {
+    if (order.profileUrl && order.profileUrl.trim().length > 0) {
+      rawTarget = order.profileUrl.trim();
+    } else if (order.targetUrl && order.targetUrl.trim().length > 0) {
+      rawTarget = order.targetUrl.trim();
+    } else if (order.socialUsername && order.socialUsername.trim().length > 0) {
+      rawTarget = order.socialUsername.trim();
+    }
+  } else {
+    rawTarget = order.targetUrl ? order.targetUrl.trim() : null;
   }
 
-  const [claimedOrder] = await db
-    .update(orders)
-    .set({
-      fulfillmentStatus: 'SUBMITTING',
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        or(
-          eq(orders.id, cleanInput),
-          eq(orders.publicId, cleanInput)
-        ),
-        eq(orders.fulfillmentStatus, 'NOT_DISPATCHED'),
-        inArray(orders.paymentStatus, ['PAID', 'COMPLETED'])
-      )
-    )
-    .returning();
-
-  if (!claimedOrder) {
-    return {
-      success: false,
-      code: 'ORDER_NOT_CLAIMABLE',
-      error: 'ORDER_NOT_CLAIMABLE: Order does not exist, is not paid, or is already claimed/dispatched.',
-    };
-  }
-
-  return {
-    success: true,
-    order: claimedOrder,
-  };
+  return resolveAndValidateTarget(rawTarget, p, s);
 }
 
 /**
  * CONTROLLED LIVE SUBMIT (Primary Only / Manual Approval):
  * Safe 3-phase execution pattern:
- * 1. DB Claim Phase (Atomic Claim + Record SUBMITTING fulfillment_order) -> Transaction Closed.
+ * 1. DB Claim & Pre-insert Phase (Atomic Claim + Pre-insert SUBMITTING fulfillment_order in a SINGLE transaction) -> Transação comitada antes do HTTP.
+ *    - Se qualquer erro ocorrer no claim ou no insert, toda a transação sofre ROLLBACK e a Order permanece NOT_DISPATCHED.
  * 2. External HTTP Phase (Peakerr Client execution outside DB transaction).
- * 3. DB Finalization Phase (Record Result / Ambiguous Timeout Handling) -> Transaction Closed.
+ * 3. DB Finalization Phase (Record Result / Ambiguous Timeout Handling) -> Transação comitada.
  */
-export async function submitOrderToPeakerrManual(orderId: string) {
-  // Phase 1: Pre-flight Verification & Atomic DB Claim
+export async function submitOrderToPeakerrManual(orderIdentifier: string) {
+  const cleanInput = (orderIdentifier || '').trim();
+  if (!cleanInput) {
+    return {
+      success: false,
+      code: 'INVALID_INPUT',
+      error: 'Order UUID or Public ID is required.',
+    };
+  }
+
+  // Live Kill Switch Check (Fast return before any DB operations)
   if (!peakerrClient.isLiveEnabled()) {
     return {
       success: false,
@@ -76,41 +71,73 @@ export async function submitOrderToPeakerrManual(orderId: string) {
     };
   }
 
-  // 1. Atomic claim order in database
-  const claim = await claimOrderForFulfillment(orderId);
-  if (!claim.success || !claim.order) {
-    return { success: false, code: claim.code || 'CLAIM_FAILED', error: claim.error };
+  // 1. Fetch and validate order eligibility first (Read-only check)
+  const [existingOrder] = await db.query.orders.findMany({
+    where: or(
+      eq(orders.id, cleanInput),
+      eq(orders.publicId, cleanInput)
+    ),
+    limit: 1,
+  });
+
+  if (!existingOrder) {
+    return {
+      success: false,
+      code: 'ORDER_NOT_FOUND',
+      error: `ORDER_NOT_FOUND: Order with identifier "${cleanInput}" does not exist.`,
+    };
   }
 
-  const order = claim.order;
+  if (existingOrder.paymentStatus !== 'PAID' && existingOrder.paymentStatus !== 'COMPLETED') {
+    return {
+      success: false,
+      code: 'PAYMENT_NOT_ELIGIBLE',
+      error: `PAYMENT_NOT_ELIGIBLE: Order payment status is "${existingOrder.paymentStatus}". Must be PAID or COMPLETED.`,
+    };
+  }
 
-  // 2. Resolve target & primary service from database chain
-  const target = order.service?.toLowerCase() === 'followers'
-    ? (order.profileUrl || order.socialUsername)
-    : order.targetUrl;
+  if (existingOrder.fulfillmentStatus !== 'NOT_DISPATCHED') {
+    return {
+      success: false,
+      code: 'ORDER_ALREADY_CLAIMED',
+      error: `ORDER_ALREADY_CLAIMED: Order fulfillment status is already "${existingOrder.fulfillmentStatus}". Only NOT_DISPATCHED orders can be submitted.`,
+    };
+  }
 
+  // 2. Resolve Canonical Target consistently
+  const targetValidation = resolveCanonicalFulfillmentTarget(existingOrder);
+  if (!targetValidation.success) {
+    return {
+      success: false,
+      code: targetValidation.code,
+      error: targetValidation.message,
+    };
+  }
+
+  // 3. Resolve Chain & Primary Service from database
   const resolution = await resolveFulfillmentChainAndPreview({
-    platform: order.platform || '',
-    service: order.service || '',
-    quantity: Number(order.quantity),
-    target: target || '',
-    targetType: 'order_target',
-    orderId: order.id,
-    publicId: order.publicId,
+    platform: existingOrder.platform || '',
+    service: existingOrder.service || '',
+    quantity: Number(existingOrder.quantity),
+    target: targetValidation.target,
+    targetType: targetValidation.targetType,
+    orderId: existingOrder.id,
+    publicId: existingOrder.publicId,
   });
 
   if (!resolution.success) {
-    // Revert claim safely if chain cannot be resolved
-    await db.update(orders).set({ fulfillmentStatus: 'NOT_DISPATCHED' }).where(eq(orders.id, order.id));
-    return { success: false, code: resolution.error.code, error: resolution.error.message };
+    return {
+      success: false,
+      code: resolution.error.code,
+      error: resolution.error.message,
+    };
   }
 
-  // 3. Special Comments check: Custom comments require special payload
+  // 4. Special Comments Check: Custom comments require custom payload format
   const primaryServiceEvaluation = resolution.chainServicesEvaluation?.find(
     (s) => s.serviceId === resolution.primaryServiceId
   );
-  if (order.service?.toLowerCase() === 'comments' && primaryServiceEvaluation?.specialPayloadRequired) {
-    await db.update(orders).set({ fulfillmentStatus: 'NOT_DISPATCHED' }).where(eq(orders.id, order.id));
+  if (existingOrder.service?.toLowerCase() === 'comments' && primaryServiceEvaluation?.specialPayloadRequired) {
     return {
       success: false,
       code: 'SPECIAL_PAYLOAD_NOT_IMPLEMENTED',
@@ -118,7 +145,7 @@ export async function submitOrderToPeakerrManual(orderId: string) {
     };
   }
 
-  // 4. Create initial fulfillment_order entry in SUBMITTING status (Primary Only)
+  // Safe Request Payload (Never contains API keys)
   const safeRequestPayload = {
     provider: 'peakerr',
     service: resolution.primaryServiceId,
@@ -126,76 +153,126 @@ export async function submitOrderToPeakerrManual(orderId: string) {
     quantity: resolution.quantity,
   };
 
-  const [fulfillmentEntry] = await db
-    .insert(fulfillmentOrders)
-    .values({
-      orderId: order.id,
-      provider: 'peakerr',
-      externalServiceId: resolution.primaryServiceId,
-      status: 'SUBMITTING',
-      requestPayload: safeRequestPayload,
-      attemptCount: 1,
-      submittedAt: new Date(),
-    })
-    .returning();
+  // --- PHASE 1: ATOMIC DB CLAIM & PRE-INSERT IN A SINGLE TRANSACTION ---
+  // If the insert to fulfillment_orders fails (e.g. table missing or constraint error),
+  // the transaction rolls back entirely, leaving orders.fulfillment_status as NOT_DISPATCHED.
+  let fulfillmentEntryId: string;
 
-  // Phase 2: HTTP Execution (OUTSIDE Database Transaction)
+  try {
+    const claimTxResult = await db.transaction(async (tx) => {
+      // Step A: Atomic claim on orders
+      const [claimedOrder] = await tx
+        .update(orders)
+        .set({
+          fulfillmentStatus: 'SUBMITTING',
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(orders.id, existingOrder.id),
+            eq(orders.fulfillmentStatus, 'NOT_DISPATCHED'),
+            inArray(orders.paymentStatus, ['PAID', 'COMPLETED'])
+          )
+        )
+        .returning();
+
+      if (!claimedOrder) {
+        throw new Error('CONCURRENT_CLAIM_FAILED: Order was claimed by another concurrent process.');
+      }
+
+      // Step B: Insert record into fulfillment_orders
+      const [newFulfillment] = await tx
+        .insert(fulfillmentOrders)
+        .values({
+          orderId: existingOrder.id,
+          provider: 'peakerr',
+          externalServiceId: resolution.primaryServiceId,
+          status: 'SUBMITTING',
+          requestPayload: safeRequestPayload,
+          attemptCount: 1,
+          submittedAt: new Date(),
+        })
+        .returning();
+
+      return {
+        claimedOrder,
+        fulfillmentEntry: newFulfillment,
+      };
+    });
+
+    fulfillmentEntryId = claimTxResult.fulfillmentEntry.id;
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error('[PeakerrSubmit] Atomic claim & pre-insert transaction failed:', error);
+    return {
+      success: false,
+      code: 'ATOMIC_CLAIM_FAILED',
+      error: `ATOMIC_CLAIM_FAILED: Failed to atomically claim order and initialize fulfillment record: ${error.message}`,
+    };
+  }
+
+  // --- PHASE 2: HTTP EXECUTION (STRICTLY OUTSIDE DATABASE TRANSACTION) ---
+  // The database transaction is already committed above.
   const result = await peakerrClient.createOrder({
     service: resolution.primaryServiceId,
     link: resolution.target,
     quantity: resolution.quantity,
   });
 
-  // Phase 3: DB Finalization Phase
+  // --- PHASE 3: DB FINALIZATION IN A SEPARATE TRANSACTION ---
   if (result.success) {
-    // Order confirmed by Peakerr
-    await db
-      .update(fulfillmentOrders)
-      .set({
-        status: 'PROCESSING',
-        externalOrderId: String(result.order),
-        responsePayload: result.rawResponse as any,
-        updatedAt: new Date(),
-      })
-      .where(eq(fulfillmentOrders.id, fulfillmentEntry.id));
+    // Peakerr successfully confirmed order creation
+    await db.transaction(async (tx) => {
+      await tx
+        .update(fulfillmentOrders)
+        .set({
+          status: 'PROCESSING',
+          externalOrderId: String(result.order),
+          responsePayload: result.rawResponse as any,
+          updatedAt: new Date(),
+        })
+        .where(eq(fulfillmentOrders.id, fulfillmentEntryId));
 
-    await db
-      .update(orders)
-      .set({
+      await tx
+        .update(orders)
+        .set({
+          fulfillmentStatus: 'PROCESSING',
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, existingOrder.id));
+
+      await tx.insert(orderEvents).values({
+        orderId: existingOrder.id,
         fulfillmentStatus: 'PROCESSING',
-        updatedAt: new Date(),
-      })
-      .where(eq(orders.id, order.id));
-
-    await db.insert(orderEvents).values({
-      orderId: order.id,
-      fulfillmentStatus: 'PROCESSING',
-      description: `Order successfully dispatched to Peakerr (Provider Order ID: ${result.order})`,
+        description: `Order successfully dispatched to Peakerr (Provider Order ID: ${result.order})`,
+      });
     });
 
     return {
       success: true,
       providerOrderId: result.order,
       status: 'PROCESSING',
-      message: `Order submitted to Peakerr successfully (ID: ${result.order})`,
+      message: `Order submitted to Peakerr successfully (Provider Order ID: ${result.order})`,
     };
   }
 
   // Error / Ambiguous Timeout Handling
   if (result.isAmbiguous) {
     // CRITICAL: In timeout, keep SUBMITTING state to prevent double fulfillment
-    await db
-      .update(fulfillmentOrders)
-      .set({
-        lastError: 'TIMEOUT_AMBIGUOUS: Peakerr connection timed out. Do not retry without verifying provider dashboard.',
-        updatedAt: new Date(),
-      })
-      .where(eq(fulfillmentOrders.id, fulfillmentEntry.id));
+    await db.transaction(async (tx) => {
+      await tx
+        .update(fulfillmentOrders)
+        .set({
+          lastError: 'TIMEOUT_AMBIGUOUS: Peakerr connection timed out. Do not retry without verifying provider dashboard.',
+          updatedAt: new Date(),
+        })
+        .where(eq(fulfillmentOrders.id, fulfillmentEntryId));
 
-    await db.insert(orderEvents).values({
-      orderId: order.id,
-      fulfillmentStatus: 'SUBMITTING',
-      description: 'Peakerr dispatch timed out. Status ambiguous. Manual inspection required.',
+      await tx.insert(orderEvents).values({
+        orderId: existingOrder.id,
+        fulfillmentStatus: 'SUBMITTING',
+        description: 'Peakerr dispatch timed out. Status ambiguous. Manual inspection required.',
+      });
     });
 
     return {
@@ -206,29 +283,31 @@ export async function submitOrderToPeakerrManual(orderId: string) {
     };
   }
 
-  // Definitively safe failure (No order created at provider)
-  await db
-    .update(fulfillmentOrders)
-    .set({
-      status: 'FAILED',
-      lastError: result.error,
-      responsePayload: result.rawResponse as any,
-      updatedAt: new Date(),
-    })
-    .where(eq(fulfillmentOrders.id, fulfillmentEntry.id));
+  // Definitively safe provider failure (No order created at provider)
+  await db.transaction(async (tx) => {
+    await tx
+      .update(fulfillmentOrders)
+      .set({
+        status: 'FAILED',
+        lastError: result.error,
+        responsePayload: result.rawResponse as any,
+        updatedAt: new Date(),
+      })
+      .where(eq(fulfillmentOrders.id, fulfillmentEntryId));
 
-  await db
-    .update(orders)
-    .set({
+    await tx
+      .update(orders)
+      .set({
+        fulfillmentStatus: 'FAILED',
+        updatedAt: new Date(),
+      })
+      .where(eq(orders.id, existingOrder.id));
+
+    await tx.insert(orderEvents).values({
+      orderId: existingOrder.id,
       fulfillmentStatus: 'FAILED',
-      updatedAt: new Date(),
-    })
-    .where(eq(orders.id, order.id));
-
-  await db.insert(orderEvents).values({
-    orderId: order.id,
-    fulfillmentStatus: 'FAILED',
-    description: `Peakerr dispatch failed: ${result.error}`,
+      description: `Peakerr dispatch failed: ${result.error}`,
+    });
   });
 
   return {

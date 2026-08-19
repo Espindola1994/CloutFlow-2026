@@ -1,12 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { submitOrderToPeakerrManual, claimOrderForFulfillment } from '@/services/fulfillment.service';
+import { submitOrderToPeakerrManual } from '@/services/fulfillment.service';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { db } from '@/db';
 
 vi.mock('@/db', () => ({
   db: {
-    update: vi.fn(),
-    insert: vi.fn(),
+    transaction: vi.fn(),
     select: vi.fn(),
     query: {
       orders: {
@@ -75,27 +74,28 @@ describe('Controlled Live Peakerr Order Submit & Safety Tests', () => {
       { providerServiceId: '31849', priority: 2, minQuantity: 10, maxQuantity: 1000000, active: true },
     ];
 
-    // Mock Atomic Claim
-    (db.update as any).mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([{ ...mockOrder, fulfillmentStatus: 'SUBMITTING' }]),
-        }),
-      }),
-    });
-
-    // Mock DB queries for resolver
+    (db.query.orders.findMany as any).mockResolvedValue([mockOrder]);
     (db.query.fulfillmentChains.findMany as any).mockResolvedValue([mockChain]);
     (db.query.fulfillmentChainServices.findMany as any).mockResolvedValue(mockServices);
 
-    // Mock insert fulfillment_orders and orderEvents
-    (db.insert as any).mockReturnValue({
-      values: vi.fn().mockReturnValue({
-        returning: vi.fn().mockResolvedValue([{ id: 'ful_1', orderId: 'ord_live_test_1' }]),
-      }),
+    (db.transaction as any).mockImplementation(async (cb: any) => {
+      const mockTx = {
+        update: vi.fn().mockReturnValue({
+          set: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              returning: vi.fn().mockResolvedValue([{ ...mockOrder, fulfillmentStatus: 'SUBMITTING' }]),
+            }),
+          }),
+        }),
+        insert: vi.fn().mockReturnValue({
+          values: vi.fn().mockReturnValue({
+            returning: vi.fn().mockResolvedValue([{ id: 'ful_1', orderId: 'ord_live_test_1' }]),
+          }),
+        }),
+      };
+      return await cb(mockTx);
     });
 
-    // Mock Peakerr Client HTTP call
     const createSpy = vi.spyOn(peakerrClient, 'createOrder').mockResolvedValueOnce({
       success: true,
       order: 778899,
@@ -117,17 +117,21 @@ describe('Controlled Live Peakerr Order Submit & Safety Tests', () => {
   });
 
   it('G, H) Unpaid order or non NOT_DISPATCHED fulfillment status cannot be claimed', async () => {
-    (db.update as any).mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([]), // 0 rows affected
-        }),
-      }),
-    });
+    process.env.PEAKERR_LIVE_FULFILLMENT = 'true';
+    process.env.PEAKERR_API_KEY = 'test_key';
 
-    const res = await claimOrderForFulfillment('ord_unpaid_or_dispatched');
+    (db.query.orders.findMany as any).mockResolvedValue([
+      {
+        id: 'ord_unpaid_or_dispatched',
+        publicId: 'CF-UNPAID',
+        paymentStatus: 'PENDING',
+        fulfillmentStatus: 'NOT_DISPATCHED',
+      },
+    ]);
+
+    const res = await submitOrderToPeakerrManual('ord_unpaid_or_dispatched');
     expect(res.success).toBe(false);
-    expect(res.code).toBe('ORDER_NOT_CLAIMABLE');
+    expect(res.code).toBe('PAYMENT_NOT_ELIGIBLE');
   });
 
   it('O, P) Network timeout returns isAmbiguous = true and keeps SUBMITTING state (Zero fallback)', async () => {
@@ -145,21 +149,26 @@ describe('Controlled Live Peakerr Order Submit & Safety Tests', () => {
       profileUrl: 'https://instagram.com/anaclaramaderite',
     };
 
-    (db.update as any).mockReturnValue({
-      set: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([{ ...mockOrder, fulfillmentStatus: 'SUBMITTING' }]),
-        }),
-      }),
-    });
-
+    (db.query.orders.findMany as any).mockResolvedValue([mockOrder]);
     (db.query.fulfillmentChains.findMany as any).mockResolvedValue([{ id: 'c1', platform: 'instagram', service: 'followers', variant: 'standard', name: 'IG' }]);
     (db.query.fulfillmentChainServices.findMany as any).mockResolvedValue([{ providerServiceId: '31714', priority: 1, minQuantity: 10, maxQuantity: 1000000, active: true }]);
 
-    (db.insert as any).mockReturnValue({
-      values: vi.fn().mockReturnValue({
-        returning: vi.fn().mockResolvedValue([{ id: 'ful_timeout' }]),
-      }),
+    (db.transaction as any).mockImplementation(async (cb: any) => {
+      const mockTx = {
+        update: vi.fn().mockReturnValue({
+          set: vi.fn().mockReturnValue({
+            where: vi.fn().mockReturnValue({
+              returning: vi.fn().mockResolvedValue([{ ...mockOrder, fulfillmentStatus: 'SUBMITTING' }]),
+            }),
+          }),
+        }),
+        insert: vi.fn().mockReturnValue({
+          values: vi.fn().mockReturnValue({
+            returning: vi.fn().mockResolvedValue([{ id: 'ful_timeout' }]),
+          }),
+        }),
+      };
+      return await cb(mockTx);
     });
 
     vi.spyOn(peakerrClient, 'createOrder').mockResolvedValueOnce({

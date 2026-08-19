@@ -396,7 +396,7 @@ export async function generateFulfillmentPreview(orderIdentifier: string, varian
   }
 
   const targetInput = order.service.toLowerCase() === 'followers'
-    ? (order.profileUrl || order.socialUsername)
+    ? (order.profileUrl || order.targetUrl || order.socialUsername)
     : order.targetUrl;
 
   const targetRes = resolveAndValidateTarget(targetInput, order.platform, order.service);
