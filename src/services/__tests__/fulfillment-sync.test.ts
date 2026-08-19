@@ -403,6 +403,24 @@ describe('Phase 3.9 — Peakerr Automatic Status Sync Tests', () => {
     });
   });
 
+  describe('Status Sync Manual vs Cron Flag Independence', () => {
+    it('endpoint admin manual can execute status sync even when PEAKERR_STATUS_SYNC_ENABLED=false (implied by default false in tests)', async () => {
+      // Setup minimal mock just to ensure execution
+      (db.select as any).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          innerJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
+
+      // PEAKERR_STATUS_SYNC_ENABLED is explicitly false in beforeEach
+      const res = await syncPeakerrFulfillmentStatuses();
+      expect(res.success).toBe(true);
+      expect(res.checked).toBe(0);
+    });
+  });
+
   describe('34. Multi-Status Batch Association', () => {
     it('associates batch responses to correct orders accurately', async () => {
       const mockBatch = [

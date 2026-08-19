@@ -574,6 +574,46 @@ export function PeakerrChainsModule() {
     }
   };
 
+  // Manual Trigger for Central Status Sync
+  const handleRunStatusSyncNow = async () => {
+    setAutoSyncLoading(true);
+    try {
+      const res = await fetch("/api/admin/fulfillment/peakerr/sync", {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (res.ok && json.success && json.data) {
+        setAutoSyncResult({
+          ...json.data,
+          lastRun: new Date().toLocaleTimeString(),
+        });
+        setAutoSyncEnabled(json.enabled);
+
+        // If an existing order is actively inspected, refresh its dry run state as well
+        if (dryRunOrderId.trim()) {
+          fetch(`/api/admin/orders/${dryRunOrderId.trim()}/fulfillment-preview`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ variant: "standard" }),
+          })
+            .then((r) => r.json())
+            .then((refetchData) => {
+              if (refetchData.success) {
+                setDryRunResult(refetchData);
+              }
+            })
+            .catch(console.error);
+        }
+      } else {
+        setErrorMessage(json.error?.message || "Failed to execute status sync.");
+      }
+    } catch {
+      setErrorMessage("Network error executing status sync.");
+    } finally {
+      setAutoSyncLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* 1. Header Area */}
@@ -650,6 +690,68 @@ export function PeakerrChainsModule() {
             {inspectLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
             <span>Refresh Peakerr</span>
           </button>
+        </div>
+      </div>
+
+      {/* AUTOMATIC STATUS SYNC PANEL (Read-Only Provider Monitoring) - Always Visible */}
+      <div className="p-4 rounded-2xl bg-[#0b101b] border border-sky-500/20 shadow-md space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-neutral-800/80">
+          <div className="flex items-center gap-2.5">
+            <RefreshCw className="w-4 h-4 text-sky-400" />
+            <span className="text-xs font-bold text-white uppercase tracking-wider">
+              AUTOMATIC STATUS SYNC (READ-ONLY MONITORING)
+            </span>
+            <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+              autoSyncEnabled
+                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                : "bg-neutral-800 text-neutral-400 border border-neutral-700"
+            }`}>
+              Automatic Sync: {autoSyncEnabled ? "ENABLED" : "DISABLED"}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleRunStatusSyncNow}
+            disabled={autoSyncLoading}
+            className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-sans text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md disabled:opacity-50"
+          >
+            {autoSyncLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+            <span>Run Status Sync Now</span>
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-7 gap-2.5 text-xs font-mono">
+          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
+            <span className="text-[10px] text-neutral-500 block uppercase">Last Manual Run</span>
+            <strong className="text-white text-xs">{autoSyncResult?.lastRun || "—"}</strong>
+          </div>
+          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
+            <span className="text-[10px] text-neutral-500 block uppercase">Checked</span>
+            <strong className="text-neutral-200 text-xs">{autoSyncResult?.checked ?? "—"}</strong>
+          </div>
+          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
+            <span className="text-[10px] text-neutral-500 block uppercase">Updated</span>
+            <strong className="text-sky-400 text-xs">{autoSyncResult?.updated ?? "—"}</strong>
+          </div>
+          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
+            <span className="text-[10px] text-neutral-500 block uppercase">Completed</span>
+            <strong className="text-emerald-400 text-xs">{autoSyncResult?.completed ?? "—"}</strong>
+          </div>
+          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
+            <span className="text-[10px] text-neutral-500 block uppercase">Partial</span>
+            <strong className="text-amber-400 text-xs">{autoSyncResult?.partial ?? "—"}</strong>
+          </div>
+          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
+            <span className="text-[10px] text-neutral-500 block uppercase">Canceled</span>
+            <strong className="text-rose-400 text-xs">{autoSyncResult?.canceled ?? "—"}</strong>
+          </div>
+          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
+            <span className="text-[10px] text-neutral-500 block uppercase">Errors</span>
+            <strong className={`${autoSyncResult?.errors ? 'text-red-400' : 'text-neutral-400'} text-xs`}>
+              {autoSyncResult?.errors ?? "—"}
+            </strong>
+          </div>
         </div>
       </div>
 
@@ -1099,47 +1201,7 @@ export function PeakerrChainsModule() {
 
                 const isInsufficientBalance = (currentBalanceNum !== null && estimatedCost !== null && currentBalanceNum < Number(estimatedCost));
 
-  // Manual Trigger for Central Status Sync
-  const handleRunStatusSyncNow = async () => {
-    setAutoSyncLoading(true);
-    try {
-      const res = await fetch("/api/admin/fulfillment/peakerr/sync", {
-        method: "POST",
-      });
-      const json = await res.json();
-      if (res.ok && json.success && json.data) {
-        setAutoSyncResult({
-          ...json.data,
-          lastRun: new Date().toLocaleTimeString(),
-        });
-        setAutoSyncEnabled(json.enabled);
-
-        // If an existing order is actively inspected, refresh its dry run state as well
-        if (dryRunOrderId.trim()) {
-          fetch(`/api/admin/orders/${dryRunOrderId.trim()}/fulfillment-preview`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ variant: "standard" }),
-          })
-            .then((r) => r.json())
-            .then((refetchData) => {
-              if (refetchData.success) {
-                setDryRunResult(refetchData);
-              }
-            })
-            .catch(console.error);
-        }
-      } else {
-        setErrorMessage(json.error?.message || "Failed to execute status sync.");
-      }
-    } catch {
-      setErrorMessage("Network error executing status sync.");
-    } finally {
-      setAutoSyncLoading(false);
-    }
-  };
-
-  return (
+                return (
                   <div className="p-4 rounded-2xl bg-[#090c14] border border-blue-500/30 space-y-3">
                     <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
                       <div className="flex items-center gap-2">
@@ -1188,70 +1250,8 @@ export function PeakerrChainsModule() {
                         ) : (
                           <span className="text-[10px] text-emerald-400 block mt-0.5">Balance Adequate ✓</span>
                         )}
-        </div>
-      </div>
-
-      {/* AUTOMATIC STATUS SYNC PANEL (Read-Only Provider Monitoring) */}
-      <div className="p-4 rounded-2xl bg-[#0b101b] border border-neutral-800 space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-neutral-800/80">
-          <div className="flex items-center gap-2.5">
-            <RefreshCw className="w-4 h-4 text-sky-400" />
-            <span className="text-xs font-bold text-white uppercase tracking-wider">
-              AUTOMATIC STATUS SYNC (READ-ONLY MONITORING)
-            </span>
-            <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-              autoSyncEnabled
-                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                : "bg-neutral-800 text-neutral-400 border border-neutral-700"
-            }`}>
-              STATUS SYNC: {autoSyncEnabled ? "ENABLED" : "DISABLED"}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleRunStatusSyncNow}
-            disabled={autoSyncLoading}
-            className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-sans text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md disabled:opacity-50"
-          >
-            {autoSyncLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-            <span>Run Status Sync Now</span>
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-7 gap-2.5 text-xs font-mono">
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Last Run</span>
-            <strong className="text-white text-xs">{autoSyncResult?.lastRun || "Never"}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Checked</span>
-            <strong className="text-neutral-200 text-xs">{autoSyncResult?.checked ?? 0}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Updated</span>
-            <strong className="text-sky-400 text-xs">{autoSyncResult?.updated ?? 0}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Completed</span>
-            <strong className="text-emerald-400 text-xs">{autoSyncResult?.completed ?? 0}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Partial</span>
-            <strong className="text-amber-400 text-xs">{autoSyncResult?.partial ?? 0}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Canceled</span>
-            <strong className="text-rose-400 text-xs">{autoSyncResult?.canceled ?? 0}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Errors</span>
-            <strong className={`${autoSyncResult?.errors ? 'text-red-400' : 'text-neutral-400'} text-xs`}>
-              {autoSyncResult?.errors ?? 0}
-            </strong>
-          </div>
-        </div>
-      </div>
+                      </div>
+                    </div>
                   </div>
                 );
               })()}
