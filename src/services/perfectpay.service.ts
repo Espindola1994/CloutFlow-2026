@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 import { db } from '@/db';
-import { orders, orderItems, orderEvents, webhookEvents, paymentLeads, offers } from '@/db/schema';
+import { orders, orderItems, orderEvents, webhookEvents, paymentLeads, offers, checkoutContexts } from '@/db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { normalizePerfectPayPayload } from '@/lib/perfectpay/normalize';
 
@@ -302,6 +302,43 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
       const platform = matchedOffer?.platform || null;
       const service = matchedOffer?.service || null;
 
+      // Resolve Social Target from Checkout Context if CFCTX_ is provided in src/checkoutReference
+      let resolvedSocialUsername: string | null = null;
+      let resolvedProfileUrl: string | null = null;
+      let resolvedTargetUrl: string | null = null;
+
+      const rawSrcRef = parsed.src || parsed.checkoutReference;
+      if (rawSrcRef && rawSrcRef.startsWith('CFCTX_')) {
+        const [foundContext] = await tx.query.checkoutContexts.findMany({
+          where: eq(checkoutContexts.contextId, rawSrcRef),
+          limit: 1,
+        });
+
+        if (foundContext) {
+          const now = new Date();
+          const isNotExpired = new Date(foundContext.expiresAt) > now;
+          const isPlatformMatch = !matchedOffer || foundContext.platform === matchedOffer.platform;
+          const isServiceMatch = !matchedOffer || foundContext.service === matchedOffer.service;
+          const isOfferMatch = !matchedOffer || !foundContext.offerId || foundContext.offerId === matchedOffer.id;
+
+          if (isNotExpired && isPlatformMatch && isServiceMatch && isOfferMatch) {
+            resolvedSocialUsername = foundContext.socialUsername;
+            resolvedProfileUrl = foundContext.profileUrl;
+            resolvedTargetUrl = foundContext.targetUrl;
+
+            // Mark context as consumed on approved order creation
+            await tx
+              .update(checkoutContexts)
+              .set({ consumedAt: new Date() })
+              .where(eq(checkoutContexts.id, foundContext.id));
+          } else {
+            console.log('[PerfectPay] Checkout Context validation failed / mismatch. Discarding target.');
+          }
+        }
+      } else if (parsed.checkoutReference && !parsed.checkoutReference.startsWith('CFCTX_')) {
+        resolvedSocialUsername = parsed.checkoutReference;
+      }
+
       const [newOrder] = await tx
         .insert(orders)
         .values({
@@ -315,7 +352,9 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
           platform,
           service,
           offerId: matchedOffer?.id || null,
-          socialUsername: parsed.checkoutReference || null,
+          socialUsername: resolvedSocialUsername,
+          profileUrl: resolvedProfileUrl,
+          targetUrl: resolvedTargetUrl,
           quantity,
           subtotalCents: totalCents,
           discountCents: 0,

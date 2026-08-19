@@ -164,6 +164,21 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
     if (isProfileRestricted || !verifiedProfile) {
       return;
     }
+
+    // Persist verified target state in Funnel Store
+    const normalizedUsername = verifiedProfile.username.replace(/^@+/, '').trim();
+    const isYouTube = platform === 'youtube';
+    const resolvedTargetType = isYouTube ? 'channel' : 'profile';
+
+    useFunnelStore.getState().setTarget({
+      targetType: resolvedTargetType,
+      targetValue: normalizedUsername,
+      targetUrl: (verifiedProfile as any).profile_url || `https://${platform === 'twitter' ? 'x.com' : `${platform}.com`}/${normalizedUsername}`,
+      socialUsername: normalizedUsername,
+      profileUrl: (verifiedProfile as any).profile_url || null,
+      verifiedTargetData: verifiedProfile as any,
+    });
+
     onContinue();
   };
 

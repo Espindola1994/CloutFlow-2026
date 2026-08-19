@@ -1,0 +1,168 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/db';
+import { offers, checkoutContexts } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
+import crypto from 'crypto';
+import { z } from 'zod';
+
+const ALLOWED_TARGET_HOSTS: Record<string, string[]> = {
+  instagram: ['instagram.com', 'www.instagram.com'],
+  tiktok: ['tiktok.com', 'www.tiktok.com', 'm.tiktok.com', 'vm.tiktok.com'],
+  youtube: ['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be'],
+  twitter: ['x.com', 'www.x.com', 'twitter.com', 'www.twitter.com', 'mobile.twitter.com'],
+};
+
+const checkoutContextCreateSchema = z.object({
+  offerId: z.string().min(1, 'Offer ID is required'),
+  targetType: z.enum(['profile', 'post', 'video', 'channel']),
+  targetValue: z.string().optional().nullable(),
+  targetUrl: z.string().url().optional().nullable(),
+  socialUsername: z.string().optional().nullable(),
+  profileUrl: z.string().url().optional().nullable(),
+  utmSource: z.string().optional().nullable(),
+  utmMedium: z.string().optional().nullable(),
+  utmCampaign: z.string().optional().nullable(),
+  utmContent: z.string().optional().nullable(),
+  utmTerm: z.string().optional().nullable(),
+});
+
+function validateSocialUrl(urlStr: string, platform: string): boolean {
+  try {
+    const parsed = new URL(urlStr);
+    if (parsed.protocol !== 'https:') return false;
+    const hostname = parsed.hostname.toLowerCase();
+    const allowed = ALLOWED_TARGET_HOSTS[platform] || [];
+    return allowed.some((h) => hostname === h || hostname.endsWith(`.${h}`));
+  } catch {
+    return false;
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const data = checkoutContextCreateSchema.parse(body);
+
+    // 1. Fetch & Validate Active Offer Server-Side
+    const foundOffers = await db.query.offers.findMany({
+      where: and(eq(offers.id, data.offerId), eq(offers.active, true)),
+    });
+    const offer = foundOffers.find((o) => o.id === data.offerId && o.active);
+
+    if (!offer) {
+      return NextResponse.json(
+        { success: false, error: { message: 'Offer not found or no longer active' } },
+        { status: 404 }
+      );
+    }
+
+    if (!offer.externalCheckoutUrl || !offer.perfectpayProductId || !offer.perfectpayPlanId) {
+      return NextResponse.json(
+        { success: false, error: { message: 'Offer checkout configuration is incomplete' } },
+        { status: 422 }
+      );
+    }
+
+    const platform = offer.platform.toLowerCase();
+    const service = offer.service.toLowerCase();
+
+    // 2. Validate Target Type & Requirements against Service
+    if (service === 'followers') {
+      if (platform === 'youtube') {
+        if (data.targetType !== 'channel' && data.targetType !== 'profile') {
+          return NextResponse.json(
+            { success: false, error: { message: 'YouTube followers requires a valid channel or handle target' } },
+            { status: 400 }
+          );
+        }
+      } else {
+        if (data.targetType !== 'profile') {
+          return NextResponse.json(
+            { success: false, error: { message: 'Followers service requires a profile target' } },
+            { status: 400 }
+          );
+        }
+        if (!data.socialUsername || data.socialUsername.trim().length === 0) {
+          return NextResponse.json(
+            { success: false, error: { message: 'Social username is required for followers service' } },
+            { status: 400 }
+          );
+        }
+      }
+    } else if (service === 'likes' || service === 'views' || service === 'comments') {
+      if (!data.targetUrl) {
+        return NextResponse.json(
+          { success: false, error: { message: `Content target URL is required for ${service}` } },
+          { status: 400 }
+        );
+      }
+      if (!validateSocialUrl(data.targetUrl, platform)) {
+        return NextResponse.json(
+          { success: false, error: { message: `Invalid target URL for ${platform}` } },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Optional profileUrl SSRF / Host validation
+    if (data.profileUrl && !validateSocialUrl(data.profileUrl, platform)) {
+      return NextResponse.json(
+        { success: false, error: { message: `Invalid profile URL for ${platform}` } },
+        { status: 400 }
+      );
+    }
+
+    // 3. Generate Opaque, Cryptographically Secure Context ID
+    const contextId = `CFCTX_${crypto.randomBytes(12).toString('hex')}`;
+    const expiresAt = new Date(Date.now() + 2 * 60 * 60 * 1000); // 2 hours TTL
+
+    const cleanUsername = data.socialUsername
+      ? data.socialUsername.replace(/^@+/, '').trim()
+      : null;
+
+    // 4. Persist Context in Database
+    await db.insert(checkoutContexts).values({
+      contextId,
+      platform,
+      service,
+      targetType: data.targetType,
+      targetValue: data.targetValue ? data.targetValue.trim() : cleanUsername,
+      targetUrl: data.targetUrl ? data.targetUrl.trim() : null,
+      socialUsername: cleanUsername,
+      profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
+      offerId: offer.id,
+      perfectpayProductId: offer.perfectpayProductId,
+      perfectpayPlanId: offer.perfectpayPlanId,
+      utmSource: data.utmSource || null,
+      utmMedium: data.utmMedium || null,
+      utmCampaign: data.utmCampaign || null,
+      utmContent: data.utmContent || null,
+      utmTerm: data.utmTerm || null,
+      expiresAt,
+    });
+
+    // 5. Construct Checkout URL preserving all existing query params & appending src=CFCTX_...
+    const checkoutUrlObj = new URL(offer.externalCheckoutUrl);
+    checkoutUrlObj.searchParams.set('src', contextId);
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        contextId,
+        checkoutUrl: checkoutUrlObj.toString(),
+      },
+    });
+  } catch (error: unknown) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { success: false, error: { message: 'Invalid checkout context input', details: error.issues } },
+        { status: 400 }
+      );
+    }
+    console.error('[CheckoutContextAPI] Error:', error);
+    return NextResponse.json(
+      { success: false, error: { message: 'Unable to prepare checkout. Please try again.' } },
+      { status: 500 }
+    );
+  }
+}
