@@ -17,6 +17,9 @@ import {
   FileCheck2,
   Terminal,
   ExternalLink,
+  Send,
+  RefreshCw,
+  X,
 } from "lucide-react";
 import { Platform } from "../types";
 
@@ -201,6 +204,27 @@ export function PeakerrChainsModule() {
   const [savedStatus, setSavedStatus] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  // Peakerr Connection & Runtime Inspection State
+  const [connectionInfo, setConnectionInfo] = useState<{
+    connected: boolean;
+    balance: string | number | null;
+    currency: string;
+    servicesCount: number;
+    lastCheckedAt: string | null;
+    error?: string | null;
+  } | null>(null);
+  const [runtimeFlags, setRuntimeFlags] = useState<{
+    apiKeyPresent: boolean;
+    liveFulfillment: boolean;
+    webhookVerified: boolean;
+  }>({
+    apiKeyPresent: false,
+    liveFulfillment: false,
+    webhookVerified: false,
+  });
+  const [inspectAudit, setInspectAudit] = useState<any>(null);
+  const [inspectLoading, setInspectLoading] = useState(false);
+
   // Simulation Mode state: "manual" | "existing"
   const [simulatorMode, setSimulatorMode] = useState<"manual" | "existing">("manual");
 
@@ -208,6 +232,16 @@ export function PeakerrChainsModule() {
   const [dryRunOrderId, setDryRunOrderId] = useState("");
   const [dryRunResult, setDryRunResult] = useState<any>(null);
   const [dryRunLoading, setDryRunLoading] = useState(false);
+
+  // Live Order Manual Submission State & Confirmation Modal
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [confirmInput, setConfirmInput] = useState("");
+  const [isSubmittingLive, setIsSubmittingLive] = useState(false);
+  const [submitLiveResult, setSubmitLiveResult] = useState<any>(null);
+
+  // Live Status Check State
+  const [statusCheckResult, setStatusCheckResult] = useState<any>(null);
+  const [statusCheckLoading, setStatusCheckLoading] = useState(false);
 
   // Manual Simulation State
   const [manualPlatform, setManualPlatform] = useState<Platform>("instagram");
@@ -218,17 +252,7 @@ export function PeakerrChainsModule() {
   const [manualResult, setManualResult] = useState<any>(null);
   const [manualLoading, setManualLoading] = useState(false);
 
-  // Peakerr Connection State
-  const [connectionInfo, setConnectionInfo] = useState<{
-    connected: boolean;
-    balance: string | number | null;
-    currency: string;
-    servicesCount: number;
-    lastCheckedAt: string | null;
-    error?: string | null;
-  } | null>(null);
-  const [inspectAudit, setInspectAudit] = useState<any>(null);
-  const [inspectLoading, setInspectLoading] = useState(false);
+  const services = ["followers", "likes", "views", "comments"];
 
   const fetchPeakerrInspection = useCallback(async () => {
     try {
@@ -239,6 +263,7 @@ export function PeakerrChainsModule() {
       const json = await res.json();
       if (res.ok && json.success) {
         setConnectionInfo(json.connection);
+        setRuntimeFlags(json.runtime || { apiKeyPresent: true, liveFulfillment: false, webhookVerified: false });
         setInspectAudit(json.audit);
       } else {
         setConnectionInfo({
@@ -267,8 +292,6 @@ export function PeakerrChainsModule() {
   useEffect(() => {
     fetchPeakerrInspection();
   }, [fetchPeakerrInspection]);
-
-  const services = ["followers", "likes", "views", "comments"];
 
   // Fetch real persistent chains from Supabase database
   const loadChainsFromDb = useCallback(async () => {
@@ -409,6 +432,8 @@ export function PeakerrChainsModule() {
 
     setDryRunLoading(true);
     setDryRunResult(null);
+    setSubmitLiveResult(null);
+    setStatusCheckResult(null);
 
     try {
       const res = await fetch(`/api/admin/orders/${dryRunOrderId.trim()}/fulfillment-preview`, {
@@ -457,6 +482,54 @@ export function PeakerrChainsModule() {
     }
   };
 
+  // Live Manual Submit Order (Requires Flag + Confirmation 'SUBMIT')
+  const handleConfirmLiveSubmit = async () => {
+    if (confirmInput.trim() !== "SUBMIT" || !dryRunOrderId.trim()) return;
+
+    setIsSubmittingLive(true);
+    setSubmitLiveResult(null);
+
+    try {
+      const res = await fetch(`/api/admin/orders/${dryRunOrderId.trim()}/fulfillment/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirmation: "SUBMIT" }),
+      });
+      const data = await res.json();
+      setSubmitLiveResult(data);
+      setIsSubmitModalOpen(false);
+      setConfirmInput("");
+    } catch {
+      setSubmitLiveResult({
+        success: false,
+        error: { message: "Network error during live submission." },
+      });
+    } finally {
+      setIsSubmittingLive(false);
+    }
+  };
+
+  // Manual Live Status Check
+  const handleCheckLiveStatus = async () => {
+    if (!dryRunOrderId.trim()) return;
+
+    setStatusCheckLoading(true);
+    setStatusCheckResult(null);
+
+    try {
+      const res = await fetch(`/api/admin/orders/${dryRunOrderId.trim()}/fulfillment/status`);
+      const data = await res.json();
+      setStatusCheckResult(data);
+    } catch {
+      setStatusCheckResult({
+        success: false,
+        error: { message: "Failed to check order status." },
+      });
+    } finally {
+      setStatusCheckLoading(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
       {/* 1. Header Area */}
@@ -500,6 +573,9 @@ export function PeakerrChainsModule() {
               <span className="text-xs font-bold text-white uppercase tracking-wider">Peakerr Connection:</span>
               <span className={`text-xs font-bold ${connectionInfo?.connected ? "text-emerald-400" : "text-red-400"}`}>
                 {inspectLoading ? "Inspecting..." : connectionInfo?.connected ? "Connected" : "Not Connected / Misconfigured"}
+              </span>
+              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-300">
+                LIVE KILL SWITCH: {runtimeFlags.liveFulfillment ? "ACTIVE (ENABLED)" : "DISABLED"}
               </span>
             </div>
             {connectionInfo?.error && (
@@ -591,11 +667,11 @@ export function PeakerrChainsModule() {
                 {/* Primary Service (Priority 1) */}
                 <div>
                   <label className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">
-                    Primary Service ID (Priority 1)
+                    Primary Peakerr Service ID (Priority 1)
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. 31249"
+                    placeholder="e.g. 31714"
                     value={chain.primaryServiceId}
                     onChange={(e) => handleUpdate(svc, "primaryServiceId", e.target.value)}
                     className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white font-mono text-xs placeholder:text-neutral-600 focus:outline-hidden focus:border-emerald-500"
@@ -605,11 +681,11 @@ export function PeakerrChainsModule() {
                 {/* Fallback 1 (Priority 2) */}
                 <div>
                   <label className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block mb-1">
-                    Fallback 1 Service ID (Priority 2)
+                    Fallback 1 Peakerr Service ID (Priority 2)
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. 22042"
+                    placeholder="e.g. 31849"
                     value={chain.fallback1Id}
                     onChange={(e) => handleUpdate(svc, "fallback1Id", e.target.value)}
                     className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white font-mono text-xs placeholder:text-neutral-600 focus:outline-hidden focus:border-amber-500"
@@ -619,11 +695,11 @@ export function PeakerrChainsModule() {
                 {/* Fallback 2 (Priority 3) */}
                 <div>
                   <label className="text-[11px] font-bold text-blue-400 uppercase tracking-wider block mb-1">
-                    Fallback 2 Service ID (Priority 3)
+                    Fallback 2 Peakerr Service ID (Priority 3)
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. 30428"
+                    placeholder="e.g. 31850"
                     value={chain.fallback2Id}
                     onChange={(e) => handleUpdate(svc, "fallback2Id", e.target.value)}
                     className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white font-mono text-xs placeholder:text-neutral-600 focus:outline-hidden focus:border-blue-500"
@@ -667,11 +743,11 @@ export function PeakerrChainsModule() {
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-amber-400" />
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                Peakerr Fulfillment Simulator
+                Peakerr Fulfillment Simulator & Live Dispatch
               </h3>
             </div>
             <p className="text-xs text-neutral-400">
-              Safe Dry Run engine. Evaluates database chains, target resolution, and renders exact Peakerr requests with zero mutations.
+              Safe Dry Run engine and controlled live order submission. Resolves chains, validates targets, and prepares Peakerr payloads.
             </p>
           </div>
 
@@ -814,7 +890,7 @@ export function PeakerrChainsModule() {
 
         {/* --- MODE B: EXISTING ORDER FORM --- */}
         {simulatorMode === "existing" && (
-          <form onSubmit={handleDryRunExistingOrder} className="space-y-3">
+          <form onSubmit={handleDryRunExistingOrder} className="space-y-4">
             <label className="text-xs text-neutral-300 font-semibold block">
               Enter Existing Order UUID / Public ID
             </label>
@@ -845,6 +921,23 @@ export function PeakerrChainsModule() {
               </button>
             </div>
           </form>
+        )}
+
+        {/* Live Submission Status Messages */}
+        {submitLiveResult && (
+          <div className={`p-4 rounded-xl border text-xs font-mono space-y-1 ${submitLiveResult.success ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-red-500/10 border-red-500/20 text-red-400"}`}>
+            <p className="font-bold">{submitLiveResult.success ? "✓ PEAKERR ORDER SUBMITTED" : "✗ LIVE SUBMISSION FAILED"}</p>
+            <p>{submitLiveResult.data?.message || submitLiveResult.error?.message || JSON.stringify(submitLiveResult)}</p>
+          </div>
+        )}
+
+        {statusCheckResult && (
+          <div className={`p-4 rounded-xl border text-xs font-mono space-y-1 ${statusCheckResult.success ? "bg-blue-500/10 border-blue-500/20 text-blue-300" : "bg-red-500/10 border-red-500/20 text-red-400"}`}>
+            <p className="font-bold">PEAKERR LIVE STATUS RESULT:</p>
+            <pre className="text-[11px] overflow-x-auto text-neutral-300">
+              {JSON.stringify(statusCheckResult.data || statusCheckResult.error, null, 2)}
+            </pre>
+          </div>
         )}
 
         {/* --- SIMULATION RESULT PRESENTATION (Rich Visual Display) --- */}
@@ -960,10 +1053,127 @@ export function PeakerrChainsModule() {
                   }, null, 2)}
                 </pre>
               </div>
+
+              {/* CONTROLLED LIVE SUBMIT BUTTON & STATUS CHECK (Existing Order Mode Only) */}
+              {simulatorMode === "existing" && (
+                <div className="pt-3 border-t border-neutral-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleCheckLiveStatus}
+                      disabled={statusCheckLoading}
+                      className="px-3.5 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50 text-xs"
+                    >
+                      {statusCheckLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                      <span>Check Peakerr Status</span>
+                    </button>
+                  </div>
+
+                  <div className="flex items-center gap-2 justify-end">
+                    {!runtimeFlags.liveFulfillment ? (
+                      <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-400 text-xs font-semibold">
+                        <ShieldAlert className="w-4 h-4 text-amber-400 shrink-0" />
+                        <span>LIVE FULFILLMENT DISABLED (Kill Switch Active)</span>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setIsSubmitModalOpen(true)}
+                        className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shadow-lg hover:scale-105"
+                      >
+                        <Send className="w-3.5 h-3.5" />
+                        <span>Submit to Peakerr (Primary Only)</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })()}
       </div>
+
+      {/* STRONG CONFIRMATION MODAL FOR LIVE SUBMISSION */}
+      {isSubmitModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-xs">
+          <div className="bg-[#12161f] border-2 border-red-500/40 rounded-3xl p-6 max-w-lg w-full shadow-2xl space-y-5 text-neutral-300 select-none">
+            <div className="flex items-center justify-between pb-3 border-b border-neutral-800">
+              <div className="flex items-center gap-2 text-red-400 font-bold text-sm">
+                <ShieldAlert className="w-5 h-5" />
+                <span>CONFIRM REAL ORDER SUBMISSION</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSubmitModalOpen(false);
+                  setConfirmInput("");
+                }}
+                className="text-neutral-400 hover:text-white"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <p className="font-semibold text-white">
+                You are about to submit a REAL order to Peakerr provider.
+              </p>
+              <div className="p-3.5 rounded-xl bg-neutral-950 border border-neutral-800 font-mono space-y-1 text-neutral-300">
+                <p>Order ID: <strong className="text-white">{dryRunOrderId}</strong></p>
+                <p>Primary Service ID: <strong className="text-emerald-400">{dryRunResult?.primaryServiceId || dryRunResult?.data?.primaryServiceId}</strong></p>
+                <p>Quantity: <strong className="text-white">{dryRunResult?.quantity || dryRunResult?.data?.quantity}</strong></p>
+                <p>Target: <strong className="text-neutral-200">{dryRunResult?.target || dryRunResult?.data?.target}</strong></p>
+              </div>
+              <p className="text-amber-400 font-medium">
+                ⚠️ This action will consume live Peakerr balance and execute fulfillment.
+              </p>
+              <div className="pt-2 space-y-1.5">
+                <label className="block text-neutral-400 font-bold">
+                  Type <span className="text-white font-mono bg-neutral-900 px-1.5 py-0.5 rounded border border-neutral-800">SUBMIT</span> to confirm:
+                </label>
+                <input
+                  type="text"
+                  placeholder="SUBMIT"
+                  value={confirmInput}
+                  onChange={(e) => setConfirmInput(e.target.value)}
+                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white font-mono text-xs focus:outline-hidden focus:border-red-500 uppercase"
+                />
+              </div>
+            </div>
+
+            <div className="pt-3 flex items-center justify-end gap-3 border-t border-neutral-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsSubmitModalOpen(false);
+                  setConfirmInput("");
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-neutral-400 hover:text-white bg-neutral-900 hover:bg-neutral-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmLiveSubmit}
+                disabled={confirmInput.trim() !== "SUBMIT" || isSubmittingLive}
+                className="px-5 py-2 rounded-xl text-xs font-bold text-white bg-red-600 hover:bg-red-500 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
+              >
+                {isSubmittingLive ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Submitting to Peakerr...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="w-3.5 h-3.5" />
+                    <span>CONFIRM & SUBMIT LIVE</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

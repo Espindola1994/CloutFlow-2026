@@ -9,6 +9,7 @@ export interface ChainServiceEvaluation {
   minQuantity: number;
   maxQuantity: number;
   eligible: boolean;
+  specialPayloadRequired?: boolean;
   ineligibilityReason?: 'INELIGIBLE_QUANTITY' | 'INACTIVE' | null;
 }
 
