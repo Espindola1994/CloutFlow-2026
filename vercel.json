@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/internal/fulfillment/peakerr/sync",
-      "schedule": "*/5 * * * *"
-    }
-  ]
-}
