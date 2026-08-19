@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { generateFulfillmentPreview, resolveOrderTarget } from '@/services/fulfillment-chain.service';
+import { generateFulfillmentPreview, resolveAndValidateTarget } from '@/services/fulfillment-chain.service';
 import { classifyPeakerrError, canFallbackOnError } from '@/lib/fulfillment/fallback-policy';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { db } from '@/db';
@@ -64,9 +64,9 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
       expect(res.action).toBe('DRY_RUN_READY');
       expect(res.primaryServiceId).toBe('31249');
       expect(res.fallbacks).toEqual(['22042', '30428']);
-      expect(res.eligibleServices[0].priority).toBe(1);
-      expect(res.eligibleServices[1].priority).toBe(2);
-      expect(res.eligibleServices[2].priority).toBe(3);
+      expect(res.chainServicesEvaluation[0].priority).toBe(1);
+      expect(res.chainServicesEvaluation[1].priority).toBe(2);
+      expect(res.chainServicesEvaluation[2].priority).toBe(3);
     }
   });
 
@@ -108,36 +108,41 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
   });
 
   it('H) Followers target resolution prioritizes profile_url and falls back to social_username URL', () => {
-    const withProfileUrl = resolveOrderTarget({
-      service: 'followers',
-      platform: 'instagram',
-      profileUrl: 'https://instagram.com/anaclaramaderite',
-      socialUsername: 'anaclaramaderite',
-    });
-    expect(withProfileUrl.target).toBe('https://instagram.com/anaclaramaderite');
-    expect(withProfileUrl.targetType).toBe('profile_url');
+    const withProfileUrl = resolveAndValidateTarget(
+      'https://instagram.com/anaclaramaderite',
+      'instagram',
+      'followers'
+    );
+    expect(withProfileUrl.success).toBe(true);
+    if (withProfileUrl.success) {
+      expect(withProfileUrl.target).toBe('https://instagram.com/anaclaramaderite');
+      expect(withProfileUrl.targetType).toBe('profile_url');
+    }
 
-    const withUsernameFallback = resolveOrderTarget({
-      service: 'followers',
-      platform: 'instagram',
-      profileUrl: null,
-      socialUsername: 'anaclaramaderite',
-    });
-    expect(withUsernameFallback.target).toBe('https://instagram.com/anaclaramaderite');
-    expect(withUsernameFallback.targetType).toBe('profile_fallback');
+    const withUsernameFallback = resolveAndValidateTarget(
+      'anaclaramaderite',
+      'instagram',
+      'followers'
+    );
+    expect(withUsernameFallback.success).toBe(true);
+    if (withUsernameFallback.success) {
+      expect(withUsernameFallback.target).toBe('https://instagram.com/anaclaramaderite');
+      expect(withUsernameFallback.targetType).toBe('profile_fallback');
+    }
   });
 
   it('I, J, K) Likes, Views, Comments strictly resolve targetUrl and ignore profileUrl', () => {
     ['likes', 'views', 'comments'].forEach((svc) => {
-      const res = resolveOrderTarget({
-        service: svc,
-        platform: 'tiktok',
-        targetUrl: 'https://tiktok.com/@user/video/998877',
-        profileUrl: 'https://tiktok.com/@user',
-        socialUsername: 'user',
-      });
-      expect(res.target).toBe('https://tiktok.com/@user/video/998877');
-      expect(res.targetType).toBe('content_url');
+      const res = resolveAndValidateTarget(
+        'https://tiktok.com/@user/video/998877',
+        'tiktok',
+        svc
+      );
+      expect(res.success).toBe(true);
+      if (res.success) {
+        expect(res.target).toBe('https://tiktok.com/@user/video/998877');
+        expect(res.targetType).toBe('content_url');
+      }
     });
   });
 
@@ -249,8 +254,8 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
 
     const mockServices = [
       { providerServiceId: 'S_OK_PRIMARY', priority: 1, minQuantity: 10, maxQuantity: 10000, active: true },
-      { providerServiceId: 'S_TOO_SMALL_MAX', priority: 2, minQuantity: 10, maxQuantity: 1000, active: true }, // Max 1000 < 5000 (Filtered)
-      { providerServiceId: 'S_TOO_LARGE_MIN', priority: 3, minQuantity: 10000, maxQuantity: 50000, active: true }, // Min 10000 > 5000 (Filtered)
+      { providerServiceId: 'S_TOO_SMALL_MAX', priority: 2, minQuantity: 10, maxQuantity: 1000, active: true },
+      { providerServiceId: 'S_TOO_LARGE_MIN', priority: 3, minQuantity: 10000, maxQuantity: 50000, active: true },
     ];
 
     (db.query.orders.findMany as any).mockResolvedValue([mockOrder]);
@@ -261,8 +266,8 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
     expect(res.success).toBe(true);
     if (res.success) {
       expect(res.primaryServiceId).toBe('S_OK_PRIMARY');
-      expect(res.fallbacks).toEqual([]); // All other fallbacks filtered out by min/max
-      expect(res.eligibleServices).toHaveLength(1);
+      expect(res.fallbacks).toEqual([]);
+      expect(res.chainServicesEvaluation.filter((s) => s.eligible)).toHaveLength(1);
     }
   });
 
@@ -287,7 +292,6 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
       active: true,
     };
 
-    // Array returned out of order from db mock to test sorting
     const mockServices = [
       { providerServiceId: 'P3', priority: 3, minQuantity: 10, maxQuantity: 10000, active: true },
       { providerServiceId: 'P1', priority: 1, minQuantity: 10, maxQuantity: 10000, active: true },
@@ -301,11 +305,11 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
     const res = await generateFulfillmentPreview('ord_priority_order');
     expect(res.success).toBe(true);
     if (res.success) {
-      expect(res.primaryServiceId).toBe('P1'); // Priority 1 becomes primary regardless of db arrival order
+      expect(res.primaryServiceId).toBe('P1');
       expect(res.fallbacks).toEqual(['P2', 'P3']);
-      expect(res.eligibleServices[0].priority).toBe(1);
-      expect(res.eligibleServices[1].priority).toBe(2);
-      expect(res.eligibleServices[2].priority).toBe(3);
+      expect(res.chainServicesEvaluation[0].priority).toBe(1);
+      expect(res.chainServicesEvaluation[1].priority).toBe(2);
+      expect(res.chainServicesEvaluation[2].priority).toBe(3);
     }
   });
 
