@@ -520,6 +520,23 @@ export function PeakerrChainsModule() {
       const res = await fetch(`/api/admin/orders/${dryRunOrderId.trim()}/fulfillment/status`);
       const data = await res.json();
       setStatusCheckResult(data);
+      
+      // SYNC/REFETCH: if status check succeeds, refresh the inspection state
+      if (data.success) {
+        // Run a background refetch of the preview to update the top UI with DB state
+        fetch(`/api/admin/orders/${dryRunOrderId.trim()}/fulfillment-preview`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ variant: "standard" }),
+        })
+          .then(res => res.json())
+          .then(refetchData => {
+            if (refetchData.success) {
+              setDryRunResult(refetchData);
+            }
+          })
+          .catch(console.error);
+      }
     } catch {
       setStatusCheckResult({
         success: false,
@@ -985,8 +1002,8 @@ export function PeakerrChainsModule() {
               {data.alreadyDispatched && (
                 <div className="p-4 rounded-2xl bg-[#090e1a] border border-blue-500/30 text-xs font-mono space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-blue-400">
-                      ✓ ALREADY DISPATCHED — Provider Order #{data.latestFulfillment?.externalOrderId || "Registered"}
+                    <span className={`font-bold ${data.fulfillmentStatus === 'COMPLETED' ? 'text-emerald-400' : 'text-blue-400'}`}>
+                      ✓ {data.fulfillmentStatus === 'COMPLETED' ? 'COMPLETED' : 'ALREADY DISPATCHED'} — Provider Order #{data.latestFulfillment?.externalOrderId || "Registered"}
                     </span>
                     <span className="text-neutral-400 text-[11px]">
                       Provider: {data.latestFulfillment?.provider || "Peakerr"} • Status: <strong className="text-white">{data.fulfillmentStatus || data.latestFulfillment?.status || "PROCESSING"}</strong>
@@ -1180,9 +1197,15 @@ export function PeakerrChainsModule() {
 
                   <div className="flex items-center gap-2 justify-end">
                     {data.alreadyDispatched ? (
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-950/40 border border-blue-500/30 text-blue-300 text-xs font-semibold">
-                        <CheckCircle2 className="w-4 h-4 text-blue-400 shrink-0" />
-                        <span>ALREADY DISPATCHED — Provider Order #{data.latestFulfillment?.externalOrderId || "Active"}</span>
+                      <div className={`flex items-center gap-2 px-4 py-2 rounded-xl ${
+                        data.fulfillmentStatus === 'COMPLETED'
+                          ? "bg-emerald-950/40 border border-emerald-500/30 text-emerald-300"
+                          : "bg-blue-950/40 border border-blue-500/30 text-blue-300"
+                      } text-xs font-semibold`}>
+                        <CheckCircle2 className={`w-4 h-4 ${data.fulfillmentStatus === 'COMPLETED' ? 'text-emerald-400' : 'text-blue-400'} shrink-0`} />
+                        <span>
+                          {data.fulfillmentStatus === 'COMPLETED' ? 'COMPLETED' : 'ALREADY DISPATCHED'} — Provider Order #{data.latestFulfillment?.externalOrderId || "Active"}
+                        </span>
                       </div>
                     ) : !runtimeFlags.liveFulfillment ? (
                       <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-neutral-900 border border-neutral-800 text-neutral-400 text-xs font-semibold">
