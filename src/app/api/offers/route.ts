@@ -23,23 +23,29 @@ export async function GET(request: Request) {
         eq(offers.service, service)
       ),
       orderBy: [asc(offers.sortOrder), asc(offers.priceCents)],
+      limit: 6,
     });
 
     // Strip sensitive internal fields: NO externalCheckoutUrl, NO productCode, NO planCode
-    const publicOffers = items.map((o) => ({
-      id: o.id,
-      name: o.name,
-      slug: o.slug,
-      description: o.description || null,
-      quantity: o.quantity,
-      bonusQuantity: o.bonusQuantity || 0,
-      priceCents: Number(o.priceCents),
-      oldPriceCents: o.oldPriceCents ? Number(o.oldPriceCents) : null,
-      currency: o.currency,
-      badge: o.badge || null,
-      isPopular: o.isPopular,
-      sortOrder: o.sortOrder,
-    }));
+    const publicOffers = items.map((o) => {
+      const meta = (o.metadata as Record<string, any>) || {};
+      return {
+        id: o.id,
+        name: o.name,
+        slug: o.slug,
+        description: o.description || null,
+        quantity: o.quantity,
+        bonusQuantity: o.bonusQuantity || 0,
+        priceCents: Number(o.priceCents),
+        oldPriceCents: o.oldPriceCents ? Number(o.oldPriceCents) : null,
+        currency: o.currency,
+        badge: o.badge || meta.badge || null,
+        isPopular: o.isPopular || Boolean(meta.isPopular || meta.featured),
+        sortOrder: o.sortOrder,
+        benefits: Array.isArray(meta.benefits) ? meta.benefits : null,
+        ctaText: typeof meta.ctaText === 'string' ? meta.ctaText : null,
+      };
+    });
 
     return NextResponse.json({
       success: true,

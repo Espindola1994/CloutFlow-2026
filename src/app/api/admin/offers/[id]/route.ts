@@ -26,6 +26,8 @@ const offerUpdateSchema = z.object({
   perfectpayPlanId: z.string().optional().nullable(),
   active: z.boolean().optional(),
   sortOrder: z.number().int().optional(),
+  benefits: z.array(z.string()).optional().nullable(),
+  ctaText: z.string().optional().nullable(),
 });
 
 export async function GET(
@@ -45,6 +47,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: { message: 'Offer not found' } }, { status: 404 });
     }
 
+    const meta = (offer.metadata as Record<string, any>) || {};
     const formatted = {
       id: offer.id,
       platform: offer.platform as any,
@@ -57,13 +60,15 @@ export async function GET(
       price: Number(offer.priceCents) / 100,
       oldPrice: offer.oldPriceCents ? Number(offer.oldPriceCents) / 100 : undefined,
       currency: offer.currency,
-      tag: offer.badge || undefined,
-      popular: offer.isPopular,
+      tag: offer.badge || meta.badge || undefined,
+      popular: offer.isPopular || Boolean(meta.isPopular || meta.featured),
       checkoutUrl: offer.externalCheckoutUrl || undefined,
       perfectpayProductId: offer.perfectpayProductId || undefined,
       perfectpayPlanId: offer.perfectpayPlanId || undefined,
       active: offer.active,
       sortOrder: offer.sortOrder,
+      benefits: Array.isArray(meta.benefits) ? meta.benefits : undefined,
+      ctaText: typeof meta.ctaText === 'string' ? meta.ctaText : undefined,
     };
 
     return NextResponse.json({ success: true, data: { offer: formatted } });
@@ -114,6 +119,20 @@ export async function PATCH(
     if (data.perfectpayPlanId !== undefined) updatePayload.perfectpayPlanId = data.perfectpayPlanId ? data.perfectpayPlanId.trim() : null;
     if (data.active !== undefined) updatePayload.active = data.active;
     if (data.sortOrder !== undefined) updatePayload.sortOrder = data.sortOrder;
+
+    if (data.benefits !== undefined || data.ctaText !== undefined) {
+      const existingMeta = (existing.metadata as Record<string, any>) || {};
+      const newMeta = { ...existingMeta };
+      if (data.benefits !== undefined) {
+        if (data.benefits === null) delete newMeta.benefits;
+        else newMeta.benefits = data.benefits;
+      }
+      if (data.ctaText !== undefined) {
+        if (data.ctaText === null) delete newMeta.ctaText;
+        else newMeta.ctaText = data.ctaText;
+      }
+      updatePayload.metadata = newMeta;
+    }
 
     const [updated] = await db
       .update(offers)

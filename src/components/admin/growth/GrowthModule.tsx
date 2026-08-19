@@ -45,6 +45,11 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
   const [formQuantity, setFormQuantity] = useState("1000");
   const [formPrice, setFormPrice] = useState("9.99");
   const [formOldPrice, setFormOldPrice] = useState("19.99");
+  const [formBadge, setFormBadge] = useState("");
+  const [formPopular, setFormPopular] = useState(false);
+  const [formSortOrder, setFormSortOrder] = useState("0");
+  const [formBenefits, setFormBenefits] = useState("");
+  const [formCtaText, setFormCtaText] = useState("");
   const [formCheckoutUrl, setFormCheckoutUrl] = useState("");
   const [formProductId, setFormProductId] = useState("");
   const [formPlanId, setFormPlanId] = useState("");
@@ -82,6 +87,11 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
     setFormQuantity("1000");
     setFormPrice("9.99");
     setFormOldPrice("19.99");
+    setFormBadge("");
+    setFormPopular(false);
+    setFormSortOrder("0");
+    setFormBenefits("");
+    setFormCtaText("");
     setFormCheckoutUrl("");
     setFormProductId("");
     setFormPlanId("");
@@ -97,6 +107,11 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
     setFormQuantity(offer.quantity.toString());
     setFormPrice(offer.price.toFixed(2));
     setFormOldPrice(offer.oldPrice ? offer.oldPrice.toFixed(2) : "");
+    setFormBadge(offer.tag || "");
+    setFormPopular(Boolean(offer.popular));
+    setFormSortOrder(offer.sortOrder !== undefined ? offer.sortOrder.toString() : "0");
+    setFormBenefits(Array.isArray(offer.benefits) ? offer.benefits.join("\n") : "");
+    setFormCtaText(offer.ctaText || "");
     setFormCheckoutUrl(offer.checkoutUrl || "");
     setFormProductId(offer.perfectpayProductId || "");
     setFormPlanId(offer.perfectpayPlanId || "");
@@ -113,6 +128,11 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
       const priceCents = Math.round(parseFloat(formPrice) * 100);
       const oldPriceCents = formOldPrice ? Math.round(parseFloat(formOldPrice) * 100) : null;
       const slug = `${formPlatform}-${formService}-${formQuantity}`.toLowerCase();
+      const sortOrder = parseInt(formSortOrder, 10) || 0;
+      const benefitsArray = formBenefits
+        .split("\n")
+        .map((b) => b.trim())
+        .filter(Boolean);
 
       if (editingOfferId) {
         // PATCH existing offer
@@ -125,6 +145,11 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
             priceCents,
             oldPriceCents,
             currency: "USD",
+            badge: formBadge ? formBadge.trim() : null,
+            isPopular: formPopular,
+            sortOrder,
+            benefits: benefitsArray.length > 0 ? benefitsArray : null,
+            ctaText: formCtaText ? formCtaText.trim() : null,
             externalCheckoutUrl: formCheckoutUrl ? formCheckoutUrl.trim() : null,
             perfectpayProductId: formProductId ? formProductId.trim() : null,
             perfectpayPlanId: formPlanId ? formPlanId.trim() : null,
@@ -152,6 +177,11 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
             priceCents,
             oldPriceCents: oldPriceCents || undefined,
             currency: "USD",
+            badge: formBadge ? formBadge.trim() : undefined,
+            isPopular: formPopular,
+            sortOrder,
+            benefits: benefitsArray.length > 0 ? benefitsArray : undefined,
+            ctaText: formCtaText ? formCtaText.trim() : undefined,
             externalCheckoutUrl: formCheckoutUrl ? formCheckoutUrl.trim() : null,
             perfectpayProductId: formProductId ? formProductId.trim() : null,
             perfectpayPlanId: formPlanId ? formPlanId.trim() : null,
@@ -539,6 +569,67 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
                     onChange={(e) => setFormOldPrice(e.target.value)}
                     className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
                   />
+                </div>
+              </div>
+
+              {/* Marketing & Card Customization */}
+              <div className="pt-2 border-t border-neutral-800 space-y-3">
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-neutral-300 font-semibold block mb-1">Card Badge</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. MOST POPULAR"
+                      value={formBadge}
+                      onChange={(e) => setFormBadge(e.target.value)}
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-600"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-neutral-300 font-semibold block mb-1">Sort Position (0-5)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="10"
+                      value={formSortOrder}
+                      onChange={(e) => setFormSortOrder(e.target.value)}
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-neutral-300 font-semibold block mb-1">Button CTA Text</label>
+                    <input
+                      type="text"
+                      placeholder="e.g. GET STARTED"
+                      value={formCtaText}
+                      onChange={(e) => setFormCtaText(e.target.value)}
+                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-600"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-neutral-300 font-semibold block mb-1">Custom Feature Bullets (1 per line)</label>
+                  <textarea
+                    rows={3}
+                    placeholder="Fast start&#10;No password required&#10;Secure checkout"
+                    value={formBenefits}
+                    onChange={(e) => setFormBenefits(e.target.value)}
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-600 font-mono text-[11px]"
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    id="formPopular"
+                    checked={formPopular}
+                    onChange={(e) => setFormPopular(e.target.checked)}
+                    className="rounded-sm border-neutral-700 bg-neutral-900 text-pink-600"
+                  />
+                  <label htmlFor="formPopular" className="text-neutral-300 font-medium cursor-pointer">
+                    Featured Card (Highlighted glow, larger scale & default focus)
+                  </label>
                 </div>
               </div>
 

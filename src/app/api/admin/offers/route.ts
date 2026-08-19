@@ -30,6 +30,8 @@ const offerCreateSchema = z.object({
   perfectpayPlanId: z.string().optional().nullable(),
   active: z.boolean().default(true),
   sortOrder: z.number().int().default(0),
+  benefits: z.array(z.string()).optional().nullable(),
+  ctaText: z.string().optional().nullable(),
 });
 
 export async function GET() {
@@ -40,26 +42,31 @@ export async function GET() {
       orderBy: [desc(offers.createdAt)],
     });
 
-    const formatted = items.map((o) => ({
-      id: o.id,
-      platform: o.platform as any,
-      service: o.service,
-      name: o.name,
-      slug: o.slug,
-      description: o.description || undefined,
-      quantity: o.quantity,
-      bonus: o.bonusQuantity || 0,
-      price: Number(o.priceCents) / 100,
-      oldPrice: o.oldPriceCents ? Number(o.oldPriceCents) / 100 : undefined,
-      currency: o.currency,
-      tag: o.badge || undefined,
-      popular: o.isPopular,
-      checkoutUrl: o.externalCheckoutUrl || undefined,
-      perfectpayProductId: o.perfectpayProductId || undefined,
-      perfectpayPlanId: o.perfectpayPlanId || undefined,
-      active: o.active,
-      sortOrder: o.sortOrder,
-    }));
+    const formatted = items.map((o) => {
+      const meta = (o.metadata as Record<string, any>) || {};
+      return {
+        id: o.id,
+        platform: o.platform as any,
+        service: o.service,
+        name: o.name,
+        slug: o.slug,
+        description: o.description || undefined,
+        quantity: o.quantity,
+        bonus: o.bonusQuantity || 0,
+        price: Number(o.priceCents) / 100,
+        oldPrice: o.oldPriceCents ? Number(o.oldPriceCents) / 100 : undefined,
+        currency: o.currency,
+        tag: o.badge || meta.badge || undefined,
+        popular: o.isPopular || Boolean(meta.isPopular || meta.featured),
+        checkoutUrl: o.externalCheckoutUrl || undefined,
+        perfectpayProductId: o.perfectpayProductId || undefined,
+        perfectpayPlanId: o.perfectpayPlanId || undefined,
+        active: o.active,
+        sortOrder: o.sortOrder,
+        benefits: Array.isArray(meta.benefits) ? meta.benefits : undefined,
+        ctaText: typeof meta.ctaText === 'string' ? meta.ctaText : undefined,
+      };
+    });
 
     return NextResponse.json({ success: true, data: { items: formatted } });
   } catch (error: unknown) {
@@ -79,27 +86,36 @@ export async function POST(request: Request) {
     const body = await request.json();
     const data = offerCreateSchema.parse(body);
 
+    const payload: Record<string, any> = {
+      platform: data.platform,
+      service: data.service,
+      name: data.name,
+      slug: data.slug,
+      description: data.description,
+      quantity: data.quantity,
+      bonusQuantity: data.bonusQuantity,
+      priceCents: data.priceCents,
+      oldPriceCents: data.oldPriceCents,
+      currency: data.currency,
+      badge: data.badge,
+      isPopular: data.isPopular,
+      externalCheckoutUrl: data.externalCheckoutUrl || null,
+      perfectpayProductId: data.perfectpayProductId ? data.perfectpayProductId.trim() : null,
+      perfectpayPlanId: data.perfectpayPlanId ? data.perfectpayPlanId.trim() : null,
+      active: data.active,
+      sortOrder: data.sortOrder,
+    };
+
+    const metadata: Record<string, any> = {};
+    if (data.benefits) metadata.benefits = data.benefits;
+    if (data.ctaText) metadata.ctaText = data.ctaText;
+    if (Object.keys(metadata).length > 0) {
+      payload.metadata = metadata;
+    }
+
     const [created] = await db
       .insert(offers)
-      .values({
-        platform: data.platform,
-        service: data.service,
-        name: data.name,
-        slug: data.slug,
-        description: data.description,
-        quantity: data.quantity,
-        bonusQuantity: data.bonusQuantity,
-        priceCents: data.priceCents,
-        oldPriceCents: data.oldPriceCents,
-        currency: data.currency,
-        badge: data.badge,
-        isPopular: data.isPopular,
-        externalCheckoutUrl: data.externalCheckoutUrl || null,
-        perfectpayProductId: data.perfectpayProductId ? data.perfectpayProductId.trim() : null,
-        perfectpayPlanId: data.perfectpayPlanId ? data.perfectpayPlanId.trim() : null,
-        active: data.active,
-        sortOrder: data.sortOrder,
-      })
+      .values(payload as any)
       .returning();
 
     return NextResponse.json({ success: true, data: { offer: created } }, { status: 201 });

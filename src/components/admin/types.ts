@@ -132,6 +132,8 @@ export interface Plan {
   perfectpayPlanId?: string;
   active: boolean;
   sortOrder?: number;
+  benefits?: string[];
+  ctaText?: string;
 }
 
 export interface OrderBumpOffer {
