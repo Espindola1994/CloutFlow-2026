@@ -21,6 +21,7 @@ import {
   RefreshCw,
   X,
 } from "lucide-react";
+import { PeakerrStatusSyncCard, StatusSyncMetrics } from "./PeakerrStatusSyncCard";
 import { Platform } from "../types";
 
 interface ChainConfig {
@@ -246,16 +247,7 @@ export function PeakerrChainsModule() {
   // Automatic Status Sync Area State
   const [autoSyncLoading, setAutoSyncLoading] = useState(false);
   const [autoSyncEnabled, setAutoSyncEnabled] = useState<boolean>(false);
-  const [autoSyncResult, setAutoSyncResult] = useState<{
-    checked: number;
-    updated: number;
-    completed: number;
-    partial: number;
-    canceled: number;
-    unchanged: number;
-    errors: number;
-    lastRun?: string;
-  } | null>(null);
+  const [autoSyncResult, setAutoSyncResult] = useState<StatusSyncMetrics | null>(null);
 
   // Manual Simulation State
   const [manualPlatform, setManualPlatform] = useState<Platform>("instagram");
@@ -693,67 +685,14 @@ export function PeakerrChainsModule() {
         </div>
       </div>
 
-      {/* AUTOMATIC STATUS SYNC PANEL (Read-Only Provider Monitoring) - Always Visible */}
-      <div className="p-4 rounded-2xl bg-[#0b101b] border border-sky-500/20 shadow-md space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-neutral-800/80">
-          <div className="flex items-center gap-2.5">
-            <RefreshCw className="w-4 h-4 text-sky-400" />
-            <span className="text-xs font-bold text-white uppercase tracking-wider">
-              AUTOMATIC STATUS SYNC (READ-ONLY MONITORING)
-            </span>
-            <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
-              autoSyncEnabled
-                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                : "bg-neutral-800 text-neutral-400 border border-neutral-700"
-            }`}>
-              Automatic Sync: {autoSyncEnabled ? "ENABLED" : "DISABLED"}
-            </span>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleRunStatusSyncNow}
-            disabled={autoSyncLoading}
-            className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-sans text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-md disabled:opacity-50"
-          >
-            {autoSyncLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-            <span>Run Status Sync Now</span>
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-7 gap-2.5 text-xs font-mono">
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Last Manual Run</span>
-            <strong className="text-white text-xs">{autoSyncResult?.lastRun || "—"}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Checked</span>
-            <strong className="text-neutral-200 text-xs">{autoSyncResult?.checked ?? "—"}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Updated</span>
-            <strong className="text-sky-400 text-xs">{autoSyncResult?.updated ?? "—"}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Completed</span>
-            <strong className="text-emerald-400 text-xs">{autoSyncResult?.completed ?? "—"}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Partial</span>
-            <strong className="text-amber-400 text-xs">{autoSyncResult?.partial ?? "—"}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Canceled</span>
-            <strong className="text-rose-400 text-xs">{autoSyncResult?.canceled ?? "—"}</strong>
-          </div>
-          <div className="p-2.5 rounded-xl bg-neutral-900/60 border border-neutral-800/80">
-            <span className="text-[10px] text-neutral-500 block uppercase">Errors</span>
-            <strong className={`${autoSyncResult?.errors ? 'text-red-400' : 'text-neutral-400'} text-xs`}>
-              {autoSyncResult?.errors ?? "—"}
-            </strong>
-          </div>
-        </div>
-      </div>
+      {/* AUTOMATIC STATUS SYNC PANEL (Read-Only Provider Monitoring) - Isolated Unconditional Component */}
+      <PeakerrStatusSyncCard
+        enabled={autoSyncEnabled}
+        loading={autoSyncLoading}
+        metrics={autoSyncResult}
+        onRunSync={handleRunStatusSyncNow}
+        error={errorMessage}
+      />
 
       {savedStatus && (
         <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center gap-2 shadow-xs">
