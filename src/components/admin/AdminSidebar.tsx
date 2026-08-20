@@ -38,7 +38,7 @@ export function AdminSidebar({
     { id: "dashboard" as const, label: "Dashboard", icon: LayoutDashboard },
     { id: "orders" as const, label: "Orders & Margins", icon: ShoppingBag },
     { id: "dropshield" as const, label: "Drop Shield 24/7", icon: ShieldCheck },
-    { id: "fulfillment" as const, label: "Fulfillment & Peakerr", icon: PackageOpen },
+    { id: "fulfillment" as const, label: "Fulfillment & Providers", icon: PackageOpen },
     { id: "growth" as const, label: "Growth / Offers", icon: Sparkles },
     { id: "crm" as const, label: "CRM & Communication", icon: Users },
     { id: "blacklist" as const, label: "Anti-Fraud Blacklist", icon: ShieldBan },
@@ -46,12 +46,12 @@ export function AdminSidebar({
   ];
 
   const sidebarContent = (
-    <aside className="w-[260px] h-full bg-[#071D26] border-r border-[#11313B] flex flex-col justify-between text-[#8A979D] select-none">
+    <aside className="w-[248px] h-full bg-[#071D26] border-r border-[#11313B] flex flex-col justify-between text-[#8A979D] select-none">
       <div className="flex flex-col flex-1 overflow-y-auto">
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-[#11313B] shrink-0">
           <Link href="/admin/dashboard" className="flex items-center gap-2">
-            <span className="text-[22px] font-bold tracking-tight text-white flex items-center gap-1.5">
+            <span className="text-[20px] font-bold tracking-tight text-white flex items-center gap-1.5">
               <span>Clout</span>
               <span className="text-[#0F8F8A]">Flow</span>
               <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#0F8F8A]/20 text-[#0F8F8A] border border-[#0F8F8A]/30 ml-1">
@@ -84,9 +84,9 @@ export function AdminSidebar({
                   onSelectTab(item.id);
                   if (onCloseMobile) onCloseMobile();
                 }}
-                className={`relative w-full min-h-[42px] flex items-center gap-3 px-3.5 md:px-4 rounded-[8px] text-[13px] font-medium transition-all cursor-pointer ${
+                className={`relative w-full min-h-[42px] flex items-center gap-3 px-3.5 rounded-[8px] text-[13px] font-medium transition-all cursor-pointer ${
                   isActive
-                    ? "bg-[rgba(15,143,138,0.16)] text-white font-semibold"
+                    ? "bg-[rgba(15,143,138,0.18)] text-white font-semibold"
                     : "text-[#8A979D] hover:text-white hover:bg-[#0A2630]"
                 }`}
               >
@@ -108,7 +108,7 @@ export function AdminSidebar({
             <span>Connection</span>
             <div className="flex items-center gap-1 text-[#16B77A]">
               <Radio className="w-3 h-3 animate-pulse" />
-              <span>Live</span>
+              <span>LIVE</span>
             </div>
           </div>
           <div className="text-[11px] text-[#8A979D] flex items-center justify-between">
@@ -136,7 +136,7 @@ export function AdminSidebar({
   return (
     <>
       {/* Desktop Fixed Sidebar */}
-      <div className="hidden md:block fixed left-0 top-0 bottom-0 z-40 w-[260px] shrink-0">
+      <div className="hidden md:block fixed left-0 top-0 bottom-0 z-40 w-[248px] shrink-0">
         {sidebarContent}
       </div>
 
@@ -147,7 +147,7 @@ export function AdminSidebar({
             className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" 
             onClick={onCloseMobile} 
           />
-          <div className="relative z-10 w-[260px] h-full shadow-2xl">
+          <div className="relative z-10 w-[248px] h-full shadow-2xl">
             {sidebarContent}
           </div>
         </div>

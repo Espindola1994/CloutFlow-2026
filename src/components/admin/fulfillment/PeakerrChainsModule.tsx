@@ -632,83 +632,79 @@ export function PeakerrChainsModule() {
           </p>
         </div>
 
-        {/* Platform Controls (44px x 44px, gap 8px) */}
+        {/* Platform Controls (48px x 48px, gap 8px, white bg, border, radius 8px) */}
         <div className="flex items-center gap-[8px] shrink-0">
           {(["instagram", "tiktok", "twitter", "youtube"] as Platform[]).map((p) => (
             <button
               key={p}
               type="button"
               onClick={() => setSelectedPlatform(p)}
-              className={`w-[44px] h-[44px] rounded-[8px] border flex items-center justify-center transition-colors cursor-pointer ${
+              className={`w-[48px] h-[48px] rounded-[8px] border flex items-center justify-center transition-colors cursor-pointer ${
                 selectedPlatform === p
-                  ? "border-[rgba(15,143,138,0.45)] bg-[#EAF6F5] text-[#0F8F8A] shadow-[0_1px_3px_rgba(15,143,138,0.15)]"
+                  ? "border-[#0F8F8A] bg-[#FFFFFF] text-[#0F8F8A] shadow-[0_1px_4px_rgba(15,143,138,0.2)] ring-1 ring-[#0F8F8A]"
                   : "bg-[#FFFFFF] border-[#D9E2E3] text-[#65737A] hover:border-[#CBD6D8] hover:bg-[#F8FAFA]"
               }`}
             >
-              <PlatformIcon platform={p === "twitter" ? "x" : p} size={20} showBackground={false} />
+              <PlatformIcon platform={p === "twitter" ? "x" : p} size={22} showBackground={false} />
             </button>
           ))}
         </div>
       </div>
 
-      {/* 2. PROVIDER STATUS CARD (Min Height: 104px, Padding: 18px 20px) */}
-      <div className="min-h-[104px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-[18px_20px] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
-        <div className="flex flex-wrap items-center gap-6 divide-y md:divide-y-0 md:divide-x divide-[#E3E9EA]">
+      {/* 2. PROVIDER STATUS — MASTER STRIP (Single large horizontal card, height ~82px–92px, border #D9E2E3, radius 8px–10px) */}
+      <div className="min-h-[84px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_1px_2px_rgba(10,35,42,0.02)]">
+        <div className="flex flex-wrap items-center gap-6 divide-y md:divide-y-0 md:divide-x divide-[#E7ECEC]">
           {/* Item 1: Provider Name & Routing */}
-          <div className="flex items-center gap-3 pr-2">
-            <span
-              className={`w-3 h-3 rounded-full shrink-0 ${
-                connectionInfo?.connected ? "bg-[#16B77A]" : "bg-[#EF4444]"
-              }`}
-            />
+          <div className="flex items-center gap-3 pr-4">
+            <div className="w-[34px] h-[34px] rounded-[7px] bg-[#E7F5F4] text-[#0F8F8A] flex items-center justify-center shrink-0">
+              <Server className="w-4 h-4" />
+            </div>
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
                 PEAKERR PROVIDER
               </span>
-              <span className="text-[15px] font-[650] text-[#142126] leading-tight block mt-0.5">
+              <span className="text-[14px] font-[650] text-[#142126] leading-tight block mt-0.5">
                 Provider Routing
               </span>
             </div>
           </div>
 
           {/* Item 2: Connection */}
-          <div className="pt-3 md:pt-0 md:pl-6 min-h-[38px] flex flex-col justify-center">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
+          <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] block">
               CONNECTION
             </span>
             <span
-              className={`text-[15px] font-semibold mt-0.5 ${
+              className={`text-[14px] font-semibold mt-0.5 flex items-center gap-1.5 ${
                 connectionInfo?.connected ? "text-[#16B77A]" : "text-[#EF4444]"
               }`}
             >
-              {inspectLoading
-                ? "Connecting..."
-                : connectionInfo?.connected
-                ? "● Connected"
-                : "● Disconnected"}
+              <span className={`w-1.5 h-1.5 rounded-full ${connectionInfo?.connected ? "bg-[#16B77A]" : "bg-[#EF4444]"}`} />
+              <span>{inspectLoading ? "Connecting..." : connectionInfo?.connected ? "Connected" : "Disconnected"}</span>
             </span>
           </div>
 
           {/* Item 3: Live Fulfillment */}
-          <div className="pt-3 md:pt-0 md:pl-6 min-h-[38px] flex flex-col justify-center">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
+          <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] block">
               LIVE FULFILLMENT
             </span>
             <span
-              className={`text-[15px] font-semibold mt-0.5 ${
-                runtimeFlags.liveFulfillment ? "text-[#16B77A]" : "text-[#D97706]"
+              className={`text-[14px] font-semibold mt-0.5 flex items-center gap-1.5 ${
+                runtimeFlags.liveFulfillment ? "text-[#16B77A]" : "text-[#F59E0B]"
               }`}
             >
-              {runtimeFlags.liveFulfillment ? "● Active" : "● Inactive"}
+              <span className={`w-1.5 h-1.5 rounded-full ${runtimeFlags.liveFulfillment ? "bg-[#16B77A]" : "bg-[#F59E0B]"}`} />
+              <span>{runtimeFlags.liveFulfillment ? "Active" : "Inactive"}</span>
             </span>
           </div>
 
           {/* Item 4: Balance */}
-          <div className="pt-3 md:pt-0 md:pl-6 min-h-[38px] flex flex-col justify-center">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
+          <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] block">
               BALANCE
             </span>
-            <span className="text-[18px] font-[650] font-mono text-[#142126] mt-0.5">
+            <span className="text-[17px] font-[650] font-mono text-[#142126] mt-0.5">
               {connectionInfo?.balance !== null && connectionInfo?.balance !== undefined
                 ? `$${Number(connectionInfo.balance).toFixed(2)}`
                 : "—"}
@@ -716,28 +712,28 @@ export function PeakerrChainsModule() {
           </div>
 
           {/* Item 5: Services Loaded */}
-          <div className="pt-3 md:pt-0 md:pl-6 min-h-[38px] flex flex-col justify-center">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
+          <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] block">
               SERVICES
             </span>
-            <span className="text-[18px] font-[650] font-mono text-[#142126] mt-0.5">
+            <span className="text-[17px] font-[650] font-mono text-[#142126] mt-0.5">
               {connectionInfo?.servicesCount ? Number(connectionInfo.servicesCount).toLocaleString() : "0"}
             </span>
           </div>
         </div>
 
-        {/* Refresh Button on the right (Height 36px) */}
+        {/* Refresh Button on the right (Height 34px-36px) */}
         <div className="shrink-0">
           <button
             type="button"
             onClick={fetchPeakerrInspection}
             disabled={inspectLoading}
-            className="h-[36px] inline-flex items-center gap-2 px-4 text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
+            className="h-[34px] inline-flex items-center gap-2 px-3.5 text-[12px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
           >
             {inspectLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : (
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-3.5 h-3.5 text-[#0F8F8A]" />
             )}
             <span>Refresh</span>
           </button>
@@ -770,459 +766,475 @@ export function PeakerrChainsModule() {
         </div>
       )}
 
-      {/* 5. PROVIDER CHAINS & FALLBACKS (AdminCard container) */}
-      <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] overflow-hidden">
-        <div className="h-[64px] px-[20px] flex items-center border-b border-[#E7ECEC]">
-          <div>
-            <h3 className="text-[14px] font-[650] uppercase tracking-wider text-[#142126]">
-              PROVIDER CHAINS & FALLBACKS
-            </h3>
-            <p className="text-[12px] text-[#65737A] mt-0.5">
-              Configure multi-tier fallback chains per platform and service.
-            </p>
+      {/* 5. PROVIDER CHAINS & FALLBACKS + SIMULATOR SIDE CARD (75% / 25% on desktop large) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-[16px] items-start">
+        {/* PROVIDER CHAINS CARD (lg:col-span-8 or lg:col-span-9, approx 72%-75%) */}
+        <div className={`${isSimulatorOpen ? "lg:col-span-12" : "lg:col-span-9"} bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] shadow-[0_1px_2px_rgba(10,35,42,0.02)] overflow-hidden transition-all`}>
+          <div className="h-[58px] px-[20px] flex items-center border-b border-[#E7ECEC]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-[32px] h-[32px] rounded-[7px] bg-[#E7F5F4] text-[#0F8F8A] flex items-center justify-center shrink-0">
+                <Settings2 className="w-4 h-4" />
+              </div>
+              <div>
+                <h3 className="text-[14px] font-[650] uppercase tracking-wider text-[#142126]">
+                  PROVIDER CHAINS & FALLBACKS
+                </h3>
+                <p className="text-[12px] text-[#65737A]">
+                  Configure multi-tier fallback chains per platform and service.
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Desktop Table View */}
-        <div className="hidden md:block overflow-x-auto">
-          <AdminTable>
-            <AdminTableHeader>
-              <AdminTableRow className="bg-[#F8FAFA] h-[44px] border-b border-[#E7ECEC]">
-                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5">
-                  Platform
-                </AdminTableHead>
-                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5">
-                  Service
-                </AdminTableHead>
-                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5">
-                  Chain Order
-                </AdminTableHead>
-                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5">
-                  Providers
-                </AdminTableHead>
-                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5">
-                  Status
-                </AdminTableHead>
-                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5 text-right">
-                  Actions
-                </AdminTableHead>
-              </AdminTableRow>
-            </AdminTableHeader>
-            <AdminTableBody>
-              {services.map((svc) => {
-                const key = `${selectedPlatform}:${svc}`;
-                const chain = chains[key] || {
-                  platform: selectedPlatform,
-                  service: svc,
-                  variant: "standard",
-                  name: `${selectedPlatform.toUpperCase()} ${svc.toUpperCase()}`,
-                  primaryServiceId: "",
-                  fallback1Id: "",
-                  fallback2Id: "",
-                  autoFallback: true,
-                };
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <AdminTable>
+              <AdminTableHeader>
+                <AdminTableRow className="bg-[#F8FAFA] h-[40px] border-b border-[#E7ECEC]">
+                  <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                    Platform
+                  </AdminTableHead>
+                  <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                    Service
+                  </AdminTableHead>
+                  <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                    Chain Order
+                  </AdminTableHead>
+                  <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                    Providers
+                  </AdminTableHead>
+                  <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                    Status
+                  </AdminTableHead>
+                  <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2 text-right">
+                    Actions
+                  </AdminTableHead>
+                </AdminTableRow>
+              </AdminTableHeader>
+              <AdminTableBody>
+                {services.map((svc) => {
+                  const key = `${selectedPlatform}:${svc}`;
+                  const chain = chains[key] || {
+                    platform: selectedPlatform,
+                    service: svc,
+                    variant: "standard",
+                    name: `${selectedPlatform.toUpperCase()} ${svc.toUpperCase()}`,
+                    primaryServiceId: "",
+                    fallback1Id: "",
+                    fallback2Id: "",
+                    autoFallback: true,
+                  };
 
-                return (
-                  <AdminTableRow key={svc} className="h-[64px] border-b border-[#EAEFEF]">
-                    <AdminTableCell className="py-3">
-                      <div className="flex items-center gap-2.5">
-                        <PlatformIcon
-                          platform={selectedPlatform === "twitter" ? "x" : selectedPlatform}
-                          size={20}
-                          showBackground={false}
-                        />
-                        <span className="capitalize font-[600] text-[#142126] text-[13px]">
-                          {selectedPlatform === "twitter" ? "X" : selectedPlatform}
-                        </span>
-                      </div>
-                    </AdminTableCell>
-
-                    <AdminTableCell className="py-3">
-                      <span className="capitalize font-[600] text-[#142126] text-[13px]">{svc}</span>
-                    </AdminTableCell>
-
-                    <AdminTableCell className="py-3">
-                      <div className="flex flex-col gap-1.5">
-                        <div className="flex items-center gap-2 text-[13px] font-medium text-[#142126]">
-                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#0F8F8A] text-white text-[12px] font-bold">
-                            ①
-                          </span>
-                          <span className="text-[#8A979D] w-[28px] flex items-center justify-center">──</span>
-                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[12px] font-bold ${chain.fallback1Id ? "bg-[#D9E2E3] text-[#142126]" : "bg-[#F1F5F5] text-[#8A979D]"}`}>
-                            ②
-                          </span>
-                          <span className="text-[#8A979D] w-[28px] flex items-center justify-center">──</span>
-                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[12px] font-bold ${chain.fallback2Id ? "bg-[#D9E2E3] text-[#142126]" : "bg-[#F1F5F5] text-[#8A979D]"}`}>
-                            ③
+                  return (
+                    <AdminTableRow key={svc} className="h-[46px] border-b border-[#EAEFEF]">
+                      <AdminTableCell className="py-2.5">
+                        <div className="flex items-center gap-2">
+                          <PlatformIcon
+                            platform={selectedPlatform === "twitter" ? "x" : selectedPlatform}
+                            size={18}
+                            showBackground={false}
+                          />
+                          <span className="capitalize font-[600] text-[#142126] text-[13px]">
+                            {selectedPlatform === "twitter" ? "X" : selectedPlatform}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 text-[11px] font-mono text-[#65737A]">
-                          <span>ID: {chain.primaryServiceId || "—"}</span>
-                          {chain.fallback1Id && <span>• FB1: {chain.fallback1Id}</span>}
-                          {chain.fallback2Id && <span>• FB2: {chain.fallback2Id}</span>}
+                      </AdminTableCell>
+
+                      <AdminTableCell className="py-2.5">
+                        <span className="capitalize font-[600] text-[#142126] text-[13px]">{svc}</span>
+                      </AdminTableCell>
+
+                      <AdminTableCell className="py-2.5">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-1.5 text-[12px] font-medium text-[#142126]">
+                            <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#0F8F8A] text-white text-[11px] font-bold">
+                              1
+                            </span>
+                            <span className="text-[#8A979D] text-[11px]">───</span>
+                            <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold ${chain.fallback1Id ? "bg-[#D9E2E3] text-[#142126]" : "bg-[#F1F5F5] text-[#8A979D]"}`}>
+                              2
+                            </span>
+                            <span className="text-[#8A979D] text-[11px]">───</span>
+                            <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold ${chain.fallback2Id ? "bg-[#D9E2E3] text-[#142126]" : "bg-[#F1F5F5] text-[#8A979D]"}`}>
+                              3
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px] font-mono text-[#65737A]">
+                            <span className="text-[#0F8F8A] font-semibold">{chain.primaryServiceId || "—"}</span>
+                            {chain.fallback1Id && <span>/ {chain.fallback1Id}</span>}
+                            {chain.fallback2Id && <span>/ {chain.fallback2Id}</span>}
+                          </div>
                         </div>
-                      </div>
-                    </AdminTableCell>
+                      </AdminTableCell>
 
-                    <AdminTableCell className="py-3">
-                      <div className="flex items-center gap-1.5 text-[13px] text-[#65737A]">
-                        <Server className="w-4 h-4 text-[#0F8F8A]" />
-                        <span>Peakerr</span>
-                      </div>
-                    </AdminTableCell>
+                      <AdminTableCell className="py-2.5">
+                        <div className="flex items-center gap-1.5 text-[12px] text-[#65737A]">
+                          <Server className="w-3.5 h-3.5 text-[#0F8F8A]" />
+                          <span>Peakerr</span>
+                        </div>
+                      </AdminTableCell>
 
-                    <AdminTableCell className="py-3">
-                      <AdminBadge variant={chain.autoFallback ? "success" : "warning"} size="sm">
-                        {chain.autoFallback ? "Auto Fallback" : "Single Tier"}
-                      </AdminBadge>
-                    </AdminTableCell>
+                      <AdminTableCell className="py-2.5">
+                        <AdminBadge variant={chain.autoFallback ? "success" : "warning"} size="sm">
+                          {chain.autoFallback ? "Auto Fallback" : "Single Tier"}
+                        </AdminBadge>
+                      </AdminTableCell>
 
-                    <AdminTableCell className="py-3 text-right">
-                      <button
-                        type="button"
-                        onClick={() => setEditingService(svc)}
-                        className="h-[34px] inline-flex items-center gap-1.5 px-3 text-[12px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
-                      >
-                        <Settings2 className="w-[14px] h-[14px] text-[#0F8F8A]" />
-                        <span>Configure</span>
-                      </button>
-                    </AdminTableCell>
-                  </AdminTableRow>
-                );
-              })}
-            </AdminTableBody>
-          </AdminTable>
+                      <AdminTableCell className="py-2.5 text-right">
+                        <button
+                          type="button"
+                          onClick={() => setEditingService(svc)}
+                          className="h-[30px] inline-flex items-center gap-1.5 px-2.5 text-[12px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[6px] hover:bg-[#F8FAFA] transition-colors cursor-pointer shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
+                        >
+                          <Settings2 className="w-[13px] h-[13px] text-[#0F8F8A]" />
+                          <span>Configure</span>
+                        </button>
+                      </AdminTableCell>
+                    </AdminTableRow>
+                  );
+                })}
+              </AdminTableBody>
+            </AdminTable>
+          </div>
+
+          {/* Mobile View */}
+          <div className="block md:hidden p-4 space-y-3">
+            {services.map((svc) => {
+              const key = `${selectedPlatform}:${svc}`;
+              const chain = chains[key] || {
+                platform: selectedPlatform,
+                service: svc,
+                variant: "standard",
+                name: `${selectedPlatform.toUpperCase()} ${svc.toUpperCase()}`,
+                primaryServiceId: "",
+                fallback1Id: "",
+                fallback2Id: "",
+                autoFallback: true,
+              };
+
+              return (
+                <MobileDataCard
+                  key={svc}
+                  title={
+                    <div className="flex items-center gap-2">
+                      <PlatformIcon
+                        platform={selectedPlatform === "twitter" ? "x" : selectedPlatform}
+                        size={18}
+                        showBackground={false}
+                      />
+                      <span className="capitalize font-bold text-[#142126] text-[13px]">
+                        {selectedPlatform} {svc}
+                      </span>
+                    </div>
+                  }
+                  status={
+                    <AdminBadge variant={chain.autoFallback ? "success" : "warning"} size="sm">
+                      {chain.autoFallback ? "Auto Fallback" : "Single"}
+                    </AdminBadge>
+                  }
+                  metrics={[
+                    {
+                      label: "Primary",
+                      value: <span className="font-mono font-bold text-[#0F8F8A]">{chain.primaryServiceId || "—"}</span>,
+                    },
+                    {
+                      label: "Fallback 1",
+                      value: <span className="font-mono text-[#65737A]">{chain.fallback1Id || "—"}</span>,
+                    },
+                    {
+                      label: "Fallback 2",
+                      value: <span className="font-mono text-[#65737A]">{chain.fallback2Id || "—"}</span>,
+                    },
+                  ]}
+                  actions={
+                    <button
+                      type="button"
+                      onClick={() => setEditingService(svc)}
+                      className="w-full h-[34px] text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Settings2 className="w-3.5 h-3.5 text-[#0F8F8A]" />
+                      <span>Configure</span>
+                    </button>
+                  }
+                />
+              );
+            })}
+          </div>
         </div>
 
-        {/* Mobile View */}
-        <div className="block md:hidden p-4 space-y-3">
-          {services.map((svc) => {
-            const key = `${selectedPlatform}:${svc}`;
-            const chain = chains[key] || {
-              platform: selectedPlatform,
-              service: svc,
-              variant: "standard",
-              name: `${selectedPlatform.toUpperCase()} ${svc.toUpperCase()}`,
-              primaryServiceId: "",
-              fallback1Id: "",
-              fallback2Id: "",
-              autoFallback: true,
-            };
-
-            return (
-              <MobileDataCard
-                key={svc}
-                title={
-                  <div className="flex items-center gap-2">
-                    <PlatformIcon
-                      platform={selectedPlatform === "twitter" ? "x" : selectedPlatform}
-                      size={18}
-                      showBackground={false}
-                    />
-                    <span className="capitalize font-bold text-[#142126] text-[13px]">
-                      {selectedPlatform} {svc}
-                    </span>
-                  </div>
-                }
-                status={
-                  <AdminBadge variant={chain.autoFallback ? "success" : "warning"} size="sm">
-                    {chain.autoFallback ? "Auto Fallback" : "Single"}
-                  </AdminBadge>
-                }
-                metrics={[
-                  {
-                    label: "Primary",
-                    value: <span className="font-mono font-bold text-[#0F8F8A]">{chain.primaryServiceId || "—"}</span>,
-                  },
-                  {
-                    label: "Fallback 1",
-                    value: <span className="font-mono text-[#65737A]">{chain.fallback1Id || "—"}</span>,
-                  },
-                  {
-                    label: "Fallback 2",
-                    value: <span className="font-mono text-[#65737A]">{chain.fallback2Id || "—"}</span>,
-                  },
-                ]}
-                actions={
-                  <button
-                    type="button"
-                    onClick={() => setEditingService(svc)}
-                    className="w-full h-[34px] text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
-                  >
-                    <Settings2 className="w-3.5 h-3.5 text-[#0F8F8A]" />
-                    <span>Configure</span>
-                  </button>
-                }
-              />
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 6. SIMULATOR / DRY RUN (Collapsible Card: 68px–76px when collapsed, closed by default) */}
-      <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setIsSimulatorOpen(!isSimulatorOpen)}
-          className="w-full h-[72px] px-5 flex items-center justify-between hover:bg-[#F8FAFA] transition-colors cursor-pointer text-left"
-        >
-          <div>
-            <h3 className="text-[14px] font-[650] text-[#142126] tracking-tight">
-              Simulator & Dry Run
-            </h3>
-            <p className="text-[12px] text-[#65737A] mt-0.5">
-              Safely test provider routing without submitting a real order.
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] border border-[#D9E2E3] bg-[#FFFFFF] text-[12px] font-semibold text-[#142126] shadow-[0_1px_2px_rgba(10,35,42,0.02)]">
-            <span>{isSimulatorOpen ? "Collapse" : "Expand"}</span>
-            {isSimulatorOpen ? <ChevronUp className="w-3.5 h-3.5 text-[#0F8F8A]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#0F8F8A]" />}
-          </div>
-        </button>
-
-        {isSimulatorOpen && (
-          <div className="p-5 border-t border-[#E7ECEC] space-y-4">
-            {/* Mode Switcher Tabs */}
-            <div className="flex items-center gap-2 pb-2 border-b border-[#EDF1F2]">
-              <button
-                type="button"
-                onClick={() => setSimulatorMode("manual")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-[6px] transition-colors cursor-pointer flex items-center gap-1.5 ${
-                  simulatorMode === "manual"
-                    ? "bg-[#0F8F8A] text-white"
-                    : "bg-[#F7F9FA] text-[#65737A] hover:text-[#142126]"
-                }`}
-              >
-                <Sliders className="w-3.5 h-3.5" />
-                <span>Manual Simulation</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSimulatorMode("existing")}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-[6px] transition-colors cursor-pointer flex items-center gap-1.5 ${
-                  simulatorMode === "existing"
-                    ? "bg-[#0F8F8A] text-white"
-                    : "bg-[#F7F9FA] text-[#65737A] hover:text-[#142126]"
-                }`}
-              >
-                <FileCheck2 className="w-3.5 h-3.5" />
-                <span>Existing Order</span>
-              </button>
+        {/* 6. SIMULATOR SIDE CARD (lg:col-span-3, approx 25%-28% when closed, expandable) */}
+        <div className={`${isSimulatorOpen ? "lg:col-span-12" : "lg:col-span-3"} bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] shadow-[0_1px_2px_rgba(10,35,42,0.02)] overflow-hidden transition-all`}>
+          <div className="p-4 flex flex-col justify-between min-h-[160px]">
+            <div>
+              <div className="flex items-center gap-2">
+                <div className="w-[30px] h-[30px] rounded-[6px] bg-[#E7F5F4] text-[#0F8F8A] flex items-center justify-center shrink-0">
+                  <Sliders className="w-4 h-4" />
+                </div>
+                <h3 className="text-[13px] font-[650] text-[#142126] tracking-tight">
+                  Simulator & Dry Run
+                </h3>
+              </div>
+              <p className="text-[11px] text-[#65737A] mt-2 leading-relaxed">
+                Safely test provider routing without submitting a real order.
+              </p>
             </div>
 
-            {/* Mode A: Manual Simulation */}
-            {simulatorMode === "manual" && (
-              <form onSubmit={handleManualSimulation} className="space-y-3 text-xs">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-[#142126] font-semibold block mb-1">Platform</label>
-                    <select
-                      value={manualPlatform}
-                      onChange={(e) => {
-                        const p = e.target.value as Platform;
-                        setManualPlatform(p);
-                        if (manualService === "followers") {
-                          setManualTarget(`https://${p === "twitter" ? "x.com" : `${p}.com`}/anaclaramaderite`);
-                        }
-                      }}
-                      className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A]"
-                    >
-                      <option value="instagram">Instagram</option>
-                      <option value="tiktok">TikTok</option>
-                      <option value="twitter">X / Twitter</option>
-                      <option value="youtube">YouTube</option>
-                    </select>
+            <div className="pt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsSimulatorOpen(!isSimulatorOpen)}
+                className="h-[32px] px-3 inline-flex items-center gap-1.5 rounded-[6px] border border-[#D9E2E3] bg-[#FFFFFF] hover:bg-[#F8FAFA] text-[12px] font-semibold text-[#142126] transition-colors cursor-pointer shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
+              >
+                <span>{isSimulatorOpen ? "Collapse ↑" : "Expand ↓"}</span>
+                {isSimulatorOpen ? <ChevronUp className="w-3 h-3 text-[#0F8F8A]" /> : <ChevronDown className="w-3 h-3 text-[#0F8F8A]" />}
+              </button>
+            </div>
+          </div>
+
+          {isSimulatorOpen && (
+            <div className="p-5 border-t border-[#E7ECEC] space-y-4 bg-[#F8FAFA]/50">
+              {/* Mode Switcher Tabs */}
+              <div className="flex items-center gap-2 pb-2 border-b border-[#EDF1F2]">
+                <button
+                  type="button"
+                  onClick={() => setSimulatorMode("manual")}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-[6px] transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    simulatorMode === "manual"
+                      ? "bg-[#0F8F8A] text-white"
+                      : "bg-[#FFFFFF] border border-[#D9E2E3] text-[#65737A] hover:text-[#142126]"
+                  }`}
+                >
+                  <Sliders className="w-3.5 h-3.5" />
+                  <span>Manual Simulation</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSimulatorMode("existing")}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-[6px] transition-colors cursor-pointer flex items-center gap-1.5 ${
+                    simulatorMode === "existing"
+                      ? "bg-[#0F8F8A] text-white"
+                      : "bg-[#FFFFFF] border border-[#D9E2E3] text-[#65737A] hover:text-[#142126]"
+                  }`}
+                >
+                  <FileCheck2 className="w-3.5 h-3.5" />
+                  <span>Existing Order</span>
+                </button>
+              </div>
+
+              {/* Mode A: Manual Simulation */}
+              {simulatorMode === "manual" && (
+                <form onSubmit={handleManualSimulation} className="space-y-3 text-xs bg-white p-4 rounded-[8px] border border-[#D9E2E3]">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="text-[#142126] font-semibold block mb-1">Platform</label>
+                      <select
+                        value={manualPlatform}
+                        onChange={(e) => {
+                          const p = e.target.value as Platform;
+                          setManualPlatform(p);
+                          if (manualService === "followers") {
+                            setManualTarget(`https://${p === "twitter" ? "x.com" : `${p}.com`}/anaclaramaderite`);
+                          }
+                        }}
+                        className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A]"
+                      >
+                        <option value="instagram">Instagram</option>
+                        <option value="tiktok">TikTok</option>
+                        <option value="twitter">X / Twitter</option>
+                        <option value="youtube">YouTube</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[#142126] font-semibold block mb-1">Service</label>
+                      <select
+                        value={manualService}
+                        onChange={(e) => {
+                          const s = e.target.value;
+                          setManualService(s);
+                          if (s === "followers") {
+                            setManualTarget(`https://${manualPlatform === "twitter" ? "x.com" : `${manualPlatform}.com`}/anaclaramaderite`);
+                          } else if (s === "likes" || s === "views" || s === "comments") {
+                            setManualTarget(
+                              manualPlatform === "instagram"
+                                ? "https://instagram.com/p/DFzL123456"
+                                : manualPlatform === "tiktok"
+                                ? "https://tiktok.com/@user/video/7182938492"
+                                : manualPlatform === "youtube"
+                                ? "https://youtube.com/watch?v=dQw4w9WgXcQ"
+                                : "https://x.com/user/status/17892348923"
+                            );
+                          }
+                        }}
+                        className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A] capitalize"
+                      >
+                        <option value="followers">Followers</option>
+                        <option value="likes">Likes</option>
+                        <option value="views">Views</option>
+                        <option value="comments">Comments</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="text-[#142126] font-semibold block mb-1">Quantity</label>
+                      <input
+                        type="number"
+                        min="1"
+                        step="1"
+                        placeholder="e.g. 2000"
+                        value={manualQuantity}
+                        onChange={(e) => setManualQuantity(e.target.value)}
+                        className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono focus:outline-none focus:border-[#0F8F8A]"
+                        required
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="text-[#142126] font-semibold block mb-1">Service</label>
-                    <select
-                      value={manualService}
-                      onChange={(e) => {
-                        const s = e.target.value;
-                        setManualService(s);
-                        if (s === "followers") {
-                          setManualTarget(`https://${manualPlatform === "twitter" ? "x.com" : `${manualPlatform}.com`}/anaclaramaderite`);
-                        } else if (s === "likes" || s === "views" || s === "comments") {
-                          setManualTarget(
-                            manualPlatform === "instagram"
-                              ? "https://instagram.com/p/DFzL123456"
-                              : manualPlatform === "tiktok"
-                              ? "https://tiktok.com/@user/video/7182938492"
-                              : manualPlatform === "youtube"
-                              ? "https://youtube.com/watch?v=dQw4w9WgXcQ"
-                              : "https://x.com/user/status/17892348923"
-                          );
-                        }
-                      }}
-                      className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A] capitalize"
-                    >
-                      <option value="followers">Followers</option>
-                      <option value="likes">Likes</option>
-                      <option value="views">Views</option>
-                      <option value="comments">Comments</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="text-[#142126] font-semibold block mb-1">Quantity</label>
+                    <label className="text-[#142126] font-semibold block mb-1">Target URL / Identifier</label>
                     <input
-                      type="number"
-                      min="1"
-                      step="1"
-                      placeholder="e.g. 2000"
-                      value={manualQuantity}
-                      onChange={(e) => setManualQuantity(e.target.value)}
-                      className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono focus:outline-none focus:border-[#0F8F8A]"
+                      type="text"
+                      placeholder="https://instagram.com/..."
+                      value={manualTarget}
+                      onChange={(e) => setManualTarget(e.target.value)}
+                      className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
                       required
                     />
                   </div>
-                </div>
 
-                <div>
-                  <label className="text-[#142126] font-semibold block mb-1">Target URL / Identifier</label>
-                  <input
-                    type="text"
-                    placeholder="https://instagram.com/..."
-                    value={manualTarget}
-                    onChange={(e) => setManualTarget(e.target.value)}
-                    className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
-                    required
-                  />
-                </div>
-
-                <div className="flex items-center justify-end pt-1">
-                  <button
-                    type="submit"
-                    disabled={manualLoading}
-                    className="px-3 py-2 rounded-[6px] bg-[#0F8F8A] hover:bg-[#0B7A76] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
-                  >
-                    {manualLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
-                    <span>Run Dry Run</span>
-                  </button>
-                </div>
-              </form>
-            )}
-
-            {/* Mode B: Existing Order */}
-            {simulatorMode === "existing" && (
-              <form onSubmit={handleDryRunExistingOrder} className="space-y-3 text-xs">
-                <div>
-                  <label className="text-[#142126] font-semibold block mb-1">Order UUID or Public ID</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      placeholder="e.g. 5ac16615-57f1-4b41-ae69-426a14c6c68d"
-                      value={dryRunOrderId}
-                      onChange={(e) => setDryRunOrderId(e.target.value)}
-                      className="flex-1 bg-white border border-[#D1D9DC] rounded-[6px] px-3 py-2 text-xs text-[#142126] font-mono focus:outline-none focus:border-[#0F8F8A]"
-                    />
+                  <div className="flex items-center justify-end pt-1">
                     <button
                       type="submit"
-                      disabled={dryRunLoading}
+                      disabled={manualLoading}
                       className="px-3 py-2 rounded-[6px] bg-[#0F8F8A] hover:bg-[#0B7A76] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                     >
-                      {dryRunLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
-                      <span>Preview Order</span>
+                      {manualLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+                      <span>Run Dry Run</span>
                     </button>
                   </div>
-                </div>
-              </form>
-            )}
+                </form>
+              )}
 
-            {/* Simulation Results Display */}
-            {(() => {
-              const activeResult = simulatorMode === "manual" ? manualResult : dryRunResult;
-              if (!activeResult) return null;
-
-              if (!activeResult.success) {
-                return (
-                  <div className="p-3 rounded-[6px] bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] text-xs">
-                    <strong>SIMULATION ERROR:</strong> {activeResult.error?.message || "Failed to resolve chain."}
-                  </div>
-                );
-              }
-
-              const data = activeResult.data || activeResult;
-
-              return (
-                <div className="p-3.5 rounded-[8px] bg-[#F7F9FA] border border-[#E3E8EA] space-y-3 text-xs">
-                  <div className="flex items-center justify-between pb-2 border-b border-[#E3E8EA]">
-                    <span className="font-mono font-bold text-[#142126]">
-                      {data.platform?.toUpperCase()} / {data.service?.toUpperCase()}
-                    </span>
-                    <span className="text-[10px] text-[#65737A] font-mono">
-                      {data.alreadyDispatched ? "ALREADY DISPATCHED" : "SIMULATION ONLY"}
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    <div className="p-2 rounded-[6px] bg-white border border-[#E3E8EA]">
-                      <span className="text-[9px] text-[#65737A] block">Quantity</span>
-                      <strong className="text-[#142126] font-mono">{data.quantity}</strong>
-                    </div>
-                    <div className="p-2 rounded-[6px] bg-white border border-[#E3E8EA]">
-                      <span className="text-[9px] text-[#65737A] block">Primary Service ID</span>
-                      <strong className="text-[#0F8F8A] font-mono">{data.primaryServiceId || data.serviceId}</strong>
-                    </div>
-                    <div className="p-2 rounded-[6px] bg-white border border-[#E3E8EA] col-span-2">
-                      <span className="text-[9px] text-[#65737A] block">Target</span>
-                      <strong className="text-[#142126] font-mono truncate block" title={data.target}>
-                        {data.target}
-                      </strong>
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] flex items-center gap-1">
-                      <Terminal className="w-3 h-3 text-[#0F8F8A]" />
-                      <span>Simulated Payload</span>
-                    </span>
-                    <pre className="p-2.5 rounded-[6px] bg-white border border-[#E3E8EA] text-[#0F8F8A] font-mono text-[11px] overflow-x-auto">
-                      {JSON.stringify(
-                        data.peakerrRequestPayload || {
-                          provider: "peakerr",
-                          service: data.primaryServiceId || data.serviceId,
-                          link: data.target,
-                          quantity: data.quantity,
-                        },
-                        null,
-                        2
-                      )}
-                    </pre>
-                  </div>
-
-                  {simulatorMode === "existing" && (
-                    <div className="pt-2 flex items-center justify-between border-t border-[#EDF1F2]">
+              {/* Mode B: Existing Order */}
+              {simulatorMode === "existing" && (
+                <form onSubmit={handleDryRunExistingOrder} className="space-y-3 text-xs bg-white p-4 rounded-[8px] border border-[#D9E2E3]">
+                  <div>
+                    <label className="text-[#142126] font-semibold block mb-1">Order UUID or Public ID</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        placeholder="e.g. 5ac16615-57f1-4b41-ae69-426a14c6c68d"
+                        value={dryRunOrderId}
+                        onChange={(e) => setDryRunOrderId(e.target.value)}
+                        className="flex-1 bg-white border border-[#D1D9DC] rounded-[6px] px-3 py-2 text-xs text-[#142126] font-mono focus:outline-none focus:border-[#0F8F8A]"
+                      />
                       <button
-                        type="button"
-                        onClick={handleCheckLiveStatus}
-                        disabled={statusCheckLoading}
-                        className="px-2.5 py-1.5 text-xs font-semibold text-[#142126] bg-white border border-[#E3E8EA] rounded-[6px] hover:bg-[#F7F9FA] transition-colors cursor-pointer"
+                        type="submit"
+                        disabled={dryRunLoading}
+                        className="px-3 py-2 rounded-[6px] bg-[#0F8F8A] hover:bg-[#0B7A76] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                       >
-                        {statusCheckLoading ? "Checking..." : "Check Status"}
+                        {dryRunLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+                        <span>Preview Order</span>
                       </button>
+                    </div>
+                  </div>
+                </form>
+              )}
 
-                      {data.alreadyDispatched ? (
-                        <span className="text-[#16B77A] font-semibold text-xs">
-                          Dispatched #{data.latestFulfillment?.externalOrderId}
-                        </span>
-                      ) : (
+              {/* Simulation Results Display */}
+              {(() => {
+                const activeResult = simulatorMode === "manual" ? manualResult : dryRunResult;
+                if (!activeResult) return null;
+
+                if (!activeResult.success) {
+                  return (
+                    <div className="p-3 rounded-[6px] bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] text-xs">
+                      <strong>SIMULATION ERROR:</strong> {activeResult.error?.message || "Failed to resolve chain."}
+                    </div>
+                  );
+                }
+
+                const data = activeResult.data || activeResult;
+
+                return (
+                  <div className="p-3.5 rounded-[8px] bg-white border border-[#D9E2E3] space-y-3 text-xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-[#E3E8EA]">
+                      <span className="font-mono font-bold text-[#142126]">
+                        {data.platform?.toUpperCase()} / {data.service?.toUpperCase()}
+                      </span>
+                      <span className="text-[10px] text-[#65737A] font-mono">
+                        {data.alreadyDispatched ? "ALREADY DISPATCHED" : "SIMULATION ONLY"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      <div className="p-2 rounded-[6px] bg-[#FAFCFC] border border-[#E3E8EA]">
+                        <span className="text-[9px] text-[#65737A] block">Quantity</span>
+                        <strong className="text-[#142126] font-mono">{data.quantity}</strong>
+                      </div>
+                      <div className="p-2 rounded-[6px] bg-[#FAFCFC] border border-[#E3E8EA]">
+                        <span className="text-[9px] text-[#65737A] block">Primary Service ID</span>
+                        <strong className="text-[#0F8F8A] font-mono">{data.primaryServiceId || data.serviceId}</strong>
+                      </div>
+                      <div className="p-2 rounded-[6px] bg-[#FAFCFC] border border-[#E3E8EA] col-span-2">
+                        <span className="text-[9px] text-[#65737A] block">Target</span>
+                        <strong className="text-[#142126] font-mono truncate block" title={data.target}>
+                          {data.target}
+                        </strong>
+                      </div>
+                    </div>
+
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] flex items-center gap-1">
+                        <Terminal className="w-3 h-3 text-[#0F8F8A]" />
+                        <span>Simulated Payload</span>
+                      </span>
+                      <pre className="p-2.5 rounded-[6px] bg-[#FAFCFC] border border-[#E3E8EA] text-[#0F8F8A] font-mono text-[11px] overflow-x-auto">
+                        {JSON.stringify(
+                          data.peakerrRequestPayload || {
+                            provider: "peakerr",
+                            service: data.primaryServiceId || data.serviceId,
+                            link: data.target,
+                            quantity: data.quantity,
+                          },
+                          null,
+                          2
+                        )}
+                      </pre>
+                    </div>
+
+                    {simulatorMode === "existing" && (
+                      <div className="pt-2 flex items-center justify-between border-t border-[#EDF1F2]">
                         <button
                           type="button"
-                          onClick={() => setIsSubmitModalOpen(true)}
-                          className="px-3 py-1.5 rounded-[6px] bg-[#EF4444] text-white text-xs font-semibold hover:bg-[#DC2626] transition-colors cursor-pointer"
+                          onClick={handleCheckLiveStatus}
+                          disabled={statusCheckLoading}
+                          className="px-2.5 py-1.5 text-xs font-semibold text-[#142126] bg-white border border-[#E3E8EA] rounded-[6px] hover:bg-[#F7F9FA] transition-colors cursor-pointer"
                         >
-                          Submit to Peakerr
+                          {statusCheckLoading ? "Checking..." : "Check Status"}
                         </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
-        )}
+
+                        {data.alreadyDispatched ? (
+                          <span className="text-[#16B77A] font-semibold text-xs">
+                            Dispatched #{data.latestFulfillment?.externalOrderId}
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setIsSubmitModalOpen(true)}
+                            className="px-3 py-1.5 rounded-[6px] bg-[#EF4444] text-white text-xs font-semibold hover:bg-[#DC2626] transition-colors cursor-pointer"
+                          >
+                            Submit to Peakerr
+                          </button>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* MODAL: EDIT CHAIN CONFIGURATION */}

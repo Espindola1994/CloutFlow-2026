@@ -120,25 +120,25 @@ export function PeakerrStatusSyncCard({
         </div>
       )}
 
-      {/* 7-column metrics grid (min-height 92px per card) */}
+      {/* 7-column metrics grid (cards ~78px height, 150-190px width) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
         {syncItems.map((item, idx) => {
           const Icon = item.icon;
           return (
             <div
               key={idx}
-              className="min-h-[92px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-[14px_16px] flex flex-col justify-between shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
+              className="min-h-[78px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[8px] p-[10px_14px] flex flex-col justify-between shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
             >
               <div className="flex items-center justify-between gap-1">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#65737A] truncate">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-[#65737A] truncate">
                   {item.label}
                 </span>
-                <div className={`w-[30px] h-[30px] rounded-[6px] flex items-center justify-center shrink-0 ${item.iconBg}`}>
-                  <Icon className="w-3.5 h-3.5" />
+                <div className={`w-[26px] h-[26px] rounded-full flex items-center justify-center shrink-0 ${item.iconBg}`}>
+                  <Icon className="w-3 h-3" />
                 </div>
               </div>
               <span
-                className={`text-[22px] font-bold font-mono tracking-tight leading-none ${item.valueColor}`}
+                className={`text-[19px] font-bold font-mono tracking-tight leading-none ${item.valueColor}`}
               >
                 {item.value}
               </span>

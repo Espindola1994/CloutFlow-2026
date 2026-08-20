@@ -13,24 +13,23 @@ describe('PeakerrStatusSyncCard DOM Render', () => {
         loading={false}
         metrics={null}
         onRunSync={onRunSync}
-        buildMarker="02bf761-fase39b"
       />
     );
 
     // Ensure the main header is present
-    expect(html).toContain('AUTOMATIC STATUS SYNC (READ-ONLY MONITORING)');
-
-    // Ensure the build marker is present
-    expect(html).toContain('STATUS SYNC UI BUILD:');
-    expect(html).toContain('02bf761-fase39b');
+    expect(html).toContain('AUTOMATIC STATUS SYNC');
+    expect(html).toContain('Read-only monitoring of provider order synchronization.');
 
     // Ensure manual run button is rendered
-    expect(html).toContain('Run Status Sync Now');
+    expect(html).toContain('Sync Now');
 
     // Ensure metrics placeholders are rendered
-    expect(html).toContain('Automatic Sync:');
-    expect(html).toContain('DISABLED');
     expect(html).toContain('Last Manual Run');
-    expect(html).toContain('—');
+    expect(html).toContain('Checked');
+    expect(html).toContain('Updated');
+    expect(html).toContain('Completed');
+    expect(html).toContain('Partial');
+    expect(html).toContain('Canceled');
+    expect(html).toContain('Errors');
   });
 });

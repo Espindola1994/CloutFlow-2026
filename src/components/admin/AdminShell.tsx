@@ -110,7 +110,7 @@ export function AdminShell() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 md:ml-[260px] relative z-10 min-h-screen">
+      <div className="flex-1 flex flex-col min-w-0 md:ml-[248px] relative z-10 min-h-screen">
         
         {/* Mobile Header */}
         <header className="md:hidden flex items-center justify-between h-14 px-4 bg-[#071D26] border-b border-[#11313B] sticky top-0 z-30">
@@ -133,7 +133,7 @@ export function AdminShell() {
         </header>
 
         {/* Scrollable Content View */}
-        <main className="flex-1 p-4 md:p-[28px] md:pt-[28px] md:pb-[40px] md:px-[32px] 2xl:px-[36px] overflow-y-auto">
+        <main className="flex-1 p-4 md:p-[24px_32px_36px] overflow-y-auto">
           <div className="w-full max-w-[1720px] mr-auto">
             {renderModule()}
           </div>
