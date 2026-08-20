@@ -16,9 +16,9 @@ export function AdminCard({
   return (
     <div
       className={cn(
-        "bg-white border border-[#E3E8EA] rounded-[10px] shadow-[0_1px_3px_rgba(0,0,0,0.03)] text-[#142126] transition-all",
-        hover && "hover:bg-[#FBFCFC] hover:border-[#D1D9DC] hover:shadow-[0_2px_6px_rgba(0,0,0,0.05)]",
-        padded && "p-4 md:p-5",
+        "bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] text-[#142126] transition-all",
+        hover && "hover:bg-[#FBFCFC] hover:border-[#CBD6D8] hover:shadow-[0_2px_8px_rgba(10,35,42,0.06)]",
+        padded && "p-5 md:p-6",
         className
       )}
       {...props}

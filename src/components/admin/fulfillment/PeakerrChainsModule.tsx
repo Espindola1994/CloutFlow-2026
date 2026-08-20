@@ -2,31 +2,26 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  Layers,
-  Sparkles,
   Save,
   CheckCircle2,
   AlertCircle,
   Play,
   RotateCcw,
-  Zap,
-  ArrowRight,
-  ShieldAlert,
   Loader2,
   Sliders,
   FileCheck2,
   Terminal,
   Send,
   RefreshCw,
-  X,
   Server,
   Settings2,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { PeakerrStatusSyncCard, StatusSyncMetrics } from "./PeakerrStatusSyncCard";
 import { PeakerrAutoDispatchCard } from "./PeakerrAutoDispatchCard";
 import { Platform } from "../types";
 import {
-  AdminCard,
   AdminBadge,
   AdminButton,
   AdminModal,
@@ -242,8 +237,10 @@ export function PeakerrChainsModule() {
     liveFulfillment: false,
     webhookVerified: false,
   });
-  const [inspectAudit, setInspectAudit] = useState<any>(null);
   const [inspectLoading, setInspectLoading] = useState(false);
+
+  // Simulator accordion toggle (collapsed by default)
+  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
 
   // Simulation Mode state: "manual" | "existing"
   const [simulatorMode, setSimulatorMode] = useState<"manual" | "existing">("manual");
@@ -271,7 +268,7 @@ export function PeakerrChainsModule() {
   // Manual Simulation State
   const [manualPlatform, setManualPlatform] = useState<Platform>("instagram");
   const [manualService, setManualService] = useState<string>("followers");
-  const [manualVariant, setManualVariant] = useState<string>("standard");
+  const [manualVariant] = useState<string>("standard");
   const [manualQuantity, setManualQuantity] = useState<string>("2000");
   const [manualTarget, setManualTarget] = useState<string>("https://instagram.com/anaclaramaderite");
   const [manualResult, setManualResult] = useState<any>(null);
@@ -289,7 +286,6 @@ export function PeakerrChainsModule() {
       if (res.ok && json.success) {
         setConnectionInfo(json.connection);
         setRuntimeFlags(json.runtime || { apiKeyPresent: true, liveFulfillment: false, webhookVerified: false });
-        setInspectAudit(json.audit);
       } else {
         setConnectionInfo({
           connected: false,
@@ -560,9 +556,7 @@ export function PeakerrChainsModule() {
       const data = await res.json();
       setStatusCheckResult(data);
 
-      // SYNC/REFETCH: if status check succeeds, refresh the inspection state
       if (data.success) {
-        // Run a background refetch of the preview to update the top UI with DB state
         fetch(`/api/admin/orders/${dryRunOrderId.trim()}/fulfillment-preview`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -601,7 +595,6 @@ export function PeakerrChainsModule() {
         });
         setAutoSyncEnabled(json.enabled);
 
-        // If an existing order is actively inspected, refresh its dry run state as well
         if (dryRunOrderId.trim()) {
           fetch(`/api/admin/orders/${dryRunOrderId.trim()}/fulfillment-preview`, {
             method: "POST",
@@ -627,86 +620,131 @@ export function PeakerrChainsModule() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* 1. Page Header & Platform Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3E8EA] pb-5">
+    <div className="space-y-5">
+      {/* 1. PAGE HEADER */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-h-[72px] mb-[20px]">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-[23px] font-[650] text-[#142126] tracking-tight">Fulfillment & Providers</h2>
-            <AdminBadge variant="primary" size="sm">
-              DRY RUN & SIMULATION
-            </AdminBadge>
-          </div>
-          <p className="text-[13px] text-[#65737A] mt-1">
-            Configure delivery routing, provider fallbacks and fulfillment health.
+          <h2 className="text-[24px] font-[650] text-[#142126] tracking-tight leading-tight">
+            Fulfillment & Providers
+          </h2>
+          <p className="text-[13px] text-[#65737A] mt-[5px]">
+            Manage provider routing, delivery automation and fulfillment health.
           </p>
         </div>
 
-        {/* Platform Indicators (42px-46px container buttons) */}
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Platform Controls (44px x 44px, gap 8px) */}
+        <div className="flex items-center gap-[8px]">
           {(["instagram", "tiktok", "twitter", "youtube"] as Platform[]).map((p) => (
             <button
               key={p}
               type="button"
               onClick={() => setSelectedPlatform(p)}
-              className={`flex items-center justify-center w-[44px] h-[44px] rounded-[8px] bg-white border transition-all cursor-pointer ${
+              className={`w-[44px] h-[44px] rounded-[8px] border flex items-center justify-center transition-colors cursor-pointer ${
                 selectedPlatform === p
-                  ? "border-[#0F8F8A] shadow-sm ring-1 ring-[#0F8F8A]/20"
-                  : "border-[#E3E8EA] hover:bg-[#F7F9FA] hover:border-[#D1D9DC]"
+                  ? "border-[rgba(15,143,138,0.45)] bg-[#EAF6F5] text-[#0F8F8A] shadow-[0_1px_3px_rgba(15,143,138,0.15)]"
+                  : "bg-[#FFFFFF] border-[#D9E2E3] text-[#65737A] hover:border-[#CBD6D8] hover:bg-[#F8FAFA]"
               }`}
             >
-              <PlatformIcon platform={p === "twitter" ? "x" : p} size={22} showBackground={false} />
+              <PlatformIcon platform={p === "twitter" ? "x" : p} size={20} showBackground={false} />
             </button>
           ))}
         </div>
       </div>
 
-      {/* 2. Provider Status Strip */}
-      <AdminCard padded className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 !p-[16px_18px] border-[#E3E8EA]">
-        <div className="flex items-center gap-3">
-          <div className={`w-3 h-3 rounded-full shrink-0 ${connectionInfo?.connected ? "bg-[#16B77A] animate-pulse" : "bg-[#EF4444]"}`} />
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[12px] font-bold text-[#142126] uppercase tracking-wider">PEAKERR PROVIDER:</span>
-              <span className={`text-[12px] font-bold ${connectionInfo?.connected ? "text-[#16B77A]" : "text-[#EF4444]"}`}>
-                {inspectLoading ? "Inspecting..." : connectionInfo?.connected ? "Connected" : "Not Connected / Error"}
+      {/* 2. PROVIDER STATUS — Operational Card (96px–110px) */}
+      <div className="min-h-[96px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
+        <div className="flex flex-wrap items-center gap-6 divide-y md:divide-y-0 md:divide-x divide-[#E3E9EA]">
+          {/* Item 1: Provider Name & Routing */}
+          <div className="flex items-center gap-3 pr-4">
+            <span
+              className={`w-3 h-3 rounded-full shrink-0 ${
+                connectionInfo?.connected ? "bg-[#16B77A]" : "bg-[#EF4444]"
+              }`}
+            />
+            <div>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
+                PEAKERR PROVIDER
               </span>
-              <AdminBadge variant={runtimeFlags.liveFulfillment ? "warning" : "default"} size="sm" className="ml-1">
-                KILL SWITCH: {runtimeFlags.liveFulfillment ? "ACTIVE" : "DISABLED"}
-              </AdminBadge>
+              <span className="text-[14px] font-[650] text-[#142126] leading-tight block">
+                Provider Routing
+              </span>
             </div>
-            {connectionInfo?.error && (
-              <p className="text-[11px] text-[#EF4444]">{connectionInfo.error}</p>
-            )}
+          </div>
+
+          {/* Item 2: Connection */}
+          <div className="pt-3 md:pt-0 md:pl-6">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
+              CONNECTION
+            </span>
+            <span
+              className={`text-[14px] font-semibold ${
+                connectionInfo?.connected ? "text-[#16B77A]" : "text-[#EF4444]"
+              }`}
+            >
+              {inspectLoading
+                ? "Connecting..."
+                : connectionInfo?.connected
+                ? "● Connected"
+                : "● Disconnected"}
+            </span>
+          </div>
+
+          {/* Item 3: Live Fulfillment */}
+          <div className="pt-3 md:pt-0 md:pl-6">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
+              LIVE FULFILLMENT
+            </span>
+            <span
+              className={`text-[14px] font-semibold ${
+                runtimeFlags.liveFulfillment ? "text-[#16B77A]" : "text-[#D97706]"
+              }`}
+            >
+              {runtimeFlags.liveFulfillment ? "● Active" : "● Inactive"}
+            </span>
+          </div>
+
+          {/* Item 4: Balance */}
+          <div className="pt-3 md:pt-0 md:pl-6">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
+              BALANCE
+            </span>
+            <span className="text-[15px] font-bold font-mono text-[#142126]">
+              {connectionInfo?.balance !== null && connectionInfo?.balance !== undefined
+                ? `$${Number(connectionInfo.balance).toFixed(2)}`
+                : "—"}
+            </span>
+          </div>
+
+          {/* Item 5: Services Loaded */}
+          <div className="pt-3 md:pt-0 md:pl-6">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
+              SERVICES
+            </span>
+            <span className="text-[15px] font-bold font-mono text-[#142126]">
+              {connectionInfo?.servicesCount ? Number(connectionInfo.servicesCount).toLocaleString() : "0"}
+            </span>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 text-xs font-mono">
-          <div className="px-3 py-1.5 rounded-[8px] bg-[#F7F9FA] border border-[#E3E8EA]">
-            <span className="text-[#65737A] mr-1.5">Balance:</span>
-            <strong className="text-[#142126]">
-              {connectionInfo?.balance !== null && connectionInfo?.balance !== undefined
-                ? `${connectionInfo.currency} ${connectionInfo.balance}`
-                : "—"}
-            </strong>
-          </div>
-          <div className="px-3 py-1.5 rounded-[8px] bg-[#F7F9FA] border border-[#E3E8EA]">
-            <span className="text-[#65737A] mr-1.5">Services:</span>
-            <strong className="text-[#142126]">{connectionInfo?.servicesCount ?? 0}</strong>
-          </div>
-          <AdminButton
-            variant="outline"
-            size="sm"
+        {/* Refresh Button on the right */}
+        <div className="shrink-0">
+          <button
+            type="button"
             onClick={fetchPeakerrInspection}
             disabled={inspectLoading}
+            className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
           >
-            {inspectLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RotateCcw className="w-3.5 h-3.5" />}
+            {inspectLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RotateCcw className="w-4 h-4" />
+            )}
             <span>Refresh</span>
-          </AdminButton>
+          </button>
         </div>
-      </AdminCard>
+      </div>
 
-      {/* 3. Automatic Status Sync Panel */}
+      {/* 3. AUTOMATIC STATUS SYNC */}
       <PeakerrStatusSyncCard
         enabled={autoSyncEnabled}
         loading={autoSyncLoading}
@@ -715,47 +753,57 @@ export function PeakerrChainsModule() {
         error={errorMessage}
       />
 
-      {/* 4. Main Grid: Fulfillment Overview + Auto Dispatch */}
+      {/* 4. MAIN GRID (FULFILLMENT OVERVIEW + AUTO DISPATCH) */}
       <PeakerrAutoDispatchCard />
 
       {savedStatus && (
-        <div className="p-3.5 rounded-[8px] bg-[#E8F8F2] border border-[#B6ECD7] text-[#16B77A] text-xs font-semibold flex items-center gap-2 shadow-xs">
+        <div className="p-3 rounded-[6px] bg-[#E8F8F2] border border-[#B6ECD7] text-[#16B77A] text-xs font-semibold flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{savedStatus}</span>
         </div>
       )}
 
       {errorMessage && (
-        <div className="p-3.5 rounded-[8px] bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] text-xs font-semibold flex items-center gap-2 shadow-xs">
+        <div className="p-3 rounded-[6px] bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] text-xs font-semibold flex items-center gap-2">
           <AlertCircle className="w-4 h-4 shrink-0" />
           <span>{errorMessage}</span>
         </div>
       )}
 
-      {/* 5. Provider Chains & Fallbacks Section */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="text-[16px] font-bold text-[#142126] tracking-tight">
-              PROVIDER CHAINS & FALLBACKS
-            </h3>
-            <p className="text-[12px] text-[#65737A]">
-              Configure multi-tier fallback chains per platform and service.
-            </p>
-          </div>
+      {/* 5. PROVIDER CHAINS & FALLBACKS (AdminCard container) */}
+      <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] overflow-hidden">
+        <div className="p-[18px_20px] border-b border-[#E7ECEC]">
+          <h3 className="text-[14px] font-[650] uppercase tracking-wider text-[#142126]">
+            PROVIDER CHAINS & FALLBACKS
+          </h3>
+          <p className="text-[12px] text-[#65737A] mt-0.5">
+            Configure multi-tier fallback chains per platform and service.
+          </p>
         </div>
 
-        {/* Desktop Table View (Hidden on mobile) */}
-        <div className="hidden md:block">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <AdminTable>
             <AdminTableHeader>
-              <AdminTableRow>
-                <AdminTableHead>Platform</AdminTableHead>
-                <AdminTableHead>Service</AdminTableHead>
-                <AdminTableHead>Chain Order</AdminTableHead>
-                <AdminTableHead>Providers</AdminTableHead>
-                <AdminTableHead>Status</AdminTableHead>
-                <AdminTableHead className="text-right">Actions</AdminTableHead>
+              <AdminTableRow className="bg-[#F8FAFA] h-[42px] border-b border-[#E7ECEC]">
+                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                  Platform
+                </AdminTableHead>
+                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                  Service
+                </AdminTableHead>
+                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                  Chain Order
+                </AdminTableHead>
+                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                  Providers
+                </AdminTableHead>
+                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                  Status
+                </AdminTableHead>
+                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2 text-right">
+                  Actions
+                </AdminTableHead>
               </AdminTableRow>
             </AdminTableHeader>
             <AdminTableBody>
@@ -772,64 +820,70 @@ export function PeakerrChainsModule() {
                   autoFallback: true,
                 };
 
-                const tierCount = [chain.primaryServiceId, chain.fallback1Id, chain.fallback2Id].filter(Boolean).length;
-
                 return (
-                  <AdminTableRow key={svc}>
-                    <AdminTableCell>
-                      <div className="flex items-center gap-2">
-                        <PlatformIcon platform={selectedPlatform === "twitter" ? "x" : selectedPlatform} size={20} showBackground={false} />
-                        <span className="capitalize font-semibold text-[#142126]">{selectedPlatform === "twitter" ? "X" : selectedPlatform}</span>
+                  <AdminTableRow key={svc} className="h-[60px] border-b border-[#EAEFEF]">
+                    <AdminTableCell className="py-2.5">
+                      <div className="flex items-center gap-2.5">
+                        <PlatformIcon
+                          platform={selectedPlatform === "twitter" ? "x" : selectedPlatform}
+                          size={20}
+                          showBackground={false}
+                        />
+                        <span className="capitalize font-semibold text-[#142126] text-[12px]">
+                          {selectedPlatform === "twitter" ? "X" : selectedPlatform}
+                        </span>
                       </div>
                     </AdminTableCell>
 
-                    <AdminTableCell>
-                      <span className="capitalize font-medium text-[#142126]">{svc}</span>
+                    <AdminTableCell className="py-2.5">
+                      <span className="capitalize font-medium text-[#142126] text-[13px]">{svc}</span>
                     </AdminTableCell>
 
-                    <AdminTableCell>
-                      <div className="flex items-center gap-1.5 font-mono text-[11px]">
-                        <span className="w-5 h-5 rounded-full bg-[#0F8F8A] text-white flex items-center justify-center font-bold">1</span>
-                        <span className="text-[#142126] font-semibold">{chain.primaryServiceId || "—"}</span>
-                        {chain.fallback1Id && (
-                          <>
-                            <span className="text-[#8A979D]">→</span>
-                            <span className="w-5 h-5 rounded-full bg-[#E3E8EA] text-[#65737A] flex items-center justify-center font-bold">2</span>
-                            <span className="text-[#65737A]">{chain.fallback1Id}</span>
-                          </>
-                        )}
-                        {chain.fallback2Id && (
-                          <>
-                            <span className="text-[#8A979D]">→</span>
-                            <span className="w-5 h-5 rounded-full bg-[#E3E8EA] text-[#65737A] flex items-center justify-center font-bold">3</span>
-                            <span className="text-[#65737A]">{chain.fallback2Id}</span>
-                          </>
-                        )}
+                    <AdminTableCell className="py-2.5">
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5 text-[13px] font-medium text-[#142126]">
+                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#0F8F8A] text-white text-[11px] font-bold">
+                            ①
+                          </span>
+                          <span className="text-[#8A979D]">──</span>
+                          <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold ${chain.fallback1Id ? "bg-[#D9E2E3] text-[#142126]" : "bg-[#F1F5F5] text-[#8A979D]"}`}>
+                            ②
+                          </span>
+                          <span className="text-[#8A979D]">──</span>
+                          <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold ${chain.fallback2Id ? "bg-[#D9E2E3] text-[#142126]" : "bg-[#F1F5F5] text-[#8A979D]"}`}>
+                            ③
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] font-mono text-[#65737A]">
+                          <span>ID: {chain.primaryServiceId || "—"}</span>
+                          {chain.fallback1Id && <span>• FB1: {chain.fallback1Id}</span>}
+                          {chain.fallback2Id && <span>• FB2: {chain.fallback2Id}</span>}
+                        </div>
                       </div>
                     </AdminTableCell>
 
-                    <AdminTableCell>
-                      <div className="flex items-center gap-1.5 text-xs text-[#65737A]">
-                        <Server className="w-3.5 h-3.5 text-[#0F8F8A]" />
-                        <span>Peakerr ({tierCount} {tierCount === 1 ? "tier" : "tiers"})</span>
+                    <AdminTableCell className="py-2.5">
+                      <div className="flex items-center gap-1.5 text-[13px] text-[#65737A]">
+                        <Server className="w-4 h-4 text-[#0F8F8A]" />
+                        <span>Peakerr</span>
                       </div>
                     </AdminTableCell>
 
-                    <AdminTableCell>
-                      <AdminBadge variant={chain.autoFallback ? "success" : "warning"}>
+                    <AdminTableCell className="py-2.5">
+                      <AdminBadge variant={chain.autoFallback ? "success" : "warning"} size="sm">
                         {chain.autoFallback ? "Auto Fallback" : "Single Tier"}
                       </AdminBadge>
                     </AdminTableCell>
 
-                    <AdminTableCell className="text-right">
-                      <AdminButton
-                        size="sm"
-                        variant="secondary"
+                    <AdminTableCell className="py-2.5 text-right">
+                      <button
+                        type="button"
                         onClick={() => setEditingService(svc)}
+                        className="h-[34px] inline-flex items-center gap-1.5 px-3 text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
                       >
-                        <Settings2 className="w-3.5 h-3.5" />
+                        <Settings2 className="w-3.5 h-3.5 text-[#0F8F8A]" />
                         <span>Configure</span>
-                      </AdminButton>
+                      </button>
                     </AdminTableCell>
                   </AdminTableRow>
                 );
@@ -838,8 +892,8 @@ export function PeakerrChainsModule() {
           </AdminTable>
         </div>
 
-        {/* Mobile View: MobileDataCard list */}
-        <div className="block md:hidden space-y-3">
+        {/* Mobile View */}
+        <div className="block md:hidden p-4 space-y-3">
           {services.map((svc) => {
             const key = `${selectedPlatform}:${svc}`;
             const chain = chains[key] || {
@@ -858,18 +912,24 @@ export function PeakerrChainsModule() {
                 key={svc}
                 title={
                   <div className="flex items-center gap-2">
-                    <PlatformIcon platform={selectedPlatform === "twitter" ? "x" : selectedPlatform} size={18} showBackground={false} />
-                    <span className="capitalize font-bold text-[#142126]">{selectedPlatform} {svc}</span>
+                    <PlatformIcon
+                      platform={selectedPlatform === "twitter" ? "x" : selectedPlatform}
+                      size={18}
+                      showBackground={false}
+                    />
+                    <span className="capitalize font-bold text-[#142126] text-[13px]">
+                      {selectedPlatform} {svc}
+                    </span>
                   </div>
                 }
                 status={
-                  <AdminBadge variant={chain.autoFallback ? "success" : "warning"}>
-                    {chain.autoFallback ? "Auto Fallback" : "Single Tier"}
+                  <AdminBadge variant={chain.autoFallback ? "success" : "warning"} size="sm">
+                    {chain.autoFallback ? "Auto Fallback" : "Single"}
                   </AdminBadge>
                 }
                 metrics={[
                   {
-                    label: "Primary Service",
+                    label: "Primary",
                     value: <span className="font-mono font-bold text-[#0F8F8A]">{chain.primaryServiceId || "—"}</span>,
                   },
                   {
@@ -882,20 +942,285 @@ export function PeakerrChainsModule() {
                   },
                 ]}
                 actions={
-                  <AdminButton
-                    size="sm"
-                    variant="secondary"
-                    className="w-full"
+                  <button
+                    type="button"
                     onClick={() => setEditingService(svc)}
+                    className="w-full h-[34px] text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                   >
-                    <Settings2 className="w-3.5 h-3.5" />
-                    <span>Configure Chain</span>
-                  </AdminButton>
+                    <Settings2 className="w-3.5 h-3.5 text-[#0F8F8A]" />
+                    <span>Configure</span>
+                  </button>
                 }
               />
             );
           })}
         </div>
+      </div>
+
+      {/* 6. SIMULATOR / DRY RUN (Collapsible Card: 68px–76px when collapsed, closed by default) */}
+      <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] overflow-hidden">
+        <button
+          type="button"
+          onClick={() => setIsSimulatorOpen(!isSimulatorOpen)}
+          className="w-full h-[72px] px-5 flex items-center justify-between hover:bg-[#F8FAFA] transition-colors cursor-pointer text-left"
+        >
+          <div>
+            <h3 className="text-[14px] font-[650] text-[#142126] tracking-tight">
+              Simulator & Dry Run
+            </h3>
+            <p className="text-[12px] text-[#65737A] mt-0.5">
+              Safely test provider routing without submitting a real order.
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] border border-[#D9E2E3] bg-[#FFFFFF] text-[12px] font-semibold text-[#142126] shadow-[0_1px_2px_rgba(10,35,42,0.02)]">
+            <span>{isSimulatorOpen ? "Collapse" : "Expand"}</span>
+            {isSimulatorOpen ? <ChevronUp className="w-3.5 h-3.5 text-[#0F8F8A]" /> : <ChevronDown className="w-3.5 h-3.5 text-[#0F8F8A]" />}
+          </div>
+        </button>
+
+        {isSimulatorOpen && (
+          <div className="p-5 border-t border-[#E7ECEC] space-y-4">
+            {/* Mode Switcher Tabs */}
+            <div className="flex items-center gap-2 pb-2 border-b border-[#EDF1F2]">
+              <button
+                type="button"
+                onClick={() => setSimulatorMode("manual")}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-[6px] transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  simulatorMode === "manual"
+                    ? "bg-[#0F8F8A] text-white"
+                    : "bg-[#F7F9FA] text-[#65737A] hover:text-[#142126]"
+                }`}
+              >
+                <Sliders className="w-3.5 h-3.5" />
+                <span>Manual Simulation</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSimulatorMode("existing")}
+                className={`px-3 py-1.5 text-xs font-semibold rounded-[6px] transition-colors cursor-pointer flex items-center gap-1.5 ${
+                  simulatorMode === "existing"
+                    ? "bg-[#0F8F8A] text-white"
+                    : "bg-[#F7F9FA] text-[#65737A] hover:text-[#142126]"
+                }`}
+              >
+                <FileCheck2 className="w-3.5 h-3.5" />
+                <span>Existing Order</span>
+              </button>
+            </div>
+
+            {/* Mode A: Manual Simulation */}
+            {simulatorMode === "manual" && (
+              <form onSubmit={handleManualSimulation} className="space-y-3 text-xs">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[#142126] font-semibold block mb-1">Platform</label>
+                    <select
+                      value={manualPlatform}
+                      onChange={(e) => {
+                        const p = e.target.value as Platform;
+                        setManualPlatform(p);
+                        if (manualService === "followers") {
+                          setManualTarget(`https://${p === "twitter" ? "x.com" : `${p}.com`}/anaclaramaderite`);
+                        }
+                      }}
+                      className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A]"
+                    >
+                      <option value="instagram">Instagram</option>
+                      <option value="tiktok">TikTok</option>
+                      <option value="twitter">X / Twitter</option>
+                      <option value="youtube">YouTube</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[#142126] font-semibold block mb-1">Service</label>
+                    <select
+                      value={manualService}
+                      onChange={(e) => {
+                        const s = e.target.value;
+                        setManualService(s);
+                        if (s === "followers") {
+                          setManualTarget(`https://${manualPlatform === "twitter" ? "x.com" : `${manualPlatform}.com`}/anaclaramaderite`);
+                        } else if (s === "likes" || s === "views" || s === "comments") {
+                          setManualTarget(
+                            manualPlatform === "instagram"
+                              ? "https://instagram.com/p/DFzL123456"
+                              : manualPlatform === "tiktok"
+                              ? "https://tiktok.com/@user/video/7182938492"
+                              : manualPlatform === "youtube"
+                              ? "https://youtube.com/watch?v=dQw4w9WgXcQ"
+                              : "https://x.com/user/status/17892348923"
+                          );
+                        }
+                      }}
+                      className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A] capitalize"
+                    >
+                      <option value="followers">Followers</option>
+                      <option value="likes">Likes</option>
+                      <option value="views">Views</option>
+                      <option value="comments">Comments</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[#142126] font-semibold block mb-1">Quantity</label>
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      placeholder="e.g. 2000"
+                      value={manualQuantity}
+                      onChange={(e) => setManualQuantity(e.target.value)}
+                      className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono focus:outline-none focus:border-[#0F8F8A]"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[#142126] font-semibold block mb-1">Target URL / Identifier</label>
+                  <input
+                    type="text"
+                    placeholder="https://instagram.com/..."
+                    value={manualTarget}
+                    onChange={(e) => setManualTarget(e.target.value)}
+                    className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
+                    required
+                  />
+                </div>
+
+                <div className="flex items-center justify-end pt-1">
+                  <button
+                    type="submit"
+                    disabled={manualLoading}
+                    className="px-3 py-2 rounded-[6px] bg-[#0F8F8A] hover:bg-[#0B7A76] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    {manualLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+                    <span>Run Dry Run</span>
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* Mode B: Existing Order */}
+            {simulatorMode === "existing" && (
+              <form onSubmit={handleDryRunExistingOrder} className="space-y-3 text-xs">
+                <div>
+                  <label className="text-[#142126] font-semibold block mb-1">Order UUID or Public ID</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="e.g. 5ac16615-57f1-4b41-ae69-426a14c6c68d"
+                      value={dryRunOrderId}
+                      onChange={(e) => setDryRunOrderId(e.target.value)}
+                      className="flex-1 bg-white border border-[#D1D9DC] rounded-[6px] px-3 py-2 text-xs text-[#142126] font-mono focus:outline-none focus:border-[#0F8F8A]"
+                    />
+                    <button
+                      type="submit"
+                      disabled={dryRunLoading}
+                      className="px-3 py-2 rounded-[6px] bg-[#0F8F8A] hover:bg-[#0B7A76] text-white text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                    >
+                      {dryRunLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+                      <span>Preview Order</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            )}
+
+            {/* Simulation Results Display */}
+            {(() => {
+              const activeResult = simulatorMode === "manual" ? manualResult : dryRunResult;
+              if (!activeResult) return null;
+
+              if (!activeResult.success) {
+                return (
+                  <div className="p-3 rounded-[6px] bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] text-xs">
+                    <strong>SIMULATION ERROR:</strong> {activeResult.error?.message || "Failed to resolve chain."}
+                  </div>
+                );
+              }
+
+              const data = activeResult.data || activeResult;
+
+              return (
+                <div className="p-3.5 rounded-[8px] bg-[#F7F9FA] border border-[#E3E8EA] space-y-3 text-xs">
+                  <div className="flex items-center justify-between pb-2 border-b border-[#E3E8EA]">
+                    <span className="font-mono font-bold text-[#142126]">
+                      {data.platform?.toUpperCase()} / {data.service?.toUpperCase()}
+                    </span>
+                    <span className="text-[10px] text-[#65737A] font-mono">
+                      {data.alreadyDispatched ? "ALREADY DISPATCHED" : "SIMULATION ONLY"}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="p-2 rounded-[6px] bg-white border border-[#E3E8EA]">
+                      <span className="text-[9px] text-[#65737A] block">Quantity</span>
+                      <strong className="text-[#142126] font-mono">{data.quantity}</strong>
+                    </div>
+                    <div className="p-2 rounded-[6px] bg-white border border-[#E3E8EA]">
+                      <span className="text-[9px] text-[#65737A] block">Primary Service ID</span>
+                      <strong className="text-[#0F8F8A] font-mono">{data.primaryServiceId || data.serviceId}</strong>
+                    </div>
+                    <div className="p-2 rounded-[6px] bg-white border border-[#E3E8EA] col-span-2">
+                      <span className="text-[9px] text-[#65737A] block">Target</span>
+                      <strong className="text-[#142126] font-mono truncate block" title={data.target}>
+                        {data.target}
+                      </strong>
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] flex items-center gap-1">
+                      <Terminal className="w-3 h-3 text-[#0F8F8A]" />
+                      <span>Simulated Payload</span>
+                    </span>
+                    <pre className="p-2.5 rounded-[6px] bg-white border border-[#E3E8EA] text-[#0F8F8A] font-mono text-[11px] overflow-x-auto">
+                      {JSON.stringify(
+                        data.peakerrRequestPayload || {
+                          provider: "peakerr",
+                          service: data.primaryServiceId || data.serviceId,
+                          link: data.target,
+                          quantity: data.quantity,
+                        },
+                        null,
+                        2
+                      )}
+                    </pre>
+                  </div>
+
+                  {simulatorMode === "existing" && (
+                    <div className="pt-2 flex items-center justify-between border-t border-[#EDF1F2]">
+                      <button
+                        type="button"
+                        onClick={handleCheckLiveStatus}
+                        disabled={statusCheckLoading}
+                        className="px-2.5 py-1.5 text-xs font-semibold text-[#142126] bg-white border border-[#E3E8EA] rounded-[6px] hover:bg-[#F7F9FA] transition-colors cursor-pointer"
+                      >
+                        {statusCheckLoading ? "Checking..." : "Check Status"}
+                      </button>
+
+                      {data.alreadyDispatched ? (
+                        <span className="text-[#16B77A] font-semibold text-xs">
+                          Dispatched #{data.latestFulfillment?.externalOrderId}
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setIsSubmitModalOpen(true)}
+                          className="px-3 py-1.5 rounded-[6px] bg-[#EF4444] text-white text-xs font-semibold hover:bg-[#DC2626] transition-colors cursor-pointer"
+                        >
+                          Submit to Peakerr
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+          </div>
+        )}
       </div>
 
       {/* MODAL: EDIT CHAIN CONFIGURATION */}
@@ -922,11 +1247,10 @@ export function PeakerrChainsModule() {
           const isSaving = savingKey === key;
 
           return (
-            <div className="space-y-4 text-xs">
-              <div className="flex items-center justify-between p-3 rounded-[8px] bg-[#F7F9FA] border border-[#E3E8EA]">
+            <div className="space-y-3 text-xs">
+              <div className="flex items-center justify-between p-2.5 rounded-[6px] bg-[#F7F9FA] border border-[#E3E8EA]">
                 <div>
                   <span className="font-bold text-[#142126]">{chain.name}</span>
-                  <span className="text-[11px] text-[#65737A] block">Variant: {chain.variant}</span>
                 </div>
                 <label className="flex items-center gap-1.5 text-xs text-[#142126] font-semibold cursor-pointer">
                   <input
@@ -940,45 +1264,45 @@ export function PeakerrChainsModule() {
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-[#0F8F8A] uppercase tracking-wider block mb-1">
+                <label className="text-[10px] font-bold text-[#0F8F8A] uppercase tracking-wider block mb-1">
                   Primary Peakerr Service ID (Priority 1) *
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 31714"
+                  placeholder="e.g. 31249"
                   value={chain.primaryServiceId}
                   onChange={(e) => handleUpdate(editingService, "primaryServiceId", e.target.value)}
-                  className="w-full bg-white border border-[#D1D9DC] rounded-[8px] p-2.5 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
+                  className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-[#D97706] uppercase tracking-wider block mb-1">
+                <label className="text-[10px] font-bold text-[#D97706] uppercase tracking-wider block mb-1">
                   Fallback 1 Peakerr Service ID (Priority 2)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 31849"
+                  placeholder="e.g. 22042"
                   value={chain.fallback1Id}
                   onChange={(e) => handleUpdate(editingService, "fallback1Id", e.target.value)}
-                  className="w-full bg-white border border-[#D1D9DC] rounded-[8px] p-2.5 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
+                  className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
                 />
               </div>
 
               <div>
-                <label className="text-[11px] font-bold text-[#169BD5] uppercase tracking-wider block mb-1">
+                <label className="text-[10px] font-bold text-[#169BD5] uppercase tracking-wider block mb-1">
                   Fallback 2 Peakerr Service ID (Priority 3)
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 31850"
+                  placeholder="e.g. 30428"
                   value={chain.fallback2Id}
                   onChange={(e) => handleUpdate(editingService, "fallback2Id", e.target.value)}
-                  className="w-full bg-white border border-[#D1D9DC] rounded-[8px] p-2.5 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
+                  className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
                 />
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-[#EDF1F2]">
+              <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#EDF1F2]">
                 <AdminButton variant="secondary" onClick={() => setEditingService(null)}>
                   Cancel
                 </AdminButton>
@@ -997,390 +1321,6 @@ export function PeakerrChainsModule() {
         })()}
       </AdminModal>
 
-      {/* 6. SIMULATOR SECTION (Manual Simulation + Existing Order Dry Run) */}
-      <AdminCard className="space-y-5">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#E3E8EA] pb-3">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <Zap className="w-4 h-4 text-[#D97706]" />
-              <h3 className="text-[14px] font-bold text-[#142126] uppercase tracking-wider">
-                Fulfillment Simulator & Live Dispatch
-              </h3>
-            </div>
-            <p className="text-[12px] text-[#65737A]">
-              Safe Dry Run engine and controlled live order submission. Resolves chains, validates targets, and prepares Peakerr payloads.
-            </p>
-          </div>
-
-          {/* Mode Switcher Tabs */}
-          <div className="flex items-center bg-[#F7F9FA] border border-[#E3E8EA] rounded-[8px] p-1 text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => setSimulatorMode("manual")}
-              className={`px-3 py-1.5 rounded-[6px] transition-all cursor-pointer flex items-center gap-1.5 ${
-                simulatorMode === "manual"
-                  ? "bg-[#0F8F8A] text-white shadow-xs"
-                  : "text-[#65737A] hover:text-[#142126]"
-              }`}
-            >
-              <Sliders className="w-3.5 h-3.5" />
-              <span>Manual Simulation</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setSimulatorMode("existing")}
-              className={`px-3 py-1.5 rounded-[6px] transition-all cursor-pointer flex items-center gap-1.5 ${
-                simulatorMode === "existing"
-                  ? "bg-[#0F8F8A] text-white shadow-xs"
-                  : "text-[#65737A] hover:text-[#142126]"
-              }`}
-            >
-              <FileCheck2 className="w-3.5 h-3.5" />
-              <span>Existing Order</span>
-            </button>
-          </div>
-        </div>
-
-        {/* --- MODE A: MANUAL SIMULATION FORM --- */}
-        {simulatorMode === "manual" && (
-          <form onSubmit={handleManualSimulation} className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <label className="text-[#142126] font-semibold block mb-1">Platform</label>
-                <select
-                  value={manualPlatform}
-                  onChange={(e) => {
-                    const p = e.target.value as Platform;
-                    setManualPlatform(p);
-                    if (manualService === "followers") {
-                      setManualTarget(`https://${p === "twitter" ? "x.com" : `${p}.com`}/anaclaramaderite`);
-                    }
-                  }}
-                  className="w-full bg-white border border-[#D1D9DC] rounded-[8px] p-2.5 text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A]"
-                >
-                  <option value="instagram">Instagram</option>
-                  <option value="tiktok">TikTok</option>
-                  <option value="twitter">X / Twitter</option>
-                  <option value="youtube">YouTube</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[#142126] font-semibold block mb-1">Service</label>
-                <select
-                  value={manualService}
-                  onChange={(e) => {
-                    const s = e.target.value;
-                    setManualService(s);
-                    if (s === "followers") {
-                      setManualTarget(`https://${manualPlatform === "twitter" ? "x.com" : `${manualPlatform}.com`}/anaclaramaderite`);
-                    } else if (s === "likes" || s === "views" || s === "comments") {
-                      setManualTarget(
-                        manualPlatform === "instagram"
-                          ? "https://instagram.com/p/DFzL123456"
-                          : manualPlatform === "tiktok"
-                          ? "https://tiktok.com/@user/video/7182938492"
-                          : manualPlatform === "youtube"
-                          ? "https://youtube.com/watch?v=dQw4w9WgXcQ"
-                          : "https://x.com/user/status/17892348923"
-                      );
-                    }
-                  }}
-                  className="w-full bg-white border border-[#D1D9DC] rounded-[8px] p-2.5 text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A] capitalize"
-                >
-                  <option value="followers">Followers</option>
-                  <option value="likes">Likes</option>
-                  <option value="views">Views</option>
-                  <option value="comments">Comments</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="text-[#142126] font-semibold block mb-1">Quantity (Exact Order Qty)</label>
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  placeholder="e.g. 2000"
-                  value={manualQuantity}
-                  onChange={(e) => setManualQuantity(e.target.value)}
-                  className="w-full bg-white border border-[#D1D9DC] rounded-[8px] p-2.5 text-[#142126] font-mono focus:outline-none focus:border-[#0F8F8A]"
-                  required
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[#142126] font-semibold block mb-1">
-                Target ({manualService === "followers" ? "Username or Profile URL" : "Direct Content URL"})
-              </label>
-              <input
-                type="text"
-                placeholder={manualService === "followers" ? "anaclaramaderite or https://instagram.com/anaclaramaderite" : "https://instagram.com/p/..."}
-                value={manualTarget}
-                onChange={(e) => setManualTarget(e.target.value)}
-                className="w-full bg-white border border-[#D1D9DC] rounded-[8px] p-2.5 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
-                required
-              />
-            </div>
-
-            <div className="flex items-center justify-between pt-2">
-              <span className="text-[11px] text-[#65737A] font-mono">
-                Variant: standard • Source: Database Chains
-              </span>
-              <AdminButton
-                type="submit"
-                disabled={manualLoading}
-                isLoading={manualLoading}
-                variant="primary"
-              >
-                <Play className="w-3.5 h-3.5" />
-                <span>Generate Dry Run</span>
-              </AdminButton>
-            </div>
-          </form>
-        )}
-
-        {/* --- MODE B: EXISTING ORDER FORM --- */}
-        {simulatorMode === "existing" && (
-          <form onSubmit={handleDryRunExistingOrder} className="space-y-3">
-            <label className="text-xs text-[#142126] font-semibold block">
-              Enter Existing Order UUID / Public ID
-            </label>
-            <div className="flex gap-3">
-              <input
-                type="text"
-                placeholder="e.g. 5ac16615-57f1-4b41-ae69-426a14c6c68d"
-                value={dryRunOrderId}
-                onChange={(e) => setDryRunOrderId(e.target.value)}
-                className="flex-1 bg-white border border-[#D1D9DC] rounded-[8px] px-3.5 py-2 text-xs text-[#142126] font-mono placeholder:text-[#8A979D] focus:outline-none focus:border-[#0F8F8A]"
-              />
-              <AdminButton
-                type="submit"
-                disabled={dryRunLoading}
-                isLoading={dryRunLoading}
-                variant="primary"
-              >
-                <Play className="w-3.5 h-3.5" />
-                <span>Preview Order</span>
-              </AdminButton>
-            </div>
-          </form>
-        )}
-
-        {/* Live Submission Status Messages */}
-        {submitLiveResult && (
-          <div className={`p-4 rounded-[8px] border text-xs font-mono space-y-1 ${submitLiveResult.success ? "bg-[#E8F8F2] border-[#B6ECD7] text-[#16B77A]" : "bg-[#FEECEB] border-[#FCA5A5] text-[#EF4444]"}`}>
-            <p className="font-bold">{submitLiveResult.success ? "✓ PEAKERR ORDER SUBMITTED" : "✗ LIVE SUBMISSION FAILED"}</p>
-            <p>{submitLiveResult.data?.message || submitLiveResult.error?.message || JSON.stringify(submitLiveResult)}</p>
-          </div>
-        )}
-
-        {statusCheckResult && (
-          <div className={`p-4 rounded-[8px] border text-xs font-mono space-y-1 ${statusCheckResult.success ? "bg-[#E8F5FB] border-[#BAE6FD] text-[#169BD5]" : "bg-[#FEECEB] border-[#FCA5A5] text-[#EF4444]"}`}>
-            <p className="font-bold">PEAKERR LIVE STATUS RESULT:</p>
-            <pre className="text-[11px] overflow-x-auto text-[#142126]">
-              {JSON.stringify(statusCheckResult.data || statusCheckResult.error, null, 2)}
-            </pre>
-          </div>
-        )}
-
-        {/* --- SIMULATION RESULT PRESENTATION --- */}
-        {(() => {
-          const activeResult = simulatorMode === "manual" ? manualResult : dryRunResult;
-          if (!activeResult) return null;
-
-          if (!activeResult.success) {
-            return (
-              <div className="p-4 rounded-[8px] bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] space-y-2">
-                <div className="flex items-center gap-2 font-bold text-xs">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>SIMULATION BLOCKED — {activeResult.error?.code || "ERROR"}</span>
-                </div>
-                <p className="text-xs text-[#142126]">{activeResult.error?.message || "Failed to resolve chain."}</p>
-              </div>
-            );
-          }
-
-          const data = activeResult.data || activeResult;
-          const evaluationList = Array.isArray(data.chainServicesEvaluation) ? data.chainServicesEvaluation : [];
-
-          return (
-            <div className="p-5 rounded-[10px] bg-[#F7F9FA] border border-[#E3E8EA] space-y-4 text-xs">
-              {/* Header Status & Platform/Service Metadata */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E3E8EA]">
-                <div className="flex items-center gap-2">
-                  <AdminBadge variant={data.alreadyDispatched ? "info" : "success"}>
-                    {data.action || (data.alreadyDispatched ? "INSPECTION_MODE" : "DRY_RUN_READY")}
-                  </AdminBadge>
-                  <span className="text-[#142126] font-semibold">
-                    {data.platform?.toUpperCase()} • {data.service?.toUpperCase()} ({data.variant})
-                  </span>
-                </div>
-                <span className="text-[11px] font-mono text-[#D97706] font-semibold">
-                  {data.alreadyDispatched ? "ALREADY DISPATCHED • READ-ONLY" : "SIMULATION ONLY • NO REQUEST SENT"}
-                </span>
-              </div>
-
-              {/* Already Dispatched Banner / Provider Order Info */}
-              {data.alreadyDispatched && (
-                <div className="p-4 rounded-[8px] bg-white border border-[#BAE6FD] text-xs font-mono space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className={`font-bold ${data.fulfillmentStatus === "COMPLETED" ? "text-[#16B77A]" : "text-[#169BD5]"}`}>
-                      ✓ {data.fulfillmentStatus === "COMPLETED" ? "COMPLETED" : "ALREADY DISPATCHED"} — Provider Order #{data.latestFulfillment?.externalOrderId || "Registered"}
-                    </span>
-                    <span className="text-[#65737A] text-[11px]">
-                      Provider: {data.latestFulfillment?.provider || "Peakerr"} • Status: <strong className="text-[#142126]">{data.fulfillmentStatus || data.latestFulfillment?.status || "PROCESSING"}</strong>
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-[#65737A] pt-1 border-t border-[#EDF1F2]">
-                    <div>
-                      <span className="text-[#8A979D] block">Provider Order ID:</span>
-                      <strong className="text-[#142126]">{data.latestFulfillment?.externalOrderId || "N/A"}</strong>
-                    </div>
-                    <div>
-                      <span className="text-[#8A979D] block">Provider Service ID:</span>
-                      <strong className="text-[#0F8F8A]">{data.latestFulfillment?.externalServiceId || data.primaryServiceId}</strong>
-                    </div>
-                    <div>
-                      <span className="text-[#8A979D] block">Submitted At:</span>
-                      <span className="text-[#142126]">{data.latestFulfillment?.submittedAt ? new Date(data.latestFulfillment.submittedAt).toLocaleString() : "Recently"}</span>
-                    </div>
-                    <div>
-                      <span className="text-[#8A979D] block">Fulfillment State:</span>
-                      <strong className="text-[#169BD5]">{data.fulfillmentStatus || "PROCESSING"}</strong>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Summary Metrics */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3 rounded-[8px] bg-white border border-[#E3E8EA]">
-                  <span className="text-[10px] text-[#65737A] uppercase font-bold block mb-0.5">Order Quantity</span>
-                  <span className="text-[14px] font-bold text-[#142126] font-mono">{data.quantity?.toLocaleString()}</span>
-                </div>
-                <div className="p-3 rounded-[8px] bg-white border border-[#E3E8EA]">
-                  <span className="text-[10px] text-[#65737A] uppercase font-bold block mb-0.5">Resolved Target</span>
-                  <span className="text-xs font-bold text-[#142126] truncate block font-mono" title={data.target}>
-                    {data.target}
-                  </span>
-                </div>
-                <div className="p-3 rounded-[8px] bg-white border border-[#E3E8EA]">
-                  <span className="text-[10px] text-[#65737A] uppercase font-bold block mb-0.5">Resolved Chain</span>
-                  <span className="text-xs font-bold text-[#142126] truncate block">{data.chain?.name}</span>
-                </div>
-                <div className="p-3 rounded-[8px] bg-white border border-[#E3E8EA]">
-                  <span className="text-[10px] text-[#65737A] uppercase font-bold block mb-0.5">Auto Fallback</span>
-                  <span className={`text-xs font-bold ${data.chain?.autoFallback ? "text-[#16B77A]" : "text-[#D97706]"}`}>
-                    {data.chain?.autoFallback ? "ENABLED" : "DISABLED"}
-                  </span>
-                </div>
-              </div>
-
-              {/* Chain Slots Evaluation Breakdown */}
-              {evaluationList.length > 0 && (
-                <div className="space-y-2">
-                  <span className="text-[11px] font-bold text-[#65737A] uppercase tracking-wider block">
-                    Chain Services Evaluation
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {evaluationList.map((slot: any) => (
-                      <div
-                        key={slot.priority}
-                        className={`p-3 rounded-[8px] border ${
-                          slot.eligible
-                            ? slot.serviceId === data.primaryServiceId
-                              ? "bg-[#E8F8F2] border-[#B6ECD7] text-[#16B77A]"
-                              : "bg-white border-[#E3E8EA] text-[#142126]"
-                            : "bg-[#FEECEB] border-[#FCA5A5] text-[#EF4444]"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between font-semibold mb-1">
-                          <span>{slot.priorityLabel}</span>
-                          <AdminBadge variant={slot.eligible ? "success" : "danger"} size="sm">
-                            {slot.eligible ? "ELIGIBLE" : "INELIGIBLE"}
-                          </AdminBadge>
-                        </div>
-                        <p className="font-mono text-xs font-bold text-[#142126]">ID: {slot.serviceId}</p>
-                        <p className="text-[10px] text-[#65737A] mt-0.5 font-mono">
-                          Range: {slot.minQuantity.toLocaleString()} – {slot.maxQuantity.toLocaleString()}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Peakerr Request Payload Preview (Exact JSON) */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-bold text-[#65737A] uppercase tracking-wider flex items-center gap-1.5">
-                    <Terminal className="w-3.5 h-3.5 text-[#0F8F8A]" />
-                    <span>Peakerr Request Payload Preview (Simulated)</span>
-                  </span>
-                  <span className="text-[10px] text-[#8A979D] font-mono">Zero HTTP requests executed</span>
-                </div>
-                <pre className="p-3.5 rounded-[8px] bg-white border border-[#E3E8EA] text-[#0F8F8A] font-mono text-[11px] overflow-x-auto">
-                  {JSON.stringify(
-                    data.peakerrRequestPayload || {
-                      provider: "peakerr",
-                      service: data.primaryServiceId,
-                      link: data.target,
-                      quantity: data.quantity,
-                    },
-                    null,
-                    2
-                  )}
-                </pre>
-              </div>
-
-              {/* CONTROLLED LIVE SUBMIT BUTTON & STATUS CHECK (Existing Order Mode Only) */}
-              {simulatorMode === "existing" && (
-                <div className="pt-3 border-t border-[#EDF1F2] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <AdminButton
-                      variant="secondary"
-                      size="sm"
-                      onClick={handleCheckLiveStatus}
-                      disabled={statusCheckLoading || (!data.latestFulfillment?.externalOrderId && data.fulfillmentStatus === "NOT_DISPATCHED")}
-                    >
-                      {statusCheckLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-                      <span>Check Peakerr Status</span>
-                    </AdminButton>
-                  </div>
-
-                  <div className="flex items-center gap-2 justify-end">
-                    {data.alreadyDispatched ? (
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#E8F8F2] border border-[#B6ECD7] text-[#16B77A] text-xs font-semibold">
-                        <CheckCircle2 className="w-4 h-4 text-[#16B77A] shrink-0" />
-                        <span>
-                          {data.fulfillmentStatus === "COMPLETED" ? "COMPLETED" : "ALREADY DISPATCHED"} — Provider Order #{data.latestFulfillment?.externalOrderId || "Active"}
-                        </span>
-                      </div>
-                    ) : !runtimeFlags.liveFulfillment ? (
-                      <div className="flex items-center gap-2 px-4 py-2 rounded-[8px] bg-[#FEF6E7] border border-[#FDE68A] text-[#D97706] text-xs font-semibold">
-                        <ShieldAlert className="w-4 h-4 text-[#D97706] shrink-0" />
-                        <span>LIVE FULFILLMENT DISABLED (Kill Switch Active)</span>
-                      </div>
-                    ) : (
-                      <AdminButton
-                        variant="danger"
-                        size="sm"
-                        onClick={() => setIsSubmitModalOpen(true)}
-                      >
-                        <Send className="w-3.5 h-3.5" />
-                        <span>Submit to Peakerr (Primary Only)</span>
-                      </AdminButton>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })()}
-      </AdminCard>
-
       {/* STRONG CONFIRMATION MODAL FOR LIVE SUBMISSION */}
       <AdminModal
         open={isSubmitModalOpen}
@@ -1394,30 +1334,30 @@ export function PeakerrChainsModule() {
         description="You are about to submit a REAL order to Peakerr provider."
       >
         <div className="space-y-3 text-xs">
-          <div className="p-3 rounded-[8px] bg-[#F7F9FA] border border-[#E3E8EA] font-mono space-y-1 text-[#142126]">
-            <p>Order ID: <strong className="text-[#142126]">{dryRunOrderId}</strong></p>
+          <div className="p-2.5 rounded-[6px] bg-[#F7F9FA] border border-[#E3E8EA] font-mono space-y-1 text-[#142126]">
+            <p>Order ID: <strong>{dryRunOrderId}</strong></p>
             <p>Primary Service ID: <strong className="text-[#0F8F8A]">{dryRunResult?.primaryServiceId || dryRunResult?.data?.primaryServiceId}</strong></p>
-            <p>Quantity: <strong className="text-[#142126]">{dryRunResult?.quantity || dryRunResult?.data?.quantity}</strong></p>
-            <p>Target: <strong className="text-[#142126]">{dryRunResult?.target || dryRunResult?.data?.target}</strong></p>
+            <p>Quantity: <strong>{dryRunResult?.quantity || dryRunResult?.data?.quantity}</strong></p>
+            <p>Target: <strong>{dryRunResult?.target || dryRunResult?.data?.target}</strong></p>
           </div>
           <p className="text-[#D97706] font-medium">
             ⚠️ This action will consume live Peakerr balance and execute fulfillment.
           </p>
-          <div className="pt-2 space-y-1.5">
+          <div className="pt-1 space-y-1">
             <label className="block text-[#65737A] font-bold">
-              Type <span className="text-[#142126] font-mono bg-[#F7F9FA] px-1.5 py-0.5 rounded border border-[#E3E8EA]">SUBMIT</span> to confirm:
+              Type <span className="text-[#142126] font-mono bg-[#F7F9FA] px-1 py-0.5 rounded border border-[#E3E8EA]">SUBMIT</span> to confirm:
             </label>
             <input
               type="text"
               placeholder="SUBMIT"
               value={confirmInput}
               onChange={(e) => setConfirmInput(e.target.value)}
-              className="w-full bg-white border border-[#D1D9DC] rounded-[8px] p-2.5 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#EF4444] uppercase"
+              className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#EF4444] uppercase"
             />
           </div>
         </div>
 
-        <div className="pt-4 flex items-center justify-end gap-2 border-t border-[#EDF1F2]">
+        <div className="pt-3 flex items-center justify-end gap-2 border-t border-[#EDF1F2]">
           <AdminButton
             variant="secondary"
             onClick={() => {

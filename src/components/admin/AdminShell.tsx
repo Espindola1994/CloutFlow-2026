@@ -91,7 +91,7 @@ export function AdminShell() {
   };
 
   return (
-    <div className="cloutflow-admin min-h-screen bg-[#F7F9FA] text-[#142126] font-sans antialiased flex flex-col md:flex-row relative">
+    <div className="cloutflow-admin min-h-screen bg-[#F1F5F5] text-[#142126] font-sans antialiased flex flex-col md:flex-row relative">
       
       {/* Background subtle radial gradient */}
       <div 
@@ -133,7 +133,7 @@ export function AdminShell() {
         </header>
 
         {/* Scrollable Content View */}
-        <main className="flex-1 p-4 md:p-[28px] overflow-y-auto">
+        <main className="flex-1 p-4 md:p-[28px] md:pt-[28px] md:pb-[40px] md:px-[32px] 2xl:px-[36px] overflow-y-auto">
           <div className="w-full mx-auto">
             {renderModule()}
           </div>

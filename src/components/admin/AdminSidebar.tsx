@@ -51,7 +51,7 @@ export function AdminSidebar({
         {/* Brand Header */}
         <div className="h-16 flex items-center justify-between px-5 border-b border-[#11313B] shrink-0">
           <Link href="/admin/dashboard" className="flex items-center gap-2">
-            <span className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
+            <span className="text-[22px] font-bold tracking-tight text-white flex items-center gap-1.5">
               <span>Clout</span>
               <span className="text-[#0F8F8A]">Flow</span>
               <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#0F8F8A]/20 text-[#0F8F8A] border border-[#0F8F8A]/30 ml-1">
@@ -84,7 +84,7 @@ export function AdminSidebar({
                   onSelectTab(item.id);
                   if (onCloseMobile) onCloseMobile();
                 }}
-                className={`relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[8px] text-[13px] font-medium transition-all cursor-pointer ${
+                className={`relative w-full h-[42px] flex items-center gap-3 px-3.5 rounded-[8px] text-[13px] font-medium transition-all cursor-pointer ${
                   isActive
                     ? "bg-[rgba(15,143,138,0.16)] text-white font-semibold"
                     : "text-[#8A979D] hover:text-white hover:bg-[#0A2630]"

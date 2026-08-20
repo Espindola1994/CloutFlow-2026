@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import { RefreshCw, Loader2 } from "lucide-react";
-import { AdminCard, AdminStatCard, AdminBadge } from "../ui";
+import { RefreshCw, Loader2, Clock, CheckCircle, ArrowRightCircle, AlertTriangle, XCircle, AlertOctagon, RotateCw } from "lucide-react";
 
 export interface StatusSyncMetrics {
   checked: number;
@@ -23,93 +22,130 @@ interface PeakerrStatusSyncCardProps {
   error?: string | null;
 }
 
-export const PEAKERR_SYNC_BUILD_ID = "02bf761-fase39b";
+export const PEAKERR_SYNC_BUILD_ID = "02bf761-fase31-rebalance";
 
 /**
- * ISOLATED UNCONDITIONAL STATUS SYNC CARD:
- * Rendered at the top level of Fulfillment & Peakerr tab regardless of order simulation or live API state.
+ * AUTOMATIC STATUS SYNC
+ * Height: Section Header ~44px, Cards 82px–88px.
+ * White cards with 28x28 soft icon container and semantic dot/value highlights.
  */
 export function PeakerrStatusSyncCard({
-  enabled,
   loading,
   metrics,
   onRunSync,
-  buildMarker = PEAKERR_SYNC_BUILD_ID,
   error,
 }: PeakerrStatusSyncCardProps) {
+  const syncItems = [
+    {
+      label: "Last Manual Run",
+      value: metrics?.lastRun || "—",
+      icon: Clock,
+      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      valueColor: "text-[#142126]",
+    },
+    {
+      label: "Checked",
+      value: metrics?.checked !== undefined ? String(metrics.checked) : "—",
+      icon: RotateCw,
+      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      valueColor: "text-[#142126]",
+    },
+    {
+      label: "Updated",
+      value: metrics?.updated !== undefined ? String(metrics.updated) : "—",
+      icon: ArrowRightCircle,
+      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      valueColor: "text-[#0F8F8A]",
+    },
+    {
+      label: "Completed",
+      value: metrics?.completed !== undefined ? String(metrics.completed) : "—",
+      icon: CheckCircle,
+      iconBg: "bg-[#E8F8F2] text-[#16B77A]",
+      valueColor: (metrics?.completed ?? 0) > 0 ? "text-[#16B77A]" : "text-[#142126]",
+    },
+    {
+      label: "Partial",
+      value: metrics?.partial !== undefined ? String(metrics.partial) : "—",
+      icon: AlertTriangle,
+      iconBg: "bg-[#FEF3C7] text-[#D97706]",
+      valueColor: (metrics?.partial ?? 0) > 0 ? "text-[#D97706]" : "text-[#142126]",
+    },
+    {
+      label: "Canceled",
+      value: metrics?.canceled !== undefined ? String(metrics.canceled) : "—",
+      icon: XCircle,
+      iconBg: "bg-[#F1F5F5] text-[#65737A]",
+      valueColor: (metrics?.canceled ?? 0) > 0 ? "text-[#65737A]" : "text-[#142126]",
+    },
+    {
+      label: "Errors",
+      value: metrics?.errors !== undefined ? String(metrics.errors) : "—",
+      icon: AlertOctagon,
+      iconBg: "bg-[#FEECEB] text-[#EF4444]",
+      valueColor: (metrics?.errors ?? 0) > 0 ? "text-[#EF4444]" : "text-[#142126]",
+    },
+  ];
+
   return (
-    <div className="space-y-4 select-none mb-6">
-      <AdminCard className="space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#E3E8EA]">
-          <div className="flex items-center gap-2.5">
-            <RefreshCw className="w-5 h-5 text-[#0F8F8A] shrink-0" />
-            <div>
-               <h3 className="text-[14px] font-bold text-[#142126] tracking-tight">
-                 AUTOMATIC STATUS SYNC
-               </h3>
-               <p className="text-[12px] text-[#65737A]">Read-only monitoring of provider order synchronization.</p>
+    <div className="space-y-2.5">
+      {/* Section Header (~44px) */}
+      <div className="flex items-center justify-between min-h-[44px]">
+        <div>
+          <h3 className="text-[13px] font-bold uppercase tracking-wider text-[#142126]">
+            AUTOMATIC STATUS SYNC
+          </h3>
+          <p className="text-[12px] text-[#65737A] mt-0.5">
+            Read-only monitoring of provider order synchronization.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onRunSync}
+          disabled={loading}
+          className="inline-flex items-center gap-2 px-3.5 py-2 text-[13px] font-semibold text-[#0F8F8A] hover:text-[#0B7A76] bg-white border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
+        >
+          {loading ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <RefreshCw className="w-3.5 h-3.5" />
+          )}
+          <span>Sync Now</span>
+        </button>
+      </div>
+
+      {error && (
+        <div className="p-3 rounded-[8px] bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] text-[12px]">
+          {error}
+        </div>
+      )}
+
+      {/* 7-column metrics grid (height 82px–88px) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+        {syncItems.map((item, idx) => {
+          const Icon = item.icon;
+          return (
+            <div
+              key={idx}
+              className="h-[84px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-[14px] flex flex-col justify-between shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
+            >
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-[#65737A] truncate">
+                  {item.label}
+                </span>
+                <div className={`w-[28px] h-[28px] rounded-[6px] flex items-center justify-center shrink-0 ${item.iconBg}`}>
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <span
+                className={`text-[21px] font-bold font-mono tracking-tight leading-none ${item.valueColor}`}
+              >
+                {item.value}
+              </span>
             </div>
-            <AdminBadge variant={enabled ? "success" : "default"} className="ml-2">
-              Automatic Sync: {enabled ? "ENABLED" : "DISABLED"}
-            </AdminBadge>
-          </div>
-
-          <button
-            type="button"
-            onClick={onRunSync}
-            disabled={loading}
-            className="px-4 py-2 rounded-[8px] bg-[#0F8F8A] hover:bg-[#0B7A76] text-white font-sans text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
-            <span>Run Status Sync Now</span>
-          </button>
-        </div>
-
-        {error && (
-          <div className="p-3 rounded-xl bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] text-xs">
-            {error}
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
-            <AdminStatCard 
-              title="Last Manual Run" 
-              value={metrics?.lastRun || "—"} 
-              className="bg-[#F7F9FA]" 
-            />
-            <AdminStatCard 
-              title="Checked" 
-              value={metrics?.checked ?? "—"} 
-              className="bg-[#F7F9FA]" 
-              icon={RefreshCw}
-            />
-            <AdminStatCard 
-              title="Updated" 
-              value={metrics?.updated ?? "—"} 
-              className="bg-[#F7F9FA]" 
-            />
-            <AdminStatCard 
-              title="Completed" 
-              value={metrics?.completed ?? "—"} 
-              className="bg-[#E8F8F2] border-[#B6ECD7]" 
-            />
-            <AdminStatCard 
-              title="Partial" 
-              value={metrics?.partial ?? "—"} 
-              className="bg-[#FEF6E7] border-[#FDE68A]" 
-            />
-            <AdminStatCard 
-              title="Canceled" 
-              value={metrics?.canceled ?? "—"} 
-              className="bg-[#FEECEB] border-[#FCA5A5]" 
-            />
-            <AdminStatCard 
-              title="Errors" 
-              value={metrics?.errors ?? "—"} 
-              className="bg-[#FEECEB] border-[#FCA5A5]" 
-            />
-        </div>
-      </AdminCard>
+          );
+        })}
+      </div>
     </div>
   );
 }
