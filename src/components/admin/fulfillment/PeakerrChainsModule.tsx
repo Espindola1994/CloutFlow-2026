@@ -22,6 +22,7 @@ import {
   X,
 } from "lucide-react";
 import { PeakerrStatusSyncCard, StatusSyncMetrics } from "./PeakerrStatusSyncCard";
+import { PeakerrAutoDispatchCard } from "./PeakerrAutoDispatchCard";
 import { Platform } from "../types";
 
 interface ChainConfig {
@@ -693,6 +694,9 @@ export function PeakerrChainsModule() {
         onRunSync={handleRunStatusSyncNow}
         error={errorMessage}
       />
+
+      {/* AUTO DISPATCH & FULFILLMENT OVERVIEW PANEL (Safe Guarded Infrastructure) */}
+      <PeakerrAutoDispatchCard />
 
       {savedStatus && (
         <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center gap-2 shadow-xs">
