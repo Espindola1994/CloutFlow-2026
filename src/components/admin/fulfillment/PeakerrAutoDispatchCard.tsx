@@ -17,6 +17,7 @@ import {
 export interface FulfillmentOverviewData {
   notDispatched: number;
   submitting: number;
+  waitingProvider?: number;
   processing: number;
   partial: number;
   completed: number;
@@ -204,7 +205,7 @@ export function PeakerrAutoDispatchCard() {
         </div>
 
         {/* Accumulated Metrics Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-9 gap-3">
           <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800">
             <span className="text-[10px] uppercase font-bold text-neutral-400 block">Not Dispatched</span>
             <span className="text-lg font-bold font-mono text-amber-400">{fulfillmentStats?.notDispatched ?? '—'}</span>
@@ -212,6 +213,13 @@ export function PeakerrAutoDispatchCard() {
           <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800">
             <span className="text-[10px] uppercase font-bold text-neutral-400 block">Submitting</span>
             <span className="text-lg font-bold font-mono text-cyan-400">{fulfillmentStats?.submitting ?? '—'}</span>
+          </div>
+          <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800 border-l-2 border-l-amber-500/80 cursor-pointer hover:border-amber-500/40 transition-colors" onClick={fetchFailedOrders}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold text-amber-400 block">Waiting Provider</span>
+              <span className="text-[10px] text-amber-400 underline">Inspect</span>
+            </div>
+            <span className="text-lg font-bold font-mono text-amber-400">{fulfillmentStats?.waitingProvider ?? 0}</span>
           </div>
           <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800">
             <span className="text-[10px] uppercase font-bold text-neutral-400 block">Processing</span>
@@ -657,15 +665,26 @@ export function PeakerrAutoDispatchCard() {
                   {inspectFailedOrder.fulfillmentOrders.length === 0 ? (
                     <div className="p-3 bg-neutral-900 rounded-lg text-xs text-neutral-500 border border-neutral-800">No records found.</div>
                   ) : (
-                    inspectFailedOrder.fulfillmentOrders.map((fo: any) => (
-                      <div key={fo.id} className="p-3 bg-neutral-900 rounded-lg border border-neutral-800 text-xs font-mono space-y-1">
-                        <div><span className="text-neutral-500">Provider:</span> <span className="text-white">{fo.provider}</span></div>
-                        <div><span className="text-neutral-500">Provider Service:</span> <span className="text-white">{fo.externalServiceId || '—'}</span></div>
-                        <div><span className="text-neutral-500">Provider Order ID:</span> <span className="text-yellow-400 font-bold">{fo.externalOrderId || 'NO PROVIDER ORDER ID RECORDED'}</span></div>
-                        <div><span className="text-neutral-500">Status:</span> <span className="text-red-400 font-bold">{fo.status}</span></div>
-                        <div><span className="text-neutral-500">Error:</span> <span className="text-red-400">{fo.lastError || '—'}</span></div>
-                      </div>
-                    ))
+                    inspectFailedOrder.fulfillmentOrders.map((fo: any) => {
+                      const isConflict = fo.lastError && (
+                        fo.lastError.toLowerCase().includes('active order') || 
+                        fo.lastError.toLowerCase().includes('wait until order being completed')
+                      );
+                      return (
+                        <div key={fo.id} className="p-3 bg-neutral-900 rounded-lg border border-neutral-800 text-xs font-mono space-y-1">
+                          <div><span className="text-neutral-500">Provider:</span> <span className="text-white">{fo.provider}</span></div>
+                          <div><span className="text-neutral-500">Provider Service:</span> <span className="text-white">{fo.externalServiceId || '—'}</span></div>
+                          <div><span className="text-neutral-500">Provider Order ID:</span> <span className="text-yellow-400 font-bold">{fo.externalOrderId || 'NO PROVIDER ORDER ID RECORDED'}</span></div>
+                          <div><span className="text-neutral-500">Status:</span> <span className="text-red-400 font-bold">{fo.status}</span></div>
+                          {isConflict && (
+                            <div className="p-2 my-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 font-bold">
+                              Classification: PROVIDER_ACTIVE_ORDER_CONFLICT
+                            </div>
+                          )}
+                          <div><span className="text-neutral-500">Error:</span> <span className="text-red-400">{fo.lastError || '—'}</span></div>
+                        </div>
+                      );
+                    })
                   )}
                 </div>
 

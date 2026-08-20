@@ -43,6 +43,7 @@ export interface FulfillmentOverviewStats {
   completed: number;
   failed: number;
   canceled: number;
+  waitingProvider: number;
   totalDispatched: number;
   totalPaid: number;
 }
@@ -499,6 +500,43 @@ export async function autoDispatchOrder(orderIdentifier: string): Promise<AutoDi
     };
   }
 
+  // Handle Provider Active Order Conflict specifically
+  if (result.errorKind === 'PROVIDER_ACTIVE_ORDER_CONFLICT') {
+    await db.transaction(async (tx) => {
+      await tx
+        .update(fulfillmentOrders)
+        .set({
+          status: 'FAILED',
+          lastError: result.error,
+          responsePayload: result.rawResponse as any,
+          updatedAt: new Date(),
+        })
+        .where(eq(fulfillmentOrders.id, fulfillmentEntryId));
+
+      await tx
+        .update(orders)
+        .set({
+          fulfillmentStatus: 'WAITING_PROVIDER',
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, evalResult.orderId!));
+
+      await tx.insert(orderEvents).values({
+        orderId: evalResult.orderId!,
+        fulfillmentStatus: 'WAITING_PROVIDER',
+        description: `Peakerr temporarily blocked submission because another active order exists for this target.`,
+      });
+    });
+
+    return {
+      success: false,
+      code: 'PROVIDER_ACTIVE_ORDER_CONFLICT',
+      error: result.error,
+      orderId: evalResult.orderId,
+      publicId: evalResult.publicId,
+    };
+  }
+
   // Safe Provider Failure
   await db.transaction(async (tx) => {
     await tx
@@ -590,6 +628,7 @@ export async function getFulfillmentOverview(): Promise<FulfillmentOverviewStats
     completed: 0,
     failed: 0,
     canceled: 0,
+    waitingProvider: 0,
     totalDispatched: 0,
     totalPaid: 0,
   };
@@ -602,6 +641,7 @@ export async function getFulfillmentOverview(): Promise<FulfillmentOverviewStats
     const fs = (o.fulfillmentStatus || 'NOT_DISPATCHED').toUpperCase();
     if (fs === 'NOT_DISPATCHED') stats.notDispatched++;
     else if (fs === 'SUBMITTING') stats.submitting++;
+    else if (fs === 'WAITING_PROVIDER') stats.waitingProvider++;
     else if (fs === 'PROCESSING') {
       stats.processing++;
       stats.totalDispatched++;

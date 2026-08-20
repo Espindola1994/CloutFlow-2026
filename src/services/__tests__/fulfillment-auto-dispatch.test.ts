@@ -464,5 +464,55 @@ describe('Auto Dispatch Infrastructure (Phase 4.0)', () => {
       expect(result.success).toBe(false);
       expect(result.code).toBe('AMBIGUOUS_SUBMISSION');
     });
+
+    it('46. Active order conflict maps to WAITING_PROVIDER with NO provider order ID and NO automatic retry', async () => {
+      process.env.PEAKERR_AUTO_DISPATCH_ENABLED = 'true';
+      process.env.PEAKERR_LIVE_FULFILLMENT = 'true';
+
+      const mockOrder = {
+        id: 'ord_conflict_1',
+        publicId: 'CF-7902HGF6VX',
+        platform: 'instagram',
+        service: 'followers',
+        quantity: '2000',
+        paymentStatus: 'PAID',
+        fulfillmentStatus: 'NOT_DISPATCHED',
+        socialUsername: 'guilhermeterraaa',
+      };
+
+      (db.query.orders.findMany as any).mockResolvedValueOnce([mockOrder]);
+
+      (db.transaction as any).mockImplementationOnce(async (callback: any) => {
+        return callback({
+          update: () => ({ set: () => ({ where: () => ({ returning: () => [mockOrder] }) }) }),
+          insert: () => ({ values: () => ({ returning: () => [{ id: 'ful_entry_conflict' }] }) }),
+        });
+      });
+
+      (peakerrClient.createOrder as any).mockResolvedValueOnce({
+        success: false,
+        error: 'You have active order with this link. Please wait until order being completed.',
+        errorKind: 'PROVIDER_ACTIVE_ORDER_CONFLICT',
+      });
+
+      let updatedFulfillmentStatus = '';
+      (db.transaction as any).mockImplementationOnce(async (callback: any) => {
+        return callback({
+          update: () => ({ 
+            set: (data: any) => {
+              if (data.fulfillmentStatus) updatedFulfillmentStatus = data.fulfillmentStatus;
+              return { where: () => [] };
+            } 
+          }),
+          insert: () => ({ values: () => [] }),
+        });
+      });
+
+      const result = await autoDispatchOrder('ord_conflict_1');
+      expect(result.success).toBe(false);
+      expect(result.code).toBe('PROVIDER_ACTIVE_ORDER_CONFLICT');
+      expect(result.providerOrderId).toBeUndefined();
+      expect(updatedFulfillmentStatus).toBe('WAITING_PROVIDER');
+    });
   });
 });

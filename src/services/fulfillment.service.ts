@@ -307,6 +307,41 @@ export async function submitOrderToPeakerrManual(orderIdentifier: string) {
     };
   }
 
+  // Handle Provider Active Order Conflict specifically
+  if (result.errorKind === 'PROVIDER_ACTIVE_ORDER_CONFLICT') {
+    await db.transaction(async (tx) => {
+      await tx
+        .update(fulfillmentOrders)
+        .set({
+          status: 'FAILED',
+          lastError: result.error,
+          responsePayload: result.rawResponse as any,
+          updatedAt: new Date(),
+        })
+        .where(eq(fulfillmentOrders.id, fulfillmentEntryId));
+
+      await tx
+        .update(orders)
+        .set({
+          fulfillmentStatus: 'WAITING_PROVIDER',
+          updatedAt: new Date(),
+        })
+        .where(eq(orders.id, existingOrder.id));
+
+      await tx.insert(orderEvents).values({
+        orderId: existingOrder.id,
+        fulfillmentStatus: 'WAITING_PROVIDER',
+        description: `Peakerr temporarily blocked submission because another active order exists for this target.`,
+      });
+    });
+
+    return {
+      success: false,
+      code: 'PROVIDER_ACTIVE_ORDER_CONFLICT',
+      error: result.error,
+    };
+  }
+
   // Definitively safe provider failure (No order created at provider)
   await db.transaction(async (tx) => {
     await tx

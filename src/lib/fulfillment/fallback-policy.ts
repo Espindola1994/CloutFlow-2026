@@ -16,6 +16,9 @@ export function classifyPeakerrError(errorMessage?: string | null): PeakerrError
   if (msg.includes('balance') || msg.includes('funds') || msg.includes('not enough money') || msg.includes('credit')) {
     return 'INSUFFICIENT_BALANCE';
   }
+  if (msg.includes('active order') || msg.includes('wait until order being completed') || msg.includes('have active order with this link')) {
+    return 'PROVIDER_ACTIVE_ORDER_CONFLICT';
+  }
   if (msg.includes('link') || msg.includes('url') || msg.includes('invalid profile') || msg.includes('private') || msg.includes('username')) {
     return 'INVALID_LINK';
   }
@@ -62,6 +65,7 @@ export function canFallbackOnError(errorKind: PeakerrErrorKind): boolean {
     case 'TEMPORARY_UNAVAILABLE':
       return true;
     case 'AMBIGUOUS_SUBMISSION':
+    case 'PROVIDER_ACTIVE_ORDER_CONFLICT':
     case 'INVALID_LINK':
     case 'INVALID_QUANTITY':
     case 'AUTH_ERROR':

@@ -2,19 +2,22 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { db } from '@/db';
 import { orders, fulfillmentOrders, orderEvents } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, or } from 'drizzle-orm';
 
 export async function GET() {
   try {
     await requireAdmin();
 
-    const failedOrders = await db.query.orders.findMany({
-      where: eq(orders.fulfillmentStatus, 'FAILED')
+    const targetedOrders = await db.query.orders.findMany({
+      where: or(
+        eq(orders.fulfillmentStatus, 'FAILED'),
+        eq(orders.fulfillmentStatus, 'WAITING_PROVIDER')
+      )
     });
 
     const result = [];
 
-    for (const fo of failedOrders) {
+    for (const fo of targetedOrders) {
       const fOrders = await db.query.fulfillmentOrders.findMany({
         where: eq(fulfillmentOrders.orderId, fo.id)
       });
