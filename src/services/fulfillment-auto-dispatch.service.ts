@@ -2,7 +2,7 @@ import { db } from '@/db';
 import { orders, fulfillmentOrders, orderEvents, offers, fulfillmentChains, fulfillmentChainServices } from '@/db/schema';
 import { eq, and, inArray, or, sql, count, desc } from 'drizzle-orm';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
-import { resolveCanonicalFulfillmentTarget } from './fulfillment.service';
+import { resolveCanonicalFulfillmentTarget, mapPeakerrStatusToLocal } from './fulfillment.service';
 import { resolveFulfillmentChainAndPreview } from './fulfillment-chain.service';
 
 export interface AutoDispatchEvaluation {
@@ -82,6 +82,18 @@ export interface WaitingProviderRecoveryEvaluation {
   currency?: string;
   autoDispatchEnabled: boolean;
   liveFulfillmentEnabled: boolean;
+}
+
+export interface TargetAvailabilityPreCheckResult {
+  order: any;
+  canonicalTarget: string;
+  targetLookupSupported: boolean;
+  recoverySafety: 'BLOCKED_KNOWN_ACTIVE_ORDER' | 'NO_KNOWN_ACTIVE_ORDER';
+  safeToRetry: boolean;
+  relatedOrders: any[];
+  activeOrders: any[];
+  terminalOrders: any[];
+  unknownOrders: any[];
 }
 
 export interface AutoDispatchOverviewStats {
@@ -1138,6 +1150,160 @@ export async function evaluateWaitingProviderRecovery(orderIdentifier: string): 
  * Executes exactly ONE manual action=add attempt for a WAITING_PROVIDER order.
  * Follows atomic claim, separate transactions, and safe conflict handling.
  */
+/**
+ * 32. INSPECT TARGET FULFILLMENT ACTIVITY:
+ * Read-only pre-check that finds all known CloutFlow orders matching the same canonical target.
+ * For any related order that possesses an externalOrderId, queries Peakerr for live status using action=status.
+ * Returns safeToRetry=false if ANY known active order is found at the provider.
+ * Does NOT execute action=add. Does NOT mutate the database.
+ */
+export async function inspectTargetFulfillmentActivity(orderIdentifier: string): Promise<TargetAvailabilityPreCheckResult | { error: string; code: string }> {
+  const cleanInput = (orderIdentifier || '').trim();
+  if (!cleanInput) {
+    return { code: 'INVALID_INPUT', error: 'Order UUID or Public ID is required.' };
+  }
+
+  // 1. Fetch the origin order
+  const [originOrder] = await db.query.orders.findMany({
+    where: or(
+      eq(orders.id, cleanInput),
+      eq(orders.publicId, cleanInput)
+    ),
+    limit: 1,
+  });
+
+  if (!originOrder) {
+    return { code: 'ORDER_NOT_FOUND', error: `Order "${cleanInput}" not found.` };
+  }
+
+  // 2. Resolve its canonical target
+  const targetValidation = resolveCanonicalFulfillmentTarget(originOrder);
+  if (!targetValidation.success || !targetValidation.target) {
+    return { code: 'MISSING_TARGET', error: 'Order does not possess a resolvable canonical target.' };
+  }
+  const canonicalTarget = targetValidation.target;
+
+  // 3. Find all known orders and fulfillment orders containing the same target.
+  // We match by orders.targetUrl, orders.profileUrl, orders.socialUsername normalized using the same resolver logic.
+  // To avoid extremely heavy memory scans, we filter all orders on the platform/service roughly, then resolve.
+  const similarOrders = await db.query.orders.findMany({
+    where: and(
+      eq(orders.platform, originOrder.platform || ''),
+      eq(orders.service, originOrder.service || '')
+    )
+  });
+
+  const matchingOrderIds = new Set<string>();
+  const relatedOrderDetails: any[] = [];
+
+  for (const o of similarOrders) {
+    if (o.id === originOrder.id) continue; // Skip the origin order itself
+    const oTargetValidation = resolveCanonicalFulfillmentTarget(o);
+    if (oTargetValidation.success && oTargetValidation.target === canonicalTarget) {
+      matchingOrderIds.add(o.id);
+      
+      const fOrders = await db.query.fulfillmentOrders.findMany({
+        where: eq(fulfillmentOrders.orderId, o.id),
+        orderBy: desc(fulfillmentOrders.createdAt),
+      });
+
+      relatedOrderDetails.push({
+        id: o.id,
+        publicId: o.publicId,
+        paymentStatus: o.paymentStatus,
+        fulfillmentStatus: o.fulfillmentStatus,
+        createdAt: o.createdAt,
+        fulfillmentOrders: fOrders,
+      });
+    }
+  }
+
+  const activeOrders: any[] = [];
+  const terminalOrders: any[] = [];
+  const unknownOrders: any[] = [];
+
+  // 4. For each related order, check external provider status
+  // We only check if we actually have an externalOrderId
+  for (const related of relatedOrderDetails) {
+    // Only check the latest fulfillment attempt if it has an external order id
+    const latestFul = related.fulfillmentOrders[0];
+    if (latestFul && latestFul.externalOrderId && latestFul.provider === 'peakerr') {
+      const statusRes = await peakerrClient.getStatus(latestFul.externalOrderId);
+      
+      let classification = 'UNKNOWN';
+      
+      if (!statusRes.error && statusRes.status) {
+        const mapped = mapPeakerrStatusToLocal(statusRes.status);
+        if (mapped === 'COMPLETED' || mapped === 'CANCELED' || mapped === 'PARTIAL') {
+          classification = 'TERMINAL';
+          terminalOrders.push({
+            ...related,
+            providerOrderId: latestFul.externalOrderId,
+            livePeakerrStatus: statusRes.status,
+            mappedStatus: mapped,
+          });
+        } else if (mapped === 'PROCESSING') {
+          classification = 'ACTIVE';
+          activeOrders.push({
+            ...related,
+            providerOrderId: latestFul.externalOrderId,
+            livePeakerrStatus: statusRes.status,
+            mappedStatus: mapped,
+          });
+        } else {
+          unknownOrders.push({
+            ...related,
+            providerOrderId: latestFul.externalOrderId,
+            livePeakerrStatus: statusRes.status,
+            mappedStatus: mapped,
+          });
+        }
+      } else {
+        unknownOrders.push({
+          ...related,
+          providerOrderId: latestFul.externalOrderId,
+          livePeakerrStatus: null,
+          mappedStatus: null,
+          lookupError: statusRes.error || 'Failed to fetch status',
+        });
+      }
+    } else {
+      // Order exists locally but never succeeded at provider
+      terminalOrders.push({
+        ...related,
+        providerOrderId: null,
+        livePeakerrStatus: null,
+        mappedStatus: null,
+        note: 'Never dispatched to provider or no provider order ID recorded.',
+      });
+    }
+  }
+
+  const hasActiveOrder = activeOrders.length > 0;
+
+  return {
+    order: {
+      id: originOrder.id,
+      publicId: originOrder.publicId,
+      paymentStatus: originOrder.paymentStatus,
+      fulfillmentStatus: originOrder.fulfillmentStatus,
+    },
+    canonicalTarget,
+    targetLookupSupported: false, // Peakerr API does not have a global GET /orders?link=xxx
+    recoverySafety: hasActiveOrder ? 'BLOCKED_KNOWN_ACTIVE_ORDER' : 'NO_KNOWN_ACTIVE_ORDER',
+    safeToRetry: !hasActiveOrder,
+    relatedOrders: relatedOrderDetails,
+    activeOrders,
+    terminalOrders,
+    unknownOrders,
+  };
+}
+
+/**
+ * 31. RETRY WAITING PROVIDER ORDER (MUTATION):
+ * Executes exactly ONE manual action=add attempt for a WAITING_PROVIDER order.
+ * Follows atomic claim, separate transactions, and safe conflict handling.
+ */
 export async function retryWaitingProviderOrder(orderIdentifier: string): Promise<AutoDispatchResult> {
   const cleanInput = (orderIdentifier || '').trim();
   if (!cleanInput) {
@@ -1168,6 +1334,18 @@ export async function retryWaitingProviderOrder(orderIdentifier: string): Promis
       success: false,
       code: evalResult.code || 'NOT_ELIGIBLE_FOR_RECOVERY',
       error: evalResult.reason || 'Order is not eligible for recovery retry.',
+      orderId: evalResult.orderId,
+      publicId: evalResult.publicId,
+    };
+  }
+
+  // Safety Pre-Check (Do not retry if we locally know the provider is still processing this target)
+  const preCheck = await inspectTargetFulfillmentActivity(evalResult.orderId);
+  if ('recoverySafety' in preCheck && preCheck.recoverySafety === 'BLOCKED_KNOWN_ACTIVE_ORDER') {
+    return {
+      success: false,
+      code: 'KNOWN_ACTIVE_ORDER_EXISTS',
+      error: `Blocked by safety pre-check: CloutFlow already tracks an active Peakerr order for target "${evalResult.target}". Wait for it to complete.`,
       orderId: evalResult.orderId,
       publicId: evalResult.publicId,
     };

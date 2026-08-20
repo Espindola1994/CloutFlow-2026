@@ -8,6 +8,7 @@ import {
   reconcileWaitingProviderOrder,
   evaluateWaitingProviderRecovery,
   retryWaitingProviderOrder,
+  inspectTargetFulfillmentActivity,
 } from '../fulfillment-auto-dispatch.service';
 import { db } from '@/db';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
@@ -134,6 +135,7 @@ vi.mock('@/providers/peakerr/peakerr.client', () => ({
     isLiveEnabled: vi.fn(() => false),
     getBalance: vi.fn(() => Promise.resolve({ balance: '50.00', currency: 'USD' })),
     createOrder: vi.fn(() => Promise.resolve({ success: true, order: 888888, rawResponse: { order: 888888 } })),
+    getStatus: vi.fn(),
   },
 }));
 
@@ -634,6 +636,113 @@ describe('Auto Dispatch Infrastructure (Phase 4.0)', () => {
       expect(retryResult.providerOrderId).toBe(80359999);
       expect(retryResult.status).toBe('PROCESSING');
       expect(peakerrClient.createOrder).toHaveBeenCalledTimes(1);
+    });
+
+    it('49. Pre-check: detects active Peakerr orders for target and blocks recovery', async () => {
+      const mockOriginOrder = {
+        id: 'ord_origin_1',
+        publicId: 'CF-7902HGF6VX',
+        platform: 'instagram',
+        service: 'followers',
+        quantity: '2000',
+        paymentStatus: 'PAID',
+        fulfillmentStatus: 'WAITING_PROVIDER',
+        socialUsername: 'guilhermeterraaa',
+      };
+
+      const mockRelatedOrder = {
+        id: 'ord_related_1',
+        publicId: 'CF-7449QQ9Q05Q',
+        platform: 'instagram',
+        service: 'followers',
+        quantity: '2000',
+        paymentStatus: 'PAID',
+        fulfillmentStatus: 'PROCESSING',
+        socialUsername: 'guilhermeterraaa',
+      };
+
+      const mockRelatedFulfillment = {
+        id: 'ful_related_1',
+        orderId: 'ord_related_1',
+        provider: 'peakerr',
+        externalOrderId: '80355046',
+        status: 'PROCESSING',
+        createdAt: new Date(),
+      };
+
+      // Query 1: Find origin order
+      (db.query.orders.findMany as any).mockResolvedValueOnce([mockOriginOrder]);
+      // Query 2: Find similar orders on same platform/service
+      (db.query.orders.findMany as any).mockResolvedValueOnce([mockOriginOrder, mockRelatedOrder]);
+      // Query 3: Find fulfillment orders for related order
+      (db.query.fulfillmentOrders.findMany as any).mockResolvedValueOnce([mockRelatedFulfillment]);
+
+      // Peakerr status check returns PROCESSING (Active)
+      (peakerrClient.getStatus as any).mockResolvedValueOnce({
+        status: 'Processing',
+        charge: '1.148',
+      });
+
+      const preCheck = await inspectTargetFulfillmentActivity('CF-7902HGF6VX');
+      expect('recoverySafety' in preCheck).toBe(true);
+      if ('recoverySafety' in preCheck) {
+        expect(preCheck.recoverySafety).toBe('BLOCKED_KNOWN_ACTIVE_ORDER');
+        expect(preCheck.safeToRetry).toBe(false);
+        expect(preCheck.activeOrders.length).toBe(1);
+        expect(preCheck.activeOrders[0].providerOrderId).toBe('80355046');
+      }
+    });
+
+    it('50. Pre-check: returns NO_KNOWN_ACTIVE_ORDER when related order is Completed at Peakerr', async () => {
+      const mockOriginOrder = {
+        id: 'ord_origin_2',
+        publicId: 'CF-7902HGF6VX',
+        platform: 'instagram',
+        service: 'followers',
+        quantity: '2000',
+        paymentStatus: 'PAID',
+        fulfillmentStatus: 'WAITING_PROVIDER',
+        socialUsername: 'guilhermeterraaa',
+      };
+
+      const mockRelatedOrder = {
+        id: 'ord_related_2',
+        publicId: 'CF-7449QQ9Q05Q',
+        platform: 'instagram',
+        service: 'followers',
+        quantity: '2000',
+        paymentStatus: 'PAID',
+        fulfillmentStatus: 'PROCESSING', // locally processing, but completed at provider
+        socialUsername: 'guilhermeterraaa',
+      };
+
+      const mockRelatedFulfillment = {
+        id: 'ful_related_2',
+        orderId: 'ord_related_2',
+        provider: 'peakerr',
+        externalOrderId: '80355046',
+        status: 'PROCESSING',
+        createdAt: new Date(),
+      };
+
+      (db.query.orders.findMany as any).mockResolvedValueOnce([mockOriginOrder]);
+      (db.query.orders.findMany as any).mockResolvedValueOnce([mockOriginOrder, mockRelatedOrder]);
+      (db.query.fulfillmentOrders.findMany as any).mockResolvedValueOnce([mockRelatedFulfillment]);
+
+      // Peakerr status check returns Completed (Terminal)
+      (peakerrClient.getStatus as any).mockResolvedValueOnce({
+        status: 'Completed',
+        charge: '1.148',
+      });
+
+      const preCheck = await inspectTargetFulfillmentActivity('CF-7902HGF6VX');
+      expect('recoverySafety' in preCheck).toBe(true);
+      if ('recoverySafety' in preCheck) {
+        expect(preCheck.recoverySafety).toBe('NO_KNOWN_ACTIVE_ORDER');
+        expect(preCheck.safeToRetry).toBe(true);
+        expect(preCheck.activeOrders.length).toBe(0);
+        expect(preCheck.terminalOrders.length).toBe(1);
+      }
     });
   });
 });
