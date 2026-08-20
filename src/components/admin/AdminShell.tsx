@@ -91,8 +91,16 @@ export function AdminShell() {
   };
 
   return (
-    <div className="flex h-screen bg-[#070a10] text-neutral-300 font-sans font-inter antialiased overflow-hidden">
+    <div className="cloutflow-admin min-h-screen bg-[#F7F9FA] text-[#142126] font-sans antialiased flex flex-col md:flex-row relative">
       
+      {/* Background subtle radial gradient */}
+      <div 
+        className="fixed inset-0 pointer-events-none z-0"
+        style={{
+          background: "radial-gradient(circle at 100% 0%, rgba(15,143,138,0.045), transparent 32%)"
+        }}
+      />
+
       <AdminSidebar 
         activeTab={activeTab} 
         onSelectTab={setActiveTab} 
@@ -102,26 +110,31 @@ export function AdminShell() {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col h-full min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 md:ml-[260px] relative z-10 min-h-screen">
         
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between h-16 px-4 bg-[#0d1017] border-b border-neutral-800/80">
-          <span className="text-base font-bold tracking-tight text-white flex items-center gap-1">
-            <span>Clout</span>
-            <b className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Flow</b>
-          </span>
+        <header className="md:hidden flex items-center justify-between h-14 px-4 bg-[#071D26] border-b border-[#11313B] sticky top-0 z-30">
+          <div className="flex items-center gap-2">
+            <span className="text-base font-bold tracking-tight text-white flex items-center gap-1">
+              <span>Clout</span>
+              <span className="text-[#0F8F8A]">Flow</span>
+              <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-[#0F8F8A]/20 text-[#0F8F8A] border border-[#0F8F8A]/30 ml-1">
+                Admin
+              </span>
+            </span>
+          </div>
           <button 
             type="button" 
             onClick={() => setIsMobileMenuOpen(true)}
-            className="text-neutral-400 hover:text-white p-2"
+            className="text-[#8A979D] hover:text-white p-2 rounded-lg hover:bg-[#0A2630] transition-colors"
           >
             <Menu className="w-5 h-5" />
           </button>
         </header>
 
         {/* Scrollable Content View */}
-        <main className="flex-1 overflow-auto p-4 md:p-8">
-          <div className="mx-auto max-w-[1400px]">
+        <main className="flex-1 p-4 md:p-[28px] overflow-y-auto">
+          <div className="w-full mx-auto">
             {renderModule()}
           </div>
         </main>

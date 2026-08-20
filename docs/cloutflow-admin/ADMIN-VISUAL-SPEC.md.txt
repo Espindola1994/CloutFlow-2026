@@ -1,0 +1,1 @@
+descrição extremamente detalhada da interface 2D que criamos: cores, sidebar, cards, dimensões, tabelas, grids, responsividade, páginas etc.

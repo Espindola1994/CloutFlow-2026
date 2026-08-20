@@ -1,0 +1,1 @@
+determina como ele vai migrar o painel atual sem destruir Peakerr, fulfillment, auto-dispatch, APIs, banco e demais funcionalidades.

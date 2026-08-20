@@ -161,6 +161,53 @@
   --radius: 0.5rem;
 }
 
+.cloutflow-admin {
+  --admin-bg: #F7F9FA;
+  --admin-sidebar: #071D26;
+  --admin-sidebar-secondary: #0A2630;
+  --admin-sidebar-border: #11313B;
+  --admin-card: #FFFFFF;
+  --admin-card-hover: #FBFCFC;
+  --admin-border: #E3E8EA;
+  --admin-divider: #EDF1F2;
+  --admin-primary: #0F8F8A;
+  --admin-primary-hover: #0B7A76;
+  --admin-primary-soft: #E7F5F4;
+  --admin-primary-border: #BFE5E2;
+  --admin-text: #142126;
+  --admin-text-secondary: #65737A;
+  --admin-text-muted: #8A979D;
+  --admin-success: #16B77A;
+  --admin-warning: #F59E0B;
+  --admin-danger: #EF4444;
+  --admin-info: #169BD5;
+  
+  --background: var(--admin-bg);
+  --foreground: var(--admin-text);
+  --card: var(--admin-card);
+  --card-foreground: var(--admin-text);
+  --popover: var(--admin-card);
+  --popover-foreground: var(--admin-text);
+  --primary: var(--admin-primary);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--admin-primary-soft);
+  --secondary-foreground: var(--admin-primary-hover);
+  --muted: var(--admin-bg);
+  --muted-foreground: var(--admin-text-muted);
+  --accent: var(--admin-primary-soft);
+  --accent-foreground: var(--admin-primary-hover);
+  --destructive: var(--admin-danger);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--admin-border);
+  --input: var(--admin-border);
+  --ring: var(--admin-primary);
+}
+
+.cloutflow-admin body {
+  background-color: var(--admin-bg);
+  color: var(--admin-text);
+}
+
 .dark {
   --background: #080B14;
   --background-secondary: #0D1120;

@@ -1,0 +1,1 @@
+arquitetura dos componentes React/Next.js que o Opus deverá criar para reproduzir aquele design de forma consistente.

@@ -12,7 +12,8 @@ import {
   Server, 
   LogOut,
   X,
-  PackageOpen
+  PackageOpen,
+  Radio
 } from "lucide-react";
 import { BUILD_INFO } from "@/lib/build-info";
 
@@ -45,15 +46,15 @@ export function AdminSidebar({
   ];
 
   const sidebarContent = (
-    <aside className="w-64 h-full bg-[#0d1017] border-r border-neutral-800/80 flex flex-col justify-between text-neutral-300 select-none">
-      <div>
+    <aside className="w-[260px] h-full bg-[#071D26] border-r border-[#11313B] flex flex-col justify-between text-[#8A979D] select-none">
+      <div className="flex flex-col flex-1 overflow-y-auto">
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-neutral-800/80">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-[#11313B] shrink-0">
           <Link href="/admin/dashboard" className="flex items-center gap-2">
             <span className="text-xl font-bold tracking-tight text-white flex items-center gap-1.5">
               <span>Clout</span>
-              <b className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">Flow</b>
-              <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-400 border border-blue-500/20 ml-1">
+              <span className="text-[#0F8F8A]">Flow</span>
+              <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#0F8F8A]/20 text-[#0F8F8A] border border-[#0F8F8A]/30 ml-1">
                 Admin
               </span>
             </span>
@@ -63,7 +64,7 @@ export function AdminSidebar({
             <button
               type="button"
               onClick={onCloseMobile}
-              className="md:hidden text-neutral-400 hover:text-white p-1"
+              className="md:hidden text-[#8A979D] hover:text-white p-1 rounded hover:bg-[#0A2630]"
             >
               <X className="w-5 h-5" />
             </button>
@@ -83,13 +84,16 @@ export function AdminSidebar({
                   onSelectTab(item.id);
                   if (onCloseMobile) onCloseMobile();
                 }}
-                className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                className={`relative w-full flex items-center gap-3 px-3.5 py-2.5 rounded-[8px] text-[13px] font-medium transition-all cursor-pointer ${
                   isActive
-                    ? "bg-blue-600 text-white shadow-xs"
-                    : "text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800/40"
+                    ? "bg-[rgba(15,143,138,0.16)] text-white font-semibold"
+                    : "text-[#8A979D] hover:text-white hover:bg-[#0A2630]"
                 }`}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-white" : "text-neutral-400"}`} />
+                {isActive && (
+                  <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-[#0F8F8A] rounded-r-full" />
+                )}
+                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#0F8F8A]" : "text-[#8A979D]"}`} />
                 <span className="truncate">{item.label}</span>
               </button>
             );
@@ -97,18 +101,33 @@ export function AdminSidebar({
         </nav>
       </div>
 
-      {/* Logout Action Footer */}
-      <div className="p-4 border-t border-neutral-800/80 space-y-2">
+      {/* Connection & Footer Area */}
+      <div className="p-4 border-t border-[#11313B] bg-[#071D26] space-y-3 shrink-0">
+        <div className="bg-[#0A2630] border border-[#11313B] rounded-[8px] p-2.5 space-y-1.5">
+          <div className="flex items-center justify-between text-[10px] font-bold text-[#65737A] uppercase tracking-wider">
+            <span>Connection</span>
+            <div className="flex items-center gap-1 text-[#16B77A]">
+              <Radio className="w-3 h-3 animate-pulse" />
+              <span>Live</span>
+            </div>
+          </div>
+          <div className="text-[11px] text-[#8A979D] flex items-center justify-between">
+            <span>Peakerr Provider</span>
+            <span className="text-white font-medium">Ready</span>
+          </div>
+        </div>
+
         <button
           type="button"
           onClick={onLogout}
-          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors cursor-pointer"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[12px] font-medium text-[#EF4444] hover:bg-[#EF4444]/10 hover:text-red-300 transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4 shrink-0" />
           <span>Sign Out</span>
         </button>
-        <div className="text-[10px] font-mono text-neutral-500 text-center select-none pt-1">
-          Build: <span className="text-neutral-300 font-bold">{BUILD_INFO.shortSha}</span>
+
+        <div className="text-[10px] font-mono text-[#65737A] text-center select-none pt-0.5">
+          Build: <span className="text-[#8A979D] font-semibold">{BUILD_INFO.shortSha}</span>
         </div>
       </div>
     </aside>
@@ -116,8 +135,8 @@ export function AdminSidebar({
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <div className="hidden md:block h-screen shrink-0 sticky top-0">
+      {/* Desktop Fixed Sidebar */}
+      <div className="hidden md:block fixed left-0 top-0 bottom-0 z-40 w-[260px] shrink-0">
         {sidebarContent}
       </div>
 
@@ -125,10 +144,10 @@ export function AdminSidebar({
       {isOpenMobile && (
         <div className="fixed inset-0 z-50 md:hidden flex">
           <div 
-            className="fixed inset-0 bg-black/70 backdrop-blur-xs" 
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" 
             onClick={onCloseMobile} 
           />
-          <div className="relative z-10 w-64 h-full shadow-2xl">
+          <div className="relative z-10 w-[260px] h-full shadow-2xl">
             {sidebarContent}
           </div>
         </div>
