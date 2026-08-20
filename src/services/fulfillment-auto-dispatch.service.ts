@@ -50,6 +50,7 @@ export interface FulfillmentOverviewStats {
 export interface AutoDispatchOverviewStats {
   autoDispatchEnabled: boolean;
   liveFulfillmentEnabled: boolean;
+  paymentTriggerConnected: boolean;
   eligiblePaidOrders: number;
   blockedMissingTarget: number;
   blockedMissingChain: number;
@@ -643,6 +644,7 @@ export async function getAutoDispatchOverview(): Promise<AutoDispatchOverviewSta
   const stats: AutoDispatchOverviewStats = {
     autoDispatchEnabled: isAutoDispatchEnabled(),
     liveFulfillmentEnabled: isLiveFulfillmentEnabled(),
+    paymentTriggerConnected: true,
     eligiblePaidOrders: 0,
     blockedMissingTarget: 0,
     blockedMissingChain: 0,

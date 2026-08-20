@@ -29,6 +29,7 @@ export interface FulfillmentOverviewData {
 export interface AutoDispatchOverviewData {
   autoDispatchEnabled: boolean;
   liveFulfillmentEnabled: boolean;
+  paymentTriggerConnected?: boolean;
   eligiblePaidOrders: number;
   blockedMissingTarget: number;
   blockedMissingChain: number;
@@ -253,7 +254,17 @@ export function PeakerrAutoDispatchCard() {
         </div>
 
         {/* Runtime Flags & Provider Balance */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-3">
+          <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800 flex items-center justify-between">
+            <div>
+              <span className="text-[10px] uppercase font-bold text-neutral-400 block">Payment Trigger</span>
+              <span className={`text-xs font-bold ${autoDispatchStats?.paymentTriggerConnected ? 'text-emerald-400' : 'text-neutral-400'}`}>
+                {autoDispatchStats?.paymentTriggerConnected ? 'CONNECTED' : 'NOT CONNECTED'}
+              </span>
+            </div>
+            <div className={`w-2.5 h-2.5 rounded-full ${autoDispatchStats?.paymentTriggerConnected ? 'bg-emerald-400' : 'bg-neutral-600'}`} />
+          </div>
+
           <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800 flex items-center justify-between">
             <div>
               <span className="text-[10px] uppercase font-bold text-neutral-400 block">Auto Dispatch</span>

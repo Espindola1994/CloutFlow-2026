@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { processPerfectPayWebhook } from '@/services/perfectpay.service';
+import { autoDispatchOrder } from '@/services/fulfillment-auto-dispatch.service';
 
 export async function POST(request: Request) {
   try {
@@ -25,6 +26,32 @@ export async function POST(request: Request) {
 
     // 2. Process webhook event in transaction
     const result = await processPerfectPayWebhook(payload);
+
+    // 3. FASE 4.3: Safe Automated Peakerr Dispatch (Outside Transaction)
+    // Only dispatch if the payment was securely authenticated, validated, successfully committed, and represents an approved creation or update.
+    if (
+      result.success &&
+      result.authenticated &&
+      (result.action === 'ORDER_CREATED' || result.action === 'ORDER_UPDATED') &&
+      result.orderId &&
+      result.mode === 'VERIFIED'
+    ) {
+      // Background execution of auto-dispatch to ensure webhook response ACK is never blocked or delayed
+      // and operational fulfillment failures do not rollback payment state.
+      autoDispatchOrder(result.orderId)
+        .then((dispatchResult) => {
+          console.log('[PerfectPayAutoDispatch] Dispatch evaluated for order:', result.publicId, {
+            orderId: result.orderId,
+            success: dispatchResult.success,
+            code: dispatchResult.code,
+            providerOrderId: dispatchResult.providerOrderId,
+          });
+        })
+        .catch((dispatchError) => {
+          // Never impact the payment status even if the background dispatch catastrophically fails
+          console.error('[PerfectPayAutoDispatch] Unhandled error during auto-dispatch for order:', result.publicId, dispatchError);
+        });
+    }
 
     return NextResponse.json({
       success: true,
