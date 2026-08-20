@@ -42,6 +42,7 @@ export function resolveCanonicalFulfillmentTarget(order: {
   service?: string | null;
   profileUrl?: string | null;
   socialUsername?: string | null;
+  username?: string | null;
   targetUrl?: string | null;
 }) {
   const p = order.platform || '';
@@ -57,6 +58,8 @@ export function resolveCanonicalFulfillmentTarget(order: {
       rawTarget = order.targetUrl.trim();
     } else if (order.socialUsername && order.socialUsername.trim().length > 0) {
       rawTarget = order.socialUsername.trim();
+    } else if (order.username && order.username.trim().length > 0) {
+      rawTarget = order.username.trim();
     }
   } else {
     rawTarget = order.targetUrl ? order.targetUrl.trim() : null;
