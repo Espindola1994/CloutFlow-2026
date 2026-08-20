@@ -4,6 +4,10 @@ import {
   autoDispatchOrder,
   isAutoDispatchEnabled,
   isLiveFulfillmentEnabled,
+  evaluateWaitingProviderReconciliation,
+  reconcileWaitingProviderOrder,
+  evaluateWaitingProviderRecovery,
+  retryWaitingProviderOrder,
 } from '../fulfillment-auto-dispatch.service';
 import { db } from '@/db';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
@@ -16,6 +20,9 @@ vi.mock('@/db', () => ({
         findMany: vi.fn(),
       },
       offers: {
+        findMany: vi.fn(),
+      },
+      fulfillmentOrders: {
         findMany: vi.fn(),
       },
       fulfillmentChains: {
@@ -108,6 +115,16 @@ vi.mock('@/db', () => ({
       })),
     })),
     transaction: vi.fn(),
+    update: vi.fn(() => ({
+      set: vi.fn(() => ({
+        where: vi.fn(() => ({
+          returning: vi.fn(() => [{ id: 'ord_1', fulfillmentStatus: 'WAITING_PROVIDER' }]),
+        })),
+      })),
+    })),
+    insert: vi.fn(() => ({
+      values: vi.fn(() => Promise.resolve([])),
+    })),
   },
 }));
 
@@ -513,6 +530,110 @@ describe('Auto Dispatch Infrastructure (Phase 4.0)', () => {
       expect(result.code).toBe('PROVIDER_ACTIVE_ORDER_CONFLICT');
       expect(result.providerOrderId).toBeUndefined();
       expect(updatedFulfillmentStatus).toBe('WAITING_PROVIDER');
+    });
+
+    it('47. Reconciliation: FAILED with active conflict is eligible and reconciles to WAITING_PROVIDER with ZERO action=add', async () => {
+      const mockFailedOrder = {
+        id: 'ord_reconcile_1',
+        publicId: 'CF-7902HGF6VX',
+        platform: 'instagram',
+        service: 'followers',
+        quantity: '2000',
+        paymentStatus: 'PAID',
+        fulfillmentStatus: 'FAILED',
+        socialUsername: 'guilhermeterraaa',
+      };
+
+      const mockFulfillment = {
+        id: 'ful_failed_1',
+        orderId: 'ord_reconcile_1',
+        provider: 'peakerr',
+        externalServiceId: '31714',
+        externalOrderId: null,
+        status: 'FAILED',
+        lastError: 'You have active order with this link. Please wait until order being completed.',
+        createdAt: new Date(),
+      };
+
+      (db.query.orders.findMany as any).mockResolvedValueOnce([mockFailedOrder]);
+      (db.query.fulfillmentOrders.findMany as any).mockResolvedValueOnce([mockFulfillment]);
+
+      const evalRes = await evaluateWaitingProviderReconciliation('CF-7902HGF6VX');
+      expect(evalRes.eligibleForReconciliation).toBe(true);
+      expect(evalRes.classification).toBe('PROVIDER_ACTIVE_ORDER_CONFLICT');
+
+      // Execute reconciliation
+      (db.query.orders.findMany as any).mockResolvedValueOnce([mockFailedOrder]);
+      (db.query.fulfillmentOrders.findMany as any).mockResolvedValueOnce([mockFulfillment]);
+
+      (db.update as any).mockReturnValue({
+        set: () => ({
+          where: () => ({
+            returning: () => [{ ...mockFailedOrder, fulfillmentStatus: 'WAITING_PROVIDER' }],
+          }),
+        }),
+      });
+
+      const recResult = await reconcileWaitingProviderOrder('CF-7902HGF6VX');
+      expect(recResult.success).toBe(true);
+      expect(recResult.code).toBe('RECONCILIATION_SUCCESS');
+      expect(recResult.status).toBe('WAITING_PROVIDER');
+
+      // action=add was strictly NOT called
+      expect(peakerrClient.createOrder).not.toHaveBeenCalled();
+    });
+
+    it('48. Recovery Retry: Executes action=add exactly once and updates to PROCESSING on provider success', async () => {
+      process.env.PEAKERR_AUTO_DISPATCH_ENABLED = 'true';
+      process.env.PEAKERR_LIVE_FULFILLMENT = 'true';
+
+      const mockWaitingOrder = {
+        id: 'ord_waiting_1',
+        publicId: 'CF-7902HGF6VX',
+        platform: 'instagram',
+        service: 'followers',
+        quantity: '2000',
+        paymentStatus: 'PAID',
+        fulfillmentStatus: 'WAITING_PROVIDER',
+        socialUsername: 'guilhermeterraaa',
+      };
+
+      (db.query.orders.findMany as any).mockResolvedValueOnce([mockWaitingOrder]);
+      (peakerrClient.getBalance as any).mockResolvedValueOnce({ balance: 50 });
+
+      const recoveryEval = await evaluateWaitingProviderRecovery('CF-7902HGF6VX');
+      expect(recoveryEval.eligibleForRecovery).toBe(true);
+
+      // Execute retry
+      (db.query.orders.findMany as any).mockResolvedValueOnce([mockWaitingOrder]);
+      (peakerrClient.getBalance as any).mockResolvedValueOnce({ balance: 50 });
+      (db.query.fulfillmentOrders.findMany as any).mockResolvedValueOnce([{ id: 'prev_failed_ful' }]);
+
+      (db.transaction as any).mockImplementationOnce(async (callback: any) => {
+        return callback({
+          update: () => ({ set: () => ({ where: () => ({ returning: () => [mockWaitingOrder] }) }) }),
+          insert: () => ({ values: () => ({ returning: () => [{ id: 'new_recovery_ful' }] }) }),
+        });
+      });
+
+      (peakerrClient.createOrder as any).mockResolvedValueOnce({
+        success: true,
+        order: 80359999,
+        rawResponse: { order: 80359999 },
+      });
+
+      (db.transaction as any).mockImplementationOnce(async (callback: any) => {
+        return callback({
+          update: () => ({ set: () => ({ where: () => [] }) }),
+          insert: () => ({ values: () => [] }),
+        });
+      });
+
+      const retryResult = await retryWaitingProviderOrder('CF-7902HGF6VX');
+      expect(retryResult.success).toBe(true);
+      expect(retryResult.providerOrderId).toBe(80359999);
+      expect(retryResult.status).toBe('PROCESSING');
+      expect(peakerrClient.createOrder).toHaveBeenCalledTimes(1);
     });
   });
 });

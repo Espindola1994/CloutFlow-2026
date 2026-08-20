@@ -81,6 +81,17 @@ export function PeakerrAutoDispatchCard() {
   const [loadingFailed, setLoadingFailed] = useState(false);
   const [inspectFailedOrder, setInspectFailedOrder] = useState<any | null>(null);
 
+  // Reconciliation & Recovery State
+  const [showReconcileModal, setShowReconcileModal] = useState(false);
+  const [reconcileConfirmText, setReconcileConfirmText] = useState("");
+  const [reconcileLoading, setReconcileLoading] = useState(false);
+  const [reconcileSuccess, setReconcileSuccess] = useState<string | null>(null);
+
+  const [showRecoveryModal, setShowRecoveryModal] = useState(false);
+  const [recoveryConfirmText, setRecoveryConfirmText] = useState("");
+  const [recoveryLoading, setRecoveryLoading] = useState(false);
+  const [recoverySuccess, setRecoverySuccess] = useState<string | null>(null);
+
   const fetchOverview = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -170,6 +181,50 @@ export function PeakerrAutoDispatchCard() {
       // ignore
     } finally {
       setLoadingFailed(false);
+    }
+  };
+
+  const handleReconcileOrder = async (orderId: string) => {
+    setReconcileLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/fulfillment/reconcile-waiting-provider`, {
+        method: 'POST',
+      });
+      const json = await res.json();
+      if (json.success) {
+        setReconcileSuccess("Order successfully reconciled to WAITING_PROVIDER.");
+        fetchOverview();
+        fetchFailedOrders();
+      } else {
+        setError(json.error || json.code || "Failed to reconcile order.");
+      }
+    } catch {
+      setError("Network error reconciling order.");
+    } finally {
+      setReconcileLoading(false);
+    }
+  };
+
+  const handleRetryRecovery = async (orderId: string) => {
+    setRecoveryLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}/fulfillment/retry-waiting-provider`, {
+        method: 'POST',
+      });
+      const json = await res.json();
+      if (json.success) {
+        setRecoverySuccess(`Recovery successfully submitted. Provider Order #${json.data.providerOrderId}`);
+        fetchOverview();
+        fetchFailedOrders();
+      } else {
+        setError(json.error || json.code || "Failed to submit recovery retry.");
+      }
+    } catch {
+      setError("Network error executing recovery retry.");
+    } finally {
+      setRecoveryLoading(false);
     }
   };
 
@@ -700,6 +755,39 @@ export function PeakerrAutoDispatchCard() {
                     ))}
                   </div>
                 </div>
+
+                {/* Actions: Reconcile as WAITING_PROVIDER (if FAILED) or Review Recovery (if WAITING_PROVIDER) */}
+                <div className="pt-4 border-t border-neutral-800/80 flex items-center justify-end gap-3">
+                  {inspectFailedOrder.order.fulfillmentStatus === 'FAILED' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowReconcileModal(true);
+                        setReconcileConfirmText("");
+                        setReconcileSuccess(null);
+                      }}
+                      className="px-3.5 py-2 bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>Reconcile as WAITING_PROVIDER</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+
+                  {inspectFailedOrder.order.fulfillmentStatus === 'WAITING_PROVIDER' && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowRecoveryModal(true);
+                        setRecoveryConfirmText("");
+                        setRecoverySuccess(null);
+                      }}
+                      className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <span>Review Recovery</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
               </div>
             ) : (
               <div className="space-y-3">
@@ -722,6 +810,203 @@ export function PeakerrAutoDispatchCard() {
                   ))
                 )}
               </div>
+            )}
+          </div>
+        </div>
+      )}
+      {/* MODAL: ACTIVE ORDER CONFLICT RECONCILIATION */}
+      {showReconcileModal && inspectFailedOrder && (
+        <div className="fixed inset-0 z-60 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#0e131f] border border-amber-500/40 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                  <ShieldAlert className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Active Order Conflict Reconciliation</h3>
+                  <p className="text-xs text-neutral-400">Reconcile FAILED to WAITING_PROVIDER</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowReconcileModal(false)}
+                className="text-neutral-400 hover:text-white text-sm font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {reconcileSuccess ? (
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-3">
+                <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span>{reconcileSuccess}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowReconcileModal(false);
+                    setShowFailedModal(false);
+                    setInspectFailedOrder(null);
+                  }}
+                  className="w-full py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Done
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <div className="p-2 bg-neutral-900 rounded-lg border border-neutral-800">
+                    <span className="text-neutral-500 text-[10px] block">Public ID</span>
+                    <strong className="text-white">{inspectFailedOrder.order.publicId}</strong>
+                  </div>
+                  <div className="p-2 bg-neutral-900 rounded-lg border border-neutral-800">
+                    <span className="text-neutral-500 text-[10px] block">Payment / Quantity</span>
+                    <strong className="text-white">{inspectFailedOrder.order.paymentStatus} / {inspectFailedOrder.order.quantity}</strong>
+                  </div>
+                  <div className="p-2 bg-neutral-900 rounded-lg border border-neutral-800 col-span-2">
+                    <span className="text-neutral-500 text-[10px] block">Target</span>
+                    <strong className="text-neutral-300 break-all">{inspectFailedOrder.order.targetUrl || '—'}</strong>
+                  </div>
+                  <div className="p-2 bg-neutral-900 rounded-lg border border-neutral-800 col-span-2">
+                    <span className="text-neutral-500 text-[10px] block">Stored Error</span>
+                    <strong className="text-red-400">{inspectFailedOrder.fulfillmentOrders[0]?.lastError || 'None'}</strong>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs space-y-1.5">
+                  <p className="text-[11px]">
+                    To confirm reconciling this order to <strong className="text-white font-mono">WAITING_PROVIDER</strong>, type <strong className="text-white font-mono">RECONCILE</strong> below.
+                  </p>
+                  <input
+                    type="text"
+                    value={reconcileConfirmText}
+                    onChange={(e) => setReconcileConfirmText(e.target.value)}
+                    placeholder="RECONCILE"
+                    className="w-full px-3 py-1.5 bg-neutral-950 border border-neutral-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-amber-500"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowReconcileModal(false)}
+                    className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleReconcileOrder(inspectFailedOrder.order.id)}
+                    disabled={reconcileConfirmText !== "RECONCILE" || reconcileLoading}
+                    className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold rounded-xl disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+                  >
+                    {reconcileLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    <span>Confirm Reconciliation</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: WAITING PROVIDER RECOVERY REVIEW */}
+      {showRecoveryModal && inspectFailedOrder && (
+        <div className="fixed inset-0 z-60 bg-black/85 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#0e131f] border border-emerald-500/40 rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <Zap className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Waiting Provider Recovery Review</h3>
+                  <p className="text-xs text-neutral-400">Execute exactly one controlled action=add attempt</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowRecoveryModal(false)}
+                className="text-neutral-400 hover:text-white text-sm font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {recoverySuccess ? (
+              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-3">
+                <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                  <CheckCircle2 className="w-5 h-5" />
+                  <span>{recoverySuccess}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowRecoveryModal(false);
+                    setShowFailedModal(false);
+                    setInspectFailedOrder(null);
+                  }}
+                  className="w-full py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-bold rounded-xl transition-colors cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <div className="p-2 bg-neutral-900 rounded-lg border border-neutral-800">
+                    <span className="text-neutral-500 text-[10px] block">Public ID</span>
+                    <strong className="text-white">{inspectFailedOrder.order.publicId}</strong>
+                  </div>
+                  <div className="p-2 bg-neutral-900 rounded-lg border border-neutral-800">
+                    <span className="text-neutral-500 text-[10px] block">Platform / Service</span>
+                    <strong className="text-white">{inspectFailedOrder.order.platform} / {inspectFailedOrder.order.service} ({inspectFailedOrder.order.quantity})</strong>
+                  </div>
+                  <div className="p-2 bg-neutral-900 rounded-lg border border-neutral-800 col-span-2">
+                    <span className="text-neutral-500 text-[10px] block">Canonical Target</span>
+                    <strong className="text-neutral-300 break-all">{inspectFailedOrder.order.targetUrl || '—'}</strong>
+                  </div>
+                </div>
+
+                <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-xs space-y-1.5">
+                  <div className="flex items-center gap-1.5 font-bold">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>Warning: Live Single Attempt</span>
+                  </div>
+                  <p className="text-[11px] text-neutral-300">
+                    This will perform one new Peakerr action=add attempt. To proceed, type <strong className="text-white font-mono">RETRY ONCE</strong> below.
+                  </p>
+                  <input
+                    type="text"
+                    value={recoveryConfirmText}
+                    onChange={(e) => setRecoveryConfirmText(e.target.value)}
+                    placeholder="RETRY ONCE"
+                    className="w-full px-3 py-1.5 bg-neutral-950 border border-neutral-700 rounded-lg text-white font-mono text-xs focus:outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowRecoveryModal(false)}
+                    className="px-4 py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold rounded-xl cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRetryRecovery(inspectFailedOrder.order.id)}
+                    disabled={recoveryConfirmText !== "RETRY ONCE" || recoveryLoading}
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold rounded-xl disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer flex items-center gap-2"
+                  >
+                    {recoveryLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                    <span>Execute Recovery Retry</span>
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
