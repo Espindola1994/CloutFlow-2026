@@ -75,6 +75,10 @@ export function PeakerrAutoDispatchCard() {
   const [selectedOrder, setSelectedOrder] = useState<CandidateOrder | null>(null);
   const [confirmText, setConfirmText] = useState("");
   const [dispatchSuccess, setDispatchSuccess] = useState<{ id: string, providerOrder: string } | null>(null);
+  const [showFailedModal, setShowFailedModal] = useState(false);
+  const [failedOrdersData, setFailedOrdersData] = useState<any[]>([]);
+  const [loadingFailed, setLoadingFailed] = useState(false);
+  const [inspectFailedOrder, setInspectFailedOrder] = useState<any | null>(null);
 
   const fetchOverview = useCallback(async () => {
     setLoading(true);
@@ -152,6 +156,22 @@ export function PeakerrAutoDispatchCard() {
     }
   };
 
+  const fetchFailedOrders = async () => {
+    setLoadingFailed(true);
+    try {
+      const res = await fetch('/api/admin/debug-failed-orders');
+      const json = await res.json();
+      if (json.success && json.data) {
+        setFailedOrdersData(json.data);
+        setShowFailedModal(true);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingFailed(false);
+    }
+  };
+
   useEffect(() => {
     fetchOverview();
   }, [fetchOverview]);
@@ -205,8 +225,11 @@ export function PeakerrAutoDispatchCard() {
             <span className="text-[10px] uppercase font-bold text-neutral-400 block">Completed</span>
             <span className="text-lg font-bold font-mono text-emerald-400">{fulfillmentStats?.completed ?? '—'}</span>
           </div>
-          <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800">
-            <span className="text-[10px] uppercase font-bold text-neutral-400 block">Failed</span>
+          <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800 cursor-pointer hover:border-red-500/40 transition-colors" onClick={fetchFailedOrders}>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold text-neutral-400 block">Failed</span>
+              <span className="text-[10px] text-red-400 underline">Inspect</span>
+            </div>
             <span className="text-lg font-bold font-mono text-red-400">{fulfillmentStats?.failed ?? '—'}</span>
           </div>
           <div className="p-3 rounded-xl bg-neutral-900/80 border border-neutral-800">
@@ -567,6 +590,119 @@ export function PeakerrAutoDispatchCard() {
                   </button>
                 </div>
               </>
+            )}
+          </div>
+        </div>
+      )}
+      {/* MODAL: FAILED ORDERS FORENSIC (Read Only) */}
+      {showFailedModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-[#0e131f] border border-neutral-800 rounded-2xl max-w-4xl w-full p-6 space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20">
+                  <AlertCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Failed Orders Forensic (Read-Only)</h3>
+                  <p className="text-xs text-neutral-400">Strictly no mutations allowed.</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowFailedModal(false);
+                  setInspectFailedOrder(null);
+                }}
+                className="text-neutral-400 hover:text-white text-sm font-bold cursor-pointer"
+              >
+                ✕
+              </button>
+            </div>
+
+            {inspectFailedOrder ? (
+              <div className="space-y-4">
+                <button 
+                  onClick={() => setInspectFailedOrder(null)}
+                  className="text-xs text-neutral-400 hover:text-white underline mb-4 inline-block"
+                >
+                  ← Back to List
+                </button>
+
+                <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+                  <div className="p-2.5 rounded-xl bg-neutral-900/80 border border-neutral-800">
+                    <span className="text-neutral-500 text-[10px] block">Public ID</span>
+                    <strong className="text-white">{inspectFailedOrder.order.publicId}</strong>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-neutral-900/80 border border-neutral-800">
+                    <span className="text-neutral-500 text-[10px] block">UUID</span>
+                    <strong className="text-neutral-400">{inspectFailedOrder.order.id}</strong>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-neutral-900/80 border border-neutral-800">
+                    <span className="text-neutral-500 text-[10px] block">Payment / Fulfillment</span>
+                    <strong className="text-neutral-200">{inspectFailedOrder.order.paymentStatus} / {inspectFailedOrder.order.fulfillmentStatus}</strong>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-neutral-900/80 border border-neutral-800">
+                    <span className="text-neutral-500 text-[10px] block">Platform / Service</span>
+                    <strong className="text-neutral-200">{inspectFailedOrder.order.platform} / {inspectFailedOrder.order.service} ({inspectFailedOrder.order.quantity})</strong>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-neutral-900/80 border border-neutral-800 col-span-2">
+                    <span className="text-neutral-500 text-[10px] block">Target</span>
+                    <strong className="text-neutral-200 break-all">{inspectFailedOrder.order.targetUrl || '—'}</strong>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Fulfillment Orders</h4>
+                  {inspectFailedOrder.fulfillmentOrders.length === 0 ? (
+                    <div className="p-3 bg-neutral-900 rounded-lg text-xs text-neutral-500 border border-neutral-800">No records found.</div>
+                  ) : (
+                    inspectFailedOrder.fulfillmentOrders.map((fo: any) => (
+                      <div key={fo.id} className="p-3 bg-neutral-900 rounded-lg border border-neutral-800 text-xs font-mono space-y-1">
+                        <div><span className="text-neutral-500">Provider:</span> <span className="text-white">{fo.provider}</span></div>
+                        <div><span className="text-neutral-500">Provider Service:</span> <span className="text-white">{fo.externalServiceId || '—'}</span></div>
+                        <div><span className="text-neutral-500">Provider Order ID:</span> <span className="text-yellow-400 font-bold">{fo.externalOrderId || 'NO PROVIDER ORDER ID RECORDED'}</span></div>
+                        <div><span className="text-neutral-500">Status:</span> <span className="text-red-400 font-bold">{fo.status}</span></div>
+                        <div><span className="text-neutral-500">Error:</span> <span className="text-red-400">{fo.lastError || '—'}</span></div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">Order Events</h4>
+                  <div className="p-3 bg-neutral-900 rounded-lg border border-neutral-800 max-h-48 overflow-y-auto space-y-2">
+                    {inspectFailedOrder.orderEvents.map((ev: any) => (
+                      <div key={ev.id} className="text-[11px] font-mono border-b border-neutral-800/50 pb-2 last:border-0">
+                        <span className="text-neutral-500">[{new Date(ev.createdAt).toISOString()}]</span>{' '}
+                        <span className="text-blue-400">{ev.status || ev.fulfillmentStatus}</span>{' '}
+                        <span className="text-neutral-300">{ev.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {failedOrdersData.length === 0 ? (
+                  <p className="text-xs text-neutral-500 text-center py-8">No FAILED orders found.</p>
+                ) : (
+                  failedOrdersData.map((d) => (
+                    <div key={d.order.id} className="p-3 rounded-lg bg-neutral-900/90 border border-neutral-800 flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="font-mono text-xs text-white font-bold">{d.order.publicId}</div>
+                        <div className="text-[10px] text-neutral-400">{d.order.platform} / {d.order.service} ({d.order.quantity})</div>
+                      </div>
+                      <button 
+                        onClick={() => setInspectFailedOrder(d)}
+                        className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-xs font-bold text-white rounded-lg transition-colors"
+                      >
+                        Inspect
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
             )}
           </div>
         </div>
