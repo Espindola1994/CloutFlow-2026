@@ -88,11 +88,11 @@ export function PeakerrStatusSyncCard({
   ];
 
   return (
-    <div className="space-y-2.5">
-      {/* Section Header (~44px) */}
+    <div className="space-y-3">
+      {/* Section Header */}
       <div className="flex items-center justify-between min-h-[44px]">
         <div>
-          <h3 className="text-[13px] font-bold uppercase tracking-wider text-[#142126]">
+          <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
             AUTOMATIC STATUS SYNC
           </h3>
           <p className="text-[12px] text-[#65737A] mt-0.5">
@@ -120,25 +120,25 @@ export function PeakerrStatusSyncCard({
         </div>
       )}
 
-      {/* 7-column metrics grid (height 82px–88px) */}
+      {/* 7-column metrics grid (min-height 92px per card) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
         {syncItems.map((item, idx) => {
           const Icon = item.icon;
           return (
             <div
               key={idx}
-              className="h-[84px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-[14px] flex flex-col justify-between shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
+              className="min-h-[92px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-[14px_16px] flex flex-col justify-between shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
             >
               <div className="flex items-center justify-between gap-1">
                 <span className="text-[11px] font-semibold uppercase tracking-wider text-[#65737A] truncate">
                   {item.label}
                 </span>
-                <div className={`w-[28px] h-[28px] rounded-[6px] flex items-center justify-center shrink-0 ${item.iconBg}`}>
+                <div className={`w-[30px] h-[30px] rounded-[6px] flex items-center justify-center shrink-0 ${item.iconBg}`}>
                   <Icon className="w-3.5 h-3.5" />
                 </div>
               </div>
               <span
-                className={`text-[21px] font-bold font-mono tracking-tight leading-none ${item.valueColor}`}
+                className={`text-[22px] font-bold font-mono tracking-tight leading-none ${item.valueColor}`}
               >
                 {item.value}
               </span>

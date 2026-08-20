@@ -134,7 +134,7 @@ export function AdminShell() {
 
         {/* Scrollable Content View */}
         <main className="flex-1 p-4 md:p-[28px] md:pt-[28px] md:pb-[40px] md:px-[32px] 2xl:px-[36px] overflow-y-auto">
-          <div className="w-full mx-auto">
+          <div className="w-full max-w-[1720px] mr-auto">
             {renderModule()}
           </div>
         </main>

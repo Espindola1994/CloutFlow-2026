@@ -84,7 +84,7 @@ export function AdminSidebar({
                   onSelectTab(item.id);
                   if (onCloseMobile) onCloseMobile();
                 }}
-                className={`relative w-full h-[42px] flex items-center gap-3 px-3.5 rounded-[8px] text-[13px] font-medium transition-all cursor-pointer ${
+                className={`relative w-full min-h-[42px] flex items-center gap-3 px-3.5 md:px-4 rounded-[8px] text-[13px] font-medium transition-all cursor-pointer ${
                   isActive
                     ? "bg-[rgba(15,143,138,0.16)] text-white font-semibold"
                     : "text-[#8A979D] hover:text-white hover:bg-[#0A2630]"
@@ -93,7 +93,7 @@ export function AdminSidebar({
                 {isActive && (
                   <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-[#0F8F8A] rounded-r-full" />
                 )}
-                <Icon className={`w-4 h-4 shrink-0 ${isActive ? "text-[#0F8F8A]" : "text-[#8A979D]"}`} />
+                <Icon className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-[#0F8F8A]" : "text-[#8A979D]"}`} />
                 <span className="truncate">{item.label}</span>
               </button>
             );

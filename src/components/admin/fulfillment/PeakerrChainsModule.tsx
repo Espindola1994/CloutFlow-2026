@@ -620,11 +620,11 @@ export function PeakerrChainsModule() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-[22px] md:space-y-[24px]">
       {/* 1. PAGE HEADER */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-h-[72px] mb-[20px]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 min-h-[68px]">
         <div>
-          <h2 className="text-[24px] font-[650] text-[#142126] tracking-tight leading-tight">
+          <h2 className="text-[26px] font-[650] text-[#142126] tracking-tight leading-[32px]">
             Fulfillment & Providers
           </h2>
           <p className="text-[13px] text-[#65737A] mt-[5px]">
@@ -633,7 +633,7 @@ export function PeakerrChainsModule() {
         </div>
 
         {/* Platform Controls (44px x 44px, gap 8px) */}
-        <div className="flex items-center gap-[8px]">
+        <div className="flex items-center gap-[8px] shrink-0">
           {(["instagram", "tiktok", "twitter", "youtube"] as Platform[]).map((p) => (
             <button
               key={p}
@@ -651,11 +651,11 @@ export function PeakerrChainsModule() {
         </div>
       </div>
 
-      {/* 2. PROVIDER STATUS — Operational Card (96px–110px) */}
-      <div className="min-h-[96px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
+      {/* 2. PROVIDER STATUS CARD (Min Height: 104px, Padding: 18px 20px) */}
+      <div className="min-h-[104px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-[18px_20px] flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
         <div className="flex flex-wrap items-center gap-6 divide-y md:divide-y-0 md:divide-x divide-[#E3E9EA]">
           {/* Item 1: Provider Name & Routing */}
-          <div className="flex items-center gap-3 pr-4">
+          <div className="flex items-center gap-3 pr-2">
             <span
               className={`w-3 h-3 rounded-full shrink-0 ${
                 connectionInfo?.connected ? "bg-[#16B77A]" : "bg-[#EF4444]"
@@ -665,19 +665,19 @@ export function PeakerrChainsModule() {
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
                 PEAKERR PROVIDER
               </span>
-              <span className="text-[14px] font-[650] text-[#142126] leading-tight block">
+              <span className="text-[15px] font-[650] text-[#142126] leading-tight block mt-0.5">
                 Provider Routing
               </span>
             </div>
           </div>
 
           {/* Item 2: Connection */}
-          <div className="pt-3 md:pt-0 md:pl-6">
+          <div className="pt-3 md:pt-0 md:pl-6 min-h-[38px] flex flex-col justify-center">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
               CONNECTION
             </span>
             <span
-              className={`text-[14px] font-semibold ${
+              className={`text-[15px] font-semibold mt-0.5 ${
                 connectionInfo?.connected ? "text-[#16B77A]" : "text-[#EF4444]"
               }`}
             >
@@ -690,12 +690,12 @@ export function PeakerrChainsModule() {
           </div>
 
           {/* Item 3: Live Fulfillment */}
-          <div className="pt-3 md:pt-0 md:pl-6">
+          <div className="pt-3 md:pt-0 md:pl-6 min-h-[38px] flex flex-col justify-center">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
               LIVE FULFILLMENT
             </span>
             <span
-              className={`text-[14px] font-semibold ${
+              className={`text-[15px] font-semibold mt-0.5 ${
                 runtimeFlags.liveFulfillment ? "text-[#16B77A]" : "text-[#D97706]"
               }`}
             >
@@ -704,11 +704,11 @@ export function PeakerrChainsModule() {
           </div>
 
           {/* Item 4: Balance */}
-          <div className="pt-3 md:pt-0 md:pl-6">
+          <div className="pt-3 md:pt-0 md:pl-6 min-h-[38px] flex flex-col justify-center">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
               BALANCE
             </span>
-            <span className="text-[15px] font-bold font-mono text-[#142126]">
+            <span className="text-[18px] font-[650] font-mono text-[#142126] mt-0.5">
               {connectionInfo?.balance !== null && connectionInfo?.balance !== undefined
                 ? `$${Number(connectionInfo.balance).toFixed(2)}`
                 : "—"}
@@ -716,23 +716,23 @@ export function PeakerrChainsModule() {
           </div>
 
           {/* Item 5: Services Loaded */}
-          <div className="pt-3 md:pt-0 md:pl-6">
+          <div className="pt-3 md:pt-0 md:pl-6 min-h-[38px] flex flex-col justify-center">
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
               SERVICES
             </span>
-            <span className="text-[15px] font-bold font-mono text-[#142126]">
+            <span className="text-[18px] font-[650] font-mono text-[#142126] mt-0.5">
               {connectionInfo?.servicesCount ? Number(connectionInfo.servicesCount).toLocaleString() : "0"}
             </span>
           </div>
         </div>
 
-        {/* Refresh Button on the right */}
+        {/* Refresh Button on the right (Height 36px) */}
         <div className="shrink-0">
           <button
             type="button"
             onClick={fetchPeakerrInspection}
             disabled={inspectLoading}
-            className="inline-flex items-center gap-2 px-4 py-2 text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
+            className="h-[36px] inline-flex items-center gap-2 px-4 text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
           >
             {inspectLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -772,36 +772,38 @@ export function PeakerrChainsModule() {
 
       {/* 5. PROVIDER CHAINS & FALLBACKS (AdminCard container) */}
       <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] overflow-hidden">
-        <div className="p-[18px_20px] border-b border-[#E7ECEC]">
-          <h3 className="text-[14px] font-[650] uppercase tracking-wider text-[#142126]">
-            PROVIDER CHAINS & FALLBACKS
-          </h3>
-          <p className="text-[12px] text-[#65737A] mt-0.5">
-            Configure multi-tier fallback chains per platform and service.
-          </p>
+        <div className="h-[64px] px-[20px] flex items-center border-b border-[#E7ECEC]">
+          <div>
+            <h3 className="text-[14px] font-[650] uppercase tracking-wider text-[#142126]">
+              PROVIDER CHAINS & FALLBACKS
+            </h3>
+            <p className="text-[12px] text-[#65737A] mt-0.5">
+              Configure multi-tier fallback chains per platform and service.
+            </p>
+          </div>
         </div>
 
         {/* Desktop Table View */}
         <div className="hidden md:block overflow-x-auto">
           <AdminTable>
             <AdminTableHeader>
-              <AdminTableRow className="bg-[#F8FAFA] h-[42px] border-b border-[#E7ECEC]">
-                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+              <AdminTableRow className="bg-[#F8FAFA] h-[44px] border-b border-[#E7ECEC]">
+                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5">
                   Platform
                 </AdminTableHead>
-                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5">
                   Service
                 </AdminTableHead>
-                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5">
                   Chain Order
                 </AdminTableHead>
-                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5">
                   Providers
                 </AdminTableHead>
-                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2">
+                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5">
                   Status
                 </AdminTableHead>
-                <AdminTableHead className="text-[11px] font-semibold text-[#65737A] uppercase py-2 text-right">
+                <AdminTableHead className="text-[12px] font-semibold text-[#65737A] uppercase py-2.5 text-right">
                   Actions
                 </AdminTableHead>
               </AdminTableRow>
@@ -821,36 +823,36 @@ export function PeakerrChainsModule() {
                 };
 
                 return (
-                  <AdminTableRow key={svc} className="h-[60px] border-b border-[#EAEFEF]">
-                    <AdminTableCell className="py-2.5">
+                  <AdminTableRow key={svc} className="h-[64px] border-b border-[#EAEFEF]">
+                    <AdminTableCell className="py-3">
                       <div className="flex items-center gap-2.5">
                         <PlatformIcon
                           platform={selectedPlatform === "twitter" ? "x" : selectedPlatform}
                           size={20}
                           showBackground={false}
                         />
-                        <span className="capitalize font-semibold text-[#142126] text-[12px]">
+                        <span className="capitalize font-[600] text-[#142126] text-[13px]">
                           {selectedPlatform === "twitter" ? "X" : selectedPlatform}
                         </span>
                       </div>
                     </AdminTableCell>
 
-                    <AdminTableCell className="py-2.5">
-                      <span className="capitalize font-medium text-[#142126] text-[13px]">{svc}</span>
+                    <AdminTableCell className="py-3">
+                      <span className="capitalize font-[600] text-[#142126] text-[13px]">{svc}</span>
                     </AdminTableCell>
 
-                    <AdminTableCell className="py-2.5">
-                      <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-1.5 text-[13px] font-medium text-[#142126]">
-                          <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#0F8F8A] text-white text-[11px] font-bold">
+                    <AdminTableCell className="py-3">
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2 text-[13px] font-medium text-[#142126]">
+                          <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#0F8F8A] text-white text-[12px] font-bold">
                             ①
                           </span>
-                          <span className="text-[#8A979D]">──</span>
-                          <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold ${chain.fallback1Id ? "bg-[#D9E2E3] text-[#142126]" : "bg-[#F1F5F5] text-[#8A979D]"}`}>
+                          <span className="text-[#8A979D] w-[28px] flex items-center justify-center">──</span>
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[12px] font-bold ${chain.fallback1Id ? "bg-[#D9E2E3] text-[#142126]" : "bg-[#F1F5F5] text-[#8A979D]"}`}>
                             ②
                           </span>
-                          <span className="text-[#8A979D]">──</span>
-                          <span className={`inline-flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-bold ${chain.fallback2Id ? "bg-[#D9E2E3] text-[#142126]" : "bg-[#F1F5F5] text-[#8A979D]"}`}>
+                          <span className="text-[#8A979D] w-[28px] flex items-center justify-center">──</span>
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-[12px] font-bold ${chain.fallback2Id ? "bg-[#D9E2E3] text-[#142126]" : "bg-[#F1F5F5] text-[#8A979D]"}`}>
                             ③
                           </span>
                         </div>
@@ -862,26 +864,26 @@ export function PeakerrChainsModule() {
                       </div>
                     </AdminTableCell>
 
-                    <AdminTableCell className="py-2.5">
+                    <AdminTableCell className="py-3">
                       <div className="flex items-center gap-1.5 text-[13px] text-[#65737A]">
                         <Server className="w-4 h-4 text-[#0F8F8A]" />
                         <span>Peakerr</span>
                       </div>
                     </AdminTableCell>
 
-                    <AdminTableCell className="py-2.5">
+                    <AdminTableCell className="py-3">
                       <AdminBadge variant={chain.autoFallback ? "success" : "warning"} size="sm">
                         {chain.autoFallback ? "Auto Fallback" : "Single Tier"}
                       </AdminBadge>
                     </AdminTableCell>
 
-                    <AdminTableCell className="py-2.5 text-right">
+                    <AdminTableCell className="py-3 text-right">
                       <button
                         type="button"
                         onClick={() => setEditingService(svc)}
-                        className="h-[34px] inline-flex items-center gap-1.5 px-3 text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
+                        className="h-[34px] inline-flex items-center gap-1.5 px-3 text-[12px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
                       >
-                        <Settings2 className="w-3.5 h-3.5 text-[#0F8F8A]" />
+                        <Settings2 className="w-[14px] h-[14px] text-[#0F8F8A]" />
                         <span>Configure</span>
                       </button>
                     </AdminTableCell>

@@ -274,15 +274,15 @@ export function PeakerrAutoDispatchCard() {
   return (
     <div className="space-y-4">
       {/* MAIN GRID: 58% Fulfillment Overview | 42% Auto Dispatch */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-[18px] items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-[20px] items-stretch">
         
         {/* LEFT COLUMN: FULFILLMENT OVERVIEW (58%) */}
-        <div className="lg:col-span-7 bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between min-h-[430px]">
+        <div className="lg:col-span-7 bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between min-h-[470px]">
           <div>
-            {/* Large Card Header */}
-            <div className="p-[18px_20px] border-b border-[#E7ECEC] flex items-center justify-between">
+            {/* Large Card Header (approx 64px height, padding 16px 18px) */}
+            <div className="h-[64px] px-[18px] border-b border-[#E7ECEC] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-[32px] h-[32px] rounded-[7px] bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center shrink-0">
+                <div className="w-[34px] h-[34px] rounded-[7px] bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center shrink-0">
                   <Activity className="w-4 h-4" />
                 </div>
                 <div>
@@ -298,7 +298,7 @@ export function PeakerrAutoDispatchCard() {
                 type="button"
                 onClick={fetchOverview}
                 disabled={loading}
-                className="text-[12px] text-[#65737A] hover:text-[#142126] font-medium flex items-center gap-1.5 cursor-pointer disabled:opacity-50 px-2.5 py-1 rounded-[6px] border border-[#E3E9EA] bg-[#F8FAFA]"
+                className="h-[34px] text-[12px] text-[#65737A] hover:text-[#142126] font-medium flex items-center gap-1.5 cursor-pointer disabled:opacity-50 px-3 rounded-[6px] border border-[#E3E9EA] bg-[#F8FAFA]"
               >
                 {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
                 <span>Refresh</span>
@@ -306,8 +306,8 @@ export function PeakerrAutoDispatchCard() {
             </div>
 
             <div className="p-[20px] space-y-4">
-              {/* Clean Chart Distribution (height 190px–220px) */}
-              <div className="h-[200px] w-full pt-1">
+              {/* Clean Chart Distribution (height 220px–240px, min-height 210px) */}
+              <div className="h-[230px] min-h-[210px] w-full pt-1">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={chartData} margin={{ top: 10, right: 10, left: -25, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#EAEFEF" vertical={false} />
@@ -354,79 +354,79 @@ export function PeakerrAutoDispatchCard() {
                 </ResponsiveContainer>
               </div>
 
-              {/* 3 Col Status Grid (height 64px–70px per cell, bg #F8FAFA, border #E3E9EA, radius 7px, padding 10px 12px, value 18px, label 10px-11px) */}
+              {/* 3 Col Status Grid (height 72px per cell, padding 11px 13px, value 20px, label 11px) */}
               <div className="grid grid-cols-3 gap-2">
-                <div className="h-[68px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[10px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Not Dispatched</span>
-                  <span className="text-[18px] font-bold text-[#142126] font-mono leading-none">
+                <div className="h-[72px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[11px_13px] flex flex-col justify-between">
+                  <span className="text-[11px] uppercase font-semibold text-[#65737A] tracking-wider">Not Dispatched</span>
+                  <span className="text-[20px] font-bold text-[#142126] font-mono leading-none">
                     {fulfillmentStats?.notDispatched ?? "—"}
                   </span>
                 </div>
 
-                <div className="h-[68px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[10px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Submitting</span>
-                  <span className="text-[18px] font-bold text-[#142126] font-mono leading-none">
+                <div className="h-[72px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[11px_13px] flex flex-col justify-between">
+                  <span className="text-[11px] uppercase font-semibold text-[#65737A] tracking-wider">Submitting</span>
+                  <span className="text-[20px] font-bold text-[#142126] font-mono leading-none">
                     {fulfillmentStats?.submitting ?? "—"}
                   </span>
                 </div>
 
                 <div
                   onClick={fetchFailedOrders}
-                  className="h-[68px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[10px_12px] flex flex-col justify-between cursor-pointer hover:border-[#0F8F8A] transition-colors"
+                  className="h-[72px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[11px_13px] flex flex-col justify-between cursor-pointer hover:border-[#0F8F8A] transition-colors"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Waiting Prov.</span>
+                    <span className="text-[11px] uppercase font-semibold text-[#65737A] tracking-wider">Waiting Prov.</span>
                     <span className="text-[10px] text-[#0F8F8A] font-bold">Inspect</span>
                   </div>
-                  <span className="text-[18px] font-bold text-[#142126] font-mono leading-none">
+                  <span className="text-[20px] font-bold text-[#142126] font-mono leading-none">
                     {fulfillmentStats?.waitingProvider ?? 0}
                   </span>
                 </div>
 
-                <div className="h-[68px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[10px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Processing</span>
-                  <span className="text-[18px] font-bold text-[#0F8F8A] font-mono leading-none">
+                <div className="h-[72px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[11px_13px] flex flex-col justify-between">
+                  <span className="text-[11px] uppercase font-semibold text-[#65737A] tracking-wider">Processing</span>
+                  <span className="text-[20px] font-bold text-[#0F8F8A] font-mono leading-none">
                     {fulfillmentStats?.processing ?? "—"}
                   </span>
                 </div>
 
-                <div className="h-[68px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[10px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Partial</span>
-                  <span className="text-[18px] font-bold text-[#D97706] font-mono leading-none">
+                <div className="h-[72px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[11px_13px] flex flex-col justify-between">
+                  <span className="text-[11px] uppercase font-semibold text-[#65737A] tracking-wider">Partial</span>
+                  <span className="text-[20px] font-bold text-[#D97706] font-mono leading-none">
                     {fulfillmentStats?.partial ?? "—"}
                   </span>
                 </div>
 
-                <div className="h-[68px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[10px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Completed</span>
-                  <span className="text-[18px] font-bold text-[#16B77A] font-mono leading-none">
+                <div className="h-[72px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[11px_13px] flex flex-col justify-between">
+                  <span className="text-[11px] uppercase font-semibold text-[#65737A] tracking-wider">Completed</span>
+                  <span className="text-[20px] font-bold text-[#16B77A] font-mono leading-none">
                     {fulfillmentStats?.completed ?? "—"}
                   </span>
                 </div>
 
                 <div
                   onClick={fetchFailedOrders}
-                  className="h-[68px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[10px_12px] flex flex-col justify-between cursor-pointer hover:border-[#EF4444] transition-colors"
+                  className="h-[72px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[11px_13px] flex flex-col justify-between cursor-pointer hover:border-[#EF4444] transition-colors"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] uppercase font-semibold text-[#EF4444] tracking-wider">Failed</span>
+                    <span className="text-[11px] uppercase font-semibold text-[#EF4444] tracking-wider">Failed</span>
                     <span className="text-[10px] text-[#EF4444] font-bold">Inspect</span>
                   </div>
-                  <span className="text-[18px] font-bold text-[#EF4444] font-mono leading-none">
+                  <span className="text-[20px] font-bold text-[#EF4444] font-mono leading-none">
                     {fulfillmentStats?.failed ?? "—"}
                   </span>
                 </div>
 
-                <div className="h-[68px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[10px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Canceled</span>
-                  <span className="text-[18px] font-bold text-[#65737A] font-mono leading-none">
+                <div className="h-[72px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[11px_13px] flex flex-col justify-between">
+                  <span className="text-[11px] uppercase font-semibold text-[#65737A] tracking-wider">Canceled</span>
+                  <span className="text-[20px] font-bold text-[#65737A] font-mono leading-none">
                     {fulfillmentStats?.canceled ?? "—"}
                   </span>
                 </div>
 
-                <div className="h-[68px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[10px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#0F8F8A] tracking-wider">Total Dispatched</span>
-                  <span className="text-[18px] font-bold text-[#142126] font-mono leading-none">
+                <div className="h-[72px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] p-[11px_13px] flex flex-col justify-between">
+                  <span className="text-[11px] uppercase font-semibold text-[#0F8F8A] tracking-wider">Total Dispatched</span>
+                  <span className="text-[20px] font-bold text-[#142126] font-mono leading-none">
                     {fulfillmentStats?.totalDispatched ?? "—"}
                   </span>
                 </div>
@@ -436,12 +436,12 @@ export function PeakerrAutoDispatchCard() {
         </div>
 
         {/* RIGHT COLUMN: AUTO DISPATCH (42%) */}
-        <div className="lg:col-span-5 bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between min-h-[430px]">
+        <div className="lg:col-span-5 bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between min-h-[470px]">
           <div>
-            {/* Large Card Header */}
-            <div className="p-[18px_20px] border-b border-[#E7ECEC] flex items-center justify-between">
+            {/* Large Card Header (approx 64px height, padding 16px 18px) */}
+            <div className="h-[64px] px-[18px] border-b border-[#E7ECEC] flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-[32px] h-[32px] rounded-[7px] bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center shrink-0">
+                <div className="w-[34px] h-[34px] rounded-[7px] bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center shrink-0">
                   <Zap className="w-4 h-4" />
                 </div>
                 <div>
@@ -460,33 +460,33 @@ export function PeakerrAutoDispatchCard() {
               </div>
             </div>
 
-            <div className="p-[20px] space-y-3.5">
-              {/* 3 Compact Status Cards (Height ~76px, bg #F8FAFA, border #E3E9EA) */}
+            <div className="p-[20px] space-y-4">
+              {/* 3 Status Cards (Height 82px, label 11px, value 13px, dot 7px) */}
               <div className="grid grid-cols-3 gap-2">
-                <div className="h-[76px] p-2.5 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
+                <div className="h-[82px] p-[12px_10px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
                   <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">Payment Trigger</span>
                   <div className="flex items-center gap-1.5">
-                    <span className={`w-2 h-2 rounded-full ${autoDispatchStats?.paymentTriggerConnected ? "bg-[#16B77A]" : "bg-[#65737A]"}`} />
+                    <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${autoDispatchStats?.paymentTriggerConnected ? "bg-[#16B77A]" : "bg-[#65737A]"}`} />
                     <span className={`text-[13px] font-semibold ${autoDispatchStats?.paymentTriggerConnected ? "text-[#16B77A]" : "text-[#65737A]"}`}>
                       {autoDispatchStats?.paymentTriggerConnected ? "Connected" : "Inactive"}
                     </span>
                   </div>
                 </div>
 
-                <div className="h-[76px] p-2.5 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
+                <div className="h-[82px] p-[12px_10px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
                   <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">Auto Dispatch</span>
                   <div className="flex items-center gap-1.5">
-                    <span className={`w-2 h-2 rounded-full ${autoDispatchStats?.autoDispatchEnabled ? "bg-[#16B77A]" : "bg-[#65737A]"}`} />
+                    <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${autoDispatchStats?.autoDispatchEnabled ? "bg-[#16B77A]" : "bg-[#65737A]"}`} />
                     <span className={`text-[13px] font-semibold ${autoDispatchStats?.autoDispatchEnabled ? "text-[#16B77A]" : "text-[#65737A]"}`}>
                       {autoDispatchStats?.autoDispatchEnabled ? "Enabled" : "Disabled"}
                     </span>
                   </div>
                 </div>
 
-                <div className="h-[76px] p-2.5 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
+                <div className="h-[82px] p-[12px_10px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
                   <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">Live Fulfillment</span>
                   <div className="flex items-center gap-1.5">
-                    <span className={`w-2 h-2 rounded-full ${autoDispatchStats?.liveFulfillmentEnabled ? "bg-[#16B77A]" : "bg-[#65737A]"}`} />
+                    <span className={`w-[7px] h-[7px] rounded-full shrink-0 ${autoDispatchStats?.liveFulfillmentEnabled ? "bg-[#16B77A]" : "bg-[#65737A]"}`} />
                     <span className={`text-[13px] font-semibold ${autoDispatchStats?.liveFulfillmentEnabled ? "text-[#16B77A]" : "text-[#65737A]"}`}>
                       {autoDispatchStats?.liveFulfillmentEnabled ? "Enabled" : "Disabled"}
                     </span>
@@ -494,67 +494,63 @@ export function PeakerrAutoDispatchCard() {
                 </div>
               </div>
 
-              {/* 2 Larger Metrics: Eligible Orders & Provider Balance */}
+              {/* 2 Larger Metrics: Eligible Orders & Provider Balance (Height 84px, metric 22px) */}
               <div className="grid grid-cols-2 gap-2">
-                <div className="p-3 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex items-center justify-between">
-                  <div>
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#65737A] block">Eligible Orders</span>
-                    <strong className="text-[20px] font-bold text-[#16B77A] font-mono leading-tight">
-                      {autoDispatchStats?.eligiblePaidOrders ?? 0}
-                    </strong>
-                  </div>
+                <div className="h-[84px] p-3.5 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#65737A] block">Eligible Orders</span>
+                  <strong className="text-[22px] font-bold text-[#16B77A] font-mono leading-tight">
+                    {autoDispatchStats?.eligiblePaidOrders ?? 0}
+                  </strong>
                 </div>
-                <div className="p-3 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex items-center justify-between">
-                  <div>
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-[#65737A] block">Provider Balance</span>
-                    <strong className="text-[20px] font-bold text-[#142126] font-mono leading-tight">
-                      {autoDispatchStats?.providerBalance !== undefined
-                        ? `$${autoDispatchStats.providerBalance.toFixed(2)}`
-                        : "—"}
-                    </strong>
-                  </div>
+                <div className="h-[84px] p-3.5 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
+                  <span className="text-[11px] font-semibold uppercase tracking-wider text-[#65737A] block">Provider Balance</span>
+                  <strong className="text-[22px] font-bold text-[#142126] font-mono leading-tight">
+                    {autoDispatchStats?.providerBalance !== undefined
+                      ? `$${autoDispatchStats.providerBalance.toFixed(2)}`
+                      : "—"}
+                  </strong>
                 </div>
               </div>
 
-              {/* Eligibility Breakdown (3 col x 2 row, height 58px–64px per cell, bg #F8FAFA, border #E3E9EA) */}
-              <div className="space-y-1.5">
+              {/* Eligibility Breakdown (3 col x 2 row, cell height 68px, label 11px, value 18px) */}
+              <div className="space-y-2 pt-1">
                 <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
                   ELIGIBILITY BREAKDOWN
                 </span>
-                <div className="grid grid-cols-3 gap-1.5">
-                  <div className="h-[60px] p-2 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
-                    <span className="text-[10px] font-semibold uppercase text-[#65737A]">Eligible</span>
-                    <strong className="text-[16px] font-mono text-[#16B77A] font-bold leading-none">
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="h-[68px] p-[10px_12px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
+                    <span className="text-[11px] font-semibold uppercase text-[#65737A]">Eligible</span>
+                    <strong className="text-[18px] font-mono text-[#16B77A] font-bold leading-none">
                       {autoDispatchStats?.eligiblePaidOrders ?? 0}
                     </strong>
                   </div>
-                  <div className="h-[60px] p-2 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
-                    <span className="text-[10px] font-semibold uppercase text-[#65737A]">Missing Target</span>
-                    <strong className="text-[16px] font-mono text-[#142126] font-bold leading-none">
+                  <div className="h-[68px] p-[10px_12px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
+                    <span className="text-[11px] font-semibold uppercase text-[#65737A]">Missing Target</span>
+                    <strong className="text-[18px] font-mono text-[#142126] font-bold leading-none">
                       {autoDispatchStats?.blockedMissingTarget ?? 0}
                     </strong>
                   </div>
-                  <div className="h-[60px] p-2 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
-                    <span className="text-[10px] font-semibold uppercase text-[#65737A]">Missing Chain</span>
-                    <strong className="text-[16px] font-mono text-[#142126] font-bold leading-none">
+                  <div className="h-[68px] p-[10px_12px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
+                    <span className="text-[11px] font-semibold uppercase text-[#65737A]">Missing Chain</span>
+                    <strong className="text-[18px] font-mono text-[#142126] font-bold leading-none">
                       {autoDispatchStats?.blockedMissingChain ?? 0}
                     </strong>
                   </div>
-                  <div className="h-[60px] p-2 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
-                    <span className="text-[10px] font-semibold uppercase text-[#65737A]">Invalid Qty</span>
-                    <strong className="text-[16px] font-mono text-[#142126] font-bold leading-none">
+                  <div className="h-[68px] p-[10px_12px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
+                    <span className="text-[11px] font-semibold uppercase text-[#65737A]">Invalid Qty</span>
+                    <strong className="text-[18px] font-mono text-[#142126] font-bold leading-none">
                       {autoDispatchStats?.blockedInvalidQuantity ?? 0}
                     </strong>
                   </div>
-                  <div className="h-[60px] p-2 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
-                    <span className="text-[10px] font-semibold uppercase text-[#65737A]">Inactive Offer</span>
-                    <strong className="text-[16px] font-mono text-[#142126] font-bold leading-none">
+                  <div className="h-[68px] p-[10px_12px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
+                    <span className="text-[11px] font-semibold uppercase text-[#65737A]">Inactive Offer</span>
+                    <strong className="text-[18px] font-mono text-[#142126] font-bold leading-none">
                       {autoDispatchStats?.blockedInactiveOffer ?? 0}
                     </strong>
                   </div>
-                  <div className="h-[60px] p-2 bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
-                    <span className="text-[10px] font-semibold uppercase text-[#65737A]">Low Balance</span>
-                    <strong className="text-[16px] font-mono text-[#142126] font-bold leading-none">
+                  <div className="h-[68px] p-[10px_12px] bg-[#F8FAFA] border border-[#E3E9EA] rounded-[7px] flex flex-col justify-between">
+                    <span className="text-[11px] font-semibold uppercase text-[#65737A]">Low Balance</span>
+                    <strong className="text-[18px] font-mono text-[#142126] font-bold leading-none">
                       {autoDispatchStats?.blockedInsufficientBalance ?? 0}
                     </strong>
                   </div>
@@ -563,13 +559,13 @@ export function PeakerrAutoDispatchCard() {
             </div>
           </div>
 
-          {/* Footer Action Button (Height 36px–38px, Real Teal Button) */}
-          <div className="p-[16px_20px] border-t border-[#E7ECEC]">
+          {/* Footer Action Button (Height 38px, Padding horizontal 16px, Width auto, Right-aligned) */}
+          <div className="p-[16px_20px] border-t border-[#E7ECEC] flex items-center justify-end">
             <button
               type="button"
               onClick={fetchCandidates}
               disabled={candidatesLoading}
-              className="w-full h-[38px] px-4 rounded-[7px] bg-[#0F8F8A] hover:bg-[#0B7A76] text-white text-[13px] font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_3px_rgba(15,143,138,0.25)]"
+              className="h-[38px] px-4 w-auto rounded-[7px] bg-[#0F8F8A] hover:bg-[#0B7A76] text-white text-[13px] font-semibold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_3px_rgba(15,143,138,0.25)]"
             >
               {candidatesLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sliders className="w-4 h-4" />}
               <span>Preview Eligible Orders</span>
