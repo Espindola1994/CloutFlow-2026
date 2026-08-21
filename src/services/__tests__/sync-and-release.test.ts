@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { syncStatusesAndReleaseQueues } from '@/services/fulfillment-sync.service';
-import { releaseNextQueuedOrderForTarget, releaseAllEligibleQueuedTargets } from '@/services/fulfillment-target-queue.service';
+import { releaseNextQueuedOrderForTarget, releaseAllEligibleQueuedTargetsDetailed } from '@/services/fulfillment-target-queue.service';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { db } from '@/db';
 
@@ -20,7 +20,7 @@ vi.mock('@/db', () => ({
 
 vi.mock('@/services/fulfillment-target-queue.service', () => ({
   releaseNextQueuedOrderForTarget: vi.fn(),
-  releaseAllEligibleQueuedTargets: vi.fn(),
+  releaseAllEligibleQueuedTargetsDetailed: vi.fn(),
 }));
 
 describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
@@ -36,7 +36,12 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
     it('returns early when PEAKERR_STATUS_SYNC_ENABLED=false', async () => {
       process.env.PEAKERR_STATUS_SYNC_ENABLED = 'false';
 
-      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValue([]);
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockResolvedValue({
+        queuedRowsCount: 0,
+        candidateTargetsCount: 0,
+        results: [],
+        diagnosticDetails: [],
+      });
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -59,7 +64,12 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
         }),
       });
 
-      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValue([]);
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockResolvedValue({
+        queuedRowsCount: 0,
+        candidateTargetsCount: 0,
+        results: [],
+        diagnosticDetails: [],
+      });
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -85,7 +95,12 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
         }),
       });
 
-      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValue([]);
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockResolvedValue({
+        queuedRowsCount: 0,
+        candidateTargetsCount: 0,
+        results: [],
+        diagnosticDetails: [],
+      });
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -159,7 +174,12 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
         publicId: 'CF-8602GA6T1J',
       } as any);
 
-      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValue([]);
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockResolvedValue({
+        queuedRowsCount: 0,
+        candidateTargetsCount: 0,
+        results: [],
+        diagnosticDetails: [],
+      });
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -219,7 +239,12 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
 
       vi.spyOn(peakerrClient, 'getStatus').mockRejectedValue(new Error('ETIMEDOUT'));
 
-      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValue([]);
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockResolvedValue({
+        queuedRowsCount: 0,
+        candidateTargetsCount: 0,
+        results: [],
+        diagnosticDetails: [],
+      });
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -244,15 +269,20 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
         }),
       });
 
-      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([
-        {
-          orderId: 'ord_sweep_1',
-          publicId: 'CF-SWEEP-1',
-          target: 'https://instagram.com/target_user_1',
-          status: 'PROCESSING',
-          code: 'QUEUE_RELEASE_SUCCESS',
-        }
-      ]);
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockResolvedValueOnce({
+        queuedRowsCount: 1,
+        candidateTargetsCount: 1,
+        diagnosticDetails: [],
+        results: [
+          {
+            orderId: 'sweep_1',
+            publicId: 'CF-SWEEP-1',
+            target: 'https://instagram.com/user_a',
+            status: 'PROCESSING',
+            code: 'QUEUE_RELEASE_SUCCESS',
+          },
+        ]
+      });
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -276,22 +306,27 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
         }),
       });
 
-      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([
-        {
-          orderId: 'ord_target_1',
-          publicId: 'CF-TARGET-1',
-          target: 'user_1',
-          status: 'PROCESSING',
-          code: 'QUEUE_RELEASE_SUCCESS',
-        },
-        {
-          orderId: 'ord_target_2',
-          publicId: 'CF-TARGET-2',
-          target: 'user_2',
-          status: 'PROCESSING',
-          code: 'QUEUE_RELEASE_SUCCESS',
-        }
-      ]);
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockResolvedValueOnce({
+        queuedRowsCount: 2,
+        candidateTargetsCount: 2,
+        diagnosticDetails: [],
+        results: [
+          {
+            orderId: 'ord_target_1',
+            publicId: 'CF-TARGET-1',
+            target: 'user_1',
+            status: 'PROCESSING',
+            code: 'QUEUE_RELEASE_SUCCESS',
+          },
+          {
+            orderId: 'ord_target_2',
+            publicId: 'CF-TARGET-2',
+            target: 'user_2',
+            status: 'PROCESSING',
+            code: 'QUEUE_RELEASE_SUCCESS',
+          }
+        ]
+      });
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -313,15 +348,20 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
         }),
       });
 
-      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([
-        {
-          orderId: 'ord_busy',
-          publicId: 'CF-BUSY',
-          target: 'busy_user',
-          code: 'SLOT_BUSY',
-          skippedReason: 'SLOT_BUSY',
-        }
-      ]);
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockResolvedValueOnce({
+        queuedRowsCount: 1,
+        candidateTargetsCount: 1,
+        diagnosticDetails: [],
+        results: [
+          {
+            orderId: 'sweep_blocked',
+            publicId: 'CF-BLOCKED-1',
+            target: 'https://instagram.com/user_b',
+            code: 'SLOT_BUSY',
+            skippedReason: 'SLOT_BUSY',
+          },
+        ]
+      });
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -343,15 +383,20 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
         }),
       });
 
-      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([
-        {
-          orderId: 'ord_conflict',
-          publicId: 'CF-CONFLICT',
-          target: 'conflict_user',
-          code: 'ATOMIC_CLAIM_FAILED',
-          skippedReason: 'ATOMIC_CLAIM_FAILED',
-        }
-      ]);
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockResolvedValueOnce({
+        queuedRowsCount: 1,
+        candidateTargetsCount: 1,
+        diagnosticDetails: [],
+        results: [
+          {
+            orderId: 'ord_conflict',
+            publicId: 'CF-CONFLICT',
+            target: 'conflict_user',
+            code: 'ATOMIC_CLAIM_FAILED',
+            skippedReason: 'ATOMIC_CLAIM_FAILED',
+          }
+        ]
+      });
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -377,7 +422,7 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
       expect(result.queueReleaseSuccess).toBe(0);
       expect(result.queueReleaseAttempts).toBe(0);
       expect(result.queueReleaseBlocked).toBe(0);
-      expect(vi.mocked(releaseAllEligibleQueuedTargets)).not.toHaveBeenCalled();
+      expect(vi.mocked(releaseAllEligibleQueuedTargetsDetailed)).not.toHaveBeenCalled();
     });
 
     it('Case F: subsequent run with no queued orders -> queueReleaseSuccess = 0', async () => {
@@ -392,7 +437,12 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
         }),
       });
 
-      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([]);
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockResolvedValueOnce({
+        queuedRowsCount: 0,
+        candidateTargetsCount: 0,
+        diagnosticDetails: ['QUEUE_ROWS_FOUND:0'],
+        results: [],
+      });
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -414,15 +464,20 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
       });
 
       // Provider failure after atomic claim: claim succeeded (SUBMITTING/FAILED), so order left WAITING_TARGET_SLOT queue
-      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([
-        {
-          orderId: 'ord_provider_fail',
-          publicId: 'CF-FAIL',
-          target: 'fail_user',
-          status: 'FAILED',
-          code: 'PROVIDER_ERROR',
-        }
-      ]);
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockResolvedValueOnce({
+        queuedRowsCount: 1,
+        candidateTargetsCount: 1,
+        diagnosticDetails: [],
+        results: [
+          {
+            orderId: 'ord_provider_fail',
+            publicId: 'CF-FAIL',
+            target: 'fail_user',
+            status: 'FAILED',
+            code: 'PROVIDER_ERROR',
+          }
+        ]
+      });
 
       const result = await syncStatusesAndReleaseQueues();
 

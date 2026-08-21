@@ -3,7 +3,7 @@ import { orders, fulfillmentOrders, orderEvents } from '@/db/schema';
 import { eq, and, inArray, isNotNull, ne } from 'drizzle-orm';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { mapPeakerrStatusToLocal, resolveCanonicalFulfillmentTarget } from './fulfillment.service';
-import { releaseNextQueuedOrderForTarget, releaseAllEligibleQueuedTargets } from './fulfillment-target-queue.service';
+import { releaseNextQueuedOrderForTarget, releaseAllEligibleQueuedTargetsDetailed } from './fulfillment-target-queue.service';
 
 export interface SyncAndReleaseResult {
   success: boolean;
@@ -114,12 +114,16 @@ export async function syncStatusesAndReleaseQueues(options?: {
   // 2. Perform a target queue sweep for any other queued orders whose target slot is currently free
   if (isQueueAutoReleaseEnabled) {
     try {
-      const sweepResults = await releaseAllEligibleQueuedTargets({
+      const sweepOutput = await releaseAllEligibleQueuedTargetsDetailed({
         triggeredBy: 'STATUS_SYNC_ORCHESTRATOR_SWEEP',
         forceRelease: false,
       });
 
-      for (const item of sweepResults) {
+      if (sweepOutput.diagnosticDetails && sweepOutput.diagnosticDetails.length > 0) {
+        result.details?.push(...sweepOutput.diagnosticDetails);
+      }
+
+      for (const item of sweepOutput.results) {
         if (item.status === 'PROCESSING' || item.status === 'SUBMITTING' || item.code === 'QUEUE_RELEASE_SUCCESS' || (item.orderId && !item.skippedReason)) {
           if (item.orderId && !releasedOrderIds.has(item.orderId)) {
             releasedOrderIds.add(item.orderId);
@@ -135,9 +139,10 @@ export async function syncStatusesAndReleaseQueues(options?: {
           result.queueReleaseBlocked += 1;
         }
       }
-    } catch (sweepErr: any) {
-      console.error('[StatusSync] Error in queue sweep:', sweepErr);
-      result.details?.push(`Queue sweep error: ${sweepErr?.message || 'Unknown error'}`);
+    } catch (sweepErr: unknown) {
+      const error = sweepErr as Error;
+      console.error('[StatusSync] Error in queue sweep:', error);
+      result.details?.push(`Queue sweep error: ${error?.message || 'Unknown error'}`);
     }
   }
 

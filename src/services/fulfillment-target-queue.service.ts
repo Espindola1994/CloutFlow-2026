@@ -2,7 +2,7 @@ import { db } from '@/db';
 import { orders, fulfillmentOrders, orderEvents, offers } from '@/db/schema';
 import { eq, and, inArray, or, desc, sql, asc } from 'drizzle-orm';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
-import { resolveCanonicalFulfillmentTarget, mapPeakerrStatusToLocal } from './fulfillment.service';
+import { resolveCanonicalFulfillmentTarget } from './fulfillment.service';
 import { isAutoDispatchEnabled, isLiveFulfillmentEnabled } from './fulfillment-auto-dispatch.service';
 import { resolveFulfillmentChainAndPreview } from './fulfillment-chain.service';
 
@@ -40,6 +40,23 @@ export interface TargetSlotInspectionResult {
   reason?: string;
 }
 
+export interface QueuedSweepItemResult {
+  orderId?: string;
+  publicId?: string;
+  target?: string;
+  status?: string;
+  code?: string;
+  skippedReason?: string;
+  reason?: string;
+  slotBusy?: boolean;
+}
+
+export interface ReleaseAllEligibleResult {
+  queuedRowsFound: number;
+  candidateTargetsFound: number;
+  results: QueuedSweepItemResult[];
+  details: string[];
+}
 export interface QueuedTargetGroup {
   queueKey: string;
   platform: string;
@@ -55,8 +72,8 @@ export interface QueuedTargetGroup {
   queue: Array<{
     id: string;
     publicId: string;
-    paymentStatus: string;
-    fulfillmentStatus: string;
+    paymentStatus: string | null;
+    fulfillmentStatus: string | null;
     quantity: number;
     service: string | null;
     paidAt: Date | null;
@@ -353,6 +370,17 @@ export async function checkTargetDeliverySlot(orderId: string): Promise<{
 }
 
 /**
+ * Fetches all orders currently in WAITING_TARGET_SLOT queue, strictly ordered FIFO by paidAt ASC, createdAt ASC, id ASC.
+ * Canonical query shared between Queue Inspector and Queue Sweep to guarantee zero divergence.
+ */
+export async function getCanonicalQueuedOrders() {
+  return (await db.query.orders.findMany({
+    where: eq(orders.fulfillmentStatus, 'WAITING_TARGET_SLOT'),
+    orderBy: [asc(orders.paidAt), asc(orders.createdAt), asc(orders.id)],
+  })) || [];
+}
+
+/**
  * Returns all queued orders for a target, strictly ordered FIFO by paidAt ASC, createdAt ASC, id ASC.
  */
 export async function getQueuedOrdersForTarget(params: {
@@ -364,8 +392,7 @@ export async function getQueuedOrdersForTarget(params: {
   const candidateOrders = (await db.query.orders.findMany({
     where: and(
       eq(orders.platform, params.platform),
-      eq(orders.fulfillmentStatus, 'WAITING_TARGET_SLOT'),
-      inArray(orders.paymentStatus, ['PAID', 'COMPLETED'])
+      eq(orders.fulfillmentStatus, 'WAITING_TARGET_SLOT')
     ),
     orderBy: [asc(orders.paidAt), asc(orders.createdAt), asc(orders.id)],
   })) || [];
@@ -449,10 +476,7 @@ export async function listTargetQueues(): Promise<QueuedTargetGroup[]> {
  * Returns overview statistics for the Target Delivery Queue card in Admin.
  */
 export async function getTargetQueueOverview(): Promise<TargetQueueOverviewStats> {
-  const queuedOrders = (await db.query.orders.findMany({
-    where: eq(orders.fulfillmentStatus, 'WAITING_TARGET_SLOT'),
-    orderBy: asc(orders.createdAt),
-  })) || [];
+  const queuedOrders = await getCanonicalQueuedOrders();
 
   const distinctTargets = new Set<string>();
   let oldestCreatedAt: Date | null = null;
@@ -509,6 +533,23 @@ export async function getTargetQueueOverview(): Promise<TargetQueueOverviewStats
   };
 }
 
+export interface TargetQueueSweepItem {
+  orderId?: string;
+  publicId?: string;
+  target?: string;
+  status?: string;
+  code?: string;
+  skippedReason?: string;
+  reason?: string;
+}
+
+export interface TargetQueueSweepOutput {
+  queuedRowsCount: number;
+  candidateTargetsCount: number;
+  results: TargetQueueSweepItem[];
+  diagnosticDetails: string[];
+}
+
 /**
  * Scans all currently queued targets and releases the FIFO #1 order for any target whose slot is currently FREE.
  * Strictly:
@@ -520,36 +561,46 @@ export async function getTargetQueueOverview(): Promise<TargetQueueOverviewStats
 export async function releaseAllEligibleQueuedTargets(options?: {
   triggeredBy?: string;
   forceRelease?: boolean;
-}): Promise<Array<{
-  orderId?: string;
-  publicId?: string;
-  target?: string;
-  status?: string;
-  code?: string;
-  skippedReason?: string;
-}>> {
+}): Promise<TargetQueueSweepItem[]> {
+  const detailedOutput = await releaseAllEligibleQueuedTargetsDetailed(options);
+  return detailedOutput.results;
+}
+
+export async function releaseAllEligibleQueuedTargetsDetailed(options?: {
+  triggeredBy?: string;
+  forceRelease?: boolean;
+}): Promise<TargetQueueSweepOutput> {
   const { triggeredBy = 'SCHEDULED_QUEUE_SWEEP', forceRelease = false } = options || {};
   const autoRelease = isTargetQueueAutoReleaseEnabled();
 
+  const diagnosticDetails: string[] = [];
+  diagnosticDetails.push('QUEUE_SWEEP_STARTED');
+
   if (!forceRelease && !autoRelease) {
-    return [];
+    diagnosticDetails.push('QUEUE_SWEEP_SKIPPED:AUTO_RELEASE_DISABLED');
+    return {
+      queuedRowsCount: 0,
+      candidateTargetsCount: 0,
+      results: [],
+      diagnosticDetails,
+    };
   }
 
-  // 1. Fetch all queued orders in WAITING_TARGET_SLOT
-  const queuedOrders = (await db.query.orders.findMany({
-    where: and(
-      eq(orders.fulfillmentStatus, 'WAITING_TARGET_SLOT'),
-      inArray(orders.paymentStatus, ['PAID', 'COMPLETED'])
-    ),
-    orderBy: [asc(orders.paidAt), asc(orders.createdAt), asc(orders.id)],
-  })) || [];
+  // 1. Fetch all queued orders in WAITING_TARGET_SLOT using canonical helper
+  const queuedOrders = await getCanonicalQueuedOrders();
+  diagnosticDetails.push(`QUEUE_ROWS_FOUND:${queuedOrders.length}`);
 
   if (queuedOrders.length === 0) {
-    return [];
+    return {
+      queuedRowsCount: 0,
+      candidateTargetsCount: 0,
+      results: [],
+      diagnosticDetails,
+    };
   }
 
   // 2. Group by unique target key (platform + canonical target) to ensure FIFO #1 per target
-  const uniqueTargetsMap = new Map<string, { platform: string; canonicalTarget: string }>();
+  const uniqueTargetsMap = new Map<string, { platform: string; canonicalTarget: string; firstOrderPublicId: string }>();
 
   for (const order of queuedOrders) {
     if (!order.platform) continue;
@@ -561,22 +612,27 @@ export async function releaseAllEligibleQueuedTargets(options?: {
       uniqueTargetsMap.set(queueKey, {
         platform: order.platform,
         canonicalTarget: tRes.target,
+        firstOrderPublicId: order.publicId,
       });
+      diagnosticDetails.push(`QUEUE_CANDIDATE:${order.publicId}`);
     }
   }
 
-  const results: Array<{
-    orderId?: string;
-    publicId?: string;
-    target?: string;
-    status?: string;
-    code?: string;
-    skippedReason?: string;
-  }> = [];
+  diagnosticDetails.push(`QUEUE_TARGETS_FOUND:${uniqueTargetsMap.size}`);
+
+  const results: TargetQueueSweepItem[] = [];
 
   // 3. For each distinct canonical target with queued orders, attempt releaseNextQueuedOrderForTarget
-  for (const { platform, canonicalTarget } of uniqueTargetsMap.values()) {
+  for (const { platform, canonicalTarget, firstOrderPublicId } of uniqueTargetsMap.values()) {
     try {
+      // Diagnostic slot check
+      const slotCheck = await inspectTargetDeliverySlot({ platform, canonicalTarget });
+      diagnosticDetails.push(`QUEUE_SLOT:${slotCheck.isSlotBusy ? 'BUSY' : 'FREE'}`);
+
+      if (!slotCheck.isSlotBusy) {
+        diagnosticDetails.push(`QUEUE_RELEASE_ATTEMPTED:${firstOrderPublicId}`);
+      }
+
       const releaseRes = await releaseNextQueuedOrderForTarget({
         platform,
         canonicalTarget,
@@ -585,6 +641,7 @@ export async function releaseAllEligibleQueuedTargets(options?: {
       });
 
       if (releaseRes.success && releaseRes.orderId) {
+        diagnosticDetails.push(`QUEUE_CLAIM:SUCCESS:${releaseRes.publicId}`);
         results.push({
           orderId: releaseRes.orderId,
           publicId: releaseRes.publicId,
@@ -592,30 +649,50 @@ export async function releaseAllEligibleQueuedTargets(options?: {
           status: releaseRes.status,
           code: releaseRes.code,
         });
-      } else if (releaseRes.status === 'FAILED' || releaseRes.status === 'SUBMITTING' || releaseRes.code === 'AMBIGUOUS_SUBMISSION' || releaseRes.code === 'PROVIDER_ACTIVE_ORDER_CONFLICT') {
-        // Atomic claim succeeded and order left WAITING_TARGET_SLOT queue (even if provider dispatch failed/errored later)
+      } else if (releaseRes.code === 'ATOMIC_CLAIM_FAILED') {
+        diagnosticDetails.push(`QUEUE_CLAIM:FAILED:${firstOrderPublicId}`);
         results.push({
           orderId: releaseRes.orderId,
           publicId: releaseRes.publicId,
           target: canonicalTarget,
-          status: releaseRes.status || 'FAILED',
+          code: releaseRes.code,
+          skippedReason: 'ATOMIC_CLAIM_FAILED',
+        });
+      } else if (releaseRes.status === 'FAILED' || releaseRes.status === 'SUBMITTING' || releaseRes.code === 'AMBIGUOUS_SUBMISSION' || releaseRes.code === 'PROVIDER_ACTIVE_ORDER_CONFLICT' || (!releaseRes.success && releaseRes.orderId && !releaseRes.skippedReason)) {
+        // Atomic claim succeeded and order left WAITING_TARGET_SLOT queue (even if provider dispatch failed/errored later)
+        const finalStatus = releaseRes.status || 'FAILED';
+        diagnosticDetails.push(`QUEUE_CLAIM:TRANSITIONED:${releaseRes.publicId}:${finalStatus}`);
+        results.push({
+          orderId: releaseRes.orderId,
+          publicId: releaseRes.publicId,
+          target: canonicalTarget,
+          status: finalStatus,
           code: releaseRes.code,
         });
       } else if (releaseRes.skippedReason) {
+        diagnosticDetails.push(`QUEUE_RELEASE_SKIPPED:${releaseRes.skippedReason}:${releaseRes.publicId || firstOrderPublicId}`);
         results.push({
           orderId: releaseRes.orderId,
           publicId: releaseRes.publicId,
           target: canonicalTarget,
           code: releaseRes.code,
           skippedReason: releaseRes.skippedReason,
+          reason: releaseRes.message || releaseRes.error,
         });
       }
-    } catch (err: any) {
-      console.error(`[TargetQueueSweep] Error releasing target "${canonicalTarget}":`, err);
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error(`[TargetQueueSweep] Error releasing target "${canonicalTarget}":`, error);
+      diagnosticDetails.push(`QUEUE_RELEASE_ERROR:${canonicalTarget}`);
     }
   }
 
-  return results;
+  return {
+    queuedRowsCount: queuedOrders.length,
+    candidateTargetsCount: uniqueTargetsMap.size,
+    results,
+    diagnosticDetails,
+  };
 }
 export async function releaseNextQueuedOrderForTarget(params: {
   platform: string;
