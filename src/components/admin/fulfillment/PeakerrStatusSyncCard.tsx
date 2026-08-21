@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { RefreshCw, Loader2, Clock, CheckCircle, ArrowRightCircle, AlertTriangle, XCircle, AlertOctagon, RotateCw } from "lucide-react";
+import { RefreshCw, Loader2, Clock, CheckCircle, ArrowRightCircle, AlertTriangle, XCircle, AlertOctagon, RotateCw, ListOrdered, CheckCheck, ShieldAlert } from "lucide-react";
 
 export interface StatusSyncMetrics {
   checked: number;
@@ -10,6 +10,9 @@ export interface StatusSyncMetrics {
   partial: number;
   canceled: number;
   errors: number;
+  queueReleaseAttempts?: number;
+  queueReleaseSuccess?: number;
+  queueReleaseBlocked?: number;
   lastRun?: string;
 }
 
@@ -20,9 +23,10 @@ interface PeakerrStatusSyncCardProps {
   onRunSync: () => void;
   buildMarker?: string;
   error?: string | null;
+  targetQueueAutoReleaseEnabled?: boolean;
 }
 
-export const PEAKERR_SYNC_BUILD_ID = "02bf761-fase31-rebalance";
+export const PEAKERR_SYNC_BUILD_ID = "02bf761-fase48-auto-release";
 
 /**
  * AUTOMATIC STATUS SYNC
@@ -35,10 +39,11 @@ export function PeakerrStatusSyncCard({
   metrics,
   onRunSync,
   error,
+  targetQueueAutoReleaseEnabled,
 }: PeakerrStatusSyncCardProps) {
   const syncItems = [
     {
-      label: "Last Manual Run",
+      label: "Last Run",
       value: metrics?.lastRun || "—",
       icon: Clock,
       iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
@@ -66,18 +71,18 @@ export function PeakerrStatusSyncCard({
       valueColor: (metrics?.completed ?? 0) > 0 ? "text-[#16B77A]" : "text-[#142126]",
     },
     {
-      label: "Partial",
-      value: metrics?.partial !== undefined ? String(metrics.partial) : "—",
-      icon: AlertTriangle,
-      iconBg: "bg-[#FEF3C7] text-[#D97706]",
-      valueColor: (metrics?.partial ?? 0) > 0 ? "text-[#D97706]" : "text-[#142126]",
+      label: "Queue Released",
+      value: metrics?.queueReleaseSuccess !== undefined ? String(metrics.queueReleaseSuccess) : "—",
+      icon: CheckCheck,
+      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      valueColor: (metrics?.queueReleaseSuccess ?? 0) > 0 ? "text-[#0F8F8A]" : "text-[#142126]",
     },
     {
-      label: "Canceled",
-      value: metrics?.canceled !== undefined ? String(metrics.canceled) : "—",
-      icon: XCircle,
-      iconBg: "bg-[#F1F5F5] text-[#65737A]",
-      valueColor: (metrics?.canceled ?? 0) > 0 ? "text-[#65737A]" : "text-[#142126]",
+      label: "Queue Blocked",
+      value: metrics?.queueReleaseBlocked !== undefined ? String(metrics.queueReleaseBlocked) : "—",
+      icon: ShieldAlert,
+      iconBg: "bg-[#FEF3C7] text-[#D97706]",
+      valueColor: (metrics?.queueReleaseBlocked ?? 0) > 0 ? "text-[#D97706]" : "text-[#142126]",
     },
     {
       label: "Errors",
@@ -93,21 +98,37 @@ export function PeakerrStatusSyncCard({
       {/* Section Header */}
       <div className="flex items-center justify-between min-h-[44px]">
         <div>
-          <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126] flex items-center gap-2">
-            AUTOMATIC STATUS SYNC
-            <span className={`px-1.5 py-0.5 text-[9px] font-bold tracking-wider rounded ${enabled ? "bg-[#E8F8F2] text-[#16B77A] border border-[#B6ECD7]" : "bg-[#F1F5F5] text-[#65737A] border border-[#D9E2E3]"}`}>
-              {enabled ? "ENABLED" : "DISABLED"}
+          <div className="flex items-center gap-2">
+            <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126] flex items-center gap-2">
+              AUTOMATIC STATUS SYNC
+              <span className={`px-1.5 py-0.5 text-[9px] font-bold tracking-wider rounded ${enabled ? "bg-[#E8F8F2] text-[#16B77A] border border-[#B6ECD7]" : "bg-[#F1F5F5] text-[#65737A] border border-[#D9E2E3]"}`}>
+                {enabled ? "ENABLED" : "DISABLED"}
+              </span>
+            </h3>
+            <span className="text-[#8F9B9F]">•</span>
+            <span className="text-[11px] font-semibold uppercase tracking-wider text-[#65737A] flex items-center gap-1.5">
+              TARGET QUEUE AUTO RELEASE:
+              <span className={`px-1.5 py-0.5 text-[9px] font-bold tracking-wider rounded ${targetQueueAutoReleaseEnabled ? "bg-[#E8F8F2] text-[#16B77A] border border-[#B6ECD7]" : "bg-[#F1F5F5] text-[#65737A] border border-[#D9E2E3]"}`}>
+                {targetQueueAutoReleaseEnabled ? "ENABLED" : "DISABLED"}
+              </span>
             </span>
-          </h3>
+          </div>
           <p className="text-[12px] text-[#65737A] mt-0.5">
             {enabled 
               ? "Provider status synchronization may run automatically when an authorized scheduler/trigger invokes the sync endpoint."
               : "Provider status updates require manual Sync Now or another authorized trigger."
             }
           </p>
-          <div className="text-[11px] text-[#8F9B9F] mt-1 flex items-center gap-1.5">
-            <span className="font-semibold">Trigger Mode:</span>
-            <span>MANUAL / EXTERNAL ONLY</span>
+          <div className="text-[11px] text-[#8F9B9F] mt-1 flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-1">
+              <span className="font-semibold">Trigger Mode:</span>
+              <span>GITHUB ACTIONS SCHEDULE / EXTERNAL</span>
+            </div>
+            {targetQueueAutoReleaseEnabled && (
+              <span className="text-[#D97706] font-medium">
+                (Note: Sync Now may release the next queued order)
+              </span>
+            )}
           </div>
         </div>
         <button

@@ -364,7 +364,7 @@ describe('Phase 3.9 — Peakerr Automatic Status Sync Tests', () => {
       expect(res.success).toBe(true);
       expect(res.unchanged).toBe(1);
       expect(res.updated).toBe(0);
-      expect(res.details?.some((d) => d.includes('UNKNOWN_PROVIDER_STATUS'))).toBe(true);
+      expect(res.details?.some((d: string) => d.includes('UNKNOWN_PROVIDER_STATUS'))).toBe(true);
       expect(txSpy).not.toHaveBeenCalled();
     });
   });

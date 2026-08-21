@@ -13,6 +13,7 @@ describe('PeakerrStatusSyncCard DOM Render', () => {
         loading={false}
         metrics={null}
         onRunSync={onRunSync}
+        targetQueueAutoReleaseEnabled={false}
       />
     );
 
@@ -20,18 +21,18 @@ describe('PeakerrStatusSyncCard DOM Render', () => {
     expect(html).toContain('AUTOMATIC STATUS SYNC');
     expect(html).toContain('DISABLED');
     expect(html).toContain('Provider status updates require manual Sync Now or another authorized trigger.');
-    expect(html).toContain('MANUAL / EXTERNAL ONLY');
+    expect(html).toContain('GITHUB ACTIONS SCHEDULE / EXTERNAL');
 
     // Ensure manual run button is rendered
     expect(html).toContain('Sync Now');
 
     // Ensure metrics placeholders are rendered
-    expect(html).toContain('Last Manual Run');
+    expect(html).toContain('Last Run');
     expect(html).toContain('Checked');
     expect(html).toContain('Updated');
     expect(html).toContain('Completed');
-    expect(html).toContain('Partial');
-    expect(html).toContain('Canceled');
+    expect(html).toContain('Queue Released');
+    expect(html).toContain('Queue Blocked');
     expect(html).toContain('Errors');
   });
 
@@ -44,12 +45,16 @@ describe('PeakerrStatusSyncCard DOM Render', () => {
         loading={false}
         metrics={null}
         onRunSync={onRunSync}
+        targetQueueAutoReleaseEnabled={true}
       />
     );
 
     expect(html).toContain('AUTOMATIC STATUS SYNC');
     expect(html).toContain('ENABLED');
+    expect(html).toContain('TARGET QUEUE AUTO RELEASE:');
     expect(html).toContain('Provider status synchronization may run automatically when an authorized scheduler/trigger invokes the sync endpoint.');
-    expect(html).toContain('MANUAL / EXTERNAL ONLY');
+    expect(html).toContain('GITHUB ACTIONS SCHEDULE / EXTERNAL');
+    expect(html).toContain('Sync Now may release the next queued order');
   });
 });
+

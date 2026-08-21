@@ -5,6 +5,105 @@ import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { mapPeakerrStatusToLocal, resolveCanonicalFulfillmentTarget } from './fulfillment.service';
 import { releaseNextQueuedOrderForTarget } from './fulfillment-target-queue.service';
 
+export interface SyncAndReleaseResult {
+  success: boolean;
+  statusSyncEnabled: boolean;
+  targetQueueAutoReleaseEnabled: boolean;
+  autoDispatchEnabled: boolean;
+  liveFulfillmentEnabled: boolean;
+  checked: number;
+  updated: number;
+  completed: number;
+  partial: number;
+  canceled: number;
+  unchanged: number;
+  queueReleaseAttempts: number;
+  queueReleaseSuccess: number;
+  queueReleaseBlocked: number;
+  errors: number;
+  details?: string[];
+  error?: string;
+  releasedOrders?: Array<{
+    orderId?: string;
+    publicId?: string;
+    target?: string;
+    status?: string;
+  }>;
+}
+
+/**
+ * ORCHESTRATOR: syncStatusesAndReleaseQueues
+ * 1. Checks PEAKERR_STATUS_SYNC_ENABLED === 'true'. If false, returns early with STATUS_SYNC_DISABLED.
+ * 2. Runs status sync on active fulfillment orders.
+ * 3. Identifies targets that transitioned to COMPLETED during sync.
+ * 4. For each completed target, releases at most one queued order (FIFO) via releaseNextQueuedOrderForTarget().
+ * 5. Respects all flags (PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED, PEAKERR_AUTO_DISPATCH_ENABLED, PEAKERR_LIVE_FULFILLMENT).
+ * 6. Returns clear, structured metrics for Admin UI and Internal API responses.
+ */
+export async function syncStatusesAndReleaseQueues(options?: {
+  forceAllActive?: boolean;
+}): Promise<SyncAndReleaseResult> {
+  const isSyncEnabled = process.env.PEAKERR_STATUS_SYNC_ENABLED === 'true';
+  const isQueueAutoReleaseEnabled = process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED === 'true';
+  const isAutoDispatch = process.env.PEAKERR_AUTO_DISPATCH_ENABLED === 'true';
+  const isLiveFulfillment = process.env.PEAKERR_LIVE_FULFILLMENT === 'true';
+
+  const result: SyncAndReleaseResult = {
+    success: true,
+    statusSyncEnabled: isSyncEnabled,
+    targetQueueAutoReleaseEnabled: isQueueAutoReleaseEnabled,
+    autoDispatchEnabled: isAutoDispatch,
+    liveFulfillmentEnabled: isLiveFulfillment,
+    checked: 0,
+    updated: 0,
+    completed: 0,
+    partial: 0,
+    canceled: 0,
+    unchanged: 0,
+    queueReleaseAttempts: 0,
+    queueReleaseSuccess: 0,
+    queueReleaseBlocked: 0,
+    errors: 0,
+    details: [],
+    releasedOrders: [],
+  };
+
+  if (!isSyncEnabled) {
+    result.details?.push('STATUS_SYNC_DISABLED: PEAKERR_STATUS_SYNC_ENABLED is false or not set.');
+    return result;
+  }
+
+  // 1. Run core status synchronization
+  const syncResult = await syncPeakerrFulfillmentStatuses(options);
+
+  result.checked = syncResult.checked;
+  result.updated = syncResult.updated;
+  result.completed = syncResult.completed;
+  result.partial = syncResult.partial;
+  result.canceled = syncResult.canceled;
+  result.unchanged = syncResult.unchanged;
+  result.errors = syncResult.errors;
+
+  if (syncResult.details && syncResult.details.length > 0) {
+    result.details?.push(...syncResult.details);
+  }
+
+  if (!syncResult.success) {
+    result.success = false;
+    result.error = syncResult.error;
+    return result;
+  }
+
+  if (syncResult.releasedQueuedOrders && syncResult.releasedQueuedOrders.length > 0) {
+    result.queueReleaseAttempts = syncResult.releasedQueuedOrders.length;
+    result.queueReleaseSuccess = syncResult.releasedQueuedOrders.length;
+    result.releasedOrders = syncResult.releasedQueuedOrders;
+  }
+
+  return result;
+}
+
+
 export interface SyncPeakerrStatusResult {
   success: boolean;
   checked: number;

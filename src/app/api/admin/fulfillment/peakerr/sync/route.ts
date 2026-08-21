@@ -1,17 +1,23 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
-import { syncPeakerrFulfillmentStatuses } from '@/services/fulfillment-sync.service';
+import { syncStatusesAndReleaseQueues, syncPeakerrFulfillmentStatuses } from '@/services/fulfillment-sync.service';
 
 export async function POST(request: Request) {
   try {
     await requireAdmin();
 
-    const result = await syncPeakerrFulfillmentStatuses();
+    // If PEAKERR_STATUS_SYNC_ENABLED is true, use the full orchestrator
+    // Otherwise, allow manual sync with syncPeakerrFulfillmentStatuses() directly
+    const isSyncEnabled = process.env.PEAKERR_STATUS_SYNC_ENABLED === 'true';
+    const result = isSyncEnabled
+      ? await syncStatusesAndReleaseQueues()
+      : await syncPeakerrFulfillmentStatuses();
 
     return NextResponse.json({
       success: result.success,
       data: result,
-      enabled: process.env.PEAKERR_STATUS_SYNC_ENABLED === 'true',
+      enabled: isSyncEnabled,
+      targetQueueAutoReleaseEnabled: process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED === 'true',
     });
   } catch (error: unknown) {
     const err = error as Error;
@@ -36,6 +42,7 @@ export async function GET() {
     return NextResponse.json({
       success: true,
       enabled: process.env.PEAKERR_STATUS_SYNC_ENABLED === 'true',
+      targetQueueAutoReleaseEnabled: process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED === 'true',
     });
   } catch (error: unknown) {
     const err = error as Error;
@@ -51,3 +58,4 @@ export async function GET() {
     );
   }
 }
+

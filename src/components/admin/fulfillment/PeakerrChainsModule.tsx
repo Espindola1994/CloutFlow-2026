@@ -233,10 +233,12 @@ export function PeakerrChainsModule() {
     apiKeyPresent: boolean;
     liveFulfillment: boolean;
     webhookVerified: boolean;
+    targetQueueAutoReleaseEnabled?: boolean;
   }>({
     apiKeyPresent: false,
     liveFulfillment: false,
     webhookVerified: false,
+    targetQueueAutoReleaseEnabled: false,
   });
   const [inspectLoading, setInspectLoading] = useState(false);
 
@@ -759,6 +761,7 @@ export function PeakerrChainsModule() {
         metrics={autoSyncResult}
         onRunSync={handleRunStatusSyncNow}
         error={errorMessage}
+        targetQueueAutoReleaseEnabled={runtimeFlags.targetQueueAutoReleaseEnabled}
       />
 
       {/* 4. MAIN GRID (FULFILLMENT OVERVIEW + AUTO DISPATCH) */}
