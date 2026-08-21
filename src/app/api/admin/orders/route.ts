@@ -1,3 +1,6 @@
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { db } from '@/db';
@@ -208,6 +211,10 @@ export async function GET(request: Request) {
         page,
         limit,
         totalPages,
+      },
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
       },
     });
   } catch (error: unknown) {
