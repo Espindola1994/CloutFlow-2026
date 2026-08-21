@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 import {
   Save,
   CheckCircle2,
@@ -326,6 +327,17 @@ export function PeakerrChainsModule() {
     fetchPeakerrInspection();
     fetchAutoSyncState();
   }, [fetchPeakerrInspection, fetchAutoSyncState]);
+
+  // Realtime & Auto-refresh for chains and peakerr inspection
+  useAdminAutoRefresh({
+    entities: ["chains", "fulfillment"],
+    supabaseTables: ["fulfillment_chains", "fulfillment_chain_services", "provider_service_mappings"],
+    pollInterval: 30000, // 30s background provider sync
+    onRevalidate: () => {
+      fetchPeakerrInspection();
+      loadChainsFromDb();
+    },
+  });
 
   // Fetch real persistent chains from Supabase database
   const loadChainsFromDb = useCallback(async () => {

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 import { 
   ShoppingBag, 
   DollarSign, 
@@ -35,6 +36,7 @@ export function OrdersModule() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [totalOrdersCount, setTotalOrdersCount] = useState(0);
   const [loadingOrders, setLoadingOrders] = useState(true);
+  const [isRefreshingOrders, setIsRefreshingOrders] = useState(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
 
   // Search & Filters
@@ -79,9 +81,11 @@ export function OrdersModule() {
   }, [searchQuery]);
 
   // Fetch Orders from real API
-  const fetchOrders = useCallback(async () => {
+  const fetchOrders = useCallback(async (silent = false) => {
     try {
-      setLoadingOrders(true);
+      if (!silent) setLoadingOrders(true);
+      else setIsRefreshingOrders(true);
+      
       setOrdersError(null);
       const params = new URLSearchParams();
       params.append("page", page.toString());
@@ -97,18 +101,30 @@ export function OrdersModule() {
         setOrders(json.data.orders || []);
         setTotalOrdersCount(json.data.totalCount || 0);
       } else {
-        setOrdersError(json.error?.message || "Failed to load orders");
+        if (!silent) setOrdersError(json.error?.message || "Failed to load orders");
       }
     } catch {
-      setOrdersError("Unable to connect to orders API");
+      if (!silent) setOrdersError("Unable to connect to orders API");
     } finally {
       setLoadingOrders(false);
+      setIsRefreshingOrders(false);
     }
   }, [page, debouncedQuery, platformFilter, statusFilter]);
 
+  // Realtime subscription + auto-refresh for Orders
+  useAdminAutoRefresh({
+    entities: ["orders", "fulfillment", "payments"],
+    supabaseTables: ["orders", "order_items", "fulfillment_orders", "payments"],
+    pollInterval: 15000, // 15s polling for external provider status updates 
+    enabled: activeTab === "orders",
+    onRevalidate: () => fetchOrders(true),
+  });
+
   // Fetch Margins Ledger
-  const fetchMargins = async () => {
+  const [isRefreshingMargins, setIsRefreshingMargins] = useState(false);
+  const fetchMargins = async (silent = false) => {
     try {
+      if (silent) setIsRefreshingMargins(true);
       const res = await fetch("/api/admin/margins");
       const json = await res.json();
       if (res.ok && json.success) {
@@ -116,13 +132,25 @@ export function OrdersModule() {
       }
     } catch {
       // Safe fallback
+    } finally {
+      setIsRefreshingMargins(false);
     }
   };
 
+  useAdminAutoRefresh({
+    entities: ["margins", "orders"],
+    supabaseTables: ["orders"],
+    enabled: activeTab === "margins",
+    onRevalidate: () => fetchMargins(true),
+  });
+
   // Fetch Real UTM Attribution
-  const fetchAttribution = async () => {
+  const [isRefreshingAttribution, setIsRefreshingAttribution] = useState(false);
+  const fetchAttribution = async (silent = false) => {
     try {
-      setLoadingAttribution(true);
+      if (!silent) setLoadingAttribution(true);
+      else setIsRefreshingAttribution(true);
+      
       const res = await fetch("/api/admin/attribution");
       const json = await res.json();
       if (res.ok && json.success) {
@@ -132,16 +160,24 @@ export function OrdersModule() {
       // Safe fallback
     } finally {
       setLoadingAttribution(false);
+      setIsRefreshingAttribution(false);
     }
   };
+  
+  useAdminAutoRefresh({
+    entities: ["attribution", "orders"],
+    supabaseTables: ["orders"],
+    enabled: activeTab === "attribution",
+    onRevalidate: () => fetchAttribution(true),
+  });
 
   useEffect(() => {
     if (activeTab === "orders") {
-      fetchOrders();
+      fetchOrders(false);
     } else if (activeTab === "margins") {
-      fetchMargins();
+      fetchMargins(false);
     } else if (activeTab === "attribution") {
-      fetchAttribution();
+      fetchAttribution(false);
     }
   }, [activeTab, fetchOrders]);
 
@@ -242,13 +278,20 @@ export function OrdersModule() {
                 <option value="refunded">Refunded</option>
               </select>
 
+              {isRefreshingOrders && (
+                <span className="text-[11px] text-[#0F8F8A] font-medium animate-pulse flex items-center gap-1 bg-[#EAF6F5] px-2 py-0.5 rounded-full border border-[#0F8F8A]/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0F8F8A] animate-ping" />
+                  Updating...
+                </span>
+              )}
+
               <AdminButton
                 variant="outline"
                 size="sm"
-                onClick={() => fetchOrders()}
-                disabled={loadingOrders}
+                onClick={() => fetchOrders(false)}
+                disabled={loadingOrders || isRefreshingOrders}
               >
-                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${(loadingOrders || isRefreshingOrders) ? "animate-spin" : ""}`} />
                 Refresh
               </AdminButton>
             </div>
@@ -509,7 +552,7 @@ export function OrdersModule() {
             <AdminButton
               variant="outline"
               size="sm"
-              onClick={fetchAttribution}
+              onClick={() => fetchAttribution(false)}
               disabled={loadingAttribution}
             >
               <RefreshCw className="w-3.5 h-3.5 mr-1.5" />

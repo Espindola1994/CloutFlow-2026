@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useAdminAutoRefresh, useAdminRevalidate } from "@/hooks/useAdminAutoRefresh";
 import { 
   Sparkles, 
   Tag, 
@@ -42,7 +43,9 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
   // Real Offers State from Supabase
   const [offersList, setOffersList] = useState<Plan[]>([]);
   const [loadingOffers, setLoadingOffers] = useState(true);
+  const [isRefreshingOffers, setIsRefreshingOffers] = useState(false);
   const [offersError, setOffersError] = useState<string | null>(null);
+  const triggerRevalidate = useAdminRevalidate();
 
   // Modal State (Create & Edit)
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -66,29 +69,40 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
   const [formPlanId, setFormPlanId] = useState("");
   const [formActive, setFormActive] = useState(true);
 
-  const fetchOffers = async () => {
+  const fetchOffers = useCallback(async (silent = false) => {
     try {
-      setLoadingOffers(true);
+      if (!silent) setLoadingOffers(true);
+      else setIsRefreshingOffers(true);
       setOffersError(null);
       const res = await fetch("/api/admin/offers");
       const json = await res.json();
       if (res.ok && json.success) {
         setOffersList(json.data.items || []);
       } else {
-        setOffersError(json.error?.message || "Failed to load offers");
+        if (!silent) setOffersError(json.error?.message || "Failed to load offers");
       }
     } catch {
-      setOffersError("Unable to connect to offers API");
+      if (!silent) setOffersError("Unable to connect to offers API");
     } finally {
       setLoadingOffers(false);
+      setIsRefreshingOffers(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (activeTab === "plans") {
-      fetchOffers();
+      fetchOffers(false);
     }
-  }, [activeTab]);
+  }, [activeTab, fetchOffers]);
+
+  // Realtime subscription + event revalidation + window focus
+  useAdminAutoRefresh({
+    entities: ["offers"],
+    supabaseTables: ["offers", "plans", "coupons"],
+    pollInterval: 30000,
+    enabled: activeTab === "plans",
+    onRevalidate: () => fetchOffers(true),
+  });
 
   const openCreateModal = () => {
     setEditingOfferId(null);
@@ -170,7 +184,8 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
         const json = await res.json();
         if (res.ok && json.success) {
           setIsModalOpen(false);
-          fetchOffers();
+          fetchOffers(false);
+          triggerRevalidate("offers", true);
         } else {
           alert(json.error?.message || "Error updating offer");
         }
@@ -202,7 +217,8 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
         const json = await res.json();
         if (res.ok && json.success) {
           setIsModalOpen(false);
-          fetchOffers();
+          fetchOffers(false);
+          triggerRevalidate("offers", true);
         } else {
           alert(json.error?.message || "Error creating offer");
         }
@@ -215,6 +231,11 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
   };
 
   const handleToggleActive = async (offer: Plan) => {
+    // Optimistic toggle in local UI
+    setOffersList((prev) =>
+      prev.map((p) => (p.id === offer.id ? { ...p, active: !p.active } : p))
+    );
+
     try {
       const res = await fetch(`/api/admin/offers/${offer.id}`, {
         method: "PATCH",
@@ -222,10 +243,14 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
         body: JSON.stringify({ active: !offer.active }),
       });
       if (res.ok) {
-        fetchOffers();
+        fetchOffers(true);
+        triggerRevalidate("offers", true);
+      } else {
+        // Rollback on failure
+        fetchOffers(false);
       }
     } catch {
-      // safe fallback
+      fetchOffers(false);
     }
   };
 
@@ -309,13 +334,19 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
             </select>
 
             <div className="flex items-center gap-2">
+              {isRefreshingOffers && (
+                <span className="text-[11px] text-[#0F8F8A] font-medium animate-pulse flex items-center gap-1 bg-[#EAF6F5] px-2 py-0.5 rounded-full border border-[#0F8F8A]/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#0F8F8A] animate-ping" />
+                  Updating...
+                </span>
+              )}
               <AdminButton
                 variant="outline"
                 size="sm"
-                onClick={fetchOffers}
-                disabled={loadingOffers}
+                onClick={() => fetchOffers(false)}
+                disabled={loadingOffers || isRefreshingOffers}
               >
-                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${(loadingOffers || isRefreshingOffers) ? "animate-spin" : ""}`} />
                 Refresh
               </AdminButton>
               <AdminButton
@@ -334,7 +365,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
               <span>{offersError}</span>
               <button
                 type="button"
-                onClick={fetchOffers}
+                onClick={() => fetchOffers(false)}
                 className="flex items-center gap-1 font-semibold underline cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" /> Retry

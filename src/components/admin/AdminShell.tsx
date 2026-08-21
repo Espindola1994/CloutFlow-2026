@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 import { Menu } from "lucide-react";
 
@@ -30,10 +30,42 @@ import {
   WebhookLog
 } from "./types";
 
-export function AdminShell() {
+const VALID_TABS: AdminTab[] = [
+  "dashboard",
+  "orders",
+  "dropshield",
+  "fulfillment",
+  "growth",
+  "crm",
+  "blacklist",
+  "infra"
+];
+
+function AdminShellContent() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // Derive active tab directly from URL search params (?tab=...)
+  const tabParam = searchParams.get("tab") as AdminTab | null;
+  const activeTab: AdminTab = tabParam && VALID_TABS.includes(tabParam) ? tabParam : "dashboard";
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Tab change handler that updates URL with router.push (SPA navigation, no reload)
+  const handleSelectTab = useCallback((tab: AdminTab) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === "dashboard") {
+      params.delete("tab");
+    } else {
+      params.set("tab", tab);
+    }
+    
+    const queryString = params.toString();
+    const targetUrl = queryString ? `${pathname}?${queryString}` : pathname;
+    
+    router.push(targetUrl, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   // States without mocks
   const [monitoredProfiles] = useState<MonitoredProfile[]>([]);
@@ -63,7 +95,7 @@ export function AdminShell() {
   const renderModule = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardOverview onNavigateToOrders={() => setActiveTab("orders")} />;
+        return <DashboardOverview onNavigateToOrders={() => handleSelectTab("orders")} />;
       case "orders":
         return <OrdersModule />;
       case "dropshield":
@@ -86,7 +118,7 @@ export function AdminShell() {
       case "infra":
         return <InfrastructureModule integrations={integrations} providers={providers} webhooks={webhooks} />;
       default:
-        return <DashboardOverview onNavigateToOrders={() => setActiveTab("orders")} />;
+        return <DashboardOverview onNavigateToOrders={() => handleSelectTab("orders")} />;
     }
   };
 
@@ -103,7 +135,7 @@ export function AdminShell() {
 
       <AdminSidebar 
         activeTab={activeTab} 
-        onSelectTab={setActiveTab} 
+        onSelectTab={handleSelectTab} 
         onLogout={handleLogout}
         isOpenMobile={isMobileMenuOpen}
         onCloseMobile={() => setIsMobileMenuOpen(false)}
@@ -141,5 +173,17 @@ export function AdminShell() {
         
       </div>
     </div>
+  );
+}
+
+export function AdminShell() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#F1F5F5] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-full border-2 border-[#0F8F8A] border-t-transparent animate-spin" />
+      </div>
+    }>
+      <AdminShellContent />
+    </Suspense>
   );
 }

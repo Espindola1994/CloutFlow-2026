@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useAdminAutoRefresh, useAdminRevalidate } from "@/hooks/useAdminAutoRefresh";
 import {
   Zap,
   CheckCircle2,
@@ -103,8 +104,12 @@ export function PeakerrAutoDispatchCard() {
   const [preCheckData, setPreCheckData] = useState<any | null>(null);
   const [preCheckLoading, setPreCheckLoading] = useState(false);
 
-  const fetchOverview = useCallback(async () => {
-    setLoading(true);
+  const triggerRevalidate = useAdminRevalidate();
+  const [isUpdatingOverview, setIsUpdatingOverview] = useState(false);
+
+  const fetchOverview = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
+    else setIsUpdatingOverview(true);
     setError(null);
     try {
       const res = await fetch("/api/admin/fulfillment/overview");
@@ -113,14 +118,31 @@ export function PeakerrAutoDispatchCard() {
         setFulfillmentStats(json.data.fulfillment);
         setAutoDispatchStats(json.data.autoDispatch);
       } else {
-        setError(json.error?.message || "Failed to load fulfillment overview.");
+        if (!silent) setError(json.error?.message || "Failed to load fulfillment overview.");
       }
     } catch {
-      setError("Network error loading fulfillment overview.");
+      if (!silent) setError("Network error loading fulfillment overview.");
     } finally {
       setLoading(false);
+      setIsUpdatingOverview(false);
     }
   }, []);
+
+  // Realtime & Auto-refresh for fulfillment overview & candidate updates
+  useAdminAutoRefresh({
+    entities: ["fulfillment", "orders"],
+    supabaseTables: ["fulfillment_orders", "orders"],
+    pollInterval: 10000, // 10s polling when on fulfillment tab
+    onRevalidate: () => {
+      fetchOverview(true);
+      if (showCandidates) {
+        fetchCandidates();
+      }
+      if (showFailedModal) {
+        fetchFailedOrders();
+      }
+    },
+  });
 
   const fetchCandidates = async () => {
     setCandidatesLoading(true);
@@ -169,6 +191,8 @@ export function PeakerrAutoDispatchCard() {
 
         // Update stats
         fetchOverview();
+        triggerRevalidate("orders", true);
+        triggerRevalidate("dashboard", true);
       } else {
         setError(json.error?.message || json.code || "Failed to submit order.");
       }
@@ -207,6 +231,8 @@ export function PeakerrAutoDispatchCard() {
         setReconcileSuccess("Order successfully reconciled to WAITING_PROVIDER.");
         fetchOverview();
         fetchFailedOrders();
+        triggerRevalidate("orders", true);
+        triggerRevalidate("dashboard", true);
       } else {
         setError(json.error || json.code || "Failed to reconcile order.");
       }
@@ -229,6 +255,8 @@ export function PeakerrAutoDispatchCard() {
         setRecoverySuccess(`Recovery successfully submitted. Provider Order #${json.data.providerOrderId}`);
         fetchOverview();
         fetchFailedOrders();
+        triggerRevalidate("orders", true);
+        triggerRevalidate("dashboard", true);
       } else {
         setError(json.error || json.code || "Failed to submit recovery retry.");
       }
@@ -296,7 +324,7 @@ export function PeakerrAutoDispatchCard() {
               </div>
               <button
                 type="button"
-                onClick={fetchOverview}
+                onClick={() => fetchOverview(false)}
                 disabled={loading}
                 className="h-[32px] text-[12px] text-[#65737A] hover:text-[#142126] font-medium flex items-center gap-1.5 cursor-pointer disabled:opacity-50 px-2.5 rounded-[6px] border border-[#D9E2E3] bg-[#FFFFFF] hover:bg-[#F8FAFA]"
               >

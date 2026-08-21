@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 import { 
   DollarSign, 
   ShoppingBag, 
@@ -56,9 +57,16 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
     recentOrders: [],
   });
 
-  const fetchDashboardData = async () => {
+  const [isUpdating, setIsUpdating] = useState(false);
+  const initialLoadDone = useRef(false);
+
+  const fetchDashboardData = async (silent = false) => {
     try {
-      setLoading(true);
+      if (!silent) {
+        setLoading(true);
+      } else {
+        setIsUpdating(true);
+      }
       setError(null);
       const res = await fetch("/api/admin/dashboard");
       const json = await res.json();
@@ -66,18 +74,28 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       if (res.ok && json.success) {
         setStats(json.data);
       } else {
-        setError(json.error?.message || "Unable to load dashboard data");
+        if (!silent) setError(json.error?.message || "Unable to load dashboard data");
       }
     } catch {
-      setError("Unable to connect to dashboard API");
+      if (!silent) setError("Unable to connect to dashboard API");
     } finally {
       setLoading(false);
+      setIsUpdating(false);
+      initialLoadDone.current = true;
     }
   };
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchDashboardData(false);
   }, []);
+
+  // Realtime subscription + event revalidation + window focus + network reconnect
+  useAdminAutoRefresh({
+    entities: ["dashboard", "orders", "payments"],
+    supabaseTables: ["orders", "order_items", "payments"],
+    pollInterval: 30000, // 30s background sync
+    onRevalidate: () => fetchDashboardData(true),
+  });
 
   const kpis = [
     {
@@ -135,13 +153,19 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {isUpdating && (
+            <span className="text-[11px] text-[#0F8F8A] font-medium animate-pulse flex items-center gap-1 bg-[#EAF6F5] px-2 py-0.5 rounded-full border border-[#0F8F8A]/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0F8F8A] animate-ping" />
+              Updating...
+            </span>
+          )}
           <AdminButton
             variant="outline"
             size="sm"
-            onClick={fetchDashboardData}
-            disabled={loading}
+            onClick={() => fetchDashboardData(false)}
+            disabled={loading || isUpdating}
           >
-            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${(loading || isUpdating) ? "animate-spin" : ""}`} />
             Refresh
           </AdminButton>
         </div>
@@ -182,7 +206,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
           <span>{error}</span>
           <button
             type="button"
-            onClick={fetchDashboardData}
+            onClick={() => fetchDashboardData(false)}
             className="flex items-center gap-1 font-semibold underline hover:opacity-80 cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Retry
