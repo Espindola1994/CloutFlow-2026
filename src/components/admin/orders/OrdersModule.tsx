@@ -113,8 +113,8 @@ export function OrdersModule() {
 
   // Realtime subscription + auto-refresh for Orders
   useAdminAutoRefresh({
-    entities: ["orders", "fulfillment", "payments"],
-    supabaseTables: ["orders", "order_items", "fulfillment_orders", "payments"],
+    entities: ["orders", "fulfillment", "payment_leads"],
+    supabaseTables: ["orders", "order_items", "fulfillment_orders", "payment_leads"],
     pollInterval: 15000, // 15s polling for external provider status updates 
     enabled: activeTab === "orders",
     onRevalidate: () => fetchOrders(true),

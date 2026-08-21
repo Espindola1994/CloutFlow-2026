@@ -331,7 +331,7 @@ export function PeakerrChainsModule() {
   // Realtime & Auto-refresh for chains and peakerr inspection
   useAdminAutoRefresh({
     entities: ["chains", "fulfillment"],
-    supabaseTables: ["fulfillment_chains", "fulfillment_chain_services", "provider_service_mappings"],
+    supabaseTables: ["fulfillment_chains", "fulfillment_chain_services"],
     pollInterval: 30000, // 30s background provider sync
     onRevalidate: () => {
       fetchPeakerrInspection();

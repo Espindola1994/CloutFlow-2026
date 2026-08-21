@@ -91,8 +91,8 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
 
   // Realtime subscription + event revalidation + window focus + network reconnect
   useAdminAutoRefresh({
-    entities: ["dashboard", "orders", "payments"],
-    supabaseTables: ["orders", "order_items", "payments"],
+    entities: ["dashboard", "orders", "payment_leads"],
+    supabaseTables: ["orders", "order_items", "payment_leads"],
     pollInterval: 30000, // 30s background sync
     onRevalidate: () => fetchDashboardData(true),
   });

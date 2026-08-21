@@ -98,7 +98,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
   // Realtime subscription + event revalidation + window focus
   useAdminAutoRefresh({
     entities: ["offers"],
-    supabaseTables: ["offers", "plans", "coupons"],
+    supabaseTables: ["offers", "coupons"],
     pollInterval: 30000,
     enabled: activeTab === "plans",
     onRevalidate: () => fetchOffers(true),

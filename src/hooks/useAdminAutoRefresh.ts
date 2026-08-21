@@ -201,7 +201,7 @@ export function useAdminAutoRefresh({
               adminEventManager.revalidate("dashboard");
               adminEventManager.revalidate("margins");
               adminEventManager.revalidate("attribution");
-            } else if (table === "payments") {
+            } else if (table === "payment_leads") {
               adminEventManager.revalidate("orders");
               adminEventManager.revalidate("dashboard");
               adminEventManager.revalidate("margins");
@@ -209,10 +209,10 @@ export function useAdminAutoRefresh({
               adminEventManager.revalidate("fulfillment");
               adminEventManager.revalidate("orders");
               adminEventManager.revalidate("dashboard");
-            } else if (table === "fulfillment_chains" || table === "fulfillment_chain_services" || table === "provider_service_mappings") {
+            } else if (table === "fulfillment_chains" || table === "fulfillment_chain_services") {
               adminEventManager.revalidate("chains");
               adminEventManager.revalidate("fulfillment");
-            } else if (table === "offers" || table === "plans" || table === "coupons") {
+            } else if (table === "offers" || table === "coupons") {
               adminEventManager.revalidate("offers");
             } else {
               onRevalidateRef.current();
