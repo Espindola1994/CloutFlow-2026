@@ -2,7 +2,8 @@ import { db } from '@/db';
 import { orders, fulfillmentOrders, orderEvents } from '@/db/schema';
 import { eq, and, inArray, isNotNull, ne } from 'drizzle-orm';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
-import { mapPeakerrStatusToLocal } from './fulfillment.service';
+import { mapPeakerrStatusToLocal, resolveCanonicalFulfillmentTarget } from './fulfillment.service';
+import { releaseNextQueuedOrderForTarget } from './fulfillment-target-queue.service';
 
 export interface SyncPeakerrStatusResult {
   success: boolean;
@@ -15,6 +16,12 @@ export interface SyncPeakerrStatusResult {
   errors: number;
   details?: string[];
   error?: string;
+  releasedQueuedOrders?: Array<{
+    orderId?: string;
+    publicId?: string;
+    target?: string;
+    status?: string;
+  }>;
 }
 
 export interface SanitizedProviderStatusPayload {
@@ -65,6 +72,12 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
         status: fulfillmentOrders.status,
         orderFulfillmentStatus: orders.fulfillmentStatus,
         orderCompletedAt: orders.completedAt,
+        orderPlatform: orders.platform,
+        orderService: orders.service,
+        orderProfileUrl: orders.profileUrl,
+        orderSocialUsername: orders.socialUsername,
+        orderUsername: orders.username,
+        orderTargetUrl: orders.targetUrl,
       })
       .from(fulfillmentOrders)
       .innerJoin(orders, eq(fulfillmentOrders.orderId, orders.id))
@@ -219,7 +232,50 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
         });
 
         result.updated += 1;
-        if (mappedStatus === 'COMPLETED') result.completed += 1;
+        if (mappedStatus === 'COMPLETED') {
+          result.completed += 1;
+
+          // TARGET-AWARE QUEUE AUTO-RELEASE TRIGGER:
+          // When an active delivery successfully reaches COMPLETED, check if subsequent orders
+          // are waiting in WAITING_TARGET_SLOT for the same platform + canonical target.
+          // Release is executed strictly AFTER the completion update is committed.
+          // Errors during release are non-fatal to the status sync update.
+          if (item.orderPlatform) {
+            const tRes = resolveCanonicalFulfillmentTarget({
+              platform: item.orderPlatform,
+              service: item.orderService,
+              profileUrl: item.orderProfileUrl,
+              socialUsername: item.orderSocialUsername,
+              username: item.orderUsername,
+              targetUrl: item.orderTargetUrl,
+            });
+
+            if (tRes.success && tRes.target) {
+              try {
+                const releaseRes = await releaseNextQueuedOrderForTarget({
+                  platform: item.orderPlatform,
+                  canonicalTarget: tRes.target,
+                  triggeredBy: `STATUS_SYNC_COMPLETED_ORDER_${item.orderId}`,
+                  forceRelease: false, // strictly respects PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED
+                });
+
+                if (releaseRes.success && releaseRes.orderId) {
+                  result.releasedQueuedOrders = result.releasedQueuedOrders || [];
+                  result.releasedQueuedOrders.push({
+                    orderId: releaseRes.orderId,
+                    publicId: releaseRes.publicId,
+                    target: tRes.target,
+                    status: releaseRes.status,
+                  });
+                  result.details?.push(`Target queue released next order ${releaseRes.publicId} for ${tRes.target}`);
+                }
+              } catch (relErr: any) {
+                console.error(`[StatusSync] Error releasing queued order for target ${tRes.target}:`, relErr);
+                result.details?.push(`Queue release error for target ${tRes.target}: ${relErr?.message || 'Unknown error'}`);
+              }
+            }
+          }
+        }
         else if (mappedStatus === 'PARTIAL') result.partial += 1;
         else if (mappedStatus === 'CANCELED') result.canceled += 1;
       }

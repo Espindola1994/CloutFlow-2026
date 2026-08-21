@@ -37,13 +37,14 @@ export interface AutoDispatchResult {
 
 export interface FulfillmentOverviewStats {
   notDispatched: number;
+  waitingTargetSlot: number;
+  waitingProvider: number;
   submitting: number;
   processing: number;
   partial: number;
   completed: number;
   failed: number;
   canceled: number;
-  waitingProvider: number;
   totalDispatched: number;
   totalPaid: number;
 }
@@ -411,6 +412,44 @@ export async function autoDispatchOrder(orderIdentifier: string): Promise<AutoDi
     };
   }
 
+  // D. Target Slot Pre-Check: Prevent simultaneous submissions for the same canonical target
+  // If target slot is already busy, place new paid order safely in WAITING_TARGET_SLOT (ZERO action=add calls).
+  const { checkTargetDeliverySlot } = await import('./fulfillment-target-queue.service');
+  const slotCheck = await checkTargetDeliverySlot(evalResult.orderId);
+
+  if (slotCheck.isSlotBusy) {
+    await db.transaction(async (tx) => {
+      await tx
+        .update(orders)
+        .set({
+          fulfillmentStatus: 'WAITING_TARGET_SLOT',
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(orders.id, evalResult.orderId!),
+            eq(orders.fulfillmentStatus, 'NOT_DISPATCHED'),
+            inArray(orders.paymentStatus, ['PAID', 'COMPLETED'])
+          )
+        );
+
+      await tx.insert(orderEvents).values({
+        orderId: evalResult.orderId!,
+        fulfillmentStatus: 'WAITING_TARGET_SLOT',
+        description: `Order placed in target delivery queue behind active order ${slotCheck.activeOrder?.publicId || ''}.`,
+      });
+    });
+
+    return {
+      success: true,
+      code: 'TARGET_SLOT_BUSY_QUEUED',
+      status: 'WAITING_TARGET_SLOT',
+      message: `Order placed in target delivery queue. Active delivery in progress for this target (${slotCheck.activeOrder?.publicId || 'active'}).`,
+      orderId: evalResult.orderId,
+      publicId: evalResult.publicId,
+    };
+  }
+
   const safeRequestPayload = {
     provider: 'peakerr',
     service: evalResult.primaryServiceId,
@@ -670,13 +709,14 @@ export async function getFulfillmentOverview(): Promise<FulfillmentOverviewStats
 
   const stats: FulfillmentOverviewStats = {
     notDispatched: 0,
+    waitingTargetSlot: 0,
+    waitingProvider: 0,
     submitting: 0,
     processing: 0,
     partial: 0,
     completed: 0,
     failed: 0,
     canceled: 0,
-    waitingProvider: 0,
     totalDispatched: 0,
     totalPaid: 0,
   };
@@ -688,8 +728,9 @@ export async function getFulfillmentOverview(): Promise<FulfillmentOverviewStats
 
     const fs = (o.fulfillmentStatus || 'NOT_DISPATCHED').toUpperCase();
     if (fs === 'NOT_DISPATCHED') stats.notDispatched++;
-    else if (fs === 'SUBMITTING') stats.submitting++;
+    else if (fs === 'WAITING_TARGET_SLOT') stats.waitingTargetSlot++;
     else if (fs === 'WAITING_PROVIDER') stats.waitingProvider++;
+    else if (fs === 'SUBMITTING') stats.submitting++;
     else if (fs === 'PROCESSING') {
       stats.processing++;
       stats.totalDispatched++;

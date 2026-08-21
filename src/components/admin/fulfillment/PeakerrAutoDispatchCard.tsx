@@ -26,8 +26,9 @@ import {
 
 export interface FulfillmentOverviewData {
   notDispatched: number;
-  submitting: number;
+  waitingTargetSlot?: number;
   waitingProvider?: number;
+  submitting: number;
   processing: number;
   partial: number;
   completed: number;
@@ -103,6 +104,11 @@ export function PeakerrAutoDispatchCard() {
   const [recoverySuccess, setRecoverySuccess] = useState<string | null>(null);
   const [preCheckData, setPreCheckData] = useState<any | null>(null);
   const [preCheckLoading, setPreCheckLoading] = useState(false);
+
+  // Target Queue State
+  const [showTargetQueueModal, setShowTargetQueueModal] = useState(false);
+  const [targetQueueData, setTargetQueueData] = useState<{ overview: any; groups: any[] } | null>(null);
+  const [targetQueueLoading, setTargetQueueLoading] = useState(false);
 
   const triggerRevalidate = useAdminRevalidate();
   const [isUpdatingOverview, setIsUpdatingOverview] = useState(false);
@@ -283,6 +289,22 @@ export function PeakerrAutoDispatchCard() {
     }
   };
 
+  const fetchTargetQueue = async () => {
+    setTargetQueueLoading(true);
+    try {
+      const res = await fetch("/api/admin/fulfillment/target-queue");
+      const json = await res.json();
+      if (json.success) {
+        setTargetQueueData(json.data);
+        setShowTargetQueueModal(true);
+      }
+    } catch {
+      // non-blocking
+    } finally {
+      setTargetQueueLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchOverview();
   }, [fetchOverview]);
@@ -392,8 +414,8 @@ export function PeakerrAutoDispatchCard() {
                 </div>
               </div>
 
-              {/* 3x3 Status Grid (cards ~56px height, bg #FAFCFC, label 10px, value 18px) */}
-              <div className="grid grid-cols-3 gap-2">
+              {/* Status Grid: 5 columns / 2 rows */}
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
                 <div className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between">
                   <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Not Dispatched</span>
                   <span className="text-[18px] font-bold text-[#142126] font-mono leading-none">
@@ -401,23 +423,36 @@ export function PeakerrAutoDispatchCard() {
                   </span>
                 </div>
 
-                <div className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Submitting</span>
-                  <span className="text-[18px] font-bold text-[#142126] font-mono leading-none">
-                    {fulfillmentStats?.submitting ?? "—"}
+                <div
+                  onClick={fetchTargetQueue}
+                  className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#0F8F8A] transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-semibold text-[#0F8F8A] tracking-wider">Waiting Target</span>
+                    <span className="text-[9px] text-[#0F8F8A] font-bold">Inspect</span>
+                  </div>
+                  <span className="text-[18px] font-bold text-[#0F8F8A] font-mono leading-none">
+                    {fulfillmentStats?.waitingTargetSlot ?? 0}
                   </span>
                 </div>
 
                 <div
                   onClick={fetchFailedOrders}
-                  className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#0F8F8A] transition-colors"
+                  className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#D97706] transition-colors"
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Waiting Provider</span>
-                    <span className="text-[9px] text-[#0F8F8A] font-bold">Inspect</span>
+                    <span className="text-[9px] text-[#D97706] font-bold">Inspect</span>
                   </div>
                   <span className="text-[18px] font-bold text-[#142126] font-mono leading-none">
                     {fulfillmentStats?.waitingProvider ?? 0}
+                  </span>
+                </div>
+
+                <div className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between">
+                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Submitting</span>
+                  <span className="text-[18px] font-bold text-[#142126] font-mono leading-none">
+                    {fulfillmentStats?.submitting ?? "—"}
                   </span>
                 </div>
 
@@ -1255,6 +1290,123 @@ export function PeakerrAutoDispatchCard() {
             )}
           </div>
         )}
+      </AdminModal>
+
+      {/* Target Queue Inspector Modal */}
+      <AdminModal
+        open={showTargetQueueModal}
+        onOpenChange={setShowTargetQueueModal}
+        title="Target-Aware Delivery Queue Inspector"
+        description="Active delivery slots and FIFO queued orders grouped by canonical target"
+        className="max-w-4xl"
+      >
+        <div className="space-y-4">
+          {targetQueueLoading ? (
+            <div className="py-12 flex flex-col items-center justify-center gap-2">
+              <Loader2 className="w-6 h-6 animate-spin text-[#0F8F8A]" />
+              <span className="text-xs text-[#65737A]">Loading target queues...</span>
+            </div>
+          ) : !targetQueueData || targetQueueData.groups.length === 0 ? (
+            <div className="py-8 text-center bg-[#F8FAFA] rounded-[7px] border border-[#D9E2E3]">
+              <p className="text-xs text-[#65737A]">No active deliveries or queued orders currently in the target pipeline.</p>
+            </div>
+          ) : (
+            <>
+              {/* Overview header stats */}
+              <div className="grid grid-cols-4 gap-2 bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-3">
+                <div>
+                  <span className="text-[10px] uppercase font-semibold text-[#65737A] block">Auto Release</span>
+                  <span className={`text-[12px] font-bold ${targetQueueData.overview.autoReleaseEnabled ? "text-[#16B77A]" : "text-[#D97706]"}`}>
+                    {targetQueueData.overview.autoReleaseEnabled ? "ENABLED" : "DISABLED"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-semibold text-[#65737A] block">Queued Orders</span>
+                  <span className="text-[14px] font-bold text-[#142126] font-mono">
+                    {targetQueueData.overview.queuedOrdersCount}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-semibold text-[#65737A] block">Queued Targets</span>
+                  <span className="text-[14px] font-bold text-[#0F8F8A] font-mono">
+                    {targetQueueData.overview.queuedTargetsCount}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-semibold text-[#65737A] block">Oldest Age</span>
+                  <span className="text-[14px] font-bold text-[#65737A] font-mono">
+                    {targetQueueData.overview.oldestQueueAgeFormatted || "0m"}
+                  </span>
+                </div>
+              </div>
+
+              {/* Groups list */}
+              <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+                {targetQueueData.groups.map((group, idx) => (
+                  <div key={idx} className="bg-white border border-[#D9E2E3] rounded-[8px] p-3 space-y-2">
+                    <div className="flex items-center justify-between border-b border-[#F0F4F4] pb-2">
+                      <div className="flex items-center gap-2">
+                        <AdminBadge variant="secondary">{group.platform.toUpperCase()}</AdminBadge>
+                        <span className="text-xs font-mono font-bold text-[#142126] truncate max-w-[300px]">
+                          {group.canonicalTarget}
+                        </span>
+                      </div>
+                      <span className="text-[11px] font-semibold text-[#65737A]">
+                        {group.queue.length} in queue
+                      </span>
+                    </div>
+
+                    {/* Active slot */}
+                    {group.activeDelivery ? (
+                      <div className="p-2 rounded-[6px] bg-[#E7F5F4] border border-[#B3E5E3] flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#0F8F8A] text-white">ACTIVE</span>
+                          <span className="font-mono font-bold text-[#142126]">{group.activeDelivery.publicId}</span>
+                          {group.activeDelivery.providerOrderId && (
+                            <span className="text-[#65737A] font-mono">Provider #{group.activeDelivery.providerOrderId}</span>
+                          )}
+                        </div>
+                        <AdminBadge variant="info">{group.activeDelivery.fulfillmentStatus}</AdminBadge>
+                      </div>
+                    ) : (
+                      <div className="p-2 rounded-[6px] bg-[#F8FAFA] border border-[#E7ECEC] text-xs text-[#65737A] flex items-center justify-between">
+                        <span>Slot Free (No active delivery currently occupying this target)</span>
+                        <AdminBadge variant="success">FREE</AdminBadge>
+                      </div>
+                    )}
+
+                    {/* Queue items */}
+                    {group.queue.length > 0 && (
+                      <div className="space-y-1.5 pt-1">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] block">Queue (FIFO)</span>
+                        {group.queue.map((item: any) => (
+                          <div key={item.id} className="p-2 rounded-[6px] bg-[#FAFCFC] border border-[#E7ECEC] flex items-center justify-between text-xs font-mono">
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-full bg-[#E3E8EA] text-[#142126] text-[10px] font-bold flex items-center justify-center">
+                                #{item.queuePosition}
+                              </span>
+                              <span className="font-bold text-[#142126]">{item.publicId}</span>
+                              <span className="text-[#65737A] text-[11px] font-sans">{item.quantity} qty ({item.service || 'service'})</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <AdminBadge variant="warning">{item.fulfillmentStatus}</AdminBadge>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          <div className="flex justify-end pt-2 border-t border-[#EDF1F2]">
+            <AdminButton variant="secondary" onClick={() => setShowTargetQueueModal(false)}>
+              Close
+            </AdminButton>
+          </div>
+        </div>
       </AdminModal>
     </div>
   );
