@@ -454,7 +454,9 @@ export function calculateFinancialTotals(
       providerCostsCents += providerCost;
       netProfitCents += (amountCents - feeCents - providerCost);
     } else if (paymentStatus === 'REFUNDED') {
-      refundedOrdersCount++;
+      if (amountCents > 0) {
+        refundedOrdersCount++;
+      }
       grossSalesCents += amountCents;
       refundsCents += amountCents;
       // validRevenue = $0.00 for refunded sales
@@ -465,7 +467,9 @@ export function calculateFinancialTotals(
       providerCostsCents += incurredProviderCost;
       netProfitCents -= (feeCents + incurredProviderCost);
     } else if (paymentStatus === 'CHARGEBACK' || paymentStatus === 'CHARGED_BACK') {
-      chargebackOrdersCount++;
+      if (amountCents > 0) {
+        chargebackOrdersCount++;
+      }
       grossSalesCents += amountCents;
       chargebacksCents += amountCents;
       perfectPayFeesCents += feeCents;
