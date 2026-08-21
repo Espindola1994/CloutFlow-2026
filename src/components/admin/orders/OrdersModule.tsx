@@ -2,51 +2,65 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { 
-  Search, 
   ShoppingBag, 
   DollarSign, 
   PieChart, 
   Tag, 
   ChevronLeft, 
   ChevronRight,
-  RefreshCw
+  RefreshCw,
+  Percent,
+  Coins,
+  Receipt
 } from "lucide-react";
 import { Order } from "../types";
+import {
+  AdminButton,
+  AdminSearchInput,
+  AdminStatusBadge,
+  PlatformIcon,
+  MobileDataCard,
+  AdminTable,
+  AdminTableHeader,
+  AdminTableBody,
+  AdminTableRow,
+  AdminTableHead,
+  AdminTableCell,
+} from "../ui";
 
 export function OrdersModule() {
   const [activeTab, setActiveTab] = useState<"orders" | "margins" | "attribution">("orders");
   
-  // Orders Tab State
+  // Real Orders State
   const [orders, setOrders] = useState<Order[]>([]);
+  const [totalOrdersCount, setTotalOrdersCount] = useState(0);
   const [loadingOrders, setLoadingOrders] = useState(true);
   const [ordersError, setOrdersError] = useState<string | null>(null);
+
+  // Search & Filters
   const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [platformFilter, setPlatformFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [page, setPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalOrdersCount, setTotalOrdersCount] = useState(0);
+  const pageSize = 15;
 
-  // Margins Tab State
+  // Real Margins State
   const [margins, setMargins] = useState<{
     grossRevenue: number;
     providerCost: number;
     gatewayFees: number;
     netProfit: number;
     marginPercent: string;
-    paidOrdersCount: number;
   }>({
     grossRevenue: 0,
     providerCost: 0,
     gatewayFees: 0,
     netProfit: 0,
-    marginPercent: "0.0",
-    paidOrdersCount: 0,
+    marginPercent: "0",
   });
-  const [loadingMargins, setLoadingMargins] = useState(false);
 
-  // Attribution Tab State
+  // Real Attribution State
   const [campaigns, setCampaigns] = useState<Array<{
     source: string;
     campaign: string;
@@ -58,64 +72,54 @@ export function OrdersModule() {
   }>>([]);
   const [loadingAttribution, setLoadingAttribution] = useState(false);
 
-  // 300ms Debounce for search
+  // Debounce search
   useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
-      setPage(1);
-    }, 300);
-    return () => clearTimeout(handler);
+    const timer = setTimeout(() => setDebouncedQuery(searchQuery), 350);
+    return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch Orders
+  // Fetch Orders from real API
   const fetchOrders = useCallback(async () => {
     try {
       setLoadingOrders(true);
       setOrdersError(null);
-
-      const params = new URLSearchParams({
-        page: page.toString(),
-        limit: "25",
-      });
-
+      const params = new URLSearchParams();
+      params.append("page", page.toString());
+      params.append("limit", pageSize.toString());
+      if (debouncedQuery) params.append("search", debouncedQuery);
       if (platformFilter !== "all") params.append("platform", platformFilter);
       if (statusFilter !== "all") params.append("status", statusFilter);
-      if (debouncedSearch) params.append("search", debouncedSearch);
 
       const res = await fetch(`/api/admin/orders?${params.toString()}`);
       const json = await res.json();
 
       if (res.ok && json.success) {
-        setOrders(json.data.items);
-        setTotalPages(json.data.totalPages || 1);
-        setTotalOrdersCount(json.data.total || 0);
+        setOrders(json.data.orders || []);
+        setTotalOrdersCount(json.data.totalCount || 0);
       } else {
         setOrdersError(json.error?.message || "Failed to load orders");
       }
     } catch {
-      setOrdersError("Error connecting to orders API");
+      setOrdersError("Unable to connect to orders API");
     } finally {
       setLoadingOrders(false);
     }
-  }, [page, platformFilter, statusFilter, debouncedSearch]);
+  }, [page, debouncedQuery, platformFilter, statusFilter]);
 
-  // Fetch Margins
+  // Fetch Margins Ledger
   const fetchMargins = async () => {
     try {
-      setLoadingMargins(true);
       const res = await fetch("/api/admin/margins");
       const json = await res.json();
       if (res.ok && json.success) {
         setMargins(json.data);
       }
     } catch {
-      // safe fallback
-    } finally {
-      setLoadingMargins(false);
+      // Safe fallback
     }
   };
 
-  // Fetch Attribution
+  // Fetch Real UTM Attribution
   const fetchAttribution = async () => {
     try {
       setLoadingAttribution(true);
@@ -125,7 +129,7 @@ export function OrdersModule() {
         setCampaigns(json.data.campaigns || []);
       }
     } catch {
-      // safe fallback
+      // Safe fallback
     } finally {
       setLoadingAttribution(false);
     }
@@ -141,21 +145,29 @@ export function OrdersModule() {
     }
   }, [activeTab, fetchOrders]);
 
+  const totalPages = Math.ceil(totalOrdersCount / pageSize) || 1;
+
   return (
     <div className="space-y-6">
-      {/* Tab Navigation Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+      {/* Header & Tab Navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Orders & Margins</h2>
-          <p className="text-xs text-neutral-400 mt-0.5">Real-time fulfillment, attribution and profitability ledger</p>
+          <h1 className="text-[26px] font-[650] text-[#142126] tracking-tight">
+            Orders & Margins
+          </h1>
+          <p className="text-[13px] text-[#65737A] mt-0.5">
+            Track purchases, fulfillment costs and profitability.
+          </p>
         </div>
 
-        <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-xl p-1 text-xs font-semibold">
+        <div className="flex items-center bg-[#FFFFFF] border border-[#D9E2E3] rounded-[8px] p-1 text-[12px] font-semibold shadow-[0_1px_2px_rgba(10,35,42,0.03)] self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setActiveTab("orders")}
-            className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
-              activeTab === "orders" ? "bg-neutral-800 text-white shadow-xs" : "text-neutral-400 hover:text-neutral-200"
+            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer ${
+              activeTab === "orders"
+                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
             All Orders ({totalOrdersCount})
@@ -163,8 +175,10 @@ export function OrdersModule() {
           <button
             type="button"
             onClick={() => setActiveTab("margins")}
-            className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
-              activeTab === "margins" ? "bg-neutral-800 text-white shadow-xs" : "text-neutral-400 hover:text-neutral-200"
+            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer ${
+              activeTab === "margins"
+                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
             Margins & Costs
@@ -172,8 +186,10 @@ export function OrdersModule() {
           <button
             type="button"
             onClick={() => setActiveTab("attribution")}
-            className={`px-4 py-2 rounded-lg transition-all cursor-pointer ${
-              activeTab === "attribution" ? "bg-neutral-800 text-white shadow-xs" : "text-neutral-400 hover:text-neutral-200"
+            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer ${
+              activeTab === "attribution"
+                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
             Attribution (UTMs)
@@ -184,32 +200,29 @@ export function OrdersModule() {
       {/* 1. ORDERS TAB */}
       {activeTab === "orders" && (
         <div className="space-y-4">
-          {/* Filter Bar */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#12161f] border border-neutral-800/80 rounded-2xl p-4 shadow-xs">
-            <div className="relative flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-500" />
-              <input
-                type="text"
+          {/* Single Filter Bar */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-3.5 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)]">
+            <div className="flex-1">
+              <AdminSearchInput
                 placeholder="Search by Order ID, username, email or external ID..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-neutral-900 border border-neutral-800 rounded-xl pl-10 pr-4 py-2 text-xs text-white placeholder:text-neutral-500 focus:outline-hidden focus:border-neutral-600 transition-colors"
               />
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5">
               <select
                 value={platformFilter}
                 onChange={(e) => {
                   setPlatformFilter(e.target.value);
                   setPage(1);
                 }}
-                className="bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-hidden cursor-pointer"
+                className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] px-3 py-2 text-[12px] text-[#142126] font-medium focus:outline-hidden focus:border-[#0F8F8A] cursor-pointer"
               >
                 <option value="all">All Platforms</option>
                 <option value="instagram">Instagram</option>
                 <option value="tiktok">TikTok</option>
-                <option value="twitter">X / Twitter</option>
+                <option value="twitter">X (Twitter)</option>
                 <option value="youtube">YouTube</option>
               </select>
 
@@ -219,108 +232,157 @@ export function OrdersModule() {
                   setStatusFilter(e.target.value);
                   setPage(1);
                 }}
-                className="bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-hidden cursor-pointer"
+                className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] px-3 py-2 text-[12px] text-[#142126] font-medium focus:outline-hidden focus:border-[#0F8F8A] cursor-pointer"
               >
                 <option value="all">All Statuses</option>
                 <option value="paid">Paid</option>
+                <option value="delivered">Delivered</option>
                 <option value="pending">Pending</option>
-                <option value="completed">Completed</option>
                 <option value="failed">Failed</option>
                 <option value="refunded">Refunded</option>
               </select>
+
+              <AdminButton
+                variant="outline"
+                size="sm"
+                onClick={() => fetchOrders()}
+                disabled={loadingOrders}
+              >
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                Refresh
+              </AdminButton>
             </div>
           </div>
 
           {ordersError && (
-            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between">
+            <div className="p-3.5 rounded-[8px] bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] text-[12px] flex items-center justify-between">
               <span>{ordersError}</span>
               <button
                 type="button"
                 onClick={() => fetchOrders()}
-                className="flex items-center gap-1 font-bold underline cursor-pointer"
+                className="flex items-center gap-1 font-semibold underline cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" /> Retry
               </button>
             </div>
           )}
 
-          {/* Orders Table */}
-          <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-6 shadow-xs overflow-hidden">
+          {/* Orders Table Section */}
+          <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
             {orders.length === 0 ? (
-              <div className="py-16 text-center">
-                <div className="w-12 h-12 rounded-full bg-neutral-900 flex items-center justify-center text-neutral-500 mx-auto mb-3">
-                  <ShoppingBag className="w-6 h-6" />
+              <div className="py-16 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+                <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
+                  <ShoppingBag className="w-5 h-5" />
                 </div>
-                <p className="text-sm font-semibold text-neutral-300">No orders found</p>
-                <span className="text-xs text-neutral-500 mt-1 block">
+                <p className="text-[13px] font-semibold text-[#142126]">No orders found</p>
+                <span className="text-[11px] text-[#65737A] mt-1 block">
                   {totalOrdersCount === 0 ? "Completed gateway webhooks will register transactions here in real-time." : "Try adjusting your search criteria or platform filters."}
                 </span>
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead className="text-neutral-400 uppercase tracking-wider border-b border-neutral-800">
-                      <tr>
-                        <th className="pb-3 font-semibold">Order ID</th>
-                        <th className="pb-3 font-semibold">Platform</th>
-                        <th className="pb-3 font-semibold">Target User</th>
-                        <th className="pb-3 font-semibold">Service & Plan</th>
-                        <th className="pb-3 font-semibold">Amount</th>
-                        <th className="pb-3 font-semibold">Gateway</th>
-                        <th className="pb-3 font-semibold">Status</th>
-                        <th className="pb-3 font-semibold">Date</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-neutral-800/60 text-neutral-300 font-medium">
-                      {orders.map((order) => (
-                        <tr key={order.id} className="hover:bg-neutral-800/20 transition-colors">
-                          <td className="py-3.5 font-mono text-neutral-400">#{(order as any).publicId || order.id.slice(0, 8)}</td>
-                          <td className="py-3.5 capitalize font-semibold">{order.platform}</td>
-                          <td className="py-3.5">
-                            <span className="text-white block font-semibold">@{order.username}</span>
-                            <span className="text-[11px] text-neutral-500 truncate block max-w-[140px]">{order.email}</span>
-                          </td>
-                          <td className="py-3.5">{order.plan}</td>
-                          <td className="py-3.5 font-bold text-white">${order.amount.toFixed(2)}</td>
-                          <td className="py-3.5 text-neutral-400 capitalize">{order.gateway}</td>
-                          <td className="py-3.5">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              order.status === "delivered" || order.status === "paid" ? "bg-emerald-500/10 text-emerald-400" :
-                              order.status === "failed" ? "bg-red-500/10 text-red-400" :
-                              "bg-amber-500/10 text-amber-400"
-                            }`}>
-                              {order.status.toUpperCase()}
-                            </span>
-                          </td>
-                          <td className="py-3.5 text-neutral-500">{order.date}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                {/* Desktop View */}
+                <div className="hidden md:block">
+                  <AdminTable>
+                    <AdminTableHeader>
+                      <AdminTableRow>
+                        <AdminTableHead>Order ID</AdminTableHead>
+                        <AdminTableHead>Platform</AdminTableHead>
+                        <AdminTableHead>Target User</AdminTableHead>
+                        <AdminTableHead>Service & Plan</AdminTableHead>
+                        <AdminTableHead className="text-right">Amount</AdminTableHead>
+                        <AdminTableHead>Gateway</AdminTableHead>
+                        <AdminTableHead className="text-center">Status</AdminTableHead>
+                        <AdminTableHead className="text-right">Date</AdminTableHead>
+                      </AdminTableRow>
+                    </AdminTableHeader>
+                    <AdminTableBody>
+                      {orders.map((order) => {
+                        const orderPublicId = (order as { publicId?: string }).publicId || order.id.slice(0, 8);
+                        return (
+                          <AdminTableRow key={order.id}>
+                            <AdminTableCell className="font-mono text-[#65737A]">
+                              #{orderPublicId}
+                            </AdminTableCell>
+                            <AdminTableCell>
+                              <div className="flex items-center gap-2">
+                                <PlatformIcon platform={order.platform} size={18} />
+                                <span className="capitalize font-semibold text-[#142126]">{order.platform}</span>
+                              </div>
+                            </AdminTableCell>
+                            <AdminTableCell>
+                              <span className="text-[#142126] block font-semibold">@{order.username}</span>
+                              {order.email && (
+                                <span className="text-[11px] text-[#8A979D] truncate block max-w-[140px]">{order.email}</span>
+                              )}
+                            </AdminTableCell>
+                            <AdminTableCell className="text-[#65737A]">
+                              {order.plan}
+                            </AdminTableCell>
+                            <AdminTableCell className="text-right font-bold text-[#142126] font-mono">
+                              ${order.amount.toFixed(2)}
+                            </AdminTableCell>
+                            <AdminTableCell className="text-[#65737A] capitalize">
+                              {order.gateway}
+                            </AdminTableCell>
+                            <AdminTableCell className="text-center">
+                              <AdminStatusBadge status={order.status} />
+                            </AdminTableCell>
+                            <AdminTableCell className="text-right text-[#8A979D] text-[11px]">
+                              {order.date}
+                            </AdminTableCell>
+                          </AdminTableRow>
+                        );
+                      })}
+                    </AdminTableBody>
+                  </AdminTable>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden space-y-3">
+                  {orders.map((order) => {
+                    const orderPublicId = (order as { publicId?: string }).publicId || order.id.slice(0, 8);
+                    return (
+                      <MobileDataCard
+                        key={order.id}
+                        platform={order.platform}
+                        title={`#${orderPublicId}`}
+                        subtitle={`@${order.username} • ${order.plan}`}
+                        status={<AdminStatusBadge status={order.status} />}
+                        metrics={[
+                          { label: "Platform", value: order.platform },
+                          { label: "Amount", value: `$${order.amount.toFixed(2)}` },
+                          { label: "Gateway", value: order.gateway },
+                          { label: "Date", value: order.date },
+                        ]}
+                      />
+                    );
+                  })}
                 </div>
 
                 {/* Pagination Controls */}
                 {totalPages > 1 && (
-                  <div className="flex items-center justify-between pt-4 border-t border-neutral-800 text-xs text-neutral-400">
+                  <div className="flex items-center justify-between pt-4 border-t border-[#D9E2E3] text-[12px] text-[#65737A]">
                     <span>Showing page {page} of {totalPages} ({totalOrdersCount} total)</span>
                     <div className="flex items-center gap-2">
-                      <button
-                        type="button"
+                      <AdminButton
+                        variant="outline"
+                        size="sm"
                         onClick={() => setPage((p) => Math.max(1, p - 1))}
                         disabled={page === 1}
-                        className="p-1.5 rounded-lg bg-neutral-900 border border-neutral-800 disabled:opacity-40 hover:bg-neutral-800 transition-colors cursor-pointer"
                       >
-                        <ChevronLeft className="w-4 h-4" />
-                      </button>
-                      <button
-                        type="button"
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Prev
+                      </AdminButton>
+                      <AdminButton
+                        variant="outline"
+                        size="sm"
                         onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                         disabled={page === totalPages}
-                        className="p-1.5 rounded-lg bg-neutral-900 border border-neutral-800 disabled:opacity-40 hover:bg-neutral-800 transition-colors cursor-pointer"
                       >
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
+                        Next
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </AdminButton>
                     </div>
                   </div>
                 )}
@@ -333,42 +395,99 @@ export function OrdersModule() {
       {/* 2. MARGINS TAB */}
       {activeTab === "margins" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-5 shadow-xs">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1">Gross Revenue</span>
-              <div className="text-2xl font-bold text-white">${margins.grossRevenue.toFixed(2)}</div>
-              <p className="text-[11px] text-neutral-500 mt-1">Paid customer checkouts</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
+                  Gross Revenue
+                </span>
+                <div className="w-7 h-7 rounded-lg bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center">
+                  <DollarSign className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="mt-2.5">
+                <div className="text-[22px] font-bold tracking-tight text-[#142126]">
+                  ${margins.grossRevenue.toFixed(2)}
+                </div>
+                <p className="text-[11px] text-[#8A979D] mt-0.5">Paid customer checkouts</p>
+              </div>
             </div>
 
-            <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-5 shadow-xs">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1">Provider Cost</span>
-              <div className="text-2xl font-bold text-neutral-300">${margins.providerCost.toFixed(2)}</div>
-              <p className="text-[11px] text-neutral-500 mt-1">SMM execution costs</p>
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
+                  Provider Cost
+                </span>
+                <div className="w-7 h-7 rounded-lg bg-[#F1F5F5] text-[#65737A] flex items-center justify-center">
+                  <Receipt className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="mt-2.5">
+                <div className="text-[22px] font-bold tracking-tight text-[#142126]">
+                  ${margins.providerCost.toFixed(2)}
+                </div>
+                <p className="text-[11px] text-[#8A979D] mt-0.5">SMM execution costs</p>
+              </div>
             </div>
 
-            <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-5 shadow-xs">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1">Gateway Fees</span>
-              <div className="text-2xl font-bold text-amber-400">${margins.gatewayFees.toFixed(2)}</div>
-              <p className="text-[11px] text-neutral-500 mt-1">Processor transaction fees</p>
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
+                  Gateway Fees
+                </span>
+                <div className="w-7 h-7 rounded-lg bg-[#FEF3C7] text-[#D97706] flex items-center justify-center">
+                  <Coins className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="mt-2.5">
+                <div className="text-[22px] font-bold tracking-tight text-[#D97706]">
+                  ${margins.gatewayFees.toFixed(2)}
+                </div>
+                <p className="text-[11px] text-[#8A979D] mt-0.5">Processor transaction fees</p>
+              </div>
             </div>
 
-            <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-5 shadow-xs">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1">Net Profit</span>
-              <div className="text-2xl font-bold text-emerald-400">${margins.netProfit.toFixed(2)}</div>
-              <p className="text-[11px] text-neutral-500 mt-1">Net after all fees</p>
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
+                  Net Profit
+                </span>
+                <div className="w-7 h-7 rounded-lg bg-[#E8F8F2] text-[#16B77A] flex items-center justify-center">
+                  <DollarSign className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="mt-2.5">
+                <div className="text-[22px] font-bold tracking-tight text-[#16B77A]">
+                  ${margins.netProfit.toFixed(2)}
+                </div>
+                <p className="text-[11px] text-[#8A979D] mt-0.5">Net after all fees</p>
+              </div>
             </div>
 
-            <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-5 shadow-xs">
-              <span className="text-xs font-semibold text-neutral-400 uppercase tracking-wider block mb-1">Profit Margin</span>
-              <div className="text-2xl font-bold text-purple-400">{margins.marginPercent}%</div>
-              <p className="text-[11px] text-neutral-500 mt-1">Net efficiency ratio</p>
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
+                  Profit Margin
+                </span>
+                <div className="w-7 h-7 rounded-lg bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center">
+                  <Percent className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="mt-2.5">
+                <div className="text-[22px] font-bold tracking-tight text-[#0F8F8A]">
+                  {margins.marginPercent}%
+                </div>
+                <p className="text-[11px] text-[#8A979D] mt-0.5">Net efficiency ratio</p>
+              </div>
             </div>
           </div>
 
-          <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-6 shadow-xs text-center py-12">
-            <PieChart className="w-10 h-10 text-neutral-500 mx-auto mb-3" />
-            <h4 className="text-sm font-bold text-white">Automated Margin Ledger</h4>
-            <p className="text-xs text-neutral-500 mt-1 max-w-md mx-auto">
+          <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-8 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] text-center">
+            <div className="w-12 h-12 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-3">
+              <PieChart className="w-6 h-6" />
+            </div>
+            <h4 className="text-[14px] font-bold text-[#142126]">Automated Margin Ledger</h4>
+            <p className="text-[12px] text-[#65737A] mt-1 max-w-md mx-auto">
               Real-time costs compute automatically per order using configured admin pricing rules.
             </p>
           </div>
@@ -377,50 +496,65 @@ export function OrdersModule() {
 
       {/* 3. ATTRIBUTION TAB */}
       {activeTab === "attribution" && (
-        <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-6 shadow-xs">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-base font-bold text-white tracking-tight">Campaign & UTM Attribution</h3>
-              <p className="text-xs text-neutral-400 mt-0.5">Performance tracked per traffic source, campaign and medium</p>
+              <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+                CAMPAIGN & UTM ATTRIBUTION
+              </h3>
+              <p className="text-[12px] text-[#65737A] mt-0.5">
+                Performance tracked per traffic source, campaign and medium
+              </p>
             </div>
+            <AdminButton
+              variant="outline"
+              size="sm"
+              onClick={fetchAttribution}
+              disabled={loadingAttribution}
+            >
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+              Refresh
+            </AdminButton>
           </div>
 
           {campaigns.length === 0 ? (
-            <div className="py-16 text-center rounded-xl bg-neutral-950/40 border border-neutral-800/40">
-              <Tag className="w-10 h-10 text-neutral-500 mx-auto mb-3" />
-              <h4 className="text-sm font-bold text-neutral-300">No attribution records captured yet</h4>
-              <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
+            <div className="py-16 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+              <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
+                <Tag className="w-5 h-5" />
+              </div>
+              <h4 className="text-[13px] font-semibold text-[#142126]">No attribution records captured yet</h4>
+              <p className="text-[11px] text-[#65737A] mt-1 max-w-sm mx-auto">
                 Inbound UTM parameters (`utm_source`, `utm_campaign`, `utm_medium`) will group revenue here automatically.
               </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="text-neutral-400 uppercase tracking-wider border-b border-neutral-800">
-                  <tr>
-                    <th className="pb-3 font-semibold">UTM Source</th>
-                    <th className="pb-3 font-semibold">Campaign</th>
-                    <th className="pb-3 font-semibold">Medium</th>
-                    <th className="pb-3 font-semibold">Total Orders</th>
-                    <th className="pb-3 font-semibold">Paid Orders</th>
-                    <th className="pb-3 font-semibold">Revenue</th>
-                    <th className="pb-3 font-semibold">AOV</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-neutral-800/60 text-neutral-300 font-medium">
+              <AdminTable>
+                <AdminTableHeader>
+                  <AdminTableRow>
+                    <AdminTableHead>UTM Source</AdminTableHead>
+                    <AdminTableHead>Campaign</AdminTableHead>
+                    <AdminTableHead>Medium</AdminTableHead>
+                    <AdminTableHead className="text-right">Total Orders</AdminTableHead>
+                    <AdminTableHead className="text-right">Paid Orders</AdminTableHead>
+                    <AdminTableHead className="text-right">Revenue</AdminTableHead>
+                    <AdminTableHead className="text-right">AOV</AdminTableHead>
+                  </AdminTableRow>
+                </AdminTableHeader>
+                <AdminTableBody>
                   {campaigns.map((c, i) => (
-                    <tr key={i} className="hover:bg-neutral-800/20 transition-colors">
-                      <td className="py-3.5 font-bold text-white">{c.source}</td>
-                      <td className="py-3.5">{c.campaign}</td>
-                      <td className="py-3.5 text-neutral-400">{c.medium}</td>
-                      <td className="py-3.5">{c.orders}</td>
-                      <td className="py-3.5 text-emerald-400">{c.paidOrders}</td>
-                      <td className="py-3.5 font-bold text-white">${c.revenue.toFixed(2)}</td>
-                      <td className="py-3.5 text-neutral-300">{c.aov}</td>
-                    </tr>
+                    <AdminTableRow key={i}>
+                      <AdminTableCell className="font-bold text-[#142126]">{c.source}</AdminTableCell>
+                      <AdminTableCell className="text-[#142126] font-medium">{c.campaign}</AdminTableCell>
+                      <AdminTableCell className="text-[#65737A]">{c.medium}</AdminTableCell>
+                      <AdminTableCell className="text-right text-[#142126]">{c.orders}</AdminTableCell>
+                      <AdminTableCell className="text-right text-[#16B77A] font-semibold">{c.paidOrders}</AdminTableCell>
+                      <AdminTableCell className="text-right font-bold text-[#142126] font-mono">${c.revenue.toFixed(2)}</AdminTableCell>
+                      <AdminTableCell className="text-right text-[#65737A] font-mono">{c.aov}</AdminTableCell>
+                    </AdminTableRow>
                   ))}
-                </tbody>
-              </table>
+                </AdminTableBody>
+              </AdminTable>
             </div>
           )}
         </div>

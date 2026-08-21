@@ -6,12 +6,24 @@ import {
   ShoppingBag, 
   CheckCircle2, 
   TrendingUp, 
-  Layers,
-  ArrowUpRight,
-  Clock,
-  RefreshCw
+  Layers, 
+  ArrowUpRight, 
+  Clock, 
+  RefreshCw 
 } from "lucide-react";
 import { Order, Platform } from "../types";
+import {
+  AdminButton,
+  AdminStatusBadge,
+  PlatformIcon,
+  MobileDataCard,
+  AdminTable,
+  AdminTableHeader,
+  AdminTableBody,
+  AdminTableRow,
+  AdminTableHead,
+  AdminTableCell,
+} from "../ui";
 
 interface DashboardOverviewProps {
   onNavigateToOrders: () => void;
@@ -67,104 +79,138 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
     fetchDashboardData();
   }, []);
 
+  const kpis = [
+    {
+      label: "Total Revenue",
+      value: `$${stats.totalRevenue.toFixed(2)}`,
+      description: "Real paid sales",
+      icon: DollarSign,
+      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      valueColor: "text-[#142126]",
+    },
+    {
+      label: "Total Orders",
+      value: String(stats.totalOrders),
+      description: "All registered checkouts",
+      icon: ShoppingBag,
+      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      valueColor: "text-[#142126]",
+    },
+    {
+      label: "Paid Orders",
+      value: String(stats.paidOrders),
+      description: "Verified payments",
+      icon: CheckCircle2,
+      iconBg: "bg-[#E8F8F2] text-[#16B77A]",
+      valueColor: stats.paidOrders > 0 ? "text-[#16B77A]" : "text-[#142126]",
+    },
+    {
+      label: "Conversion",
+      value: stats.conversionRate,
+      description: "Session-level ratio",
+      icon: TrendingUp,
+      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      valueColor: "text-[#142126]",
+    },
+    {
+      label: "Avg Order Value",
+      value: `$${stats.averageOrderValue}`,
+      description: "Average per paid customer",
+      icon: Layers,
+      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      valueColor: "text-[#142126]",
+    },
+  ];
+
   return (
     <div className="space-y-6">
-      {/* Top 5 KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-neutral-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Total Revenue</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <DollarSign className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-white tracking-tight">
-            ${stats.totalRevenue.toFixed(2)}
-          </div>
-          <p className="text-xs text-neutral-500 mt-1">Real paid sales</p>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-[26px] font-[650] text-[#142126] tracking-tight">
+            Dashboard
+          </h1>
+          <p className="text-[13px] text-[#65737A] mt-0.5">
+            Monitor revenue, orders and fulfillment performance.
+          </p>
         </div>
-
-        <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-neutral-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Total Orders</span>
-            <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center">
-              <ShoppingBag className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-white tracking-tight">
-            {stats.totalOrders}
-          </div>
-          <p className="text-xs text-neutral-500 mt-1">All registered checkouts</p>
-        </div>
-
-        <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-neutral-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Paid Orders</span>
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-white tracking-tight">
-            {stats.paidOrders}
-          </div>
-          <p className="text-xs text-neutral-500 mt-1">Verified payments</p>
-        </div>
-
-        <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-neutral-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Conversion</span>
-            <div className="w-8 h-8 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-white tracking-tight">
-            {stats.conversionRate}
-          </div>
-          <p className="text-xs text-neutral-500 mt-1">Session-level ratio</p>
-        </div>
-
-        <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-5 shadow-xs">
-          <div className="flex items-center justify-between text-neutral-400 mb-2">
-            <span className="text-xs font-semibold uppercase tracking-wider">Avg Order Value</span>
-            <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-              <Layers className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="text-2xl font-bold text-white tracking-tight">
-            ${stats.averageOrderValue}
-          </div>
-          <p className="text-xs text-neutral-500 mt-1">Average per paid customer</p>
+        <div className="flex items-center gap-2">
+          <AdminButton
+            variant="outline"
+            size="sm"
+            onClick={fetchDashboardData}
+            disabled={loading}
+          >
+            <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+            Refresh
+          </AdminButton>
         </div>
       </div>
 
+      {/* Top 5 KPI Cards - Design System standard */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        {kpis.map((kpi) => {
+          const Icon = kpi.icon;
+          return (
+            <div
+              key={kpi.label}
+              className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
+                  {kpi.label}
+                </span>
+                <div className={`w-7 h-7 rounded-lg ${kpi.iconBg} flex items-center justify-center`}>
+                  <Icon className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="mt-2.5">
+                <div className={`text-[22px] font-bold tracking-tight ${kpi.valueColor}`}>
+                  {kpi.value}
+                </div>
+                <p className="text-[11px] text-[#8A979D] mt-0.5">
+                  {kpi.description}
+                </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
       {error && (
-        <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-[8px] bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] text-[12px] flex items-center justify-between">
           <span>{error}</span>
           <button
             type="button"
             onClick={fetchDashboardData}
-            className="flex items-center gap-1 font-bold underline hover:opacity-80 cursor-pointer"
+            className="flex items-center gap-1 font-semibold underline hover:opacity-80 cursor-pointer"
           >
             <RefreshCw className="w-3.5 h-3.5" /> Retry
           </button>
         </div>
       )}
 
-      {/* Main Grid: Revenue Overview & Platform Breakdown */}
+      {/* Main Grid: Revenue Overview & Platform Share (2fr / 1fr) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue Overview Chart Area */}
-        <div className="lg:col-span-2 bg-[#12161f] border border-neutral-800/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-4">
+        <div className="lg:col-span-2 bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 className="text-base font-bold text-white tracking-tight">Revenue Overview</h3>
-              <p className="text-xs text-neutral-400 mt-0.5">Real-time performance analytics</p>
+              <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+                REVENUE OVERVIEW
+              </h3>
+              <p className="text-[12px] text-[#65737A] mt-0.5">
+                Real-time performance analytics.
+              </p>
             </div>
-            <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-lg p-1 text-xs font-medium">
+            <div className="flex items-center bg-[#F1F5F5] border border-[#D9E2E3] rounded-[7px] p-0.5 text-[12px] font-medium self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => setPeriod("7d")}
-                className={`px-3 py-1 rounded-md transition-colors ${
-                  period === "7d" ? "bg-neutral-800 text-white shadow-xs" : "text-neutral-400 hover:text-neutral-200"
+                className={`px-3 py-1 rounded-[5px] text-[12px] font-medium transition-colors ${
+                  period === "7d"
+                    ? "bg-[#FFFFFF] text-[#142126] shadow-xs font-semibold"
+                    : "text-[#65737A] hover:text-[#142126]"
                 }`}
               >
                 7 Days
@@ -172,8 +218,10 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
               <button
                 type="button"
                 onClick={() => setPeriod("30d")}
-                className={`px-3 py-1 rounded-md transition-colors ${
-                  period === "30d" ? "bg-neutral-800 text-white shadow-xs" : "text-neutral-400 hover:text-neutral-200"
+                className={`px-3 py-1 rounded-[5px] text-[12px] font-medium transition-colors ${
+                  period === "30d"
+                    ? "bg-[#FFFFFF] text-[#142126] shadow-xs font-semibold"
+                    : "text-[#65737A] hover:text-[#142126]"
                 }`}
               >
                 30 Days
@@ -182,53 +230,63 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
           </div>
 
           {/* Empty Chart State (Zero Mocks) */}
-          <div className="h-60 rounded-xl bg-neutral-950/50 border border-neutral-800/50 flex flex-col items-center justify-center text-center p-6 my-2">
-            <div className="w-12 h-12 rounded-full bg-neutral-900 flex items-center justify-center text-neutral-500 mb-3">
-              <Clock className="w-6 h-6" />
+          <div className="h-60 rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3] flex flex-col items-center justify-center text-center p-6 my-2">
+            <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mb-3">
+              <Clock className="w-5 h-5" />
             </div>
-            <p className="text-sm font-semibold text-neutral-300">
+            <p className="text-[13px] font-semibold text-[#142126]">
               {stats.paidOrders === 0 ? "No chart data available for this timeframe" : "Live timeline active"}
             </p>
-            <span className="text-xs text-neutral-500 mt-1 max-w-sm">
+            <span className="text-[11px] text-[#65737A] mt-1 max-w-sm">
               Real-time daily graphs automatically aggregate as transactions are completed.
             </span>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-neutral-500 pt-2 border-t border-neutral-800/60">
+          <div className="flex items-center justify-between text-[11px] text-[#65737A] pt-3 mt-2 border-t border-[#D9E2E3]">
             <span>Period: {period === "7d" ? "Last 7 Days" : "Last 30 Days"}</span>
-            <span className="text-emerald-400 font-medium">Live sync active</span>
+            <span className="text-[#16B77A] font-medium flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#16B77A]" />
+              Live sync active
+            </span>
           </div>
         </div>
 
-        {/* Platform Breakdown */}
-        <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+        {/* Platform Share */}
+        <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between">
           <div>
-            <h3 className="text-base font-bold text-white tracking-tight mb-1">Platform Share</h3>
-            <p className="text-xs text-neutral-400 mb-5">Distribution of revenue across networks</p>
+            <div className="mb-4">
+              <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+                PLATFORM SHARE
+              </h3>
+              <p className="text-[12px] text-[#65737A] mt-0.5">
+                Distribution of revenue across networks
+              </p>
+            </div>
 
             <div className="space-y-4">
               {(["instagram", "tiktok", "twitter", "youtube"] as Platform[]).map((pKey) => {
                 const item = stats.platformBreakdown[pKey] || { count: 0, revenue: 0, percentage: 0 };
-                const color = 
-                  pKey === "instagram" ? "#E1306C" :
-                  pKey === "tiktok" ? "#25F4EE" :
-                  pKey === "twitter" ? "#1D9BF0" : "#FF0000";
-
                 const label =
                   pKey === "instagram" ? "Instagram" :
                   pKey === "tiktok" ? "TikTok" :
-                  pKey === "twitter" ? "X / Twitter" : "YouTube";
+                  pKey === "twitter" ? "X (Twitter)" : "YouTube";
 
                 return (
                   <div key={pKey} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-neutral-200">{label}</span>
-                      <span className="text-neutral-400">${item.revenue.toFixed(2)} ({item.percentage}%)</span>
+                    <div className="flex items-center justify-between text-[12px]">
+                      <div className="flex items-center gap-2">
+                        <PlatformIcon platform={pKey} size={18} />
+                        <span className="font-semibold text-[#142126]">{label}</span>
+                      </div>
+                      <span className="text-[#65737A] font-medium font-mono">
+                        ${item.revenue.toFixed(2)}{" "}
+                        <span className="text-[#8A979D]">({item.percentage}%)</span>
+                      </span>
                     </div>
-                    <div className="w-full h-2 rounded-full bg-neutral-900 overflow-hidden">
+                    <div className="w-full h-2 rounded-full bg-[#F1F5F5] overflow-hidden border border-[#E5ECEC]">
                       <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${item.percentage}%`, backgroundColor: color }}
+                        className="h-full rounded-full bg-[#0F8F8A] transition-all duration-500"
+                        style={{ width: `${Math.max(0, Math.min(100, item.percentage))}%` }}
                       />
                     </div>
                   </div>
@@ -237,77 +295,116 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
             </div>
           </div>
 
-          <div className="pt-4 mt-4 border-t border-neutral-800/60 text-xs text-neutral-400 flex items-center justify-between">
+          <div className="pt-4 mt-4 border-t border-[#D9E2E3] text-[11px] text-[#65737A] flex items-center justify-between">
             <span>Supported: 4 Networks</span>
-            <span className="text-neutral-300 font-medium">CloutFlow Engine</span>
+            <span className="text-[#142126] font-medium">CloutFlow Engine</span>
           </div>
         </div>
       </div>
 
-      {/* Latest Orders */}
-      <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-6 shadow-xs">
+      {/* Latest Orders Section - Full width table & mobile cards */}
+      <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-base font-bold text-white tracking-tight">Recent Orders</h3>
-            <p className="text-xs text-neutral-400 mt-0.5">Real-time incoming customer transactions</p>
+            <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+              RECENT ORDERS
+            </h3>
+            <p className="text-[12px] text-[#65737A] mt-0.5">
+              Real-time incoming customer transactions
+            </p>
           </div>
           <button
             type="button"
             onClick={onNavigateToOrders}
-            className="text-xs font-semibold text-blue-400 hover:text-blue-300 flex items-center gap-1 cursor-pointer transition-colors"
+            className="text-[12px] font-semibold text-[#0F8F8A] hover:text-[#0C736F] flex items-center gap-1 cursor-pointer transition-colors"
           >
             View all orders <ArrowUpRight className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {stats.recentOrders.length === 0 ? (
-          <div className="py-12 text-center rounded-xl bg-neutral-950/40 border border-neutral-800/40">
-            <div className="w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-neutral-500 mx-auto mb-2">
+          <div className="py-12 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+            <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
               <ShoppingBag className="w-5 h-5" />
             </div>
-            <p className="text-sm font-semibold text-neutral-300">No orders registered yet</p>
-            <span className="text-xs text-neutral-500 mt-1 block">
+            <p className="text-[13px] font-semibold text-[#142126]">No orders registered yet</p>
+            <span className="text-[11px] text-[#65737A] mt-1 block">
               Completed gateway webhooks will register transactions here in real-time.
             </span>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="text-neutral-400 uppercase tracking-wider border-b border-neutral-800">
-                <tr>
-                  <th className="pb-3 font-semibold">Order ID</th>
-                  <th className="pb-3 font-semibold">Platform</th>
-                  <th className="pb-3 font-semibold">Customer</th>
-                  <th className="pb-3 font-semibold">Plan</th>
-                  <th className="pb-3 font-semibold">Amount</th>
-                  <th className="pb-3 font-semibold">Status</th>
-                  <th className="pb-3 font-semibold">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-800/60 text-neutral-300 font-medium">
-                {stats.recentOrders.map((order) => (
-                  <tr key={order.id} className="hover:bg-neutral-800/20 transition-colors">
-                    <td className="py-3 font-mono text-neutral-400">#{(order as any).publicId || order.id.slice(0, 8)}</td>
-                    <td className="py-3 capitalize">{order.platform}</td>
-                    <td className="py-3">@{order.username}</td>
-                    <td className="py-3">{order.plan}</td>
-                    <td className="py-3 font-bold text-white">${order.amount.toFixed(2)}</td>
-                    <td className="py-3">
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        order.status === "delivered" ? "bg-emerald-500/10 text-emerald-400" :
-                        order.status === "paid" ? "bg-blue-500/10 text-blue-400" :
-                        order.status === "failed" ? "bg-red-500/10 text-red-400" :
-                        "bg-amber-500/10 text-amber-400"
-                      }`}>
-                        {order.status.toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="py-3 text-neutral-500">{order.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block">
+              <AdminTable>
+                <AdminTableHeader>
+                  <AdminTableRow>
+                    <AdminTableHead>Order ID</AdminTableHead>
+                    <AdminTableHead>Platform</AdminTableHead>
+                    <AdminTableHead>Customer</AdminTableHead>
+                    <AdminTableHead>Plan</AdminTableHead>
+                    <AdminTableHead className="text-right">Amount</AdminTableHead>
+                    <AdminTableHead className="text-center">Status</AdminTableHead>
+                    <AdminTableHead className="text-right">Date</AdminTableHead>
+                  </AdminTableRow>
+                </AdminTableHeader>
+                <AdminTableBody>
+                  {stats.recentOrders.map((order) => {
+                    const orderPublicId = (order as { publicId?: string }).publicId || order.id.slice(0, 8);
+                    return (
+                      <AdminTableRow key={order.id}>
+                        <AdminTableCell className="font-mono text-[#65737A]">
+                          #{orderPublicId}
+                        </AdminTableCell>
+                        <AdminTableCell>
+                          <div className="flex items-center gap-2">
+                            <PlatformIcon platform={order.platform} size={18} />
+                            <span className="capitalize text-[#142126] font-medium">{order.platform}</span>
+                          </div>
+                        </AdminTableCell>
+                        <AdminTableCell className="font-medium text-[#142126]">
+                          @{order.username}
+                        </AdminTableCell>
+                        <AdminTableCell className="text-[#65737A]">
+                          {order.plan}
+                        </AdminTableCell>
+                        <AdminTableCell className="text-right font-bold text-[#142126] font-mono">
+                          ${order.amount.toFixed(2)}
+                        </AdminTableCell>
+                        <AdminTableCell className="text-center">
+                          <AdminStatusBadge status={order.status} />
+                        </AdminTableCell>
+                        <AdminTableCell className="text-right text-[#8A979D] text-[11px]">
+                          {order.date}
+                        </AdminTableCell>
+                      </AdminTableRow>
+                    );
+                  })}
+                </AdminTableBody>
+              </AdminTable>
+            </div>
+
+            {/* Mobile View */}
+            <div className="md:hidden space-y-3">
+              {stats.recentOrders.map((order) => {
+                const orderPublicId = (order as { publicId?: string }).publicId || order.id.slice(0, 8);
+                return (
+                  <MobileDataCard
+                    key={order.id}
+                    platform={order.platform}
+                    title={`#${orderPublicId}`}
+                    subtitle={`@${order.username} • ${order.plan}`}
+                    status={<AdminStatusBadge status={order.status} />}
+                    metrics={[
+                      { label: "Platform", value: order.platform },
+                      { label: "Amount", value: `$${order.amount.toFixed(2)}` },
+                      { label: "Date", value: order.date },
+                    ]}
+                  />
+                );
+              })}
+            </div>
+          </>
         )}
       </div>
     </div>

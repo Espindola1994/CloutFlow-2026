@@ -10,12 +10,23 @@ import {
   RefreshCw, 
   ExternalLink, 
   CheckCircle2, 
-  XCircle, 
-  X,
   Edit3,
   Power
 } from "lucide-react";
 import { Plan, OrderBumpOffer, UpsellOffer, Coupon, AbTest, Platform } from "../types";
+import {
+  AdminButton,
+  AdminIconButton,
+  AdminModal,
+  PlatformIcon,
+  MobileDataCard,
+  AdminTable,
+  AdminTableHeader,
+  AdminTableBody,
+  AdminTableRow,
+  AdminTableHead,
+  AdminTableCell,
+} from "../ui";
 
 interface GrowthModuleProps {
   bumps: OrderBumpOffer[];
@@ -222,19 +233,25 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
 
   return (
     <div className="space-y-6">
-      {/* Module Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-4">
+      {/* Module Navigation & Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-white tracking-tight">Growth & Offers</h2>
-          <p className="text-xs text-neutral-400 mt-0.5">Manage real offer packages, PerfectPay product linkage, coupons and A/B experiments</p>
+          <h1 className="text-[26px] font-[650] text-[#142126] tracking-tight">
+            Growth / Offers
+          </h1>
+          <p className="text-[13px] text-[#65737A] mt-0.5">
+            Manage social growth products, pricing and commercial campaigns.
+          </p>
         </div>
 
-        <div className="flex items-center bg-neutral-900 border border-neutral-800 rounded-xl p-1 text-xs font-semibold overflow-x-auto">
+        <div className="flex items-center bg-[#FFFFFF] border border-[#D9E2E3] rounded-[8px] p-1 text-[12px] font-semibold shadow-[0_1px_2px_rgba(10,35,42,0.03)] self-start sm:self-auto overflow-x-auto">
           <button
             type="button"
             onClick={() => setActiveTab("plans")}
-            className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "plans" ? "bg-neutral-800 text-white shadow-xs" : "text-neutral-400 hover:text-neutral-200"
+            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === "plans"
+                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
             Live Offers ({offersList.length})
@@ -242,8 +259,10 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
           <button
             type="button"
             onClick={() => setActiveTab("offers")}
-            className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "offers" ? "bg-neutral-800 text-white shadow-xs" : "text-neutral-400 hover:text-neutral-200"
+            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === "offers"
+                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
             Bumps & Upsells
@@ -251,8 +270,10 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
           <button
             type="button"
             onClick={() => setActiveTab("coupons")}
-            className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
-              activeTab === "coupons" ? "bg-neutral-800 text-white shadow-xs" : "text-neutral-400 hover:text-neutral-200"
+            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === "coupons"
+                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
             Coupons ({coupons.length})
@@ -260,8 +281,10 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
           <button
             type="button"
             onClick={() => setActiveTab("ab")}
-            className={`px-3.5 py-2 rounded-lg transition-all cursor-pointer ${
-              activeTab === "ab" ? "bg-neutral-800 text-white shadow-xs" : "text-neutral-400 hover:text-neutral-200"
+            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === "ab"
+                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
             A/B Tests ({abTests.length})
@@ -272,131 +295,212 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
       {/* 1. PLANS / OFFERS TAB */}
       {activeTab === "plans" && (
         <div className="space-y-4">
-          <div className="flex items-center justify-between gap-3 bg-[#12161f] border border-neutral-800/80 rounded-2xl p-4 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-3.5 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)]">
             <select
               value={platformFilter}
               onChange={(e) => setPlatformFilter(e.target.value)}
-              className="bg-neutral-900 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-hidden cursor-pointer"
+              className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] px-3 py-2 text-[12px] text-[#142126] font-medium focus:outline-hidden focus:border-[#0F8F8A] cursor-pointer"
             >
               <option value="all">All Networks</option>
               <option value="instagram">Instagram</option>
               <option value="tiktok">TikTok</option>
-              <option value="twitter">X / Twitter</option>
+              <option value="twitter">X (Twitter)</option>
               <option value="youtube">YouTube</option>
             </select>
 
-            <button
-              type="button"
-              onClick={openCreateModal}
-              className="bg-blue-600 hover:bg-blue-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-            >
-              <Plus className="w-4 h-4" /> Add Offer
-            </button>
+            <div className="flex items-center gap-2">
+              <AdminButton
+                variant="outline"
+                size="sm"
+                onClick={fetchOffers}
+                disabled={loadingOffers}
+              >
+                <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+                Refresh
+              </AdminButton>
+              <AdminButton
+                variant="primary"
+                size="sm"
+                onClick={openCreateModal}
+              >
+                <Plus className="w-3.5 h-3.5 mr-1.5" />
+                Add Offer
+              </AdminButton>
+            </div>
           </div>
 
           {offersError && (
-            <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center justify-between">
+            <div className="p-3.5 rounded-[8px] bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] text-[12px] flex items-center justify-between">
               <span>{offersError}</span>
               <button
                 type="button"
                 onClick={fetchOffers}
-                className="flex items-center gap-1 font-bold underline cursor-pointer"
+                className="flex items-center gap-1 font-semibold underline cursor-pointer"
               >
                 <RefreshCw className="w-3.5 h-3.5" /> Retry
               </button>
             </div>
           )}
 
-          <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-6 shadow-xs">
+          <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
             {filteredPlans.length === 0 ? (
-              <div className="py-16 text-center rounded-xl bg-neutral-950/40 border border-neutral-800/40">
-                <Sparkles className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
-                <h4 className="text-sm font-bold text-neutral-300">No offer records created yet</h4>
-                <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
+              <div className="py-16 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+                <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
+                  <Sparkles className="w-5 h-5" />
+                </div>
+                <h4 className="text-[13px] font-semibold text-[#142126]">No offer records created yet</h4>
+                <p className="text-[11px] text-[#65737A] mt-1 max-w-sm mx-auto">
                   Click &quot;Add Offer&quot; above to persist a new commercial package linked to PerfectPay.
                 </p>
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="text-neutral-400 uppercase tracking-wider border-b border-neutral-800">
-                    <tr>
-                      <th className="pb-3 font-semibold">Platform</th>
-                      <th className="pb-3 font-semibold">Service</th>
-                      <th className="pb-3 font-semibold">Package Name</th>
-                      <th className="pb-3 font-semibold">Quantity</th>
-                      <th className="pb-3 font-semibold">Price (USD)</th>
-                      <th className="pb-3 font-semibold">PerfectPay Linkage</th>
-                      <th className="pb-3 font-semibold">Status</th>
-                      <th className="pb-3 font-semibold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-neutral-800/60 text-neutral-300 font-medium">
-                    {filteredPlans.map((p) => {
-                      const hasLinkage = Boolean(p.perfectpayProductId && p.perfectpayPlanId);
-                      const hasCheckout = Boolean(p.checkoutUrl);
+              <>
+                {/* Desktop View */}
+                <div className="hidden md:block">
+                  <AdminTable>
+                    <AdminTableHeader>
+                      <AdminTableRow>
+                        <AdminTableHead>Platform</AdminTableHead>
+                        <AdminTableHead>Service</AdminTableHead>
+                        <AdminTableHead>Package Name</AdminTableHead>
+                        <AdminTableHead className="text-right">Quantity</AdminTableHead>
+                        <AdminTableHead className="text-right">Price (USD)</AdminTableHead>
+                        <AdminTableHead>PerfectPay Linkage</AdminTableHead>
+                        <AdminTableHead className="text-center">Status</AdminTableHead>
+                        <AdminTableHead className="text-right">Actions</AdminTableHead>
+                      </AdminTableRow>
+                    </AdminTableHeader>
+                    <AdminTableBody>
+                      {filteredPlans.map((p) => {
+                        const hasLinkage = Boolean(p.perfectpayProductId && p.perfectpayPlanId);
+                        const hasCheckout = Boolean(p.checkoutUrl);
 
-                      return (
-                        <tr key={p.id} className="hover:bg-neutral-800/20 transition-colors">
-                          <td className="py-3.5 capitalize font-semibold">{p.platform}</td>
-                          <td className="py-3.5 capitalize">{p.service}</td>
-                          <td className="py-3.5 font-bold text-white">{p.name}</td>
-                          <td className="py-3.5">{p.quantity.toLocaleString()}</td>
-                          <td className="py-3.5 font-bold text-emerald-400">${p.price.toFixed(2)}</td>
-                          <td className="py-3.5">
-                            <div className="space-y-0.5 font-mono text-[11px]">
-                              {hasLinkage ? (
-                                <span className="text-emerald-400 flex items-center gap-1 font-semibold">
-                                  <CheckCircle2 className="w-3 h-3 shrink-0" />
-                                  <span>Prod: {p.perfectpayProductId} · Plan: {p.perfectpayPlanId}</span>
-                                </span>
-                              ) : (
-                                <span className="text-amber-400/90 text-[10px]">
-                                  Missing {!p.perfectpayProductId ? "Product Code" : "Plan Code"}
-                                </span>
-                              )}
-                              {hasCheckout && (
-                                <span className="text-neutral-500 flex items-center gap-1 text-[10px] truncate max-w-[200px]" title={p.checkoutUrl}>
-                                  <ExternalLink className="w-2.5 h-2.5 shrink-0" /> {p.checkoutUrl}
-                                </span>
-                              )}
-                            </div>
-                          </td>
-                          <td className="py-3.5">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              p.active ? "bg-emerald-500/10 text-emerald-400" : "bg-neutral-800 text-neutral-500"
-                            }`}>
-                              {p.active ? "ACTIVE" : "INACTIVE"}
-                            </span>
-                          </td>
-                          <td className="py-3.5 text-right">
-                            <div className="flex items-center justify-end gap-2">
-                              <button
-                                type="button"
-                                onClick={() => openEditModal(p)}
-                                className="p-1.5 rounded-lg bg-neutral-900 hover:bg-neutral-800 text-neutral-300 hover:text-white transition-colors cursor-pointer"
-                                title="Edit Offer"
-                              >
-                                <Edit3 className="w-3.5 h-3.5" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => handleToggleActive(p)}
-                                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                                  p.active ? "bg-red-500/10 text-red-400 hover:bg-red-500/20" : "bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20"
-                                }`}
-                                title={p.active ? "Deactivate Offer" : "Activate Offer"}
-                              >
-                                <Power className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                        return (
+                          <AdminTableRow key={p.id}>
+                            <AdminTableCell>
+                              <div className="flex items-center gap-2">
+                                <PlatformIcon platform={p.platform} size={18} />
+                                <span className="capitalize font-semibold text-[#142126]">{p.platform}</span>
+                              </div>
+                            </AdminTableCell>
+                            <AdminTableCell className="capitalize text-[#65737A] font-medium">
+                              {p.service}
+                            </AdminTableCell>
+                            <AdminTableCell className="font-semibold text-[#142126]">
+                              {p.name}
+                            </AdminTableCell>
+                            <AdminTableCell className="text-right font-mono text-[#142126]">
+                              {p.quantity.toLocaleString()}
+                            </AdminTableCell>
+                            <AdminTableCell className="text-right font-bold text-[#142126] font-mono">
+                              ${p.price.toFixed(2)}
+                            </AdminTableCell>
+                            <AdminTableCell>
+                              <div className="space-y-0.5 font-mono text-[11px]">
+                                {hasLinkage ? (
+                                  <span className="text-[#16B77A] flex items-center gap-1 font-semibold">
+                                    <CheckCircle2 className="w-3 h-3 shrink-0" />
+                                    <span>Prod: {p.perfectpayProductId} · Plan: {p.perfectpayPlanId}</span>
+                                  </span>
+                                ) : (
+                                  <span className="text-[#D97706] text-[11px] font-medium">
+                                    Missing {!p.perfectpayProductId ? "Product Code" : "Plan Code"}
+                                  </span>
+                                )}
+                                {hasCheckout && (
+                                  <span className="text-[#8A979D] flex items-center gap-1 text-[10px] truncate max-w-[200px]" title={p.checkoutUrl}>
+                                    <ExternalLink className="w-2.5 h-2.5 shrink-0" /> {p.checkoutUrl}
+                                  </span>
+                                )}
+                              </div>
+                            </AdminTableCell>
+                            <AdminTableCell className="text-center">
+                              <span className={`inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold ${
+                                p.active 
+                                  ? "bg-[#E8F8F2] text-[#16B77A] border border-[#B9E9D7]" 
+                                  : "bg-[#F1F5F5] text-[#65737A] border border-[#D9E2E3]"
+                              }`}>
+                                {p.active ? "ACTIVE" : "INACTIVE"}
+                              </span>
+                            </AdminTableCell>
+                            <AdminTableCell className="text-right">
+                              <div className="flex items-center justify-end gap-1.5">
+                                <AdminIconButton
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => openEditModal(p)}
+                                  title="Edit Offer"
+                                >
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </AdminIconButton>
+                                <AdminIconButton
+                                  variant={p.active ? "danger" : "outline"}
+                                  size="sm"
+                                  onClick={() => handleToggleActive(p)}
+                                  title={p.active ? "Deactivate Offer" : "Activate Offer"}
+                                >
+                                  <Power className="w-3.5 h-3.5" />
+                                </AdminIconButton>
+                              </div>
+                            </AdminTableCell>
+                          </AdminTableRow>
+                        );
+                      })}
+                    </AdminTableBody>
+                  </AdminTable>
+                </div>
+
+                {/* Mobile View */}
+                <div className="md:hidden space-y-3">
+                  {filteredPlans.map((p) => (
+                    <MobileDataCard
+                      key={p.id}
+                      platform={p.platform}
+                      title={p.name}
+                      subtitle={`${p.platform} • ${p.service}`}
+                      status={
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-[4px] text-[10px] font-semibold ${
+                          p.active 
+                            ? "bg-[#E8F8F2] text-[#16B77A] border border-[#B9E9D7]" 
+                            : "bg-[#F1F5F5] text-[#65737A] border border-[#D9E2E3]"
+                        }`}>
+                          {p.active ? "ACTIVE" : "INACTIVE"}
+                        </span>
+                      }
+                      metrics={[
+                        { label: "Quantity", value: p.quantity.toLocaleString() },
+                        { label: "Price", value: `$${p.price.toFixed(2)}` },
+                        { 
+                          label: "PerfectPay", 
+                          value: p.perfectpayProductId && p.perfectpayPlanId 
+                            ? `P:${p.perfectpayProductId} / Pl:${p.perfectpayPlanId}` 
+                            : "Not Linked" 
+                        },
+                      ]}
+                      actions={
+                        <div className="flex items-center gap-2 pt-2 border-t border-[#D9E2E3]">
+                          <AdminButton
+                            variant="outline"
+                            size="sm"
+                            onClick={() => openEditModal(p)}
+                          >
+                            <Edit3 className="w-3.5 h-3.5 mr-1" />
+                            Edit
+                          </AdminButton>
+                          <AdminButton
+                            variant={p.active ? "danger" : "outline"}
+                            size="sm"
+                            onClick={() => handleToggleActive(p)}
+                          >
+                            <Power className="w-3.5 h-3.5 mr-1" />
+                            {p.active ? "Deactivate" : "Activate"}
+                          </AdminButton>
+                        </div>
+                      }
+                    />
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -405,33 +509,41 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
       {/* 2. ORDER BUMPS & UPSELLS */}
       {activeTab === "offers" && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+          <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-bold text-white tracking-tight">Order Bumps (Checkout)</h3>
-                <span className="text-xs font-semibold text-neutral-400">{bumps.length} Configured</span>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+                  ORDER BUMPS (CHECKOUT)
+                </h3>
+                <span className="text-[12px] font-semibold text-[#65737A]">{bumps.length} Configured</span>
               </div>
-              <p className="text-xs text-neutral-400 mb-6">Micro-offers rendered in the 1-click checkout flow</p>
+              <p className="text-[12px] text-[#65737A] mb-6">Micro-offers rendered in the 1-click checkout flow</p>
             </div>
 
-            <div className="py-12 text-center rounded-xl bg-neutral-950/40 border border-neutral-800/40">
-              <Tag className="w-10 h-10 text-neutral-600 mx-auto mb-2" />
-              <p className="text-xs font-semibold text-neutral-400">No active order bump offers</p>
+            <div className="py-12 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+              <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
+                <Tag className="w-5 h-5" />
+              </div>
+              <p className="text-[12px] font-semibold text-[#65737A]">No active order bump offers</p>
             </div>
           </div>
 
-          <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-6 shadow-xs flex flex-col justify-between">
+          <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between">
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-base font-bold text-white tracking-tight">Post-Purchase Upsells</h3>
-                <span className="text-xs font-semibold text-neutral-400">{upsells.length} Configured</span>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+                  POST-PURCHASE UPSELLS
+                </h3>
+                <span className="text-[12px] font-semibold text-[#65737A]">{upsells.length} Configured</span>
               </div>
-              <p className="text-xs text-neutral-400 mb-6">One-click post payment high-ticket offers</p>
+              <p className="text-[12px] text-[#65737A] mb-6">One-click post payment high-ticket offers</p>
             </div>
 
-            <div className="py-12 text-center rounded-xl bg-neutral-950/40 border border-neutral-800/40">
-              <Percent className="w-10 h-10 text-neutral-600 mx-auto mb-2" />
-              <p className="text-xs font-semibold text-neutral-400">No post-purchase upsells active</p>
+            <div className="py-12 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+              <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
+                <Percent className="w-5 h-5" />
+              </div>
+              <p className="text-[12px] font-semibold text-[#65737A]">No post-purchase upsells active</p>
             </div>
           </div>
         </div>
@@ -439,18 +551,22 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
 
       {/* 3. COUPONS TAB */}
       {activeTab === "coupons" && (
-        <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-6 shadow-xs">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-base font-bold text-white tracking-tight">Promotional Coupons</h3>
-              <p className="text-xs text-neutral-400 mt-0.5">Discount vouchers for marketing and cart recovery</p>
+              <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+                PROMOTIONAL COUPONS
+              </h3>
+              <p className="text-[12px] text-[#65737A] mt-0.5">Discount vouchers for marketing and cart recovery</p>
             </div>
           </div>
 
-          <div className="py-16 text-center rounded-xl bg-neutral-950/40 border border-neutral-800/40">
-            <Tag className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
-            <h4 className="text-sm font-bold text-neutral-300">No coupons active</h4>
-            <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
+          <div className="py-16 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+            <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
+              <Tag className="w-5 h-5" />
+            </div>
+            <h4 className="text-[13px] font-semibold text-[#142126]">No coupons active</h4>
+            <p className="text-[11px] text-[#65737A] mt-1 max-w-sm mx-auto">
               Promotional codes will be persisted in database table `coupons` when configured.
             </p>
           </div>
@@ -459,18 +575,22 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
 
       {/* 4. A/B TESTS TAB */}
       {activeTab === "ab" && (
-        <div className="bg-[#12161f] border border-neutral-800/80 rounded-2xl p-6 shadow-xs">
-          <div className="flex items-center justify-between mb-6">
+        <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
+          <div className="flex items-center justify-between mb-4">
             <div>
-              <h3 className="text-base font-bold text-white tracking-tight">Split Pricing & Funnel Tests</h3>
-              <p className="text-xs text-neutral-400 mt-0.5">Automated conversion rate optimization experiments</p>
+              <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+                SPLIT PRICING & FUNNEL TESTS
+              </h3>
+              <p className="text-[12px] text-[#65737A] mt-0.5">Automated conversion rate optimization experiments</p>
             </div>
           </div>
 
-          <div className="py-16 text-center rounded-xl bg-neutral-950/40 border border-neutral-800/40">
-            <Split className="w-12 h-12 text-neutral-600 mx-auto mb-3" />
-            <h4 className="text-sm font-bold text-neutral-300">No active A/B experiments</h4>
-            <p className="text-xs text-neutral-500 mt-1 max-w-sm mx-auto">
+          <div className="py-16 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+            <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
+              <Split className="w-5 h-5" />
+            </div>
+            <h4 className="text-[13px] font-semibold text-[#142126]">No active A/B experiments</h4>
+            <p className="text-[11px] text-[#65737A] mt-1 max-w-sm mx-auto">
               Launch split-testing between price points to discover conversion sweet spots.
             </p>
           </div>
@@ -478,242 +598,232 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
       )}
 
       {/* Create / Edit Offer Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
-          <div className="bg-[#12161f] border border-neutral-800 rounded-2xl p-6 max-w-lg w-full shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
-              <h3 className="text-base font-bold text-white">
-                {editingOfferId ? "Edit Offer Package" : "Create New Offer"}
-              </h3>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="text-neutral-400 hover:text-white p-1"
+      <AdminModal
+        open={isModalOpen}
+        onOpenChange={setIsModalOpen}
+        title={editingOfferId ? "Edit Offer Package" : "Create New Offer"}
+        description="Configure package metadata, pricing and PerfectPay product linkage."
+      >
+        <form onSubmit={handleSaveOffer} className="space-y-4 text-[12px]">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[#142126] font-semibold block mb-1">Platform</label>
+              <select
+                value={formPlatform}
+                disabled={Boolean(editingOfferId)}
+                onChange={(e) => setFormPlatform(e.target.value as Platform)}
+                className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] disabled:opacity-50 focus:outline-hidden focus:border-[#0F8F8A]"
               >
-                <X className="w-5 h-5" />
-              </button>
+                <option value="instagram">Instagram</option>
+                <option value="tiktok">TikTok</option>
+                <option value="twitter">X (Twitter)</option>
+                <option value="youtube">YouTube</option>
+              </select>
             </div>
+            <div>
+              <label className="text-[#142126] font-semibold block mb-1">Service</label>
+              <select
+                value={formService}
+                disabled={Boolean(editingOfferId)}
+                onChange={(e) => setFormService(e.target.value)}
+                className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] disabled:opacity-50 focus:outline-hidden focus:border-[#0F8F8A]"
+              >
+                <option value="followers">Followers</option>
+                <option value="likes">Likes</option>
+                <option value="views">Views</option>
+                <option value="comments">Comments</option>
+              </select>
+            </div>
+          </div>
 
-            <form onSubmit={handleSaveOffer} className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-neutral-300 font-semibold block mb-1">Platform</label>
-                  <select
-                    value={formPlatform}
-                    disabled={Boolean(editingOfferId)}
-                    onChange={(e) => setFormPlatform(e.target.value as Platform)}
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white disabled:opacity-50"
-                  >
-                    <option value="instagram">Instagram</option>
-                    <option value="tiktok">TikTok</option>
-                    <option value="twitter">X / Twitter</option>
-                    <option value="youtube">YouTube</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-neutral-300 font-semibold block mb-1">Service</label>
-                  <select
-                    value={formService}
-                    disabled={Boolean(editingOfferId)}
-                    onChange={(e) => setFormService(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white disabled:opacity-50"
-                  >
-                    <option value="followers">Followers</option>
-                    <option value="likes">Likes</option>
-                    <option value="views">Views</option>
-                    <option value="comments">Comments</option>
-                  </select>
-                </div>
-              </div>
+          <div>
+            <label className="text-[#142126] font-semibold block mb-1">Offer Name</label>
+            <input
+              type="text"
+              placeholder="e.g. 1,000 High-Quality Followers"
+              value={formName}
+              onChange={(e) => setFormName(e.target.value)}
+              className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] placeholder:text-[#8A979D] focus:outline-hidden focus:border-[#0F8F8A]"
+              required
+            />
+          </div>
 
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <label className="text-[#142126] font-semibold block mb-1">Service Quantity</label>
+              <input
+                type="number"
+                placeholder="e.g. 2000"
+                value={formQuantity}
+                onChange={(e) => setFormQuantity(e.target.value)}
+                className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] focus:outline-hidden focus:border-[#0F8F8A]"
+                required
+              />
+              <span className="text-[10px] text-[#8A979D] block mt-0.5">Delivered per order</span>
+            </div>
+            <div>
+              <label className="text-[#142126] font-semibold block mb-1">Price ($ USD)</label>
+              <input
+                type="text"
+                value={formPrice}
+                onChange={(e) => setFormPrice(e.target.value)}
+                className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] focus:outline-hidden focus:border-[#0F8F8A]"
+                required
+              />
+            </div>
+            <div>
+              <label className="text-[#142126] font-semibold block mb-1">Old Price ($ USD)</label>
+              <input
+                type="text"
+                value={formOldPrice}
+                onChange={(e) => setFormOldPrice(e.target.value)}
+                className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] focus:outline-hidden focus:border-[#0F8F8A]"
+              />
+            </div>
+          </div>
+
+          {/* Marketing & Card Customization */}
+          <div className="pt-2 border-t border-[#D9E2E3] space-y-3">
+            <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="text-neutral-300 font-semibold block mb-1">Offer Name</label>
+                <label className="text-[#142126] font-semibold block mb-1">Card Badge</label>
                 <input
                   type="text"
-                  placeholder="e.g. 1,000 High-Quality Followers"
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-500"
-                  required
+                  placeholder="e.g. MOST POPULAR"
+                  value={formBadge}
+                  onChange={(e) => setFormBadge(e.target.value)}
+                  className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] placeholder:text-[#8A979D] focus:outline-hidden focus:border-[#0F8F8A]"
                 />
               </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <label className="text-neutral-300 font-semibold block mb-1">Service Quantity</label>
-                  <input
-                    type="number"
-                    placeholder="e.g. 2000"
-                    value={formQuantity}
-                    onChange={(e) => setFormQuantity(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
-                    required
-                  />
-                  <span className="text-[10px] text-neutral-500 block mt-0.5">Delivered per order</span>
-                </div>
-                <div>
-                  <label className="text-neutral-300 font-semibold block mb-1">Price ($ USD)</label>
-                  <input
-                    type="text"
-                    value={formPrice}
-                    onChange={(e) => setFormPrice(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="text-neutral-300 font-semibold block mb-1">Old Price ($ USD)</label>
-                  <input
-                    type="text"
-                    value={formOldPrice}
-                    onChange={(e) => setFormOldPrice(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
-                  />
-                </div>
-              </div>
-
-              {/* Marketing & Card Customization */}
-              <div className="pt-2 border-t border-neutral-800 space-y-3">
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="text-neutral-300 font-semibold block mb-1">Card Badge</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. MOST POPULAR"
-                      value={formBadge}
-                      onChange={(e) => setFormBadge(e.target.value)}
-                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-600"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-neutral-300 font-semibold block mb-1">Sort Position (0-5)</label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="10"
-                      value={formSortOrder}
-                      onChange={(e) => setFormSortOrder(e.target.value)}
-                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-neutral-300 font-semibold block mb-1">Button CTA Text</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. GET STARTED"
-                      value={formCtaText}
-                      onChange={(e) => setFormCtaText(e.target.value)}
-                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-600"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-neutral-300 font-semibold block mb-1">Custom Feature Bullets (1 per line)</label>
-                  <textarea
-                    rows={3}
-                    placeholder="Fast start&#10;No password required&#10;Secure checkout"
-                    value={formBenefits}
-                    onChange={(e) => setFormBenefits(e.target.value)}
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-600 font-mono text-[11px]"
-                  />
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    id="formPopular"
-                    checked={formPopular}
-                    onChange={(e) => setFormPopular(e.target.checked)}
-                    className="rounded-sm border-neutral-700 bg-neutral-900 text-pink-600"
-                  />
-                  <label htmlFor="formPopular" className="text-neutral-300 font-medium cursor-pointer">
-                    Featured Card (Highlighted glow, larger scale & default focus)
-                  </label>
-                </div>
-              </div>
-
               <div>
-                <label className="text-neutral-300 font-semibold block mb-1">External Checkout URL (https://)</label>
+                <label className="text-[#142126] font-semibold block mb-1">Sort Position (0-5)</label>
                 <input
-                  type="url"
-                  placeholder="https://checkout.perfectpay.com.br/pay/..."
-                  value={formCheckoutUrl}
-                  onChange={(e) => setFormCheckoutUrl(e.target.value)}
-                  className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-500 font-mono text-[11px]"
+                  type="number"
+                  min="0"
+                  max="10"
+                  value={formSortOrder}
+                  onChange={(e) => setFormSortOrder(e.target.value)}
+                  className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] focus:outline-hidden focus:border-[#0F8F8A]"
                 />
               </div>
-
-              {/* PerfectPay Integration Section */}
-              <div className="pt-3 border-t border-neutral-800/80 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
-                    <span>PerfectPay Integration</span>
-                  </span>
-                  <span className="px-2 py-0.5 rounded-md bg-neutral-900 text-neutral-400 font-semibold text-[10px] border border-neutral-800">
-                    Gateway: PerfectPay
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-neutral-400 font-semibold block mb-1">PerfectPay Product Code (`product.code`)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. PP_PROD_123"
-                      value={formProductId}
-                      onChange={(e) => setFormProductId(e.target.value)}
-                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-600 font-mono text-[11px]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-neutral-400 font-semibold block mb-1">PerfectPay Plan Code (`plan.code`)</label>
-                    <input
-                      type="text"
-                      placeholder="e.g. PP_PLAN_456"
-                      value={formPlanId}
-                      onChange={(e) => setFormPlanId(e.target.value)}
-                      className="w-full bg-neutral-900 border border-neutral-800 rounded-xl p-2.5 text-white placeholder:text-neutral-600 font-mono text-[11px]"
-                    />
-                  </div>
-                </div>
+              <div>
+                <label className="text-[#142126] font-semibold block mb-1">Button CTA Text</label>
+                <input
+                  type="text"
+                  placeholder="e.g. GET STARTED"
+                  value={formCtaText}
+                  onChange={(e) => setFormCtaText(e.target.value)}
+                  className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] placeholder:text-[#8A979D] focus:outline-hidden focus:border-[#0F8F8A]"
+                />
               </div>
+            </div>
 
-              {editingOfferId && (
-                <div className="flex items-center gap-2 pt-1">
-                  <input
-                    type="checkbox"
-                    id="formActive"
-                    checked={formActive}
-                    onChange={(e) => setFormActive(e.target.checked)}
-                    className="rounded-sm border-neutral-700 bg-neutral-900 text-blue-600"
-                  />
-                  <label htmlFor="formActive" className="text-neutral-300 font-medium cursor-pointer">
-                    Offer is active and visible in the public funnel
-                  </label>
-                </div>
-              )}
+            <div>
+              <label className="text-[#142126] font-semibold block mb-1">Custom Feature Bullets (1 per line)</label>
+              <textarea
+                rows={3}
+                placeholder="Fast start&#10;No password required&#10;Secure checkout"
+                value={formBenefits}
+                onChange={(e) => setFormBenefits(e.target.value)}
+                className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] placeholder:text-[#8A979D] font-mono text-[11px] focus:outline-hidden focus:border-[#0F8F8A]"
+              />
+            </div>
 
-              <div className="pt-3 border-t border-neutral-800 flex items-center justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-neutral-400 hover:text-white cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={formLoading}
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-xl font-bold cursor-pointer disabled:opacity-50 shadow-xs"
-                >
-                  {formLoading ? "Saving..." : editingOfferId ? "Update Offer" : "Save Offer"}
-                </button>
-              </div>
-            </form>
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="formPopular"
+                checked={formPopular}
+                onChange={(e) => setFormPopular(e.target.checked)}
+                className="rounded-xs border-[#D9E2E3] text-[#0F8F8A] focus:ring-[#0F8F8A]"
+              />
+              <label htmlFor="formPopular" className="text-[#142126] font-medium cursor-pointer">
+                Featured Card (Highlighted badge, default focus)
+              </label>
+            </div>
           </div>
-        </div>
-      )}
+
+          <div>
+            <label className="text-[#142126] font-semibold block mb-1">External Checkout URL (https://)</label>
+            <input
+              type="url"
+              placeholder="https://checkout.perfectpay.com.br/pay/..."
+              value={formCheckoutUrl}
+              onChange={(e) => setFormCheckoutUrl(e.target.value)}
+              className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] placeholder:text-[#8A979D] font-mono text-[11px] focus:outline-hidden focus:border-[#0F8F8A]"
+            />
+          </div>
+
+          {/* PerfectPay Integration Section */}
+          <div className="pt-3 border-t border-[#D9E2E3] space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold text-[#142126] uppercase tracking-wider">
+                PerfectPay Integration
+              </span>
+              <span className="px-2 py-0.5 rounded-[4px] bg-[#EAF6F5] text-[#0F8F8A] font-semibold text-[10px] border border-[#B9E3E0]">
+                Gateway: PerfectPay
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[#65737A] font-semibold block mb-1">PerfectPay Product Code (`product.code`)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. PP_PROD_123"
+                  value={formProductId}
+                  onChange={(e) => setFormProductId(e.target.value)}
+                  className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] placeholder:text-[#8A979D] font-mono text-[11px] focus:outline-hidden focus:border-[#0F8F8A]"
+                />
+              </div>
+              <div>
+                <label className="text-[#65737A] font-semibold block mb-1">PerfectPay Plan Code (`plan.code`)</label>
+                <input
+                  type="text"
+                  placeholder="e.g. PP_PLAN_456"
+                  value={formPlanId}
+                  onChange={(e) => setFormPlanId(e.target.value)}
+                  className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] placeholder:text-[#8A979D] font-mono text-[11px] focus:outline-hidden focus:border-[#0F8F8A]"
+                />
+              </div>
+            </div>
+          </div>
+
+          {editingOfferId && (
+            <div className="flex items-center gap-2 pt-1">
+              <input
+                type="checkbox"
+                id="formActive"
+                checked={formActive}
+                onChange={(e) => setFormActive(e.target.checked)}
+                className="rounded-xs border-[#D9E2E3] text-[#0F8F8A] focus:ring-[#0F8F8A]"
+              />
+              <label htmlFor="formActive" className="text-[#142126] font-medium cursor-pointer">
+                Offer is active and visible in the public funnel
+              </label>
+            </div>
+          )}
+
+          <div className="pt-4 border-t border-[#D9E2E3] flex items-center justify-end gap-2">
+            <AdminButton
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => setIsModalOpen(false)}
+            >
+              Cancel
+            </AdminButton>
+            <AdminButton
+              type="submit"
+              variant="primary"
+              size="md"
+              disabled={formLoading}
+            >
+              {formLoading ? "Saving..." : editingOfferId ? "Update Offer" : "Save Offer"}
+            </AdminButton>
+          </div>
+        </form>
+      </AdminModal>
     </div>
   );
 }
