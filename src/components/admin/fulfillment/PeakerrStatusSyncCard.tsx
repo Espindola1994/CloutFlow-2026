@@ -30,6 +30,7 @@ export const PEAKERR_SYNC_BUILD_ID = "02bf761-fase31-rebalance";
  * White cards with 28x28 soft icon container and semantic dot/value highlights.
  */
 export function PeakerrStatusSyncCard({
+  enabled,
   loading,
   metrics,
   onRunSync,
@@ -92,12 +93,22 @@ export function PeakerrStatusSyncCard({
       {/* Section Header */}
       <div className="flex items-center justify-between min-h-[44px]">
         <div>
-          <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+          <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126] flex items-center gap-2">
             AUTOMATIC STATUS SYNC
+            <span className={`px-1.5 py-0.5 text-[9px] font-bold tracking-wider rounded ${enabled ? "bg-[#E8F8F2] text-[#16B77A] border border-[#B6ECD7]" : "bg-[#F1F5F5] text-[#65737A] border border-[#D9E2E3]"}`}>
+              {enabled ? "ENABLED" : "DISABLED"}
+            </span>
           </h3>
           <p className="text-[12px] text-[#65737A] mt-0.5">
-            Read-only monitoring of provider order synchronization.
+            {enabled 
+              ? "Provider status synchronization may run automatically when an authorized scheduler/trigger invokes the sync endpoint."
+              : "Provider status updates require manual Sync Now or another authorized trigger."
+            }
           </p>
+          <div className="text-[11px] text-[#8F9B9F] mt-1 flex items-center gap-1.5">
+            <span className="font-semibold">Trigger Mode:</span>
+            <span>MANUAL / EXTERNAL ONLY</span>
+          </div>
         </div>
         <button
           type="button"

@@ -4,6 +4,8 @@ import {
   autoDispatchOrder,
   isAutoDispatchEnabled,
   isLiveFulfillmentEnabled,
+  isTargetQueueAutoReleaseEnabled,
+  isStatusSyncEnabled,
   evaluateWaitingProviderReconciliation,
   reconcileWaitingProviderOrder,
   evaluateWaitingProviderRecovery,
@@ -176,6 +178,30 @@ describe('Auto Dispatch Infrastructure (Phase 4.0)', () => {
       expect(result.success).toBe(false);
       expect(result.code).toBe('LIVE_FULFILLMENT_DISABLED');
       expect(peakerrClient.createOrder).not.toHaveBeenCalled();
+    });
+
+    it('33b. Missing ENVs resolve to false for Queue Auto Release and Status Sync', () => {
+      delete process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED;
+      delete process.env.PEAKERR_STATUS_SYNC_ENABLED;
+
+      expect(isTargetQueueAutoReleaseEnabled()).toBe(false);
+      expect(isStatusSyncEnabled()).toBe(false);
+    });
+
+    it('33c. Explicit false ENVs resolve to false for Queue Auto Release and Status Sync', () => {
+      process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'false';
+      process.env.PEAKERR_STATUS_SYNC_ENABLED = 'false';
+
+      expect(isTargetQueueAutoReleaseEnabled()).toBe(false);
+      expect(isStatusSyncEnabled()).toBe(false);
+    });
+
+    it('33d. Explicit true ENVs resolve to true for Queue Auto Release and Status Sync', () => {
+      process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+      process.env.PEAKERR_STATUS_SYNC_ENABLED = 'true';
+
+      expect(isTargetQueueAutoReleaseEnabled()).toBe(true);
+      expect(isStatusSyncEnabled()).toBe(true);
     });
   });
 

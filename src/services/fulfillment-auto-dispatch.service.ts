@@ -100,6 +100,8 @@ export interface TargetAvailabilityPreCheckResult {
 export interface AutoDispatchOverviewStats {
   autoDispatchEnabled: boolean;
   liveFulfillmentEnabled: boolean;
+  targetQueueAutoReleaseEnabled: boolean;
+  statusSyncEnabled: boolean;
   paymentTriggerConnected: boolean;
   eligiblePaidOrders: number;
   blockedMissingTarget: number;
@@ -122,6 +124,14 @@ export function isAutoDispatchEnabled(): boolean {
 
 export function isLiveFulfillmentEnabled(): boolean {
   return process.env.PEAKERR_LIVE_FULFILLMENT === 'true';
+}
+
+export function isTargetQueueAutoReleaseEnabled(): boolean {
+  return process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED === 'true';
+}
+
+export function isStatusSyncEnabled(): boolean {
+  return process.env.PEAKERR_STATUS_SYNC_ENABLED === 'true';
 }
 
 /**
@@ -773,6 +783,8 @@ export async function getAutoDispatchOverview(): Promise<AutoDispatchOverviewSta
   const stats: AutoDispatchOverviewStats = {
     autoDispatchEnabled: isAutoDispatchEnabled(),
     liveFulfillmentEnabled: isLiveFulfillmentEnabled(),
+    targetQueueAutoReleaseEnabled: isTargetQueueAutoReleaseEnabled(),
+    statusSyncEnabled: isStatusSyncEnabled(),
     paymentTriggerConnected: true,
     eligiblePaidOrders: 0,
     blockedMissingTarget: 0,

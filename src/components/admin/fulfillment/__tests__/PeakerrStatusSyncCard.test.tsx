@@ -4,7 +4,7 @@ import { PeakerrStatusSyncCard } from '@/components/admin/fulfillment/PeakerrSta
 import { describe, it, expect, vi } from 'vitest';
 
 describe('PeakerrStatusSyncCard DOM Render', () => {
-  it('renders unconditionally regardless of API or Simulation state', () => {
+  it('renders disabled state correctly', () => {
     const onRunSync = vi.fn();
     
     const html = ReactDOMServer.renderToString(
@@ -16,9 +16,11 @@ describe('PeakerrStatusSyncCard DOM Render', () => {
       />
     );
 
-    // Ensure the main header is present
+    // Ensure the main header is present with DISABLED status
     expect(html).toContain('AUTOMATIC STATUS SYNC');
-    expect(html).toContain('Read-only monitoring of provider order synchronization.');
+    expect(html).toContain('DISABLED');
+    expect(html).toContain('Provider status updates require manual Sync Now or another authorized trigger.');
+    expect(html).toContain('MANUAL / EXTERNAL ONLY');
 
     // Ensure manual run button is rendered
     expect(html).toContain('Sync Now');
@@ -31,5 +33,23 @@ describe('PeakerrStatusSyncCard DOM Render', () => {
     expect(html).toContain('Partial');
     expect(html).toContain('Canceled');
     expect(html).toContain('Errors');
+  });
+
+  it('renders enabled state correctly', () => {
+    const onRunSync = vi.fn();
+    
+    const html = ReactDOMServer.renderToString(
+      <PeakerrStatusSyncCard
+        enabled={true}
+        loading={false}
+        metrics={null}
+        onRunSync={onRunSync}
+      />
+    );
+
+    expect(html).toContain('AUTOMATIC STATUS SYNC');
+    expect(html).toContain('ENABLED');
+    expect(html).toContain('Provider status synchronization may run automatically when an authorized scheduler/trigger invokes the sync endpoint.');
+    expect(html).toContain('MANUAL / EXTERNAL ONLY');
   });
 });
