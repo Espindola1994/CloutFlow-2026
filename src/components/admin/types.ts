@@ -2,13 +2,22 @@ export type Platform = 'instagram' | 'tiktok' | 'twitter' | 'youtube';
 
 export interface Order {
   id: string;
+  publicId?: string;
   platform: Platform;
+  target?: string;
   username: string;
+  product?: string;
   email: string;
   service: string;
   plan: string;
+  grossAmount?: number;
   amount: number;
-  status: 'delivered' | 'paid' | 'pending' | 'failed' | 'refunded';
+  perfectPayFee?: number;
+  providerCost?: number;
+  netProfit?: number;
+  status: 'delivered' | 'paid' | 'pending' | 'failed' | 'refunded' | 'chargeback';
+  paymentStatus?: string;
+  fulfillmentStatus?: string;
   date: string;
   gateway: string;
   providerStatus: string;

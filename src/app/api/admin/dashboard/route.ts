@@ -1,53 +1,46 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { db } from '@/db';
-import { orders, platforms } from '@/db/schema';
-import { sql, desc, gte, and, eq } from 'drizzle-orm';
+import { orders, adminCostSettings } from '@/db/schema';
+import { desc, eq } from 'drizzle-orm';
+import { calculateFinancialTotals } from '@/lib/financials';
 
 export async function GET() {
   try {
     await requireAdmin();
 
-    const now = new Date();
-    const thirtyDaysAgo = new Date(now);
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    // 1. Fetch cost settings & all orders
+    const costConfigs = await db.query.adminCostSettings.findMany({
+      where: eq(adminCostSettings.active, true),
+    });
 
-    // 1. Total Revenue (only paid orders)
-    const revResult = await db
-      .select({ 
-        total: sql<number>`COALESCE(SUM(${orders.totalCents}), 0)` 
-      })
-      .from(orders)
-      .where(eq(orders.paymentStatus, 'PAID'));
+    const allOrders = await db.query.orders.findMany({
+      orderBy: [desc(orders.createdAt)],
+    });
 
-    const totalRevenueCents = Number(revResult[0]?.total || 0);
-    const totalRevenue = totalRevenueCents / 100;
+    const orderFinancialRecords = allOrders.map((o) => ({
+      id: o.id,
+      totalCents: Number(o.totalCents) || 0,
+      currency: o.currency || 'USD',
+      paymentStatus: o.paymentStatus,
+      fulfillmentStatus: o.fulfillmentStatus,
+      platform: o.platform,
+      service: o.service,
+      quantity: o.quantity,
+    }));
 
-    // 2. Orders count
-    const totalOrdersRes = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(orders);
-    const totalOrders = Number(totalOrdersRes[0]?.count || 0);
+    const costConfigItems = costConfigs.map((c) => ({
+      platform: c.platform,
+      service: c.service,
+      pricingModel: c.pricingModel,
+      costValueCents: Number(c.costValueCents),
+      gatewayPercentFee: c.gatewayPercentFee,
+      gatewayFixedFeeCents: Number(c.gatewayFixedFeeCents),
+    }));
 
-    const paidOrdersRes = await db
-      .select({ count: sql<number>`COUNT(*)` })
-      .from(orders)
-      .where(eq(orders.paymentStatus, 'PAID'));
-    const paidOrders = Number(paidOrdersRes[0]?.count || 0);
+    const financials = calculateFinancialTotals(orderFinancialRecords, costConfigItems);
 
-    // 3. Average Order Value
-    const aov = paidOrders > 0 ? (totalRevenue / paidOrders).toFixed(2) : '0.00';
-
-    // 4. Platform Breakdown
-    const platformBreakdownRes = (await db
-      .select({
-        platform: orders.platform,
-        ordersCount: sql<number>`COUNT(*)`,
-        revenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${orders.paymentStatus} = 'PAID' THEN ${orders.totalCents} ELSE 0 END), 0)`
-      })
-      .from(orders)
-      .groupBy(orders.platform)) || [];
-
+    // 2. Platform Breakdown (Net Revenue in USD)
     const breakdownMap: Record<string, { count: number; revenue: number; percentage: number }> = {
       instagram: { count: 0, revenue: 0, percentage: 0 },
       tiktok: { count: 0, revenue: 0, percentage: 0 },
@@ -55,63 +48,122 @@ export async function GET() {
       youtube: { count: 0, revenue: 0, percentage: 0 },
     };
 
-    platformBreakdownRes.forEach((row) => {
-      const p = (row.platform || 'instagram').toLowerCase();
+    const netRevenueDollars = financials.netRevenueCents / 100;
+
+    for (const o of allOrders) {
+      const p = (o.platform || 'instagram').toLowerCase();
+      const status = (o.paymentStatus || '').toUpperCase();
+      const isPaid = status === 'PAID' || status === 'COMPLETED' || status === 'APPROVED';
+      const orderAmountDollars = Number(o.totalCents || 0) / 100;
+
       if (breakdownMap[p]) {
-        const rev = Number(row.revenueCents) / 100;
-        breakdownMap[p].count += Number(row.ordersCount);
-        breakdownMap[p].revenue += rev;
-        breakdownMap[p].percentage = totalRevenue > 0 ? Math.round((rev / totalRevenue) * 100) : 0;
+        breakdownMap[p].count += 1;
+        if (isPaid) {
+          breakdownMap[p].revenue += orderAmountDollars;
+        }
+      }
+    }
+
+    Object.keys(breakdownMap).forEach((p) => {
+      if (netRevenueDollars > 0) {
+        breakdownMap[p].percentage = Math.round((breakdownMap[p].revenue / netRevenueDollars) * 100);
+      } else {
+        breakdownMap[p].percentage = 0;
       }
     });
 
-    // 5. PerfectPay Funnel Analytics from webhook_events
-    const funnelRes = await db
-      .select({
-        eventType: sql<string>`${orders.paymentStatus}`,
-        count: sql<number>`COUNT(*)`
-      })
-      .from(orders)
-      .groupBy(orders.paymentStatus);
-
-    const funnelStats: Record<string, number> = {
+    // 3. PerfectPay Funnel Analytics
+    const funnelStats = {
       preCheckout: 0,
       pending: 0,
-      approved: paidOrders,
+      approved: financials.paidOrdersCount,
       rejected: 0,
-      refunded: 0,
+      refunded: financials.refundedOrdersCount,
+      chargeback: financials.chargebackOrdersCount,
       errors: 0,
     };
 
-    // 6. Recent Orders (latest 10)
-    const recent = await db.query.orders.findMany({
-      orderBy: [desc(orders.createdAt)],
-      limit: 10,
-    });
+    // 4. Recent Orders (latest 10) with financial breakdown per row
+    const recent = allOrders.slice(0, 10);
 
-    const formattedRecentOrders = recent.map((o) => ({
-      id: o.id,
-      publicId: o.publicId,
-      platform: (o.platform || 'instagram') as any,
-      username: o.username || 'unknown',
-      email: o.customerEmail || 'anonymous',
-      service: o.service || 'Followers',
-      plan: `${o.quantity.toLocaleString()} units`,
-      amount: Number(o.totalCents) / 100,
-      status: (o.paymentStatus === 'PAID' ? 'paid' : o.status?.toLowerCase() || 'pending') as any,
-      date: new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
-      gateway: o.paymentGateway,
-      providerStatus: o.fulfillmentStatus,
-    }));
+    const formattedRecentOrders = recent.map((o) => {
+      const orderCents = Number(o.totalCents) || 0;
+      const statusUpper = (o.paymentStatus || '').toUpperCase();
+      const isPaid = statusUpper === 'PAID' || statusUpper === 'COMPLETED' || statusUpper === 'APPROVED';
+      const isRefunded = statusUpper === 'REFUNDED';
+      const isChargeback = statusUpper === 'CHARGEBACK' || statusUpper === 'CHARGED_BACK';
+
+      const config = costConfigs.find(
+        (c) => c.platform.toLowerCase() === (o.platform || '').toLowerCase() &&
+               c.service.toLowerCase() === (o.service || '').toLowerCase()
+      );
+
+      const percentFee = config?.gatewayPercentFee ? Number(config.gatewayPercentFee) / 100 : 0.089;
+      const fixedFeeCents = config?.gatewayFixedFeeCents ? Number(config.gatewayFixedFeeCents) : 100;
+      const feeCents = Math.round(orderCents * percentFee + fixedFeeCents);
+
+      let providerCostCents = 0;
+      if (config) {
+        if (config.pricingModel === 'per_1000') {
+          providerCostCents = Math.round((o.quantity / 1000) * Number(config.costValueCents));
+        } else if (config.pricingModel === 'per_unit') {
+          providerCostCents = Math.round(o.quantity * Number(config.costValueCents));
+        } else {
+          providerCostCents = Number(config.costValueCents);
+        }
+      }
+
+      let netProfitDollars = 0;
+      if (isPaid) {
+        netProfitDollars = (orderCents - feeCents - providerCostCents) / 100;
+      } else if (isRefunded || isChargeback) {
+        const wasDispatched = o.fulfillmentStatus && o.fulfillmentStatus !== 'NOT_DISPATCHED' && o.fulfillmentStatus !== 'CANCELED';
+        const incurredProvider = wasDispatched ? providerCostCents : 0;
+        netProfitDollars = -(feeCents + incurredProvider) / 100;
+      }
+
+      return {
+        id: o.id,
+        publicId: o.publicId,
+        platform: (o.platform || 'instagram') as 'instagram' | 'tiktok' | 'twitter' | 'youtube',
+        username: o.socialUsername || o.username || 'unknown',
+        email: o.customerEmail || 'anonymous',
+        service: o.service || 'Followers',
+        plan: `${o.quantity.toLocaleString()} units`,
+        grossAmount: orderCents / 100,
+        amount: orderCents / 100,
+        perfectPayFee: feeCents / 100,
+        providerCost: providerCostCents / 100,
+        netProfit: netProfitDollars,
+        status: isPaid ? 'paid' : isRefunded ? 'refunded' : isChargeback ? 'chargeback' : ((o.status?.toLowerCase() || 'pending') as 'delivered' | 'paid' | 'pending' | 'failed' | 'refunded' | 'chargeback'),
+        paymentStatus: o.paymentStatus,
+        fulfillmentStatus: o.fulfillmentStatus,
+        date: new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        gateway: o.paymentGateway,
+        providerStatus: o.fulfillmentStatus,
+      };
+    });
 
     return NextResponse.json({
       success: true,
       data: {
-        totalRevenue,
-        totalOrders,
-        paidOrders,
-        conversionRate: 'N/A', // Denominator N/A until live traffic funnel tracker is hooked
-        averageOrderValue: aov,
+        grossSales: financials.grossSalesCents / 100,
+        netRevenue: financials.netRevenueCents / 100,
+        refunds: financials.refundsCents / 100,
+        chargebacks: financials.chargebacksCents / 100,
+        perfectPayFees: financials.perfectPayFeesCents / 100,
+        providerCosts: financials.providerCostsCents / 100,
+        netProfit: financials.netProfitCents / 100,
+        netMarginPercent: financials.netMarginPercent,
+        totalRevenue: financials.netRevenueCents / 100,
+        totalOrders: financials.totalOrdersCount,
+        paidOrders: financials.paidOrdersCount,
+        refundedOrders: financials.refundedOrdersCount,
+        chargebackOrders: financials.chargebackOrdersCount,
+        conversionRate: 'N/A',
+        averageOrderValue: (financials.aovCents / 100).toFixed(2),
+        refundRate: financials.refundRatePercent,
+        chargebackRate: financials.chargebackRatePercent,
         platformBreakdown: breakdownMap,
         funnel: funnelStats,
         recentOrders: formattedRecentOrders,

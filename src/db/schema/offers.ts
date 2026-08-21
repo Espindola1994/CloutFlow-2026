@@ -32,8 +32,8 @@ export const adminCostSettings = pgTable('admin_cost_settings', {
   pricingModel: varchar('pricing_model', { length: 50 }).default('per_1000').notNull(), // per_1000, per_unit, fixed
   costValueCents: bigint('cost_value_cents', { mode: 'number' }).notNull(),
   currency: varchar('currency', { length: 10 }).default('USD').notNull(),
-  gatewayPercentFee: decimal('gateway_percent_fee', { precision: 5, scale: 2 }).default('4.99').notNull(),
-  gatewayFixedFeeCents: bigint('gateway_fixed_fee_cents', { mode: 'number' }).default(30).notNull(),
+  gatewayPercentFee: decimal('gateway_percent_fee', { precision: 5, scale: 2 }).default('8.90').notNull(),
+  gatewayFixedFeeCents: bigint('gateway_fixed_fee_cents', { mode: 'number' }).default(100).notNull(),
   active: boolean('active').default(true).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

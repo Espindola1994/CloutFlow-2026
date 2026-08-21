@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { db } from '@/db';
-import { orders } from '@/db/schema';
+import { orders, adminCostSettings } from '@/db/schema';
 import { sql, desc, and, eq, ilike, or } from 'drizzle-orm';
 
 export async function GET(request: Request) {
@@ -24,10 +24,15 @@ export async function GET(request: Request) {
     }
 
     if (status && status !== 'all') {
-      if (status.toUpperCase() === 'PAID') {
-        conditions.push(eq(orders.paymentStatus, 'PAID'));
+      const sUpper = status.toUpperCase();
+      if (sUpper === 'PAID') {
+        conditions.push(or(eq(orders.paymentStatus, 'PAID'), eq(orders.paymentStatus, 'COMPLETED'), eq(orders.paymentStatus, 'APPROVED')));
+      } else if (sUpper === 'REFUNDED') {
+        conditions.push(eq(orders.paymentStatus, 'REFUNDED'));
+      } else if (sUpper === 'CHARGEBACK' || sUpper === 'CHARGED_BACK') {
+        conditions.push(or(eq(orders.paymentStatus, 'CHARGEBACK'), eq(orders.paymentStatus, 'CHARGED_BACK')));
       } else {
-        conditions.push(eq(orders.status, status.toUpperCase()));
+        conditions.push(or(eq(orders.status, sUpper), eq(orders.paymentStatus, sUpper)));
       }
     }
 
@@ -45,6 +50,11 @@ export async function GET(request: Request) {
     }
 
     const whereClause = conditions.length > 0 ? and(...conditions) : undefined;
+
+    // Fetch active cost configs for margin computations
+    const costConfigs = await db.query.adminCostSettings.findMany({
+      where: eq(adminCostSettings.active, true),
+    });
 
     // Count query
     const [countResult] = await db
@@ -91,16 +101,60 @@ export async function GET(request: Request) {
 
       const cleanHandle = displayTarget ? displayTarget.replace(/^@+/, '') : 'target';
 
+      // Safe financial calculation per order in USD
+      const orderCents = Number(o.totalCents) || 0;
+      const paymentStatusUpper = (o.paymentStatus || '').toUpperCase();
+      const isPaid = paymentStatusUpper === 'PAID' || paymentStatusUpper === 'COMPLETED' || paymentStatusUpper === 'APPROVED';
+      const isRefunded = paymentStatusUpper === 'REFUNDED';
+      const isChargeback = paymentStatusUpper === 'CHARGEBACK' || paymentStatusUpper === 'CHARGED_BACK';
+
+      const config = costConfigs.find(
+        (c) => c.platform.toLowerCase() === (o.platform || '').toLowerCase() &&
+               c.service.toLowerCase() === (o.service || '').toLowerCase()
+      );
+
+      const percentFee = config?.gatewayPercentFee ? Number(config.gatewayPercentFee) / 100 : 0.089;
+      const fixedFeeCents = config?.gatewayFixedFeeCents ? Number(config.gatewayFixedFeeCents) : 100;
+      const feeCents = Math.round(orderCents * percentFee + fixedFeeCents);
+
+      let providerCostCents = 0;
+      if (config) {
+        if (config.pricingModel === 'per_1000') {
+          providerCostCents = Math.round((o.quantity / 1000) * Number(config.costValueCents));
+        } else if (config.pricingModel === 'per_unit') {
+          providerCostCents = Math.round(o.quantity * Number(config.costValueCents));
+        } else {
+          providerCostCents = Number(config.costValueCents);
+        }
+      }
+
+      let netProfitDollars = 0;
+      if (isPaid) {
+        netProfitDollars = (orderCents - feeCents - providerCostCents) / 100;
+      } else if (isRefunded || isChargeback) {
+        const wasDispatched = o.fulfillmentStatus && o.fulfillmentStatus !== 'NOT_DISPATCHED' && o.fulfillmentStatus !== 'CANCELED';
+        const incurredProvider = wasDispatched ? providerCostCents : 0;
+        netProfitDollars = -(feeCents + incurredProvider) / 100;
+      }
+
       return {
         id: o.id,
         publicId: o.publicId,
-        platform: (o.platform || 'instagram') as any,
+        platform: (o.platform || 'instagram') as 'instagram' | 'tiktok' | 'twitter' | 'youtube',
+        target: cleanHandle,
         username: cleanHandle,
+        product: `${o.service || 'Followers'} (${o.quantity.toLocaleString()} units)`,
         email: o.customerEmail || 'anonymous',
         service: o.service || 'Followers',
         plan: `${o.quantity.toLocaleString()} units`,
-        amount: Number(o.totalCents) / 100,
-        status: (o.paymentStatus === 'PAID' ? 'paid' : o.status?.toLowerCase() || 'pending') as any,
+        grossAmount: orderCents / 100,
+        amount: orderCents / 100,
+        perfectPayFee: feeCents / 100,
+        providerCost: providerCostCents / 100,
+        netProfit: netProfitDollars,
+        status: isPaid ? 'paid' : isRefunded ? 'refunded' : isChargeback ? 'chargeback' : ((o.status?.toLowerCase() || 'pending') as 'delivered' | 'paid' | 'pending' | 'failed' | 'refunded' | 'chargeback'),
+        paymentStatus: o.paymentStatus,
+        fulfillmentStatus: o.fulfillmentStatus || 'NOT_DISPATCHED',
         date: new Date(o.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         gateway: o.paymentGateway,
         providerStatus: o.fulfillmentStatus,
@@ -114,7 +168,9 @@ export async function GET(request: Request) {
       success: true,
       data: {
         items: formattedOrders,
-        total,
+        orders: formattedOrders,
+        total: total,
+        totalCount: total,
         page,
         limit,
         totalPages,

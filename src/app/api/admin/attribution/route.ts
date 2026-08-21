@@ -14,8 +14,8 @@ export async function GET() {
         utmCampaign: sql<string>`COALESCE(${orders.utmCampaign}, 'None')`,
         utmMedium: sql<string>`COALESCE(${orders.utmMedium}, 'None')`,
         ordersCount: sql<number>`COUNT(*)`,
-        paidOrdersCount: sql<number>`COALESCE(SUM(CASE WHEN ${orders.paymentStatus} = 'PAID' THEN 1 ELSE 0 END), 0)`,
-        revenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${orders.paymentStatus} = 'PAID' THEN ${orders.totalCents} ELSE 0 END), 0)`,
+        paidOrdersCount: sql<number>`COALESCE(SUM(CASE WHEN ${orders.paymentStatus} IN ('PAID', 'COMPLETED', 'APPROVED') THEN 1 ELSE 0 END), 0)`,
+        revenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${orders.paymentStatus} IN ('PAID', 'COMPLETED', 'APPROVED') THEN ${orders.totalCents} ELSE 0 END), 0)`,
       })
       .from(orders)
       .groupBy(
@@ -23,7 +23,7 @@ export async function GET() {
         sql`COALESCE(${orders.utmCampaign}, 'None')`,
         sql`COALESCE(${orders.utmMedium}, 'None')`
       )
-      .orderBy(desc(sql`COALESCE(SUM(CASE WHEN ${orders.paymentStatus} = 'PAID' THEN ${orders.totalCents} ELSE 0 END), 0)`));
+      .orderBy(desc(sql`COALESCE(SUM(CASE WHEN ${orders.paymentStatus} IN ('PAID', 'COMPLETED', 'APPROVED') THEN ${orders.totalCents} ELSE 0 END), 0)`));
 
     const campaigns = attributionRes.map((row) => {
       const revenue = Number(row.revenueCents) / 100;

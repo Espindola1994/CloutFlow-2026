@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 import { 
   ShoppingBag, 
@@ -8,11 +8,11 @@ import {
   PieChart, 
   Tag, 
   ChevronLeft, 
-  ChevronRight,
-  RefreshCw,
-  Percent,
-  Coins,
-  Receipt
+  ChevronRight, 
+  RefreshCw, 
+  Coins, 
+  Receipt, 
+  RotateCcw
 } from "lucide-react";
 import { Order } from "../types";
 import {
@@ -47,19 +47,45 @@ export function OrdersModule() {
   const [page, setPage] = useState(1);
   const pageSize = 15;
 
-  // Real Margins State
+  // Real Margins State (USD Only)
   const [margins, setMargins] = useState<{
+    grossSales: number;
     grossRevenue: number;
+    netRevenue: number;
+    refunds: number;
+    chargebacks: number;
     providerCost: number;
     gatewayFees: number;
+    perfectPayFees: number;
     netProfit: number;
     marginPercent: string;
+    netMarginPercent: string;
+    aov: string;
+    refundRate: string;
+    chargebackRate: string;
+    paidOrdersCount: number;
+    refundedOrdersCount: number;
+    chargebackOrdersCount: number;
+    totalOrdersCount: number;
   }>({
+    grossSales: 0,
     grossRevenue: 0,
+    netRevenue: 0,
+    refunds: 0,
+    chargebacks: 0,
     providerCost: 0,
     gatewayFees: 0,
+    perfectPayFees: 0,
     netProfit: 0,
-    marginPercent: "0",
+    marginPercent: "0.0",
+    netMarginPercent: "0.0",
+    aov: "0.00",
+    refundRate: "0.0",
+    chargebackRate: "0.0",
+    paidOrdersCount: 0,
+    refundedOrdersCount: 0,
+    chargebackOrdersCount: 0,
+    totalOrdersCount: 0,
   });
 
   // Real Attribution State
@@ -121,10 +147,10 @@ export function OrdersModule() {
   });
 
   // Fetch Margins Ledger
-  const [isRefreshingMargins, setIsRefreshingMargins] = useState(false);
+  const [, setLoadingMargins] = useState(false);
   const fetchMargins = async (silent = false) => {
     try {
-      if (silent) setIsRefreshingMargins(true);
+      if (!silent) setLoadingMargins(true);
       const res = await fetch("/api/admin/margins");
       const json = await res.json();
       if (res.ok && json.success) {
@@ -133,7 +159,7 @@ export function OrdersModule() {
     } catch {
       // Safe fallback
     } finally {
-      setIsRefreshingMargins(false);
+      if (!silent) setLoadingMargins(false);
     }
   };
 
@@ -145,11 +171,9 @@ export function OrdersModule() {
   });
 
   // Fetch Real UTM Attribution
-  const [isRefreshingAttribution, setIsRefreshingAttribution] = useState(false);
   const fetchAttribution = async (silent = false) => {
     try {
       if (!silent) setLoadingAttribution(true);
-      else setIsRefreshingAttribution(true);
       
       const res = await fetch("/api/admin/attribution");
       const json = await res.json();
@@ -160,7 +184,6 @@ export function OrdersModule() {
       // Safe fallback
     } finally {
       setLoadingAttribution(false);
-      setIsRefreshingAttribution(false);
     }
   };
   
@@ -173,11 +196,12 @@ export function OrdersModule() {
 
   useEffect(() => {
     if (activeTab === "orders") {
-      fetchOrders(false);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      void fetchOrders(false);
     } else if (activeTab === "margins") {
-      fetchMargins(false);
+      void fetchMargins(false);
     } else if (activeTab === "attribution") {
-      fetchAttribution(false);
+      void fetchAttribution(false);
     }
   }, [activeTab, fetchOrders]);
 
@@ -325,26 +349,34 @@ export function OrdersModule() {
             ) : (
               <div className="space-y-4">
                 {/* Desktop View */}
-                <div className="hidden md:block">
+                <div className="hidden md:block overflow-x-auto">
                   <AdminTable>
                     <AdminTableHeader>
                       <AdminTableRow>
-                        <AdminTableHead>Order ID</AdminTableHead>
+                        <AdminTableHead>Order</AdminTableHead>
                         <AdminTableHead>Platform</AdminTableHead>
-                        <AdminTableHead>Target User</AdminTableHead>
-                        <AdminTableHead>Service & Plan</AdminTableHead>
-                        <AdminTableHead className="text-right">Amount</AdminTableHead>
-                        <AdminTableHead>Gateway</AdminTableHead>
-                        <AdminTableHead className="text-center">Status</AdminTableHead>
+                        <AdminTableHead>Target</AdminTableHead>
+                        <AdminTableHead>Product</AdminTableHead>
+                        <AdminTableHead className="text-right">Gross</AdminTableHead>
+                        <AdminTableHead className="text-right">PP Fee</AdminTableHead>
+                        <AdminTableHead className="text-right">Provider Cost</AdminTableHead>
+                        <AdminTableHead className="text-right">Net Profit</AdminTableHead>
+                        <AdminTableHead className="text-center">Payment Status</AdminTableHead>
+                        <AdminTableHead className="text-center">Fulfillment</AdminTableHead>
                         <AdminTableHead className="text-right">Date</AdminTableHead>
                       </AdminTableRow>
                     </AdminTableHeader>
                     <AdminTableBody>
                       {orders.map((order) => {
-                        const orderPublicId = (order as { publicId?: string }).publicId || order.id.slice(0, 8);
+                        const orderPublicId = order.publicId || order.id.slice(0, 8);
+                        const gross = order.grossAmount ?? order.amount ?? 0;
+                        const ppFee = order.perfectPayFee ?? ((gross * 0.089) + 1.00);
+                        const cost = order.providerCost ?? 0;
+                        const profit = order.netProfit ?? (order.status === 'paid' ? (gross - ppFee - cost) : -(ppFee + cost));
+
                         return (
                           <AdminTableRow key={order.id}>
-                            <AdminTableCell className="font-mono text-[#65737A]">
+                            <AdminTableCell className="font-mono text-[#65737A] font-semibold">
                               #{orderPublicId}
                             </AdminTableCell>
                             <AdminTableCell>
@@ -354,22 +386,31 @@ export function OrdersModule() {
                               </div>
                             </AdminTableCell>
                             <AdminTableCell>
-                              <span className="text-[#142126] block font-semibold">@{order.username}</span>
+                              <span className="text-[#142126] block font-semibold">@{order.target || order.username}</span>
                               {order.email && (
                                 <span className="text-[11px] text-[#8A979D] truncate block max-w-[140px]">{order.email}</span>
                               )}
                             </AdminTableCell>
                             <AdminTableCell className="text-[#65737A]">
-                              {order.plan}
+                              {order.product || `${order.service} • ${order.plan}`}
                             </AdminTableCell>
                             <AdminTableCell className="text-right font-bold text-[#142126] font-mono">
-                              ${order.amount.toFixed(2)}
+                              ${gross.toFixed(2)}
                             </AdminTableCell>
-                            <AdminTableCell className="text-[#65737A] capitalize">
-                              {order.gateway}
+                            <AdminTableCell className="text-right text-[#D97706] font-mono text-[12px]">
+                              ${ppFee.toFixed(2)}
+                            </AdminTableCell>
+                            <AdminTableCell className="text-right text-[#65737A] font-mono text-[12px]">
+                              ${cost.toFixed(2)}
+                            </AdminTableCell>
+                            <AdminTableCell className={`text-right font-bold font-mono text-[12px] ${profit >= 0 ? "text-[#16B77A]" : "text-[#EF4444]"}`}>
+                              {profit < 0 ? `-$${Math.abs(profit).toFixed(2)}` : `$${profit.toFixed(2)}`}
                             </AdminTableCell>
                             <AdminTableCell className="text-center">
                               <AdminStatusBadge status={order.status} />
+                            </AdminTableCell>
+                            <AdminTableCell className="text-center text-[11px] font-mono text-[#65737A]">
+                              {order.fulfillmentStatus || order.providerStatus || 'NOT_DISPATCHED'}
                             </AdminTableCell>
                             <AdminTableCell className="text-right text-[#8A979D] text-[11px]">
                               {order.date}
@@ -384,18 +425,25 @@ export function OrdersModule() {
                 {/* Mobile View */}
                 <div className="md:hidden space-y-3">
                   {orders.map((order) => {
-                    const orderPublicId = (order as { publicId?: string }).publicId || order.id.slice(0, 8);
+                    const orderPublicId = order.publicId || order.id.slice(0, 8);
+                    const gross = order.grossAmount ?? order.amount ?? 0;
+                    const ppFee = order.perfectPayFee ?? ((gross * 0.089) + 1.00);
+                    const cost = order.providerCost ?? 0;
+                    const profit = order.netProfit ?? (order.status === 'paid' ? (gross - ppFee - cost) : -(ppFee + cost));
+
                     return (
                       <MobileDataCard
                         key={order.id}
                         platform={order.platform}
                         title={`#${orderPublicId}`}
-                        subtitle={`@${order.username} • ${order.plan}`}
+                        subtitle={`@${order.target || order.username} • ${order.plan}`}
                         status={<AdminStatusBadge status={order.status} />}
                         metrics={[
-                          { label: "Platform", value: order.platform },
-                          { label: "Amount", value: `$${order.amount.toFixed(2)}` },
-                          { label: "Gateway", value: order.gateway },
+                          { label: "Gross", value: `$${gross.toFixed(2)}` },
+                          { label: "PP Fee", value: `$${ppFee.toFixed(2)}` },
+                          { label: "Cost", value: `$${cost.toFixed(2)}` },
+                          { label: "Net Profit", value: profit < 0 ? `-$${Math.abs(profit).toFixed(2)}` : `$${profit.toFixed(2)}` },
+                          { label: "Fulfillment", value: order.fulfillmentStatus || 'NOT_DISPATCHED' },
                           { label: "Date", value: order.date },
                         ]}
                       />
@@ -435,30 +483,81 @@ export function OrdersModule() {
         </div>
       )}
 
-      {/* 2. MARGINS TAB */}
+      {/* 2. MARGINS TAB (USD Only) */}
       {activeTab === "margins" && (
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
             <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
-                  Gross Revenue
+                <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
+                  Gross Sales
                 </span>
                 <div className="w-7 h-7 rounded-lg bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center">
                   <DollarSign className="w-3.5 h-3.5" />
                 </div>
               </div>
               <div className="mt-2.5">
-                <div className="text-[22px] font-bold tracking-tight text-[#142126]">
-                  ${margins.grossRevenue.toFixed(2)}
+                <div className="text-[20px] font-bold tracking-tight text-[#142126] font-mono">
+                  ${(margins.grossSales ?? margins.grossRevenue ?? 0).toFixed(2)}
                 </div>
-                <p className="text-[11px] text-[#8A979D] mt-0.5">Paid customer checkouts</p>
+                <p className="text-[10.5px] text-[#8A979D] mt-0.5">Total customer checkouts</p>
               </div>
             </div>
 
             <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
+                <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
+                  Net Revenue
+                </span>
+                <div className="w-7 h-7 rounded-lg bg-[#E8F8F2] text-[#16B77A] flex items-center justify-center">
+                  <DollarSign className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="mt-2.5">
+                <div className="text-[20px] font-bold tracking-tight text-[#16B77A] font-mono">
+                  ${(margins.netRevenue ?? margins.grossRevenue ?? 0).toFixed(2)}
+                </div>
+                <p className="text-[10.5px] text-[#8A979D] mt-0.5">Paid minus refunds</p>
+              </div>
+            </div>
+
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
+                  Refunds
+                </span>
+                <div className="w-7 h-7 rounded-lg bg-[#FEECEB] text-[#EF4444] flex items-center justify-center">
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="mt-2.5">
+                <div className="text-[20px] font-bold tracking-tight text-[#EF4444] font-mono">
+                  ${(margins.refunds ?? 0).toFixed(2)}
+                </div>
+                <p className="text-[10.5px] text-[#8A979D] mt-0.5">{margins.refundedOrdersCount ?? 0} refunded orders</p>
+              </div>
+            </div>
+
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
+                  PerfectPay Fees
+                </span>
+                <div className="w-7 h-7 rounded-lg bg-[#FEF3C7] text-[#D97706] flex items-center justify-center">
+                  <Coins className="w-3.5 h-3.5" />
+                </div>
+              </div>
+              <div className="mt-2.5">
+                <div className="text-[20px] font-bold tracking-tight text-[#D97706] font-mono">
+                  ${(margins.perfectPayFees ?? margins.gatewayFees ?? 0).toFixed(2)}
+                </div>
+                <p className="text-[10.5px] text-[#8A979D] mt-0.5">8.9% + $1.00 USD / sale</p>
+              </div>
+            </div>
+
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
                   Provider Cost
                 </span>
                 <div className="w-7 h-7 rounded-lg bg-[#F1F5F5] text-[#65737A] flex items-center justify-center">
@@ -466,61 +565,27 @@ export function OrdersModule() {
                 </div>
               </div>
               <div className="mt-2.5">
-                <div className="text-[22px] font-bold tracking-tight text-[#142126]">
-                  ${margins.providerCost.toFixed(2)}
+                <div className="text-[20px] font-bold tracking-tight text-[#142126] font-mono">
+                  ${(margins.providerCost ?? 0).toFixed(2)}
                 </div>
-                <p className="text-[11px] text-[#8A979D] mt-0.5">SMM execution costs</p>
+                <p className="text-[10.5px] text-[#8A979D] mt-0.5">SMM execution costs</p>
               </div>
             </div>
 
             <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
-                  Gateway Fees
-                </span>
-                <div className="w-7 h-7 rounded-lg bg-[#FEF3C7] text-[#D97706] flex items-center justify-center">
-                  <Coins className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <div className="mt-2.5">
-                <div className="text-[22px] font-bold tracking-tight text-[#D97706]">
-                  ${margins.gatewayFees.toFixed(2)}
-                </div>
-                <p className="text-[11px] text-[#8A979D] mt-0.5">Processor transaction fees</p>
-              </div>
-            </div>
-
-            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
+                <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
                   Net Profit
                 </span>
-                <div className="w-7 h-7 rounded-lg bg-[#E8F8F2] text-[#16B77A] flex items-center justify-center">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${(margins.netProfit ?? 0) >= 0 ? "bg-[#E8F8F2] text-[#16B77A]" : "bg-[#FEECEB] text-[#EF4444]"}`}>
                   <DollarSign className="w-3.5 h-3.5" />
                 </div>
               </div>
               <div className="mt-2.5">
-                <div className="text-[22px] font-bold tracking-tight text-[#16B77A]">
-                  ${margins.netProfit.toFixed(2)}
+                <div className={`text-[20px] font-bold tracking-tight font-mono ${(margins.netProfit ?? 0) >= 0 ? "text-[#16B77A]" : "text-[#EF4444]"}`}>
+                  {(margins.netProfit ?? 0) < 0 ? `-$${Math.abs(margins.netProfit ?? 0).toFixed(2)}` : `$${(margins.netProfit ?? 0).toFixed(2)}`}
                 </div>
-                <p className="text-[11px] text-[#8A979D] mt-0.5">Net after all fees</p>
-              </div>
-            </div>
-
-            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
-                  Profit Margin
-                </span>
-                <div className="w-7 h-7 rounded-lg bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center">
-                  <Percent className="w-3.5 h-3.5" />
-                </div>
-              </div>
-              <div className="mt-2.5">
-                <div className="text-[22px] font-bold tracking-tight text-[#0F8F8A]">
-                  {margins.marginPercent}%
-                </div>
-                <p className="text-[11px] text-[#8A979D] mt-0.5">Net efficiency ratio</p>
+                <p className="text-[10.5px] text-[#8A979D] mt-0.5">Margin: {margins.netMarginPercent ?? margins.marginPercent}%</p>
               </div>
             </div>
           </div>
@@ -529,9 +594,9 @@ export function OrdersModule() {
             <div className="w-12 h-12 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-3">
               <PieChart className="w-6 h-6" />
             </div>
-            <h4 className="text-[14px] font-bold text-[#142126]">Automated Margin Ledger</h4>
+            <h4 className="text-[14px] font-bold text-[#142126]">CloutFlow USD Margin Ledger</h4>
             <p className="text-[12px] text-[#65737A] mt-1 max-w-md mx-auto">
-              Real-time costs compute automatically per order using configured admin pricing rules.
+              Real-time costs compute automatically in USD per order using configured admin pricing rules and PerfectPay 8.9% + $1.00 commercial fee standard.
             </p>
           </div>
         </div>

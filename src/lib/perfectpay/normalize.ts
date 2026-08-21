@@ -257,7 +257,8 @@ export function normalizePerfectPayPayload(body: Record<string, unknown>): Perfe
     }
   }
 
-  // Safe currency mapping prioritizing currency_paid, then currency_enum mapping (2 = USD, 1 = BRL)
+  // Canonical currency for CloutFlow is USD
+  // Parse gateway payload currency if provided, but default canonical to USD
   let currency = 'USD';
   if (body.currency_paid) {
     currency = String(body.currency_paid).toUpperCase().trim();

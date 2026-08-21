@@ -1,79 +1,65 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { db } from '@/db';
-import { orders, adminCostSettings } from '@/db/schema';
-import { sql, eq } from 'drizzle-orm';
+import { adminCostSettings } from '@/db/schema';
+import { eq } from 'drizzle-orm';
+import { calculateFinancialTotals } from '@/lib/financials';
 
 export async function GET() {
   try {
     await requireAdmin();
 
-    // 1. Get gross revenue from paid orders
-    const [grossRes] = await db
-      .select({ 
-        totalCents: sql<number>`COALESCE(SUM(${orders.totalCents}), 0)`,
-        count: sql<number>`COUNT(*)`
-      })
-      .from(orders)
-      .where(eq(orders.paymentStatus, 'PAID'));
-
-    const grossRevenueCents = Number(grossRes?.totalCents || 0);
-    const grossRevenue = grossRevenueCents / 100;
-    const paidOrdersCount = Number(grossRes?.count || 0);
-
-    // 2. Fetch admin cost settings
+    // 1. Fetch admin cost settings
     const costConfigs = await db.query.adminCostSettings.findMany({
       where: eq(adminCostSettings.active, true),
     });
 
-    // 3. Compute provider costs based on actual orders & pricing models
-    let totalProviderCostCents = 0;
-    let totalGatewayFeesCents = 0;
+    // 2. Fetch all orders with financial relevance
+    const allOrders = await db.query.orders.findMany();
 
-    const paidOrders = await db.query.orders.findMany({
-      where: eq(orders.paymentStatus, 'PAID'),
-    });
+    const orderFinancialRecords = allOrders.map((o) => ({
+      id: o.id,
+      totalCents: Number(o.totalCents) || 0,
+      currency: o.currency || 'USD',
+      paymentStatus: o.paymentStatus,
+      fulfillmentStatus: o.fulfillmentStatus,
+      platform: o.platform,
+      service: o.service,
+      quantity: o.quantity,
+    }));
 
-    for (const order of paidOrders) {
-      const platform = (order.platform || 'instagram').toLowerCase();
-      const service = (order.service || 'followers').toLowerCase();
+    const costConfigItems = costConfigs.map((c) => ({
+      platform: c.platform,
+      service: c.service,
+      pricingModel: c.pricingModel,
+      costValueCents: Number(c.costValueCents),
+      gatewayPercentFee: c.gatewayPercentFee,
+      gatewayFixedFeeCents: Number(c.gatewayFixedFeeCents),
+    }));
 
-      const config = costConfigs.find(
-        (c) => c.platform.toLowerCase() === platform && c.service.toLowerCase() === service
-      );
-
-      if (config) {
-        if (config.pricingModel === 'per_1000') {
-          totalProviderCostCents += Math.round((order.quantity / 1000) * Number(config.costValueCents));
-        } else if (config.pricingModel === 'per_unit') {
-          totalProviderCostCents += Math.round(order.quantity * Number(config.costValueCents));
-        } else {
-          totalProviderCostCents += Number(config.costValueCents);
-        }
-
-        const percentFee = Number(config.gatewayPercentFee) / 100;
-        const fixedFee = Number(config.gatewayFixedFeeCents);
-        totalGatewayFeesCents += Math.round(Number(order.totalCents) * percentFee + fixedFee);
-      } else {
-        // Fallback standard rate: 4.99% + $0.30
-        totalGatewayFeesCents += Math.round(Number(order.totalCents) * 0.0499 + 30);
-      }
-    }
-
-    const providerCost = totalProviderCostCents / 100;
-    const gatewayFees = totalGatewayFeesCents / 100;
-    const netProfit = grossRevenue - providerCost - gatewayFees;
-    const marginPercent = grossRevenue > 0 ? ((netProfit / grossRevenue) * 100).toFixed(1) : '0.0';
+    const financials = calculateFinancialTotals(orderFinancialRecords, costConfigItems);
 
     return NextResponse.json({
       success: true,
       data: {
-        grossRevenue,
-        providerCost,
-        gatewayFees,
-        netProfit,
-        marginPercent,
-        paidOrdersCount,
+        grossSales: financials.grossSalesCents / 100,
+        grossRevenue: financials.netRevenueCents / 100,
+        netRevenue: financials.netRevenueCents / 100,
+        refunds: financials.refundsCents / 100,
+        chargebacks: financials.chargebacksCents / 100,
+        providerCost: financials.providerCostsCents / 100,
+        gatewayFees: financials.perfectPayFeesCents / 100,
+        perfectPayFees: financials.perfectPayFeesCents / 100,
+        netProfit: financials.netProfitCents / 100,
+        marginPercent: financials.netMarginPercent,
+        netMarginPercent: financials.netMarginPercent,
+        aov: (financials.aovCents / 100).toFixed(2),
+        refundRate: financials.refundRatePercent,
+        chargebackRate: financials.chargebackRatePercent,
+        paidOrdersCount: financials.paidOrdersCount,
+        refundedOrdersCount: financials.refundedOrdersCount,
+        chargebackOrdersCount: financials.chargebackOrdersCount,
+        totalOrdersCount: financials.totalOrdersCount,
       },
     });
   } catch (error: unknown) {

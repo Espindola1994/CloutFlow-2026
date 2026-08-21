@@ -10,7 +10,11 @@ import {
   Layers, 
   ArrowUpRight, 
   Clock, 
-  RefreshCw 
+  RefreshCw,
+  RotateCcw,
+  Receipt,
+  Coins,
+  Percent
 } from "lucide-react";
 import { Order, Platform } from "../types";
 import {
@@ -35,19 +39,43 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stats, setStats] = useState<{
+    grossSales: number;
+    netRevenue: number;
+    refunds: number;
+    chargebacks: number;
+    perfectPayFees: number;
+    providerCosts: number;
+    netProfit: number;
+    netMarginPercent: string;
     totalRevenue: number;
     totalOrders: number;
     paidOrders: number;
+    refundedOrders: number;
+    chargebackOrders: number;
     conversionRate: string;
     averageOrderValue: string;
+    refundRate: string;
+    chargebackRate: string;
     platformBreakdown: Record<string, { count: number; revenue: number; percentage: number }>;
     recentOrders: Order[];
   }>({
+    grossSales: 0,
+    netRevenue: 0,
+    refunds: 0,
+    chargebacks: 0,
+    perfectPayFees: 0,
+    providerCosts: 0,
+    netProfit: 0,
+    netMarginPercent: "0.0",
     totalRevenue: 0,
     totalOrders: 0,
     paidOrders: 0,
+    refundedOrders: 0,
+    chargebackOrders: 0,
     conversionRate: "N/A",
     averageOrderValue: "0.00",
+    refundRate: "0.0",
+    chargebackRate: "0.0",
     platformBreakdown: {
       instagram: { count: 0, revenue: 0, percentage: 0 },
       tiktok: { count: 0, revenue: 0, percentage: 0 },
@@ -86,7 +114,8 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
   };
 
   useEffect(() => {
-    fetchDashboardData(false);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchDashboardData(false);
   }, []);
 
   // Realtime subscription + event revalidation + window focus + network reconnect
@@ -97,46 +126,83 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
     onRevalidate: () => fetchDashboardData(true),
   });
 
-  const kpis = [
+  // Primary 6 Financial KPIs (USD Only)
+  const primaryKpis = [
     {
-      label: "Total Revenue",
-      value: `$${stats.totalRevenue.toFixed(2)}`,
-      description: "Real paid sales",
+      label: "Gross Sales",
+      value: `$${(stats.grossSales ?? stats.totalRevenue ?? 0).toFixed(2)}`,
+      description: "Total checkout volume",
       icon: DollarSign,
       iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
       valueColor: "text-[#142126]",
     },
     {
-      label: "Total Orders",
-      value: String(stats.totalOrders),
-      description: "All registered checkouts",
-      icon: ShoppingBag,
-      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
-      valueColor: "text-[#142126]",
-    },
-    {
-      label: "Paid Orders",
-      value: String(stats.paidOrders),
-      description: "Verified payments",
+      label: "Net Revenue",
+      value: `$${(stats.netRevenue ?? stats.totalRevenue ?? 0).toFixed(2)}`,
+      description: "Excludes refunds/chargebacks",
       icon: CheckCircle2,
       iconBg: "bg-[#E8F8F2] text-[#16B77A]",
-      valueColor: stats.paidOrders > 0 ? "text-[#16B77A]" : "text-[#142126]",
+      valueColor: (stats.netRevenue ?? stats.totalRevenue ?? 0) > 0 ? "text-[#16B77A]" : "text-[#142126]",
     },
     {
-      label: "Conversion",
-      value: stats.conversionRate,
-      description: "Session-level ratio",
+      label: "Refunds",
+      value: `$${(stats.refunds ?? 0).toFixed(2)}`,
+      description: `${stats.refundedOrders ?? 0} refunded orders (${stats.refundRate ?? '0.0'}%)`,
+      icon: RotateCcw,
+      iconBg: "bg-[#FEECEB] text-[#EF4444]",
+      valueColor: (stats.refunds ?? 0) > 0 ? "text-[#EF4444]" : "text-[#142126]",
+    },
+    {
+      label: "PerfectPay Fees",
+      value: `$${(stats.perfectPayFees ?? 0).toFixed(2)}`,
+      description: "8.9% + $1.00 USD / transaction",
+      icon: Coins,
+      iconBg: "bg-[#FEF3C7] text-[#D97706]",
+      valueColor: "text-[#D97706]",
+    },
+    {
+      label: "Provider Costs",
+      value: `$${(stats.providerCosts ?? 0).toFixed(2)}`,
+      description: "Incurred fulfillment cost",
+      icon: Receipt,
+      iconBg: "bg-[#F1F5F5] text-[#65737A]",
+      valueColor: "text-[#142126]",
+    },
+    {
+      label: "Net Profit",
+      value: (stats.netProfit ?? 0) < 0 ? `-$${Math.abs(stats.netProfit ?? 0).toFixed(2)}` : `$${(stats.netProfit ?? 0).toFixed(2)}`,
+      description: `Margin: ${stats.netMarginPercent ?? '0.0'}%`,
       icon: TrendingUp,
-      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
-      valueColor: "text-[#142126]",
+      iconBg: (stats.netProfit ?? 0) >= 0 ? "bg-[#E8F8F2] text-[#16B77A]" : "bg-[#FEECEB] text-[#EF4444]",
+      valueColor: (stats.netProfit ?? 0) >= 0 ? "text-[#16B77A]" : "text-[#EF4444]",
+    },
+  ];
+
+  // Secondary Ratio KPIs
+  const secondaryKpis = [
+    {
+      label: "Net Margin",
+      value: `${stats.netMarginPercent ?? '0.0'}%`,
+      description: "Profit / Net Revenue",
+      icon: Percent,
     },
     {
-      label: "Avg Order Value",
-      value: `$${stats.averageOrderValue}`,
-      description: "Average per paid customer",
+      label: "AOV (Average Order)",
+      value: `$${stats.averageOrderValue ?? '0.00'}`,
+      description: "Average per paid order",
       icon: Layers,
-      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
-      valueColor: "text-[#142126]",
+    },
+    {
+      label: "Refund Rate",
+      value: `${stats.refundRate ?? '0.0'}%`,
+      description: "Refunds / Gross Sales",
+      icon: RotateCcw,
+    },
+    {
+      label: "Chargeback Rate",
+      value: `${stats.chargebackRate ?? '0.0'}%`,
+      description: "Disputes / Gross Sales",
+      icon: RotateCcw,
     },
   ];
 
@@ -149,7 +215,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
             Dashboard
           </h1>
           <p className="text-[13px] text-[#65737A] mt-0.5">
-            Monitor revenue, orders and fulfillment performance.
+            USD Financial KPIs, orders and fulfillment performance.
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -171,9 +237,9 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
         </div>
       </div>
 
-      {/* Top 5 KPI Cards - Design System standard */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-        {kpis.map((kpi) => {
+      {/* Primary Financial KPIs Grid (USD-Only) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+        {primaryKpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
             <div
@@ -181,7 +247,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
               className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[11px] font-semibold text-[#65737A] uppercase tracking-wider">
+                <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
                   {kpi.label}
                 </span>
                 <div className={`w-7 h-7 rounded-lg ${kpi.iconBg} flex items-center justify-center`}>
@@ -189,12 +255,30 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
                 </div>
               </div>
               <div className="mt-2.5">
-                <div className={`text-[22px] font-bold tracking-tight ${kpi.valueColor}`}>
+                <div className={`text-[20px] font-bold tracking-tight font-mono ${kpi.valueColor}`}>
                   {kpi.value}
                 </div>
-                <p className="text-[11px] text-[#8A979D] mt-0.5">
+                <p className="text-[10.5px] text-[#8A979D] mt-0.5 truncate">
                   {kpi.description}
                 </p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Secondary Financial Health Bar */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#F8FAFA] border border-[#D9E2E3] rounded-[9px] p-3">
+        {secondaryKpis.map((kpi) => {
+          const Icon = kpi.icon;
+          return (
+            <div key={kpi.label} className="flex items-center gap-3 px-2">
+              <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] border border-[#D9E2E3] flex items-center justify-center text-[#0F8F8A] shrink-0">
+                <Icon className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[10.5px] text-[#65737A] block font-medium uppercase tracking-wider">{kpi.label}</span>
+                <span className="text-[15px] font-bold text-[#142126] font-mono">{kpi.value}</span>
               </div>
             </div>
           );
@@ -221,10 +305,10 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
-                REVENUE OVERVIEW
+                REVENUE OVERVIEW (USD)
               </h3>
               <p className="text-[12px] text-[#65737A] mt-0.5">
-                Real-time performance analytics.
+                Real-time USD sales and performance analytics.
               </p>
             </div>
             <div className="flex items-center bg-[#F1F5F5] border border-[#D9E2E3] rounded-[7px] p-0.5 text-[12px] font-medium self-start sm:self-auto">
@@ -262,7 +346,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
               {stats.paidOrders === 0 ? "No chart data available for this timeframe" : "Live timeline active"}
             </p>
             <span className="text-[11px] text-[#65737A] mt-1 max-w-sm">
-              Real-time daily graphs automatically aggregate as transactions are completed.
+              Real-time daily USD graphs automatically aggregate as transactions are completed.
             </span>
           </div>
 
@@ -270,7 +354,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
             <span>Period: {period === "7d" ? "Last 7 Days" : "Last 30 Days"}</span>
             <span className="text-[#16B77A] font-medium flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-[#16B77A]" />
-              Live sync active
+              USD Live sync active
             </span>
           </div>
         </div>
@@ -283,7 +367,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
                 PLATFORM SHARE
               </h3>
               <p className="text-[12px] text-[#65737A] mt-0.5">
-                Distribution of revenue across networks
+                Distribution of USD net revenue across networks
               </p>
             </div>
 
@@ -321,7 +405,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
 
           <div className="pt-4 mt-4 border-t border-[#D9E2E3] text-[11px] text-[#65737A] flex items-center justify-between">
             <span>Supported: 4 Networks</span>
-            <span className="text-[#142126] font-medium">CloutFlow Engine</span>
+            <span className="text-[#142126] font-medium">CloutFlow Engine (USD)</span>
           </div>
         </div>
       </div>
@@ -334,7 +418,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
               RECENT ORDERS
             </h3>
             <p className="text-[12px] text-[#65737A] mt-0.5">
-              Real-time incoming customer transactions
+              Real-time incoming customer transactions (USD)
             </p>
           </div>
           <button
@@ -359,25 +443,34 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
         ) : (
           <>
             {/* Desktop Table View */}
-            <div className="hidden md:block">
+            <div className="hidden md:block overflow-x-auto">
               <AdminTable>
                 <AdminTableHeader>
                   <AdminTableRow>
-                    <AdminTableHead>Order ID</AdminTableHead>
+                    <AdminTableHead>Order</AdminTableHead>
                     <AdminTableHead>Platform</AdminTableHead>
-                    <AdminTableHead>Customer</AdminTableHead>
-                    <AdminTableHead>Plan</AdminTableHead>
-                    <AdminTableHead className="text-right">Amount</AdminTableHead>
-                    <AdminTableHead className="text-center">Status</AdminTableHead>
+                    <AdminTableHead>Target</AdminTableHead>
+                    <AdminTableHead>Product</AdminTableHead>
+                    <AdminTableHead className="text-right">Gross</AdminTableHead>
+                    <AdminTableHead className="text-right">PP Fee</AdminTableHead>
+                    <AdminTableHead className="text-right">Provider Cost</AdminTableHead>
+                    <AdminTableHead className="text-right">Net Profit</AdminTableHead>
+                    <AdminTableHead className="text-center">Payment Status</AdminTableHead>
+                    <AdminTableHead className="text-center">Fulfillment</AdminTableHead>
                     <AdminTableHead className="text-right">Date</AdminTableHead>
                   </AdminTableRow>
                 </AdminTableHeader>
                 <AdminTableBody>
                   {stats.recentOrders.map((order) => {
-                    const orderPublicId = (order as { publicId?: string }).publicId || order.id.slice(0, 8);
+                    const orderPublicId = order.publicId || order.id.slice(0, 8);
+                    const gross = order.grossAmount ?? order.amount ?? 0;
+                    const ppFee = order.perfectPayFee ?? ((gross * 0.089) + 1.00);
+                    const cost = order.providerCost ?? 0;
+                    const profit = order.netProfit ?? (order.status === 'paid' ? (gross - ppFee - cost) : -(ppFee + cost));
+
                     return (
                       <AdminTableRow key={order.id}>
-                        <AdminTableCell className="font-mono text-[#65737A]">
+                        <AdminTableCell className="font-mono text-[#65737A] font-semibold">
                           #{orderPublicId}
                         </AdminTableCell>
                         <AdminTableCell>
@@ -387,16 +480,28 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
                           </div>
                         </AdminTableCell>
                         <AdminTableCell className="font-medium text-[#142126]">
-                          @{order.username}
+                          @{order.target || order.username}
                         </AdminTableCell>
                         <AdminTableCell className="text-[#65737A]">
-                          {order.plan}
+                          {order.product || `${order.service} • ${order.plan}`}
                         </AdminTableCell>
                         <AdminTableCell className="text-right font-bold text-[#142126] font-mono">
-                          ${order.amount.toFixed(2)}
+                          ${gross.toFixed(2)}
+                        </AdminTableCell>
+                        <AdminTableCell className="text-right text-[#D97706] font-mono text-[12px]">
+                          ${ppFee.toFixed(2)}
+                        </AdminTableCell>
+                        <AdminTableCell className="text-right text-[#65737A] font-mono text-[12px]">
+                          ${cost.toFixed(2)}
+                        </AdminTableCell>
+                        <AdminTableCell className={`text-right font-bold font-mono text-[12px] ${profit >= 0 ? "text-[#16B77A]" : "text-[#EF4444]"}`}>
+                          {profit < 0 ? `-$${Math.abs(profit).toFixed(2)}` : `$${profit.toFixed(2)}`}
                         </AdminTableCell>
                         <AdminTableCell className="text-center">
                           <AdminStatusBadge status={order.status} />
+                        </AdminTableCell>
+                        <AdminTableCell className="text-center text-[11px] font-mono text-[#65737A]">
+                          {order.fulfillmentStatus || order.providerStatus || 'NOT_DISPATCHED'}
                         </AdminTableCell>
                         <AdminTableCell className="text-right text-[#8A979D] text-[11px]">
                           {order.date}
@@ -411,17 +516,25 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
             {/* Mobile View */}
             <div className="md:hidden space-y-3">
               {stats.recentOrders.map((order) => {
-                const orderPublicId = (order as { publicId?: string }).publicId || order.id.slice(0, 8);
+                const orderPublicId = order.publicId || order.id.slice(0, 8);
+                const gross = order.grossAmount ?? order.amount ?? 0;
+                const ppFee = order.perfectPayFee ?? ((gross * 0.089) + 1.00);
+                const cost = order.providerCost ?? 0;
+                const profit = order.netProfit ?? (order.status === 'paid' ? (gross - ppFee - cost) : -(ppFee + cost));
+
                 return (
                   <MobileDataCard
                     key={order.id}
                     platform={order.platform}
                     title={`#${orderPublicId}`}
-                    subtitle={`@${order.username} • ${order.plan}`}
+                    subtitle={`@${order.target || order.username} • ${order.plan}`}
                     status={<AdminStatusBadge status={order.status} />}
                     metrics={[
-                      { label: "Platform", value: order.platform },
-                      { label: "Amount", value: `$${order.amount.toFixed(2)}` },
+                      { label: "Gross", value: `$${gross.toFixed(2)}` },
+                      { label: "PP Fee", value: `$${ppFee.toFixed(2)}` },
+                      { label: "Cost", value: `$${cost.toFixed(2)}` },
+                      { label: "Net Profit", value: profit < 0 ? `-$${Math.abs(profit).toFixed(2)}` : `$${profit.toFixed(2)}` },
+                      { label: "Fulfillment", value: order.fulfillmentStatus || 'NOT_DISPATCHED' },
                       { label: "Date", value: order.date },
                     ]}
                   />
@@ -434,3 +547,4 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
     </div>
   );
 }
+
