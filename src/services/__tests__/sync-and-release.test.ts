@@ -487,5 +487,30 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
       expect(result.releasedOrders).toHaveLength(1);
       expect(result.releasedOrders?.[0].publicId).toBe('CF-FAIL');
     });
+
+    it('Case H: sweep throws unexpected exception -> errors incremented and queueReleaseSuccess is 0', async () => {
+      process.env.PEAKERR_STATUS_SYNC_ENABLED = 'true';
+      process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+      (db.select as any).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          innerJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
+
+      vi.mocked(releaseAllEligibleQueuedTargetsDetailed).mockRejectedValueOnce(
+        new Error('Unexpected sweep crash')
+      );
+
+      const result = await syncStatusesAndReleaseQueues();
+
+      expect(result.errors).toBe(1);
+      expect(result.queueReleaseSuccess).toBe(0);
+      expect(result.queueReleaseAttempts).toBe(0);
+      expect(result.releasedOrders).toHaveLength(0);
+      expect(result.details).toContain('Queue sweep error: Unexpected sweep crash');
+    });
   });
 });

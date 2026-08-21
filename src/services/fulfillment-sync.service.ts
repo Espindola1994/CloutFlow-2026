@@ -142,6 +142,7 @@ export async function syncStatusesAndReleaseQueues(options?: {
     } catch (sweepErr: unknown) {
       const error = sweepErr as Error;
       console.error('[StatusSync] Error in queue sweep:', error);
+      result.errors += 1;
       result.details?.push(`Queue sweep error: ${error?.message || 'Unknown error'}`);
     }
   }

@@ -184,7 +184,7 @@ export async function evaluateOrderForQueueRelease(orderIdentifier: string) {
     };
   }
 
-  // Balance Check
+  // Balance Check & Rate Evaluation
   let providerBalance: number | undefined;
   let estimatedCost: number | undefined;
 
@@ -196,12 +196,6 @@ export async function evaluateOrderForQueueRelease(orderIdentifier: string) {
   } catch {
     // Non-blocking
   }
-
-  const [chainService] = (await db
-    .select()
-    .from(fulfillmentOrders) // reuse db query pattern
-    .where(eq(orders.id, order.id))
-    .limit(1)) || [];
 
   try {
     const { fulfillmentChainServices } = await import('@/db/schema');
@@ -216,8 +210,8 @@ export async function evaluateOrderForQueueRelease(orderIdentifier: string) {
       )
       .limit(1);
 
-    if (cs && (cs as any).rate) {
-      const rateNumber = Number((cs as any).rate);
+    if (cs && 'rate' in cs && cs.rate) {
+      const rateNumber = Number(cs.rate);
       estimatedCost = (rateNumber * orderQuantity) / 1000;
     }
   } catch {
@@ -626,10 +620,17 @@ export async function releaseAllEligibleQueuedTargetsDetailed(options?: {
   for (const { platform, canonicalTarget, firstOrderPublicId } of uniqueTargetsMap.values()) {
     try {
       // Diagnostic slot check
-      const slotCheck = await inspectTargetDeliverySlot({ platform, canonicalTarget });
-      diagnosticDetails.push(`QUEUE_SLOT:${slotCheck.isSlotBusy ? 'BUSY' : 'FREE'}`);
+      let isBusy = false;
+      try {
+        const slotCheck = await inspectTargetDeliverySlot({ platform, canonicalTarget });
+        isBusy = slotCheck.isSlotBusy;
+        diagnosticDetails.push(`QUEUE_SLOT:${isBusy ? 'BUSY' : 'FREE'}`);
+      } catch (slotErr) {
+        // If inspection fails, fallback to attempting release safely
+        diagnosticDetails.push(`QUEUE_SLOT:FREE`);
+      }
 
-      if (!slotCheck.isSlotBusy) {
+      if (!isBusy) {
         diagnosticDetails.push(`QUEUE_RELEASE_ATTEMPTED:${firstOrderPublicId}`);
       }
 
@@ -683,7 +684,13 @@ export async function releaseAllEligibleQueuedTargetsDetailed(options?: {
     } catch (err: unknown) {
       const error = err as Error;
       console.error(`[TargetQueueSweep] Error releasing target "${canonicalTarget}":`, error);
-      diagnosticDetails.push(`QUEUE_RELEASE_ERROR:${canonicalTarget}`);
+      const sanitizedMsg = (error?.message || 'UNKNOWN_ERROR')
+        .replace(/https?:\/\/[^\s]+/g, '[REDACTED_URL]')
+        .replace(/bearer\s+[a-zA-Z0-9_\-\.]+/gi, 'Bearer [REDACTED]')
+        .replace(/api[_-]?key\s*[:=]\s*[^\s]+/gi, 'api_key=[REDACTED]')
+        .replace(/[\r\n\t]+/g, ' ')
+        .substring(0, 150);
+      diagnosticDetails.push(`QUEUE_RELEASE_ERROR:${firstOrderPublicId}:${error?.name || 'Error'}:${sanitizedMsg}`);
     }
   }
 

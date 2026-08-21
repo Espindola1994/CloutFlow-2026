@@ -1083,5 +1083,53 @@ describe('Phase 4.7: Target-Aware Serial Delivery Queue', () => {
       expect(detailedOutput.results[0].code).toBe('QUEUE_RELEASE_FAILED');
       expect(detailedOutput.diagnosticDetails).toContain('QUEUE_CLAIM:TRANSITIONED:CF-PROV-FAIL:FAILED');
     });
+
+    it('Scenario G: internal release function throws -> sanitizes error in details, keeps queueReleaseSuccess 0', async () => {
+      process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+      const orderThrow = {
+        ...baseOrder,
+        id: 'ord_throw',
+        publicId: 'CF-8602GA6TIJ',
+        paymentStatus: 'PAID',
+        fulfillmentStatus: 'WAITING_TARGET_SLOT',
+        platform: 'instagram',
+        service: 'followers',
+        socialUsername: 'guilhermeterraaa',
+        targetUrl: 'https://instagram.com/guilhermeterraaa',
+        profileUrl: 'https://instagram.com/guilhermeterraaa',
+        quantity: 100,
+      };
+
+      (db.query.orders.findMany as any).mockImplementation((opts: any) => {
+        return Promise.resolve([orderThrow]);
+      });
+
+      // Force inspectTargetDeliverySlot or releaseNextQueuedOrderForTarget to throw an unhandled exception
+      (peakerrClient.getBalance as any).mockImplementationOnce(() => {
+        throw new Error('Database column missing or connection failed: Bearer token_secret_123');
+      });
+
+      // Force evaluateOrderForQueueRelease to throw by breaking resolution
+      const resolveChainSpy = vi.spyOn(db.query.offers, 'findMany').mockImplementationOnce(() => {
+        throw new Error('Unexpected crash in evaluation: Bearer token_secret_123');
+      });
+
+      // Override order offerId to trigger offers lookup
+      orderThrow.offerId = 'off_test';
+
+      const detailedOutput = await releaseAllEligibleQueuedTargetsDetailed({
+        triggeredBy: 'STATUS_SYNC_ORCHESTRATOR_SWEEP',
+      });
+
+      expect(detailedOutput.results).toHaveLength(0);
+      
+      const errorEntry = detailedOutput.diagnosticDetails.find(d => d.startsWith('QUEUE_RELEASE_ERROR:CF-8602GA6TIJ'));
+      expect(errorEntry).toBeDefined();
+      expect(errorEntry).not.toContain('Bearer token_secret_123');
+      expect(errorEntry).toContain('Bearer [REDACTED]');
+
+      resolveChainSpy.mockRestore();
+    });
   });
 });
