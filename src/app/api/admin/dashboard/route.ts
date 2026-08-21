@@ -3,13 +3,13 @@ import { requireAdmin } from '@/lib/auth';
 import { db } from '@/db';
 import { orders, adminCostSettings } from '@/db/schema';
 import { desc, eq } from 'drizzle-orm';
-import { calculateFinancialTotals } from '@/lib/financials';
+import { calculateFinancialTotals, resolveOrderFulfillmentCost, calculateGatewayFeeCents } from '@/lib/financials';
 
 export async function GET() {
   try {
     await requireAdmin();
 
-    // 1. Fetch cost settings & all orders
+    // 1. Fetch cost settings, all orders & fulfillment records
     const costConfigs = await db.query.adminCostSettings.findMany({
       where: eq(adminCostSettings.active, true),
     });
@@ -18,16 +18,9 @@ export async function GET() {
       orderBy: [desc(orders.createdAt)],
     });
 
-    const orderFinancialRecords = allOrders.map((o) => ({
-      id: o.id,
-      totalCents: Number(o.totalCents) || 0,
-      currency: o.currency || 'USD',
-      paymentStatus: o.paymentStatus,
-      fulfillmentStatus: o.fulfillmentStatus,
-      platform: o.platform,
-      service: o.service,
-      quantity: o.quantity,
-    }));
+    const allFulfillments = db.query.fulfillmentOrders?.findMany
+      ? await db.query.fulfillmentOrders.findMany()
+      : [];
 
     const costConfigItems = costConfigs.map((c) => ({
       platform: c.platform,
@@ -37,6 +30,33 @@ export async function GET() {
       gatewayPercentFee: c.gatewayPercentFee,
       gatewayFixedFeeCents: Number(c.gatewayFixedFeeCents),
     }));
+
+    const orderFinancialRecords = allOrders.map((o) => {
+      const costResolution = resolveOrderFulfillmentCost(
+        {
+          id: o.id,
+          quantity: Number(o.quantity) || 0,
+          platform: o.platform,
+          service: o.service,
+          fulfillmentStatus: o.fulfillmentStatus,
+        },
+        allFulfillments,
+        costConfigItems
+      );
+
+      return {
+        id: o.id,
+        totalCents: Number(o.totalCents) || 0,
+        currency: o.currency || 'USD',
+        paymentStatus: o.paymentStatus,
+        fulfillmentStatus: o.fulfillmentStatus,
+        platform: o.platform,
+        service: o.service,
+        quantity: o.quantity,
+        immutableProviderCostCents: costResolution.providerCostCents,
+        providerCostSource: costResolution.providerCostSource,
+      };
+    });
 
     const financials = calculateFinancialTotals(orderFinancialRecords, costConfigItems);
 
@@ -98,20 +118,28 @@ export async function GET() {
                c.service.toLowerCase() === (o.service || '').toLowerCase()
       );
 
-      const percentFee = config?.gatewayPercentFee ? Number(config.gatewayPercentFee) / 100 : 0.089;
-      const fixedFeeCents = config?.gatewayFixedFeeCents ? Number(config.gatewayFixedFeeCents) : 100;
-      const feeCents = Math.round(orderCents * percentFee + fixedFeeCents);
+      const { feeCents } = calculateGatewayFeeCents(orderCents, config ? {
+        platform: config.platform,
+        service: config.service,
+        pricingModel: config.pricingModel,
+        costValueCents: Number(config.costValueCents),
+        gatewayPercentFee: config.gatewayPercentFee,
+        gatewayFixedFeeCents: Number(config.gatewayFixedFeeCents),
+      } : null);
 
-      let providerCostCents = 0;
-      if (config) {
-        if (config.pricingModel === 'per_1000') {
-          providerCostCents = Math.round((o.quantity / 1000) * Number(config.costValueCents));
-        } else if (config.pricingModel === 'per_unit') {
-          providerCostCents = Math.round(o.quantity * Number(config.costValueCents));
-        } else {
-          providerCostCents = Number(config.costValueCents);
-        }
-      }
+      const costRes = resolveOrderFulfillmentCost(
+        {
+          id: o.id,
+          quantity: Number(o.quantity) || 0,
+          platform: o.platform,
+          service: o.service,
+          fulfillmentStatus: o.fulfillmentStatus,
+        },
+        allFulfillments,
+        costConfigItems
+      );
+
+      const providerCostCents = costRes.providerCostCents ?? 0;
 
       let netProfitDollars = 0;
       if (isPaid) {
@@ -120,6 +148,12 @@ export async function GET() {
         const wasDispatched = o.fulfillmentStatus && o.fulfillmentStatus !== 'NOT_DISPATCHED' && o.fulfillmentStatus !== 'CANCELED';
         const incurredProvider = wasDispatched ? providerCostCents : 0;
         netProfitDollars = -(feeCents + incurredProvider) / 100;
+      } else {
+        // Zero-dollar or unpaid order
+        const wasDispatched = o.fulfillmentStatus && o.fulfillmentStatus !== 'NOT_DISPATCHED' && o.fulfillmentStatus !== 'CANCELED';
+        if (wasDispatched && costRes.providerCostCents !== null) {
+          netProfitDollars = -(feeCents + providerCostCents) / 100;
+        }
       }
 
       return {
@@ -133,7 +167,10 @@ export async function GET() {
         grossAmount: orderCents / 100,
         amount: orderCents / 100,
         perfectPayFee: feeCents / 100,
-        providerCost: providerCostCents / 100,
+        providerCost: costRes.providerCostCents !== null ? costRes.providerCostCents / 100 : null,
+        providerCostSource: costRes.providerCostSource,
+        providerTier: costRes.providerTier,
+        providerRateSnapshot: costRes.providerRateSnapshot,
         netProfit: netProfitDollars,
         status: isPaid ? 'paid' : isRefunded ? 'refunded' : isChargeback ? 'chargeback' : ((o.status?.toLowerCase() || 'pending') as 'delivered' | 'paid' | 'pending' | 'failed' | 'refunded' | 'chargeback'),
         paymentStatus: o.paymentStatus,

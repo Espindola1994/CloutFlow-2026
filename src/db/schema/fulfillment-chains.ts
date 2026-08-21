@@ -31,6 +31,7 @@ export const fulfillmentChainServices = pgTable('fulfillment_chain_services', {
   minQuantity: integer('min_quantity').default(10).notNull(),
   maxQuantity: integer('max_quantity').default(1000000).notNull(),
   refill: boolean('refill').default(false).notNull(),
+  rate: varchar('rate', { length: 50 }), // Provider rate per 1000 units (e.g. "0.001")
   lastCheckOk: boolean('last_check_ok').default(true),
   lastCheckedAt: timestamp('last_checked_at', { withTimezone: true }),
   metadata: jsonb('metadata'),

@@ -4,6 +4,7 @@ import { eq, and, inArray, isNotNull, ne } from 'drizzle-orm';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { mapPeakerrStatusToLocal, resolveCanonicalFulfillmentTarget } from './fulfillment.service';
 import { releaseNextQueuedOrderForTarget, releaseAllEligibleQueuedTargetsDetailed } from './fulfillment-target-queue.service';
+import { canUpgradeProviderCost } from '@/lib/financials';
 
 export interface SyncAndReleaseResult {
   success: boolean;
@@ -222,6 +223,8 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
         provider: fulfillmentOrders.provider,
         externalOrderId: fulfillmentOrders.externalOrderId,
         status: fulfillmentOrders.status,
+        providerCostSource: fulfillmentOrders.providerCostSource,
+        providerCostCapturedAt: fulfillmentOrders.providerCostCapturedAt,
         orderFulfillmentStatus: orders.fulfillmentStatus,
         orderCompletedAt: orders.completedAt,
         orderPlatform: orders.platform,
@@ -324,16 +327,31 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
           currency: rawStatusItem.currency ? String(rawStatusItem.currency) : 'USD',
         };
 
+        // Check if charge is available to upgrade provider cost snapshot
+        const canUpgrade = canUpgradeProviderCost(item.providerCostSource, 'ACTUAL_PROVIDER_CHARGE');
+        const chargeNum = sanitizedPayload.charge !== undefined && sanitizedPayload.charge !== null ? Number(sanitizedPayload.charge) : null;
+        const hasValidCharge = chargeNum !== null && !isNaN(chargeNum) && chargeNum >= 0;
+
+        const fulfillmentUpdateFields: Record<string, any> = {
+          responsePayload: sanitizedPayload,
+          updatedAt: new Date(),
+        };
+
+        if (hasValidCharge && canUpgrade) {
+          fulfillmentUpdateFields.providerCostCents = Math.round(chargeNum * 100);
+          fulfillmentUpdateFields.providerCostSource = 'ACTUAL_PROVIDER_CHARGE';
+          if (!item.providerCostCapturedAt) {
+            fulfillmentUpdateFields.providerCostCapturedAt = new Date();
+          }
+        }
+
         const isStatusChanged = item.status !== mappedStatus || item.orderFulfillmentStatus !== mappedStatus;
 
         if (!isStatusChanged) {
-          // Update payload if fresh but keep counts as unchanged
+          // Update payload and cost snapshot if upgraded but keep counts as unchanged
           await db
             .update(fulfillmentOrders)
-            .set({
-              responsePayload: sanitizedPayload,
-              updatedAt: new Date(),
-            })
+            .set(fulfillmentUpdateFields)
             .where(eq(fulfillmentOrders.id, item.id));
 
           result.unchanged += 1;
@@ -346,9 +364,8 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
           await tx
             .update(fulfillmentOrders)
             .set({
+              ...fulfillmentUpdateFields,
               status: mappedStatus,
-              responsePayload: sanitizedPayload,
-              updatedAt: new Date(),
             })
             .where(eq(fulfillmentOrders.id, item.id));
 

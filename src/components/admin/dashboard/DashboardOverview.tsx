@@ -491,8 +491,12 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
                         <AdminTableCell className="text-right text-[#D97706] font-mono text-[12px]">
                           ${ppFee.toFixed(2)}
                         </AdminTableCell>
-                        <AdminTableCell className="text-right text-[#65737A] font-mono text-[12px]">
-                          ${cost.toFixed(2)}
+                        <AdminTableCell className="text-right text-[#65737A] font-mono text-[12px]" title={order.providerCostSource || undefined}>
+                          {order.providerCost !== null && order.providerCost !== undefined
+                            ? `$${order.providerCost.toFixed(2)}`
+                            : order.providerCostSource === 'UNKNOWN'
+                            ? "—"
+                            : `$${cost.toFixed(2)}`}
                         </AdminTableCell>
                         <AdminTableCell className={`text-right font-bold font-mono text-[12px] ${profit >= 0 ? "text-[#16B77A]" : "text-[#EF4444]"}`}>
                           {profit < 0 ? `-$${Math.abs(profit).toFixed(2)}` : `$${profit.toFixed(2)}`}
@@ -532,7 +536,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
                     metrics={[
                       { label: "Gross", value: `$${gross.toFixed(2)}` },
                       { label: "PP Fee", value: `$${ppFee.toFixed(2)}` },
-                      { label: "Cost", value: `$${cost.toFixed(2)}` },
+                      { label: "Cost", value: order.providerCost !== null && order.providerCost !== undefined ? `$${order.providerCost.toFixed(2)}` : order.providerCostSource === 'UNKNOWN' ? "—" : `$${cost.toFixed(2)}` },
                       { label: "Net Profit", value: profit < 0 ? `-$${Math.abs(profit).toFixed(2)}` : `$${profit.toFixed(2)}` },
                       { label: "Fulfillment", value: order.fulfillmentStatus || 'NOT_DISPATCHED' },
                       { label: "Date", value: order.date },

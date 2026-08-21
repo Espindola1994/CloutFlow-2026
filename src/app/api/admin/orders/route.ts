@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/lib/auth';
 import { db } from '@/db';
-import { orders, adminCostSettings } from '@/db/schema';
-import { sql, desc, and, eq, ilike, or } from 'drizzle-orm';
+import { orders, adminCostSettings, fulfillmentOrders } from '@/db/schema';
+import { sql, desc, and, eq, ilike, or, inArray } from 'drizzle-orm';
+import { resolveOrderFulfillmentCost, calculateGatewayFeeCents } from '@/lib/financials';
 
 export async function GET(request: Request) {
   try {
@@ -73,6 +74,22 @@ export async function GET(request: Request) {
       offset,
     });
 
+    const itemIds = items.map((i) => i.id);
+    const relatedFulfillments = (itemIds.length > 0 && db.query.fulfillmentOrders?.findMany)
+      ? await db.query.fulfillmentOrders.findMany({
+          where: inArray(fulfillmentOrders.orderId, itemIds),
+        })
+      : [];
+
+    const costConfigItems = costConfigs.map((c) => ({
+      platform: c.platform,
+      service: c.service,
+      pricingModel: c.pricingModel,
+      costValueCents: Number(c.costValueCents),
+      gatewayPercentFee: c.gatewayPercentFee,
+      gatewayFixedFeeCents: Number(c.gatewayFixedFeeCents),
+    }));
+
     const formattedOrders = items.map((o) => {
       // Resolve username / target display prioritizing social_username -> username -> derived from profile/target url
       let displayTarget = o.socialUsername || o.username || null;
@@ -113,20 +130,28 @@ export async function GET(request: Request) {
                c.service.toLowerCase() === (o.service || '').toLowerCase()
       );
 
-      const percentFee = config?.gatewayPercentFee ? Number(config.gatewayPercentFee) / 100 : 0.089;
-      const fixedFeeCents = config?.gatewayFixedFeeCents ? Number(config.gatewayFixedFeeCents) : 100;
-      const feeCents = Math.round(orderCents * percentFee + fixedFeeCents);
+      const { feeCents } = calculateGatewayFeeCents(orderCents, config ? {
+        platform: config.platform,
+        service: config.service,
+        pricingModel: config.pricingModel,
+        costValueCents: Number(config.costValueCents),
+        gatewayPercentFee: config.gatewayPercentFee,
+        gatewayFixedFeeCents: Number(config.gatewayFixedFeeCents),
+      } : null);
 
-      let providerCostCents = 0;
-      if (config) {
-        if (config.pricingModel === 'per_1000') {
-          providerCostCents = Math.round((o.quantity / 1000) * Number(config.costValueCents));
-        } else if (config.pricingModel === 'per_unit') {
-          providerCostCents = Math.round(o.quantity * Number(config.costValueCents));
-        } else {
-          providerCostCents = Number(config.costValueCents);
-        }
-      }
+      const costRes = resolveOrderFulfillmentCost(
+        {
+          id: o.id,
+          quantity: Number(o.quantity) || 0,
+          platform: o.platform,
+          service: o.service,
+          fulfillmentStatus: o.fulfillmentStatus,
+        },
+        relatedFulfillments,
+        costConfigItems
+      );
+
+      const providerCostCents = costRes.providerCostCents ?? 0;
 
       let netProfitDollars = 0;
       if (isPaid) {
@@ -135,6 +160,12 @@ export async function GET(request: Request) {
         const wasDispatched = o.fulfillmentStatus && o.fulfillmentStatus !== 'NOT_DISPATCHED' && o.fulfillmentStatus !== 'CANCELED';
         const incurredProvider = wasDispatched ? providerCostCents : 0;
         netProfitDollars = -(feeCents + incurredProvider) / 100;
+      } else {
+        // Zero-dollar or unpaid order
+        const wasDispatched = o.fulfillmentStatus && o.fulfillmentStatus !== 'NOT_DISPATCHED' && o.fulfillmentStatus !== 'CANCELED';
+        if (wasDispatched && costRes.providerCostCents !== null) {
+          netProfitDollars = -(feeCents + providerCostCents) / 100;
+        }
       }
 
       return {
@@ -150,7 +181,10 @@ export async function GET(request: Request) {
         grossAmount: orderCents / 100,
         amount: orderCents / 100,
         perfectPayFee: feeCents / 100,
-        providerCost: providerCostCents / 100,
+        providerCost: costRes.providerCostCents !== null ? costRes.providerCostCents / 100 : null,
+        providerCostSource: costRes.providerCostSource,
+        providerTier: costRes.providerTier,
+        providerRateSnapshot: costRes.providerRateSnapshot,
         netProfit: netProfitDollars,
         status: isPaid ? 'paid' : isRefunded ? 'refunded' : isChargeback ? 'chargeback' : ((o.status?.toLowerCase() || 'pending') as 'delivered' | 'paid' | 'pending' | 'failed' | 'refunded' | 'chargeback'),
         paymentStatus: o.paymentStatus,

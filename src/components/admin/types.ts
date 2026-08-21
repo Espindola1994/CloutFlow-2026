@@ -13,7 +13,10 @@ export interface Order {
   grossAmount?: number;
   amount: number;
   perfectPayFee?: number;
-  providerCost?: number;
+  providerCost?: number | null;
+  providerCostSource?: string | null;
+  providerTier?: string | null;
+  providerRateSnapshot?: string | null;
   netProfit?: number;
   status: 'delivered' | 'paid' | 'pending' | 'failed' | 'refunded' | 'chargeback';
   paymentStatus?: string;

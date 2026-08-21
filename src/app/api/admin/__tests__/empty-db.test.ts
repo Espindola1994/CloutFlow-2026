@@ -16,9 +16,9 @@ vi.mock('@/db', () => {
   const queryBuilder = {
     where: vi.fn().mockImplementation(() => Promise.resolve([{ total: 0, count: 0, totalCents: 0 }])),
     groupBy: vi.fn().mockImplementation(() => {
-      const groupBuilder: any = Promise.resolve([]);
-      groupBuilder.orderBy = vi.fn().mockResolvedValue([]);
-      return groupBuilder;
+      return Object.assign(Promise.resolve([]), {
+        orderBy: vi.fn().mockResolvedValue([]),
+      });
     }),
   };
 
@@ -35,6 +35,9 @@ vi.mock('@/db', () => {
           findMany: vi.fn().mockResolvedValue([]),
         },
         adminCostSettings: {
+          findMany: vi.fn().mockResolvedValue([]),
+        },
+        fulfillmentOrders: {
           findMany: vi.fn().mockResolvedValue([]),
         },
         webhookEvents: {

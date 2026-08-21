@@ -5,6 +5,7 @@ import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { resolveCanonicalFulfillmentTarget } from './fulfillment.service';
 import { isAutoDispatchEnabled, isLiveFulfillmentEnabled } from './fulfillment-auto-dispatch.service';
 import { resolveFulfillmentChainAndPreview } from './fulfillment-chain.service';
+import { calculateExecutedServiceCost } from '@/lib/financials';
 
 /**
  * Kill switch check for target queue auto release.
@@ -197,6 +198,8 @@ export async function evaluateOrderForQueueRelease(orderIdentifier: string) {
     // Non-blocking
   }
 
+  let serviceRateStr: string | null = resolution.selectedServiceRate || null;
+
   try {
     const { fulfillmentChainServices } = await import('@/db/schema');
     const [cs] = await db
@@ -211,6 +214,7 @@ export async function evaluateOrderForQueueRelease(orderIdentifier: string) {
       .limit(1);
 
     if (cs && 'rate' in cs && cs.rate) {
+      serviceRateStr = String(cs.rate);
       const rateNumber = Number(cs.rate);
       estimatedCost = (rateNumber * orderQuantity) / 1000;
     }
@@ -227,6 +231,8 @@ export async function evaluateOrderForQueueRelease(orderIdentifier: string) {
       publicId: order.publicId,
       providerBalance,
       estimatedCost,
+      tier: resolution.selectedServiceTier || 'primary',
+      serviceRate: serviceRateStr,
     };
   }
 
@@ -239,6 +245,8 @@ export async function evaluateOrderForQueueRelease(orderIdentifier: string) {
     quantity: orderQuantity,
     target: targetValidation.target,
     primaryServiceId: resolution.primaryServiceId,
+    tier: resolution.selectedServiceTier || 'primary',
+    serviceRate: serviceRateStr,
     estimatedCost,
   };
 }
@@ -834,6 +842,8 @@ export async function releaseNextQueuedOrderForTarget(params: {
           orderId: nextOrder.id,
           provider: 'peakerr',
           externalServiceId: evalResult.primaryServiceId!,
+          providerTier: evalResult.tier || 'primary',
+          providerRateSnapshot: evalResult.serviceRate || null,
           status: 'SUBMITTING',
           requestPayload: safeRequestPayload,
           attemptCount: 1,
@@ -875,12 +885,25 @@ export async function releaseNextQueuedOrderForTarget(params: {
 
   // 7. DB FINALIZATION IN A SHORT INDEPENDENT TRANSACTION
   if (result.success) {
+    const costSnapshot = calculateExecutedServiceCost({
+      actualCharge: (result.rawResponse as any)?.charge,
+      serviceRate: evalResult.serviceRate,
+      quantity: evalResult.quantity || 0,
+      tier: evalResult.tier || 'primary',
+    });
+
     await db.transaction(async (tx) => {
       await tx
         .update(fulfillmentOrders)
         .set({
           status: 'PROCESSING',
           externalOrderId: String(result.order),
+          providerTier: costSnapshot.providerTier || evalResult.tier || 'primary',
+          providerCostCents: costSnapshot.providerCostCents,
+          providerCostCurrency: 'USD',
+          providerCostSource: costSnapshot.providerCostSource,
+          providerRateSnapshot: costSnapshot.providerRateSnapshot,
+          providerCostCapturedAt: new Date(),
           responsePayload: result.rawResponse as any,
           updatedAt: new Date(),
         })

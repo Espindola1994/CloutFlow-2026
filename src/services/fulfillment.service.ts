@@ -3,6 +3,7 @@ import { orders, fulfillmentOrders, orderEvents, offers } from '@/db/schema';
 import { eq, and, inArray, desc, or } from 'drizzle-orm';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { resolveFulfillmentChainAndPreview, resolveAndValidateTarget } from './fulfillment-chain.service';
+import { calculateExecutedServiceCost, canUpgradeProviderCost } from '@/lib/financials';
 
 export interface ClaimOrderResult {
   success: boolean;
@@ -211,6 +212,8 @@ export async function submitOrderToPeakerrManual(orderIdentifier: string) {
           orderId: existingOrder.id,
           provider: 'peakerr',
           externalServiceId: resolution.primaryServiceId,
+          providerTier: resolution.selectedServiceTier || 'primary',
+          providerRateSnapshot: resolution.selectedServiceRate || null,
           status: 'SUBMITTING',
           requestPayload: safeRequestPayload,
           attemptCount: 1,
@@ -245,6 +248,14 @@ export async function submitOrderToPeakerrManual(orderIdentifier: string) {
 
   // --- PHASE 3: DB FINALIZATION IN A SEPARATE TRANSACTION ---
   if (result.success) {
+    // Calculate immutable provider cost snapshot for the actual executed service
+    const costSnapshot = calculateExecutedServiceCost({
+      actualCharge: (result.rawResponse as any)?.charge,
+      serviceRate: resolution.selectedServiceRate,
+      quantity: resolution.quantity,
+      tier: resolution.selectedServiceTier || 'primary',
+    });
+
     // Peakerr successfully confirmed order creation
     await db.transaction(async (tx) => {
       await tx
@@ -252,6 +263,12 @@ export async function submitOrderToPeakerrManual(orderIdentifier: string) {
         .set({
           status: 'PROCESSING',
           externalOrderId: String(result.order),
+          providerTier: costSnapshot.providerTier || resolution.selectedServiceTier || 'primary',
+          providerCostCents: costSnapshot.providerCostCents,
+          providerCostCurrency: 'USD',
+          providerCostSource: costSnapshot.providerCostSource,
+          providerRateSnapshot: costSnapshot.providerRateSnapshot,
+          providerCostCapturedAt: new Date(),
           responsePayload: result.rawResponse as any,
           updatedAt: new Date(),
         })
@@ -434,14 +451,29 @@ export async function checkPeakerrOrderStatus(orderIdentifier: string) {
   // Synchronize status safely to database
   const mappedStatus = mapPeakerrStatusToInternal(statusRes.status);
 
+  // Upgrade cost snapshot if authoritative charge is returned and can upgrade
+  const canUpgrade = canUpgradeProviderCost(latestFulfillment.providerCostSource, 'ACTUAL_PROVIDER_CHARGE');
+  const chargeNum = statusRes.charge !== undefined && statusRes.charge !== null ? Number(statusRes.charge) : null;
+  const hasValidCharge = chargeNum !== null && !isNaN(chargeNum) && chargeNum >= 0;
+
+  const fulfillmentUpdateData: Record<string, any> = {
+    status: mappedStatus,
+    responsePayload: statusRes as any,
+    updatedAt: new Date(),
+  };
+
+  if (hasValidCharge && canUpgrade) {
+    fulfillmentUpdateData.providerCostCents = Math.round(chargeNum * 100);
+    fulfillmentUpdateData.providerCostSource = 'ACTUAL_PROVIDER_CHARGE';
+    if (!latestFulfillment.providerCostCapturedAt) {
+      fulfillmentUpdateData.providerCostCapturedAt = new Date();
+    }
+  }
+
   await db.transaction(async (tx) => {
     await tx
       .update(fulfillmentOrders)
-      .set({
-        status: mappedStatus,
-        responsePayload: statusRes as any,
-        updatedAt: new Date(),
-      })
+      .set(fulfillmentUpdateData)
       .where(eq(fulfillmentOrders.id, latestFulfillment.id));
 
     // Only update orders.fulfillmentStatus if status progressed

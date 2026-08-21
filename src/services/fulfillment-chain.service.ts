@@ -6,8 +6,10 @@ export interface ChainServiceEvaluation {
   serviceId: string;
   priority: number;
   priorityLabel: 'Primary' | 'Fallback 1' | 'Fallback 2';
+  tier: 'primary' | 'fallback1' | 'fallback2' | string;
   minQuantity: number;
   maxQuantity: number;
+  rate?: string | null;
   eligible: boolean;
   specialPayloadRequired?: boolean;
   ineligibilityReason?: 'INELIGIBLE_QUANTITY' | 'INACTIVE' | null;
@@ -50,6 +52,8 @@ export interface FulfillmentSimulationSuccess {
     autoFallback: boolean;
   };
   primaryServiceId: string;
+  selectedServiceTier?: string;
+  selectedServiceRate?: string | null;
   fallbacks: string[];
   chainServicesEvaluation: ChainServiceEvaluation[];
   peakerrRequestPayload: PeakerrSimulatedPayload;
@@ -289,14 +293,21 @@ export async function resolveFulfillmentChainAndPreview(params: {
     3: 'Fallback 2',
   };
 
+  const tierFromPriority = (p: number): string => {
+    if (p === 1) return 'primary';
+    return `fallback${p - 1}`;
+  };
+
   const chainServicesEvaluation: ChainServiceEvaluation[] = chainServices.map((s) => {
     const isEligible = quantity >= s.minQuantity && quantity <= s.maxQuantity;
     return {
       serviceId: s.providerServiceId,
       priority: s.priority,
       priorityLabel: priorityLabels[s.priority] || `Fallback ${s.priority - 1}`,
+      tier: tierFromPriority(s.priority),
       minQuantity: s.minQuantity,
       maxQuantity: s.maxQuantity,
+      rate: s.rate || null,
       eligible: isEligible,
       ineligibilityReason: isEligible ? null : 'INELIGIBLE_QUANTITY',
     };
@@ -338,6 +349,8 @@ export async function resolveFulfillmentChainAndPreview(params: {
     ? eligibleServices.filter((s) => s.serviceId !== selectedPrimary).map((s) => s.serviceId)
     : [];
 
+  const selectedEvaluation = chainServicesEvaluation.find((s) => s.serviceId === selectedPrimary);
+
   // 5. Construct Simulated Peakerr Payload (Exact JSON structure)
   const peakerrRequestPayload: PeakerrSimulatedPayload = {
     provider: 'peakerr',
@@ -372,6 +385,8 @@ export async function resolveFulfillmentChainAndPreview(params: {
       autoFallback: chain.autoFallback,
     },
     primaryServiceId: selectedPrimary,
+    selectedServiceTier: selectedEvaluation?.tier || 'primary',
+    selectedServiceRate: selectedEvaluation?.rate || null,
     fallbacks: eligibleFallbacks,
     chainServicesEvaluation,
     peakerrRequestPayload,

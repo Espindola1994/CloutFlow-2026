@@ -22,6 +22,12 @@ export const fulfillmentOrders = pgTable('fulfillment_orders', {
   provider: varchar('provider', { length: 50 }).notNull(),
   externalOrderId: varchar('external_order_id', { length: 255 }),
   externalServiceId: varchar('external_service_id', { length: 255 }),
+  providerTier: varchar('provider_tier', { length: 50 }), // 'primary', 'fallback1', 'fallback2', etc.
+  providerCostCents: integer('provider_cost_cents'), // Cost in integer USD cents
+  providerCostCurrency: varchar('provider_cost_currency', { length: 10 }).default('USD').notNull(),
+  providerCostSource: varchar('provider_cost_source', { length: 50 }), // 'ACTUAL_PROVIDER_CHARGE', 'CHAIN_RATE_SNAPSHOT', 'ADMIN_COST_ESTIMATE', 'UNKNOWN'
+  providerRateSnapshot: varchar('provider_rate_snapshot', { length: 50 }), // Rate per 1000 at dispatch time
+  providerCostCapturedAt: timestamp('provider_cost_captured_at', { withTimezone: true }),
   status: varchar('status', { length: 50 }).notNull().default('PENDING'), // PENDING, SUBMITTING, PROCESSING, PARTIAL, COMPLETED, FAILED, CANCELED
   requestPayload: jsonb('request_payload'),
   responsePayload: jsonb('response_payload'),

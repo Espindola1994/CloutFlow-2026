@@ -4,6 +4,7 @@ import { eq, and, inArray, or, sql, count, desc } from 'drizzle-orm';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { resolveCanonicalFulfillmentTarget, mapPeakerrStatusToLocal } from './fulfillment.service';
 import { resolveFulfillmentChainAndPreview } from './fulfillment-chain.service';
+import { calculateExecutedServiceCost } from '@/lib/financials';
 
 export interface AutoDispatchEvaluation {
   eligible: boolean;
@@ -19,6 +20,8 @@ export interface AutoDispatchEvaluation {
   chainId?: string;
   chainName?: string;
   primaryServiceId?: string;
+  tier?: string;
+  serviceRate?: string | null;
   estimatedCost?: number;
   providerBalance?: number;
   currency?: string;
@@ -78,6 +81,8 @@ export interface WaitingProviderRecoveryEvaluation {
   chainId?: string;
   chainName?: string;
   primaryServiceId?: string;
+  tier?: string;
+  serviceRate?: string | null;
   estimatedCost?: number;
   providerBalance?: number;
   currency?: string;
@@ -331,6 +336,8 @@ export async function evaluateOrderForAutoDispatch(orderIdentifier: string): Pro
     estimatedCost = (rateNumber * orderQuantity) / 1000;
   }
 
+  const serviceRateStr = chainService?.rate || (chainService as any)?.rate || resolution.selectedServiceRate || null;
+
   if (providerBalance !== undefined && estimatedCost !== undefined && providerBalance < estimatedCost) {
     return {
       eligible: false,
@@ -346,6 +353,8 @@ export async function evaluateOrderForAutoDispatch(orderIdentifier: string): Pro
       chainId: resolution.chain.id,
       chainName: resolution.chain.name,
       primaryServiceId: resolution.primaryServiceId,
+      tier: resolution.selectedServiceTier || 'primary',
+      serviceRate: serviceRateStr,
       estimatedCost,
       providerBalance,
       currency,
@@ -366,6 +375,8 @@ export async function evaluateOrderForAutoDispatch(orderIdentifier: string): Pro
     chainId: resolution.chain.id,
     chainName: resolution.chain.name,
     primaryServiceId: resolution.primaryServiceId,
+    tier: resolution.selectedServiceTier || 'primary',
+    serviceRate: serviceRateStr,
     estimatedCost,
     providerBalance,
     currency,
@@ -498,6 +509,8 @@ export async function autoDispatchOrder(orderIdentifier: string): Promise<AutoDi
           orderId: evalResult.orderId!,
           provider: 'peakerr',
           externalServiceId: evalResult.primaryServiceId!,
+          providerTier: evalResult.tier || 'primary',
+          providerRateSnapshot: evalResult.serviceRate || null,
           status: 'SUBMITTING',
           requestPayload: safeRequestPayload,
           attemptCount: 1,
@@ -533,12 +546,25 @@ export async function autoDispatchOrder(orderIdentifier: string): Promise<AutoDi
 
   // --- PHASE 3: DB FINALIZATION IN A SEPARATE TRANSACTION ---
   if (result.success) {
+    const costSnapshot = calculateExecutedServiceCost({
+      actualCharge: (result.rawResponse as any)?.charge,
+      serviceRate: evalResult.serviceRate,
+      quantity: evalResult.quantity || 0,
+      tier: evalResult.tier || 'primary',
+    });
+
     await db.transaction(async (tx) => {
       await tx
         .update(fulfillmentOrders)
         .set({
           status: 'PROCESSING',
           externalOrderId: String(result.order),
+          providerTier: costSnapshot.providerTier || evalResult.tier || 'primary',
+          providerCostCents: costSnapshot.providerCostCents,
+          providerCostCurrency: 'USD',
+          providerCostSource: costSnapshot.providerCostSource,
+          providerRateSnapshot: costSnapshot.providerRateSnapshot,
+          providerCostCapturedAt: new Date(),
           responsePayload: result.rawResponse as any,
           updatedAt: new Date(),
         })
@@ -1155,6 +1181,8 @@ export async function evaluateWaitingProviderRecovery(orderIdentifier: string): 
     estimatedCost = (Number((chainService as any).rate) * orderQuantity) / 1000;
   }
 
+  const recoveryServiceRate = chainService?.rate || (chainService as any)?.rate || resolution.selectedServiceRate || null;
+
   if (providerBalance !== undefined && estimatedCost !== undefined && providerBalance < estimatedCost) {
     return {
       eligibleForRecovery: false,
@@ -1169,6 +1197,8 @@ export async function evaluateWaitingProviderRecovery(orderIdentifier: string): 
       chainId: resolution.chain.id,
       chainName: resolution.chain.name,
       primaryServiceId: resolution.primaryServiceId,
+      tier: resolution.selectedServiceTier || 'primary',
+      serviceRate: recoveryServiceRate,
       estimatedCost,
       providerBalance,
       currency: 'USD',
@@ -1190,6 +1220,8 @@ export async function evaluateWaitingProviderRecovery(orderIdentifier: string): 
     chainId: resolution.chain.id,
     chainName: resolution.chain.name,
     primaryServiceId: resolution.primaryServiceId,
+    tier: resolution.selectedServiceTier || 'primary',
+    serviceRate: recoveryServiceRate,
     estimatedCost,
     providerBalance,
     currency: 'USD',
@@ -1447,6 +1479,8 @@ export async function retryWaitingProviderOrder(orderIdentifier: string): Promis
           orderId: evalResult.orderId!,
           provider: 'peakerr',
           externalServiceId: evalResult.primaryServiceId!,
+          providerTier: evalResult.tier || 'primary',
+          providerRateSnapshot: evalResult.serviceRate || null,
           status: 'SUBMITTING',
           requestPayload: safeRequestPayload,
           attemptCount: nextAttemptCount,
@@ -1478,12 +1512,25 @@ export async function retryWaitingProviderOrder(orderIdentifier: string): Promis
 
   // Phase 3: DB Finalization
   if (result.success) {
+    const costSnapshot = calculateExecutedServiceCost({
+      actualCharge: (result.rawResponse as any)?.charge,
+      serviceRate: evalResult.serviceRate,
+      quantity: evalResult.quantity || 0,
+      tier: evalResult.tier || 'primary',
+    });
+
     await db.transaction(async (tx) => {
       await tx
         .update(fulfillmentOrders)
         .set({
           status: 'PROCESSING',
           externalOrderId: String(result.order),
+          providerTier: costSnapshot.providerTier || evalResult.tier || 'primary',
+          providerCostCents: costSnapshot.providerCostCents,
+          providerCostCurrency: 'USD',
+          providerCostSource: costSnapshot.providerCostSource,
+          providerRateSnapshot: costSnapshot.providerRateSnapshot,
+          providerCostCapturedAt: new Date(),
           responsePayload: result.rawResponse as any,
           updatedAt: new Date(),
         })
