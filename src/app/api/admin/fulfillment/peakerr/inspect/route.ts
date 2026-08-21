@@ -104,6 +104,7 @@ export async function POST() {
     const apiKeyPresent = peakerrClient.isConfigured();
     const liveFulfillment = peakerrClient.isLiveEnabled();
     const webhookVerified = process.env.PERFECTPAY_WEBHOOK_VERIFIED === 'true';
+    const targetQueueAutoReleaseEnabled = process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED === 'true';
 
     if (!apiKeyPresent) {
       return NextResponse.json({
@@ -116,6 +117,7 @@ export async function POST() {
           apiKeyPresent: false,
           liveFulfillment,
           webhookVerified,
+          targetQueueAutoReleaseEnabled,
         },
       }, { status: 400 });
     }
@@ -237,6 +239,7 @@ export async function POST() {
         apiKeyPresent: true,
         liveFulfillment,
         webhookVerified,
+        targetQueueAutoReleaseEnabled,
       },
       connection: {
         connected: isBalanceOk && isServicesOk,

@@ -3,7 +3,7 @@ import { orders, fulfillmentOrders, orderEvents } from '@/db/schema';
 import { eq, and, inArray, isNotNull, ne } from 'drizzle-orm';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { mapPeakerrStatusToLocal, resolveCanonicalFulfillmentTarget } from './fulfillment.service';
-import { releaseNextQueuedOrderForTarget } from './fulfillment-target-queue.service';
+import { releaseNextQueuedOrderForTarget, releaseAllEligibleQueuedTargets } from './fulfillment-target-queue.service';
 
 export interface SyncAndReleaseResult {
   success: boolean;
@@ -35,8 +35,8 @@ export interface SyncAndReleaseResult {
  * ORCHESTRATOR: syncStatusesAndReleaseQueues
  * 1. Checks PEAKERR_STATUS_SYNC_ENABLED === 'true'. If false, returns early with STATUS_SYNC_DISABLED.
  * 2. Runs status sync on active fulfillment orders.
- * 3. Identifies targets that transitioned to COMPLETED during sync.
- * 4. For each completed target, releases at most one queued order (FIFO) via releaseNextQueuedOrderForTarget().
+ * 3. Identifies targets that transitioned to COMPLETED during sync and releases their next queued order.
+ * 4. Also performs a target queue sweep (releaseAllEligibleQueuedTargets) so any target whose slot is FREE is released.
  * 5. Respects all flags (PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED, PEAKERR_AUTO_DISPATCH_ENABLED, PEAKERR_LIVE_FULFILLMENT).
  * 6. Returns clear, structured metrics for Admin UI and Internal API responses.
  */
@@ -94,10 +94,55 @@ export async function syncStatusesAndReleaseQueues(options?: {
     return result;
   }
 
+  // Released orders from transition triggers
+  const allReleasedOrders: Array<{
+    orderId?: string;
+    publicId?: string;
+    target?: string;
+    status?: string;
+  }> = [];
+
+  const releasedOrderIds = new Set<string>();
+
   if (syncResult.releasedQueuedOrders && syncResult.releasedQueuedOrders.length > 0) {
-    result.queueReleaseAttempts = syncResult.releasedQueuedOrders.length;
-    result.queueReleaseSuccess = syncResult.releasedQueuedOrders.length;
-    result.releasedOrders = syncResult.releasedQueuedOrders;
+    for (const ro of syncResult.releasedQueuedOrders) {
+      if (ro.orderId) releasedOrderIds.add(ro.orderId);
+      allReleasedOrders.push(ro);
+    }
+  }
+
+  // 2. Perform a target queue sweep for any other queued orders whose target slot is currently free
+  if (isQueueAutoReleaseEnabled) {
+    try {
+      const sweepResults = await releaseAllEligibleQueuedTargets({
+        triggeredBy: 'STATUS_SYNC_ORCHESTRATOR_SWEEP',
+        forceRelease: false,
+      });
+
+      for (const item of sweepResults) {
+        if (item.status === 'PROCESSING' && item.orderId && !releasedOrderIds.has(item.orderId)) {
+          releasedOrderIds.add(item.orderId);
+          allReleasedOrders.push({
+            orderId: item.orderId,
+            publicId: item.publicId,
+            target: item.target,
+            status: item.status,
+          });
+          result.details?.push(`Target queue sweep released next order ${item.publicId} for ${item.target}`);
+        } else if (item.skippedReason && item.skippedReason !== 'SLOT_BUSY') {
+          result.queueReleaseBlocked += 1;
+        }
+      }
+    } catch (sweepErr: any) {
+      console.error('[StatusSync] Error in queue sweep:', sweepErr);
+      result.details?.push(`Queue sweep error: ${sweepErr?.message || 'Unknown error'}`);
+    }
+  }
+
+  if (allReleasedOrders.length > 0) {
+    result.queueReleaseAttempts += allReleasedOrders.length;
+    result.queueReleaseSuccess += allReleasedOrders.length;
+    result.releasedOrders = allReleasedOrders;
   }
 
   return result;

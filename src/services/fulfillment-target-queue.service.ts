@@ -242,7 +242,7 @@ export async function inspectTargetDeliverySlot(params: {
 }): Promise<TargetSlotInspectionResult> {
   let platform = params.platform;
   let canonicalTarget = params.canonicalTarget;
-  let originOrderId = params.orderId;
+  const originOrderId = params.orderId;
 
   if (originOrderId && (!platform || !canonicalTarget)) {
     const originOrders = (await db.query.orders.findMany({
@@ -510,8 +510,104 @@ export async function getTargetQueueOverview(): Promise<TargetQueueOverviewStats
 }
 
 /**
- * RELEASES EXACTLY ONE NEXT QUEUED ORDER FOR A TARGET.
+ * Scans all currently queued targets and releases the FIFO #1 order for any target whose slot is currently FREE.
+ * Strictly:
+ * - Releases at most 1 order per distinct canonical target (FIFO).
+ * - Enforces target slot locking (if a slot is busy or becomes busy, skipped).
+ * - Respects kill switches (PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED, PEAKERR_AUTO_DISPATCH_ENABLED, PEAKERR_LIVE_FULFILLMENT).
+ * - Safe concurrent execution via atomic status claims.
  */
+export async function releaseAllEligibleQueuedTargets(options?: {
+  triggeredBy?: string;
+  forceRelease?: boolean;
+}): Promise<Array<{
+  orderId?: string;
+  publicId?: string;
+  target?: string;
+  status?: string;
+  code?: string;
+  skippedReason?: string;
+}>> {
+  const { triggeredBy = 'SCHEDULED_QUEUE_SWEEP', forceRelease = false } = options || {};
+  const autoRelease = isTargetQueueAutoReleaseEnabled();
+
+  if (!forceRelease && !autoRelease) {
+    return [];
+  }
+
+  // 1. Fetch all queued orders in WAITING_TARGET_SLOT
+  const queuedOrders = (await db.query.orders.findMany({
+    where: and(
+      eq(orders.fulfillmentStatus, 'WAITING_TARGET_SLOT'),
+      inArray(orders.paymentStatus, ['PAID', 'COMPLETED'])
+    ),
+    orderBy: [asc(orders.paidAt), asc(orders.createdAt), asc(orders.id)],
+  })) || [];
+
+  if (queuedOrders.length === 0) {
+    return [];
+  }
+
+  // 2. Group by unique target key (platform + canonical target) to ensure FIFO #1 per target
+  const uniqueTargetsMap = new Map<string, { platform: string; canonicalTarget: string }>();
+
+  for (const order of queuedOrders) {
+    if (!order.platform) continue;
+    const tRes = resolveCanonicalFulfillmentTarget(order);
+    if (!tRes.success || !tRes.target) continue;
+
+    const queueKey = resolveTargetQueueKey(order.platform, tRes.target);
+    if (!uniqueTargetsMap.has(queueKey)) {
+      uniqueTargetsMap.set(queueKey, {
+        platform: order.platform,
+        canonicalTarget: tRes.target,
+      });
+    }
+  }
+
+  const results: Array<{
+    orderId?: string;
+    publicId?: string;
+    target?: string;
+    status?: string;
+    code?: string;
+    skippedReason?: string;
+  }> = [];
+
+  // 3. For each distinct canonical target with queued orders, attempt releaseNextQueuedOrderForTarget
+  for (const { platform, canonicalTarget } of uniqueTargetsMap.values()) {
+    try {
+      const releaseRes = await releaseNextQueuedOrderForTarget({
+        platform,
+        canonicalTarget,
+        triggeredBy,
+        forceRelease,
+      });
+
+      if (releaseRes.success && releaseRes.orderId) {
+        results.push({
+          orderId: releaseRes.orderId,
+          publicId: releaseRes.publicId,
+          target: canonicalTarget,
+          status: releaseRes.status,
+          code: releaseRes.code,
+        });
+      } else if (releaseRes.skippedReason) {
+        results.push({
+          orderId: releaseRes.orderId,
+          publicId: releaseRes.publicId,
+          target: canonicalTarget,
+          code: releaseRes.code,
+          skippedReason: releaseRes.skippedReason,
+        });
+      }
+    } catch (err: any) {
+      console.error(`[TargetQueueSweep] Error releasing target "${canonicalTarget}":`, err);
+    }
+  }
+
+  return results;
+}
 export async function releaseNextQueuedOrderForTarget(params: {
   platform: string;
   canonicalTarget: string;

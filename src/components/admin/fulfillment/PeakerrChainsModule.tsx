@@ -319,6 +319,12 @@ export function PeakerrChainsModule() {
       const json = await res.json();
       if (res.ok && json.success) {
         setAutoSyncEnabled(json.enabled);
+        if (json.targetQueueAutoReleaseEnabled !== undefined) {
+          setRuntimeFlags((prev) => ({
+            ...prev,
+            targetQueueAutoReleaseEnabled: json.targetQueueAutoReleaseEnabled,
+          }));
+        }
       }
     } catch {
       // noop

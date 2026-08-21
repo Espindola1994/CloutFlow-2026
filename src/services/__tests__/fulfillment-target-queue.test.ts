@@ -5,6 +5,7 @@ import {
   listTargetQueues,
   getTargetQueueOverview,
   releaseNextQueuedOrderForTarget,
+  releaseAllEligibleQueuedTargets,
 } from '../fulfillment-target-queue.service';
 import { autoDispatchOrder } from '../fulfillment-auto-dispatch.service';
 import { db } from '@/db';
@@ -449,5 +450,289 @@ describe('Phase 4.7: Target-Aware Serial Delivery Queue', () => {
     expect(groups[0].activeDelivery?.publicId).toBe('CF-ACT');
     expect(groups[0].queue).toHaveLength(1);
     expect(groups[0].queue[0].queuePosition).toBe(1);
+  });
+
+  it('11. WAITING_TARGET_SLOT + FREE + FIFO #1 + auto-release enabled => RELEASE', async () => {
+    process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+    const queuedOrder = {
+      ...baseOrder,
+      id: 'ord_cf_8602',
+      publicId: 'CF-8602GA6TIJ',
+      socialUsername: 'guilhermeterraaa',
+      targetUrl: 'https://instagram.com/guilhermeterraaa',
+      quantity: 2000,
+      fulfillmentStatus: 'WAITING_TARGET_SLOT',
+    };
+
+    (db.query.orders.findMany as any).mockImplementation((opts: any) => {
+      if (opts?.limit === 1) return Promise.resolve([queuedOrder]);
+      return Promise.resolve([queuedOrder]);
+    });
+
+    const result = await releaseNextQueuedOrderForTarget({
+      platform: 'instagram',
+      canonicalTarget: 'https://instagram.com/guilhermeterraaa',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.code).toBe('QUEUE_RELEASE_SUCCESS');
+    expect(result.status).toBe('PROCESSING');
+    expect(result.publicId).toBe('CF-8602GA6TIJ');
+    expect(peakerrClient.createOrder).toHaveBeenCalledWith(
+      expect.objectContaining({
+        link: 'https://instagram.com/guilhermeterraaa',
+        quantity: 2000,
+      })
+    );
+  });
+
+  it('12. Target ocupado => permanece queued', async () => {
+    process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+    const activeOrder = {
+      ...baseOrder,
+      id: 'ord_active_del',
+      publicId: 'CF-ACTIVE-1',
+      fulfillmentStatus: 'PROCESSING',
+    };
+
+    const queuedOrder = {
+      ...baseOrder,
+      id: 'ord_cf_8602',
+      publicId: 'CF-8602GA6TIJ',
+      fulfillmentStatus: 'WAITING_TARGET_SLOT',
+    };
+
+    (db.query.orders.findMany as any).mockResolvedValue([activeOrder, queuedOrder]);
+    (db.query.fulfillmentOrders.findMany as any).mockResolvedValue([
+      { id: 'ful_act', externalOrderId: '80375844', status: 'PROCESSING', createdAt: new Date() },
+    ]);
+
+    const result = await releaseNextQueuedOrderForTarget({
+      platform: 'instagram',
+      canonicalTarget: 'https://instagram.com/guilhermeterraaa',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.code).toBe('SLOT_BUSY');
+    expect(peakerrClient.createOrder).not.toHaveBeenCalled();
+  });
+
+  it('13. FIFO #2 com #1 existente => não ultrapassa #1', async () => {
+    process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+    const q1 = {
+      ...baseOrder,
+      id: 'ord_fifo_1',
+      publicId: 'CF-FIFO-1',
+      paidAt: new Date('2026-08-20T10:00:00Z'),
+      fulfillmentStatus: 'WAITING_TARGET_SLOT',
+    };
+    const q2 = {
+      ...baseOrder,
+      id: 'ord_fifo_2',
+      publicId: 'CF-FIFO-2',
+      paidAt: new Date('2026-08-20T10:15:00Z'),
+      fulfillmentStatus: 'WAITING_TARGET_SLOT',
+    };
+
+    (db.query.orders.findMany as any).mockImplementation((opts: any) => {
+      if (opts?.limit === 1) return Promise.resolve([q1]);
+      return Promise.resolve([q1, q2]);
+    });
+
+    const result = await releaseNextQueuedOrderForTarget({
+      platform: 'instagram',
+      canonicalTarget: 'https://instagram.com/guilhermeterraaa',
+    });
+
+    expect(result.success).toBe(true);
+    expect(result.publicId).toBe('CF-FIFO-1');
+    expect(result.publicId).not.toBe('CF-FIFO-2');
+  });
+
+  it('14. Auto-release disabled => não libera', async () => {
+    process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'false';
+
+    const queuedOrder = {
+      ...baseOrder,
+      id: 'ord_cf_8602',
+      publicId: 'CF-8602GA6TIJ',
+      fulfillmentStatus: 'WAITING_TARGET_SLOT',
+    };
+
+    (db.query.orders.findMany as any).mockResolvedValue([queuedOrder]);
+
+    const result = await releaseNextQueuedOrderForTarget({
+      platform: 'instagram',
+      canonicalTarget: 'https://instagram.com/guilhermeterraaa',
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.code).toBe('AUTO_RELEASE_DISABLED');
+    expect(peakerrClient.createOrder).not.toHaveBeenCalled();
+  });
+
+  it('15. Duas execuções simultâneas => somente uma consegue liberar', async () => {
+    process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+    const queuedOrder = {
+      ...baseOrder,
+      id: 'ord_atomic',
+      publicId: 'CF-ATOMIC',
+      fulfillmentStatus: 'WAITING_TARGET_SLOT',
+    };
+
+    (db.query.orders.findMany as any).mockResolvedValue([queuedOrder]);
+
+    // Simulate first transaction succeeding, second transaction failing because order was already claimed
+    let callCount = 0;
+    (db.transaction as any).mockImplementation(async (cb: any) => {
+      callCount++;
+      if (callCount === 1) {
+        const tx = {
+          update: vi.fn(() => ({
+            set: vi.fn(() => ({
+              where: vi.fn(() => ({
+                returning: vi.fn(() => [{ id: 'ord_atomic', fulfillmentStatus: 'SUBMITTING' }]),
+              })),
+            })),
+          })),
+          insert: vi.fn(() => ({
+            values: vi.fn(() => ({
+              returning: vi.fn(() => [{ id: 'ful_atomic_1', status: 'SUBMITTING' }]),
+            })),
+          })),
+        };
+        return cb(tx);
+      } else if (callCount === 2) {
+        const tx = {
+          update: vi.fn(() => ({
+            set: vi.fn(() => ({
+              where: vi.fn(() => ({
+                returning: vi.fn(() => []), // Claim returns empty array when concurrent worker already changed state
+              })),
+            })),
+          })),
+          insert: vi.fn(() => ({
+            values: vi.fn(() => ({
+              returning: vi.fn(() => []),
+            })),
+          })),
+        };
+        return cb(tx);
+      } else {
+        // Step 7 finalization tx
+        const tx = {
+          update: vi.fn(() => ({
+            set: vi.fn(() => ({
+              where: vi.fn().mockResolvedValue(true),
+            })),
+          })),
+          insert: vi.fn(() => ({
+            values: vi.fn().mockResolvedValue(true),
+          })),
+        };
+        return cb(tx);
+      }
+    });
+
+    const [res1, res2] = await Promise.all([
+      releaseNextQueuedOrderForTarget({
+        platform: 'instagram',
+        canonicalTarget: 'https://instagram.com/guilhermeterraaa',
+      }),
+      releaseNextQueuedOrderForTarget({
+        platform: 'instagram',
+        canonicalTarget: 'https://instagram.com/guilhermeterraaa',
+      }),
+    ]);
+
+    const successes = [res1, res2].filter((r) => r.success);
+    const failures = [res1, res2].filter((r) => !r.success);
+
+    expect(successes).toHaveLength(1);
+    expect(failures).toHaveLength(1);
+    expect(failures[0].code).toBe('ATOMIC_CLAIM_FAILED');
+  });
+
+  it('16. Canonical targets equivalentes => tratados como o mesmo target', async () => {
+    process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+    const activeOrder = {
+      ...baseOrder,
+      id: 'ord_raw_user',
+      publicId: 'CF-RAW',
+      socialUsername: 'guilhermeterraaa',
+      targetUrl: null,
+      profileUrl: null,
+      fulfillmentStatus: 'PROCESSING',
+    };
+
+    const queuedOrder = {
+      ...baseOrder,
+      id: 'ord_full_url',
+      publicId: 'CF-FULL-URL',
+      socialUsername: null,
+      targetUrl: 'https://www.instagram.com/guilhermeterraaa/?hl=pt-br',
+      profileUrl: null,
+      fulfillmentStatus: 'WAITING_TARGET_SLOT',
+    };
+
+    (db.query.orders.findMany as any).mockResolvedValue([activeOrder, queuedOrder]);
+    (db.query.fulfillmentOrders.findMany as any).mockResolvedValue([
+      { id: 'ful_1', externalOrderId: '80375844', status: 'PROCESSING', createdAt: new Date() },
+    ]);
+
+    const slotCheck = await inspectTargetDeliverySlot({
+      platform: 'instagram',
+      canonicalTarget: 'https://instagram.com/guilhermeterraaa',
+    });
+
+    expect(slotCheck.isSlotBusy).toBe(true);
+    expect(slotCheck.activeOrder?.publicId).toBe('CF-RAW');
+  });
+
+  it('17. releaseAllEligibleQueuedTargets: sweeps queued orders and releases free slots', async () => {
+    process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+    const queuedOrderTarget1 = {
+      ...baseOrder,
+      id: 'ord_sweep_1',
+      publicId: 'CF-SWEEP-1',
+      socialUsername: 'guilhermeterraaa',
+      targetUrl: 'https://instagram.com/guilhermeterraaa',
+      fulfillmentStatus: 'WAITING_TARGET_SLOT',
+    };
+
+    (db.query.orders.findMany as any).mockImplementation((opts: any) => {
+      if (opts?.limit === 1) return Promise.resolve([queuedOrderTarget1]);
+      return Promise.resolve([queuedOrderTarget1]);
+    });
+
+    (db.transaction as any).mockImplementation(async (cb: any) => {
+      const tx = {
+        update: vi.fn(() => ({
+          set: vi.fn(() => ({
+            where: vi.fn(() => ({
+              returning: vi.fn(() => [{ id: 'ord_sweep_1', fulfillmentStatus: 'SUBMITTING' }]),
+            })),
+          })),
+        })),
+        insert: vi.fn(() => ({
+          values: vi.fn(() => ({
+            returning: vi.fn(() => [{ id: 'ful_sweep_1', status: 'SUBMITTING' }]),
+          })),
+        })),
+      };
+      return cb(tx);
+    });
+
+    const sweepResults = await releaseAllEligibleQueuedTargets();
+
+    expect(sweepResults).toHaveLength(1);
+    expect(sweepResults[0].publicId).toBe('CF-SWEEP-1');
+    expect(sweepResults[0].status).toBe('PROCESSING');
   });
 });
