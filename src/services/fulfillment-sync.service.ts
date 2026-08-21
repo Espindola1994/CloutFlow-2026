@@ -120,16 +120,18 @@ export async function syncStatusesAndReleaseQueues(options?: {
       });
 
       for (const item of sweepResults) {
-        if (item.status === 'PROCESSING' && item.orderId && !releasedOrderIds.has(item.orderId)) {
-          releasedOrderIds.add(item.orderId);
-          allReleasedOrders.push({
-            orderId: item.orderId,
-            publicId: item.publicId,
-            target: item.target,
-            status: item.status,
-          });
-          result.details?.push(`Target queue sweep released next order ${item.publicId} for ${item.target}`);
-        } else if (item.skippedReason && item.skippedReason !== 'SLOT_BUSY') {
+        if (item.status === 'PROCESSING' || item.status === 'SUBMITTING' || item.code === 'QUEUE_RELEASE_SUCCESS' || (item.orderId && !item.skippedReason)) {
+          if (item.orderId && !releasedOrderIds.has(item.orderId)) {
+            releasedOrderIds.add(item.orderId);
+            allReleasedOrders.push({
+              orderId: item.orderId,
+              publicId: item.publicId,
+              target: item.target,
+              status: item.status,
+            });
+            result.details?.push(`Target queue sweep released next order ${item.publicId} for ${item.target}`);
+          }
+        } else if (item.skippedReason) {
           result.queueReleaseBlocked += 1;
         }
       }

@@ -592,6 +592,15 @@ export async function releaseAllEligibleQueuedTargets(options?: {
           status: releaseRes.status,
           code: releaseRes.code,
         });
+      } else if (releaseRes.status === 'FAILED' || releaseRes.status === 'SUBMITTING' || releaseRes.code === 'AMBIGUOUS_SUBMISSION' || releaseRes.code === 'PROVIDER_ACTIVE_ORDER_CONFLICT') {
+        // Atomic claim succeeded and order left WAITING_TARGET_SLOT queue (even if provider dispatch failed/errored later)
+        results.push({
+          orderId: releaseRes.orderId,
+          publicId: releaseRes.publicId,
+          target: canonicalTarget,
+          status: releaseRes.status || 'FAILED',
+          code: releaseRes.code,
+        });
       } else if (releaseRes.skippedReason) {
         results.push({
           orderId: releaseRes.orderId,

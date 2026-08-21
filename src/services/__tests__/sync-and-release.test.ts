@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { syncStatusesAndReleaseQueues } from '@/services/fulfillment-sync.service';
-import { releaseNextQueuedOrderForTarget } from '@/services/fulfillment-target-queue.service';
+import { releaseNextQueuedOrderForTarget, releaseAllEligibleQueuedTargets } from '@/services/fulfillment-target-queue.service';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { db } from '@/db';
 
@@ -10,11 +10,17 @@ vi.mock('@/db', () => ({
     update: vi.fn(),
     transaction: vi.fn(),
     insert: vi.fn(),
+    query: {
+      orders: {
+        findMany: vi.fn(),
+      },
+    },
   },
 }));
 
 vi.mock('@/services/fulfillment-target-queue.service', () => ({
   releaseNextQueuedOrderForTarget: vi.fn(),
+  releaseAllEligibleQueuedTargets: vi.fn(),
 }));
 
 describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
@@ -29,6 +35,8 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
   describe('1. STATUS_SYNC_DISABLED early return', () => {
     it('returns early when PEAKERR_STATUS_SYNC_ENABLED=false', async () => {
       process.env.PEAKERR_STATUS_SYNC_ENABLED = 'false';
+
+      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValue([]);
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -50,6 +58,8 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
           }),
         }),
       });
+
+      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValue([]);
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -74,6 +84,8 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
           }),
         }),
       });
+
+      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValue([]);
 
       const result = await syncStatusesAndReleaseQueues();
 
@@ -147,6 +159,8 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
         publicId: 'CF-8602GA6T1J',
       } as any);
 
+      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValue([]);
+
       const result = await syncStatusesAndReleaseQueues();
 
       expect(result.success).toBe(true);
@@ -205,6 +219,8 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
 
       vi.spyOn(peakerrClient, 'getStatus').mockRejectedValue(new Error('ETIMEDOUT'));
 
+      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValue([]);
+
       const result = await syncStatusesAndReleaseQueues();
 
       expect(result.success).toBe(true);
@@ -214,39 +230,207 @@ describe('Phase 4.8 — syncStatusesAndReleaseQueues Orchestrator', () => {
     });
   });
 
-  describe('7. Unknown provider status does not release queue', () => {
-    it('preserves local state and does not trigger queue release', async () => {
+  describe('8. Telemetry and Accounting for Queue Released & Blocked (Cases A through G)', () => {
+    it('Case A: 1 queued + free slot -> queueReleaseSuccess = 1, queueReleaseAttempts = 1', async () => {
       process.env.PEAKERR_STATUS_SYNC_ENABLED = 'true';
       process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
 
-      const mockActiveFulfillment = {
-        id: 'ful_unknown',
-        orderId: 'ord_unknown',
-        provider: 'peakerr',
-        externalOrderId: '80400001',
-        status: 'PROCESSING',
-        orderFulfillmentStatus: 'PROCESSING',
-        orderCompletedAt: null,
-      };
-
+      // No active fulfillment orders during sync
       (db.select as any).mockReturnValue({
         from: vi.fn().mockReturnValue({
           innerJoin: vi.fn().mockReturnValue({
-            where: vi.fn().mockResolvedValue([mockActiveFulfillment]),
+            where: vi.fn().mockResolvedValue([]),
           }),
         }),
       });
 
-      vi.spyOn(peakerrClient, 'getStatus').mockResolvedValue({
-        status: 'SomeBrandNewProviderStatus',
-      });
+      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([
+        {
+          orderId: 'ord_sweep_1',
+          publicId: 'CF-SWEEP-1',
+          target: 'https://instagram.com/target_user_1',
+          status: 'PROCESSING',
+          code: 'QUEUE_RELEASE_SUCCESS',
+        }
+      ]);
 
       const result = await syncStatusesAndReleaseQueues();
 
       expect(result.success).toBe(true);
-      expect(result.unchanged).toBe(1);
-      expect(result.completed).toBe(0);
+      expect(result.queueReleaseSuccess).toBe(1);
+      expect(result.queueReleaseAttempts).toBe(1);
+      expect(result.queueReleaseBlocked).toBe(0);
+      expect(result.releasedOrders).toHaveLength(1);
+      expect(result.releasedOrders?.[0].publicId).toBe('CF-SWEEP-1');
+    });
+
+    it('Case B: 2 targets different, both free -> queueReleaseSuccess = 2', async () => {
+      process.env.PEAKERR_STATUS_SYNC_ENABLED = 'true';
+      process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+      (db.select as any).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          innerJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
+
+      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([
+        {
+          orderId: 'ord_target_1',
+          publicId: 'CF-TARGET-1',
+          target: 'user_1',
+          status: 'PROCESSING',
+          code: 'QUEUE_RELEASE_SUCCESS',
+        },
+        {
+          orderId: 'ord_target_2',
+          publicId: 'CF-TARGET-2',
+          target: 'user_2',
+          status: 'PROCESSING',
+          code: 'QUEUE_RELEASE_SUCCESS',
+        }
+      ]);
+
+      const result = await syncStatusesAndReleaseQueues();
+
+      expect(result.queueReleaseSuccess).toBe(2);
+      expect(result.queueReleaseAttempts).toBe(2);
+      expect(result.queueReleaseBlocked).toBe(0);
+      expect(result.releasedOrders).toHaveLength(2);
+    });
+
+    it('Case C: target busy -> queueReleaseSuccess = 0, queueReleaseBlocked = 1', async () => {
+      process.env.PEAKERR_STATUS_SYNC_ENABLED = 'true';
+      process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+      (db.select as any).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          innerJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
+
+      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([
+        {
+          orderId: 'ord_busy',
+          publicId: 'CF-BUSY',
+          target: 'busy_user',
+          code: 'SLOT_BUSY',
+          skippedReason: 'SLOT_BUSY',
+        }
+      ]);
+
+      const result = await syncStatusesAndReleaseQueues();
+
+      expect(result.queueReleaseSuccess).toBe(0);
       expect(result.queueReleaseAttempts).toBe(0);
+      expect(result.queueReleaseBlocked).toBe(1);
+      expect(result.releasedOrders).toHaveLength(0);
+    });
+
+    it('Case D: atomic claim lost to concurrent worker -> queueReleaseSuccess = 0', async () => {
+      process.env.PEAKERR_STATUS_SYNC_ENABLED = 'true';
+      process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+      (db.select as any).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          innerJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
+
+      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([
+        {
+          orderId: 'ord_conflict',
+          publicId: 'CF-CONFLICT',
+          target: 'conflict_user',
+          code: 'ATOMIC_CLAIM_FAILED',
+          skippedReason: 'ATOMIC_CLAIM_FAILED',
+        }
+      ]);
+
+      const result = await syncStatusesAndReleaseQueues();
+
+      expect(result.queueReleaseSuccess).toBe(0);
+      expect(result.queueReleaseAttempts).toBe(0);
+      expect(result.releasedOrders).toHaveLength(0);
+    });
+
+    it('Case E: auto release disabled -> queueReleaseSuccess = 0', async () => {
+      process.env.PEAKERR_STATUS_SYNC_ENABLED = 'true';
+      process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'false';
+
+      (db.select as any).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          innerJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
+
+      const result = await syncStatusesAndReleaseQueues();
+
+      expect(result.queueReleaseSuccess).toBe(0);
+      expect(result.queueReleaseAttempts).toBe(0);
+      expect(result.queueReleaseBlocked).toBe(0);
+      expect(vi.mocked(releaseAllEligibleQueuedTargets)).not.toHaveBeenCalled();
+    });
+
+    it('Case F: subsequent run with no queued orders -> queueReleaseSuccess = 0', async () => {
+      process.env.PEAKERR_STATUS_SYNC_ENABLED = 'true';
+      process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+      (db.select as any).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          innerJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
+
+      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([]);
+
+      const result = await syncStatusesAndReleaseQueues();
+
+      expect(result.queueReleaseSuccess).toBe(0);
+      expect(result.queueReleaseAttempts).toBe(0);
+      expect(result.queueReleaseBlocked).toBe(0);
+    });
+
+    it('Case G: real release + subsequent dispatch failure maintains release accounting after claim', async () => {
+      process.env.PEAKERR_STATUS_SYNC_ENABLED = 'true';
+      process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED = 'true';
+
+      (db.select as any).mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          innerJoin: vi.fn().mockReturnValue({
+            where: vi.fn().mockResolvedValue([]),
+          }),
+        }),
+      });
+
+      // Provider failure after atomic claim: claim succeeded (SUBMITTING/FAILED), so order left WAITING_TARGET_SLOT queue
+      vi.mocked(releaseAllEligibleQueuedTargets).mockResolvedValueOnce([
+        {
+          orderId: 'ord_provider_fail',
+          publicId: 'CF-FAIL',
+          target: 'fail_user',
+          status: 'FAILED',
+          code: 'PROVIDER_ERROR',
+        }
+      ]);
+
+      const result = await syncStatusesAndReleaseQueues();
+
+      // The order claimed the slot and was promoted/extracted from WAITING_TARGET_SLOT
+      expect(result.queueReleaseSuccess).toBe(1);
+      expect(result.queueReleaseAttempts).toBe(1);
+      expect(result.releasedOrders).toHaveLength(1);
+      expect(result.releasedOrders?.[0].publicId).toBe('CF-FAIL');
     });
   });
 });
