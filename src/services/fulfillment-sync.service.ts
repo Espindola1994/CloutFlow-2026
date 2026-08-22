@@ -225,6 +225,7 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
         status: fulfillmentOrders.status,
         providerCostSource: fulfillmentOrders.providerCostSource,
         providerCostCapturedAt: fulfillmentOrders.providerCostCapturedAt,
+        orderCustomerEmail: orders.customerEmail,
         orderFulfillmentStatus: orders.fulfillmentStatus,
         orderCompletedAt: orders.completedAt,
         orderPlatform: orders.platform,
@@ -260,7 +261,7 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
     for (const batch of batches) {
       const orderIds = batch.map((f) => f.externalOrderId as string);
 
-      let multiStatusResponse: Record<string, any> = {};
+      let multiStatusResponse: Record<string, unknown> = {};
 
       try {
         if (orderIds.length === 1) {
@@ -277,31 +278,31 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
           // Multi-status call
           const multiRes = await peakerrClient.getMultiStatus(orderIds);
           if (multiRes && typeof multiRes === 'object' && !('error' in multiRes)) {
-            multiStatusResponse = multiRes;
+            multiStatusResponse = multiRes as Record<string, unknown>;
           } else {
             result.errors += batch.length;
-            result.details?.push(`Batch provider error: ${(multiRes as any)?.error || 'Failed to fetch multi-status'}`);
+            result.details?.push(`Batch provider error: ${(multiRes as Record<string, unknown>)?.error || 'Failed to fetch multi-status'}`);
             continue;
           }
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         // Network / HTTP failure - preserve local statuses safely
         result.errors += batch.length;
-        result.details?.push(`Network failure connecting to Peakerr: ${err?.message || 'Provider unreachable'}`);
+        result.details?.push(`Network failure connecting to Peakerr: ${err instanceof Error ? err.message : 'Provider unreachable'}`);
         continue;
       }
 
       // 3. PROCESS EACH RECORD INDEPENDENTLY WITH GUARDS AND SHORT ATOMIC TRANSACTIONS
       for (const item of batch) {
         const extId = item.externalOrderId!;
-        const rawStatusItem = multiStatusResponse[extId];
+        const rawStatusItem = multiStatusResponse[extId] as Record<string, unknown> | undefined;
 
         if (!rawStatusItem || typeof rawStatusItem !== 'object' || rawStatusItem.error) {
           result.unchanged += 1;
           continue;
         }
 
-        const rawStatus = rawStatusItem.status;
+        const rawStatus = rawStatusItem.status as string | undefined;
         const mappedStatus = mapPeakerrStatusToLocal(rawStatus);
 
         if (!mappedStatus) {
@@ -332,7 +333,7 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
         const chargeNum = sanitizedPayload.charge !== undefined && sanitizedPayload.charge !== null ? Number(sanitizedPayload.charge) : null;
         const hasValidCharge = chargeNum !== null && !isNaN(chargeNum) && chargeNum >= 0;
 
-        const fulfillmentUpdateFields: Record<string, any> = {
+        const fulfillmentUpdateFields: Record<string, unknown> = {
           responsePayload: sanitizedPayload,
           updatedAt: new Date(),
         };
@@ -370,7 +371,7 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
             .where(eq(fulfillmentOrders.id, item.id));
 
           // 2. Update orders
-          const orderUpdateData: Record<string, any> = {
+          const orderUpdateData: Record<string, unknown> = {
             fulfillmentStatus: mappedStatus,
             updatedAt: new Date(),
           };
@@ -396,7 +397,7 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
             status: mappedStatus,
             fulfillmentStatus: mappedStatus,
             description: eventDescription,
-            metadata: sanitizedPayload as any,
+            metadata: sanitizedPayload as unknown as Record<string, unknown>,
           });
         });
 
@@ -408,6 +409,22 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
           // When an active delivery successfully reaches COMPLETED, check if subsequent orders
           // are waiting in WAITING_TARGET_SLOT for the same platform + canonical target.
           // Release is executed strictly AFTER the completion update is committed.
+          // Emit lifecycle ORDER_COMPLETED event if customer has email
+          const customerEmail = item.orderCustomerEmail;
+          if (customerEmail) {
+            try {
+              const { emitLifecycleEvent } = await import('@/services/lifecycle/event.service');
+              await emitLifecycleEvent({
+                customerEmail: customerEmail,
+                eventType: 'ORDER_COMPLETED',
+                idempotencyKey: `ORDER_COMPLETED:ORDER:${item.orderId}`,
+                payload: { orderId: item.orderId }
+              });
+            } catch (lifecycleErr) {
+              console.error('[StatusSync] Error emitting lifecycle ORDER_COMPLETED event:', lifecycleErr);
+            }
+          }
+
           // Errors during release are non-fatal to the status sync update.
           if (item.orderPlatform) {
             const tRes = resolveCanonicalFulfillmentTarget({
@@ -438,9 +455,9 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
                   });
                   result.details?.push(`Target queue released next order ${releaseRes.publicId} for ${tRes.target}`);
                 }
-              } catch (relErr: any) {
+              } catch (relErr: unknown) {
                 console.error(`[StatusSync] Error releasing queued order for target ${tRes.target}:`, relErr);
-                result.details?.push(`Queue release error for target ${tRes.target}: ${relErr?.message || 'Unknown error'}`);
+                result.details?.push(`Queue release error for target ${tRes.target}: ${relErr instanceof Error ? relErr.message : 'Unknown error'}`);
               }
             }
           }
@@ -451,12 +468,12 @@ export async function syncPeakerrFulfillmentStatuses(options?: {
     }
 
     return result;
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('[SyncPeakerrFulfillmentStatuses] Unexpected error:', error);
     return {
       ...result,
       success: false,
-      error: error?.message || 'Unexpected error during status sync execution',
+      error: error instanceof Error ? error.message : 'Unexpected error during status sync execution',
     };
   }
 }

@@ -9,3 +9,4 @@ export * from './settings';
 export * from './offers';
 export * from './checkout-contexts';
 export * from './fulfillment-chains';
+export * from './lifecycle';
