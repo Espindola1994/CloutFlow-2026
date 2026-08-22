@@ -57,7 +57,42 @@ export async function evaluateCheckoutAbandonments(thresholdMinutes = DEFAULT_AB
       },
     });
 
-    if (result.success && !result.isDuplicate) {
+    if (result.success && !result.isDuplicate && result.eventId) {
+      // Schedule Cart Recovery sequence
+      const now = new Date();
+      
+      // Step 1: Immediate
+      await scheduleLifecycleAutomation({
+        eventId: result.eventId,
+        customerEmail: lead.customerEmail,
+        automationId: 'ABANDONED_CART_STEP_1',
+        actionType: 'ABANDONED_CART',
+        scheduledFor: now,
+        contextData: { ...(lead.payload as object), stepNumber: 1 }
+      });
+
+      // Step 2: +24 hours
+      const step2Time = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+      await scheduleLifecycleAutomation({
+        eventId: result.eventId,
+        customerEmail: lead.customerEmail,
+        automationId: 'ABANDONED_CART_STEP_2',
+        actionType: 'ABANDONED_CART',
+        scheduledFor: step2Time,
+        contextData: { ...(lead.payload as object), stepNumber: 2 }
+      });
+
+      // Step 3: +48 hours
+      const step3Time = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+      await scheduleLifecycleAutomation({
+        eventId: result.eventId,
+        customerEmail: lead.customerEmail,
+        automationId: 'ABANDONED_CART_STEP_3',
+        actionType: 'ABANDONED_CART',
+        scheduledFor: step3Time,
+        contextData: { ...(lead.payload as object), stepNumber: 3 }
+      });
+
       createdAbandonments++;
     }
   }

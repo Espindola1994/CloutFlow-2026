@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, varchar, integer, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, varchar, integer, jsonb, index, uniqueIndex } from 'drizzle-orm/pg-core';
 import { customers } from './customers';
 
 export const lifecycleEvents = pgTable('lifecycle_events', {
@@ -62,4 +62,33 @@ export const lifecycleAutomations = pgTable('lifecycle_automations', {
     scheduledForIdx: index('lifecycle_automations_scheduled_for_idx').on(table.scheduledFor),
     customerEmailIdx: index('lifecycle_automations_customer_email_idx').on(table.customerEmail),
   };
+});
+
+export const emailLogs = pgTable('email_logs', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  customerEmail: varchar('customer_email', { length: 255 }).notNull(),
+  lifecycleAutomationId: text('lifecycle_automation_id').references(() => lifecycleAutomations.id),
+  sequenceType: varchar('sequence_type', { length: 100 }), // e.g. ABANDONED_CART
+  stepNumber: integer('step_number'),
+  provider: varchar('provider', { length: 50 }).notNull().default('RESEND'),
+  providerMessageId: varchar('provider_message_id', { length: 255 }),
+  status: varchar('status', { length: 50 }).notNull(), // QUEUED, SENT, FAILED, SUPPRESSED, BLOCKED_SEND_DISABLED
+  subject: text('subject'),
+  metadata: jsonb('metadata').default('{}'),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    customerEmailIdx: index('email_logs_customer_email_idx').on(table.customerEmail),
+    automationIdIdx: index('email_logs_automation_id_idx').on(table.lifecycleAutomationId),
+    uniqueLogConstraint: uniqueIndex('email_logs_automation_step_unique_idx').on(table.lifecycleAutomationId, table.stepNumber),
+  };
+});
+
+export const emailSuppressions = pgTable('email_suppressions', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  customerEmail: varchar('customer_email', { length: 255 }).notNull().unique(),
+  reason: varchar('reason', { length: 100 }).notNull(), // UNSUBSCRIBED, MANUAL_BLOCK
+  source: varchar('source', { length: 100 }).notNull(), // USER, ADMIN
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });

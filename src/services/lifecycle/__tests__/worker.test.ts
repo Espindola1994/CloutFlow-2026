@@ -29,6 +29,11 @@ vi.mock('@/db', () => {
             returning: vi.fn().mockResolvedValue(mockAutomations)
           })
         })
+      }),
+      insert: vi.fn().mockReturnValue({
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([{ id: 'mocked' }])
+        })
       })
     }
   };

@@ -1,0 +1,40 @@
+name: Lifecycle Worker
+
+on:
+  schedule:
+    # Run every 10 minutes
+    - cron: '*/10 * * * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  run-worker:
+    name: Run Lifecycle Worker
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Trigger Internal Lifecycle Worker Endpoint
+        env:
+          APP_URL: ${{ secrets.APP_URL || 'https://www.instahub.com.br' }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "Error: CRON_SECRET is not configured in GitHub repository secrets."
+            exit 1
+          fi
+
+          echo "Invoking lifecycle worker endpoint..."
+          HTTP_RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "${APP_URL}/api/internal/lifecycle/worker" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Content-Type: application/json")
+
+          HTTP_BODY=$(echo "$HTTP_RESPONSE" | sed -e '$d')
+          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tr -d '\n' | sed -e 's/.*HTTP_STATUS://')
+
+          echo "HTTP Status: $HTTP_STATUS"
+          echo "Response: $HTTP_BODY"
+
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Endpoint returned error status $HTTP_STATUS"
+            exit 1
+          fi

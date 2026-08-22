@@ -108,7 +108,7 @@ export async function emitLifecycleEvent(params: EmitLifecycleEventParams): Prom
       // If a customer makes a purchase, immediately suppress any pending Abandoned Checkout emails
       await tx.update(lifecycleAutomations)
         .set({
-          status: 'SUPPRESSED',
+          status: 'SUPPRESSED_CONVERTED',
           updatedAt: new Date(),
           errorLog: [{ 
             timestamp: new Date().toISOString(), 
@@ -118,11 +118,7 @@ export async function emitLifecycleEvent(params: EmitLifecycleEventParams): Prom
         .where(
           and(
             eq(lifecycleAutomations.customerEmail, normalizedEmail),
-            eq(lifecycleAutomations.status, 'PENDING'),
-            or(
-              eq(lifecycleAutomations.automationId, 'ABANDONED_CART_2H'),
-              eq(lifecycleAutomations.automationId, 'ABANDONED_CART_24H')
-            )
+            eq(lifecycleAutomations.status, 'PENDING')
           )
         );
     }
