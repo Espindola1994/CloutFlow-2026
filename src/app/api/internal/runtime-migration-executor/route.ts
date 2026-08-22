@@ -91,6 +91,7 @@ export async function POST(request: Request) {
         lifecycle_events: eventRows
       };
     }
+    if (body.verify_queries === true) {
       const { rows: contactMeta } = await pool.query(`SELECT count(*) FROM crm_contact_metadata;`);
       const { rows: notes } = await pool.query(`SELECT count(*) FROM crm_notes;`);
       const { rows: emailLogs } = await pool.query(`SELECT count(*) FROM email_logs;`);
