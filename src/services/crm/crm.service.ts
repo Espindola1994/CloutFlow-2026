@@ -10,7 +10,8 @@ import {
   emailSuppressions, 
   crmNotes, 
   crmContactMetadata, 
-  customers 
+  customers,
+  emailThreads,
 } from '@/db/schema';
 import { eq, desc, asc, inArray, or, ilike, and } from 'drizzle-orm';
 import { validateEmailFormat } from '@/lib/social/normalize';
@@ -86,6 +87,14 @@ export interface CrmContactDetail extends CrmContactSummary {
     id: string;
     adminName: string;
     text: string;
+    createdAt: string;
+  }>;
+  threads?: Array<{
+    id: string;
+    subject: string;
+    status: string;
+    unreadCount: number;
+    latestMessageAt: string;
     createdAt: string;
   }>;
   checkoutContexts: Array<{
@@ -387,7 +396,8 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
     userNotes,
     userContexts,
     userSuppression,
-    userMetadata
+    userMetadata,
+    userThreads
   ] = await Promise.all([
     db.query.orders.findMany({
       where: eq(orders.customerEmail, normalized),
@@ -417,6 +427,10 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
     }),
     db.query.crmContactMetadata.findMany({
       where: eq(crmContactMetadata.customerEmail, normalized)
+    }),
+    db.query.emailThreads.findMany({
+      where: eq(emailThreads.customerEmail, normalized),
+      orderBy: [desc(emailThreads.latestMessageAt)]
     })
   ]);
 
@@ -564,6 +578,14 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
     emails,
     automations,
     notes,
+    threads: userThreads.map((t) => ({
+      id: t.id,
+      subject: t.subject,
+      status: t.status,
+      unreadCount: t.unreadCount,
+      latestMessageAt: t.latestMessageAt.toISOString(),
+      createdAt: t.createdAt.toISOString(),
+    })),
     checkoutContexts: relevantContexts
   };
 }

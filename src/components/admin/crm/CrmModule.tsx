@@ -17,7 +17,9 @@ import {
   Tag,
   ArrowUpDown,
   Loader2,
-  Sparkles
+  Sparkles,
+  History,
+  Workflow
 } from "lucide-react";
 import { AbandonedLead, EmailWorkflow, InboxMessage } from "../types";
 import { CrmContactSummary } from "@/services/crm/crm.service";
@@ -37,6 +39,9 @@ import {
 } from "../ui";
 import { Customer360Modal } from "./Customer360Modal";
 import { ManualEmailModal } from "./ManualEmailModal";
+import { SmartInboxTab } from "./SmartInboxTab";
+import { SentEmailHistoryTab } from "./SentEmailHistoryTab";
+import { AutomationsTab } from "./AutomationsTab";
 import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 
 interface CrmModuleProps {
@@ -46,7 +51,7 @@ interface CrmModuleProps {
 }
 
 export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModuleProps) {
-  const [activeTab, setActiveTab] = useState<"contacts" | "workflows" | "inbox">("contacts");
+  const [activeTab, setActiveTab] = useState<"contacts" | "inbox" | "history" | "automations">("contacts");
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [contacts, setContacts] = useState<CrmContactSummary[]>([]);
@@ -147,41 +152,52 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
       {/* Header */}
       <AdminSectionHeader
         title="CRM & Communication"
-        description="Unified customer relationship manager, lifecycle timeline and manual email dispatch."
+        description="Unified customer relationship manager, Smart Gmail Inbox, sent email history, and lifecycle automations."
         actions={
-          <div className="flex items-center bg-[#FAFCFC] border border-[#D9E2E3] rounded-lg p-1 text-xs font-semibold">
+          <div className="flex items-center bg-[#FAFCFC] border border-[#D9E2E3] rounded-lg p-1 text-xs font-semibold overflow-x-auto max-w-full">
             <button
               type="button"
               onClick={() => setActiveTab("contacts")}
-              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "contacts"
                   ? "bg-[#0F8F8A] text-white shadow-xs"
                   : "text-[#65737A] hover:text-[#142126]"
               }`}
             >
-              Contacts & CRM ({contacts.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("workflows")}
-              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
-                activeTab === "workflows"
-                  ? "bg-[#0F8F8A] text-white shadow-xs"
-                  : "text-[#65737A] hover:text-[#142126]"
-              }`}
-            >
-              Email Automations ({workflows.length || 3})
+              CONTACTS ({contacts.length})
             </button>
             <button
               type="button"
               onClick={() => setActiveTab("inbox")}
-              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap ${
                 activeTab === "inbox"
                   ? "bg-[#0F8F8A] text-white shadow-xs"
                   : "text-[#65737A] hover:text-[#142126]"
               }`}
             >
-              Support Inbox ({messages.length})
+              INBOX
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("history")}
+              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "history"
+                  ? "bg-[#0F8F8A] text-white shadow-xs"
+                  : "text-[#65737A] hover:text-[#142126]"
+              }`}
+            >
+              SENT / EMAIL HISTORY
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("automations")}
+              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "automations"
+                  ? "bg-[#0F8F8A] text-white shadow-xs"
+                  : "text-[#65737A] hover:text-[#142126]"
+              }`}
+            >
+              AUTOMATIONS
             </button>
           </div>
         }
@@ -440,78 +456,19 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
         </div>
       )}
 
-      {/* 2. EMAIL WORKFLOWS TAB */}
-      {activeTab === "workflows" && (
-        <AdminCard>
-          <div className="mb-4">
-            <h3 className="text-sm font-semibold text-[#142126]">Lifecycle Email Automations</h3>
-            <p className="text-xs text-[#65737A] mt-0.5">Realtime automated cart recovery and transactional sequences</p>
-          </div>
-          <div className="space-y-3">
-            {[
-              { id: "1", name: "Cart Recovery Sequence (Step 1 - 30 min)", trigger: "CHECKOUT_ABANDONED", subject: "You left something behind", active: true, sentCount: 0 },
-              { id: "2", name: "Cart Recovery Sequence (Step 2 - 24 hours)", trigger: "ABANDONED_CART_24H", subject: "Still thinking it over?", active: true, sentCount: 0 },
-              { id: "3", name: "Cart Recovery Sequence (Step 3 - 48 hours)", trigger: "ABANDONED_CART_48H", subject: "Your CloutFlow checkout is still waiting", active: true, sentCount: 0 }
-            ].map((wf) => (
-              <div
-                key={wf.id}
-                className="p-4 rounded-xl bg-[#FAFCFC] border border-[#D9E2E3] flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-              >
-                <div>
-                  <h4 className="text-sm font-semibold text-[#142126]">{wf.name}</h4>
-                  <p className="text-xs text-[#65737A] mt-0.5">
-                    Trigger: <span className="font-medium text-[#142126]">{wf.trigger}</span> · Subject: &quot;{wf.subject}&quot;
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 text-xs font-semibold self-start sm:self-auto">
-                  <AdminBadge variant="success" size="sm">
-                    ACTIVE
-                  </AdminBadge>
-                </div>
-              </div>
-            ))}
-          </div>
-        </AdminCard>
+      {/* 2. SMART SUPPORT INBOX TAB */}
+      {activeTab === "inbox" && (
+        <SmartInboxTab />
       )}
 
-      {/* 3. SUPPORT INBOX TAB (Phase E placeholder readiness) */}
-      {activeTab === "inbox" && (
-        <AdminCard>
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-semibold text-[#142126]">Support Inbox</h3>
-              <p className="text-xs text-[#65737A] mt-0.5">Inbound customer conversations and support threads</p>
-            </div>
-            <AdminBadge variant="info" size="sm">Phase E Ready</AdminBadge>
-          </div>
-          {messages.length === 0 ? (
-            <div className="py-12 text-center">
-              <div className="w-12 h-12 rounded-xl bg-[#F1F5F5] border border-[#D9E2E3] flex items-center justify-center mx-auto mb-3 text-[#65737A]">
-                <Inbox className="w-6 h-6" />
-              </div>
-              <h4 className="text-sm font-semibold text-[#142126]">Support inbox is empty</h4>
-              <p className="text-xs text-[#65737A] mt-1 max-w-sm mx-auto">
-                Customer support requests and contact submissions will appear here. Gmail inbound synchronization will be enabled in Phase E.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className="p-4 rounded-xl bg-[#FAFCFC] border border-[#D9E2E3] flex flex-col sm:flex-row sm:items-center justify-between gap-2"
-                >
-                  <div>
-                    <h5 className="font-semibold text-sm text-[#142126]">{m.customer} <span className="text-xs font-normal text-[#8A979D]">({m.email})</span></h5>
-                    <p className="text-xs text-[#0F8F8A] font-medium mt-0.5">{m.subject}</p>
-                    <p className="text-xs text-[#65737A] mt-1 line-clamp-1">{m.message}</p>
-                  </div>
-                  <span className="text-xs text-[#8A979D] shrink-0 self-start sm:self-auto">{m.date}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </AdminCard>
+      {/* 3. SENT / EMAIL HISTORY TAB */}
+      {activeTab === "history" && (
+        <SentEmailHistoryTab />
+      )}
+
+      {/* 4. AUTOMATIONS TAB */}
+      {activeTab === "automations" && (
+        <AutomationsTab />
       )}
 
       {/* Customer 360 Drawer */}

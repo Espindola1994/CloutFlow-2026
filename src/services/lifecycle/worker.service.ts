@@ -91,7 +91,7 @@ export async function runLifecycleWorker(limit = 10) {
 
         const template = getCartRecoveryTemplate(stepNumber, { returnUrl, customerEmail: normalizedEmail });
 
-        const transport = getMarketingEmailTransport();
+        const transport = getMarketingEmailTransport(normalizedEmail);
         const idempotencyKey = `lifecycle/${automation.id}/step/${stepNumber}`;
 
         const sendResult = await transport.send({

@@ -46,6 +46,7 @@ export default function ServiceSalesLandingPage() {
     targetUrl,
     socialUsername,
     profileUrl,
+    email,
     verifiedTargetData,
     setPlatform,
     setService,
@@ -128,6 +129,7 @@ export default function ServiceSalesLandingPage() {
         targetUrl: targetUrl || null,
         socialUsername: normalizedUsername,
         profileUrl: profileUrl || null,
+        email: email ? email.trim().toLowerCase() : null,
       };
 
       const res = await fetch("/api/checkout/context", {

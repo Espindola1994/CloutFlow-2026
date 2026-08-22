@@ -41,7 +41,7 @@ export function Customer360Modal({
 }: Customer360ModalProps) {
   const [contact, setContact] = useState<CrmContactDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "lifecycle" | "emails" | "automations" | "notes">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "lifecycle" | "emails" | "automations" | "conversations" | "notes">("overview");
   
   // Note creation
   const [newNoteText, setNewNoteText] = useState("");
@@ -184,6 +184,7 @@ export function Customer360Modal({
             { id: "lifecycle", label: `Lifecycle (${contact?.lifecycleTimeline?.length || 0})`, icon: Clock },
             { id: "emails", label: `Emails (${contact?.emails?.length || 0})`, icon: Mail },
             { id: "automations", label: `Automations (${contact?.automations?.length || 0})`, icon: RefreshCw },
+            { id: "conversations", label: `Conversations (${contact?.threads?.length || 0})`, icon: MessageSquare },
             { id: "notes", label: `Internal Notes (${contact?.notes?.length || 0})`, icon: FileText }
           ].map((tab) => {
             const Icon = tab.icon;
@@ -417,7 +418,45 @@ export function Customer360Modal({
                 </div>
               )}
 
-              {/* 6. NOTES TAB */}
+              {/* 6. CONVERSATIONS TAB */}
+              {activeTab === "conversations" && (
+                <div className="space-y-4">
+                  {!contact.threads || contact.threads.length === 0 ? (
+                    <div className="p-8 text-center border border-dashed border-[#D9E2E3] rounded-xl text-xs text-[#65737A]">
+                      No Smart Inbox conversations recorded for this contact.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {contact.threads.map((t) => (
+                        <div key={t.id} className="p-4 rounded-xl bg-[#FAFCFC] border border-[#D9E2E3] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold text-xs text-[#142126]">{t.subject}</span>
+                              <AdminBadge
+                                variant={
+                                  t.status === "RESOLVED"
+                                    ? "success"
+                                    : t.status === "NEEDS_REPLY"
+                                    ? "warning"
+                                    : "info"
+                                }
+                                size="sm"
+                              >
+                                {t.status.replace("_", " ")}
+                              </AdminBadge>
+                            </div>
+                            <p className="text-[11px] text-[#65737A]">
+                              Latest message: {new Date(t.latestMessageAt).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* 7. NOTES TAB */}
               {activeTab === "notes" && (
                 <div className="space-y-5">
                   <form onSubmit={handleAddNote} className="space-y-3">

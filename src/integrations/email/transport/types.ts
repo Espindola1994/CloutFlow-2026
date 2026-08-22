@@ -1,10 +1,14 @@
 export interface EmailMessage {
   to: string;
   from?: string;
+  replyTo?: string;
   subject: string;
-  html: string;
+  html?: string;
+  text?: string;
   idempotencyKey?: string;
   headers?: Record<string, string>;
+  inReplyTo?: string;
+  references?: string;
   category?: 'transactional' | 'marketing' | 'recovery' | 'support';
 }
 

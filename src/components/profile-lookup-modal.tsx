@@ -165,17 +165,20 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
       return;
     }
 
-    // Persist verified target state in Funnel Store
+    // Persist verified target state and email in Funnel Store
     const normalizedUsername = verifiedProfile.username.replace(/^@+/, '').trim();
     const isYouTube = platform === 'youtube';
     const resolvedTargetType = isYouTube ? 'channel' : 'profile';
+    const cleanEmail = email.trim().toLowerCase();
 
+    useFunnelStore.getState().setEmail(cleanEmail);
     useFunnelStore.getState().setTarget({
       targetType: resolvedTargetType,
       targetValue: normalizedUsername,
       targetUrl: (verifiedProfile as any).profile_url || `https://${platform === 'twitter' ? 'x.com' : `${platform}.com`}/${normalizedUsername}`,
       socialUsername: normalizedUsername,
       profileUrl: (verifiedProfile as any).profile_url || null,
+      email: cleanEmail,
       verifiedTargetData: verifiedProfile as any,
     });
 

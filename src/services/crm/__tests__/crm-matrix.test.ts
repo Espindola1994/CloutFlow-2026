@@ -24,7 +24,9 @@ vi.mock('@/db', () => ({
       crmNotes: { findMany: vi.fn() },
       orders: { findMany: vi.fn() },
       paymentLeads: { findMany: vi.fn() },
-      checkoutContexts: { findMany: vi.fn() }
+      checkoutContexts: { findMany: vi.fn() },
+      emailThreads: { findMany: vi.fn().mockResolvedValue([]) },
+      emailMessages: { findMany: vi.fn().mockResolvedValue([]) }
     },
     insert: vi.fn(() => ({
       values: vi.fn(() => ({
@@ -47,7 +49,12 @@ vi.mock('@/integrations/email/transport', () => ({
   })),
   getTransactionalEmailTransport: vi.fn(() => ({
     send: mockSend
-  }))
+  })),
+  getSupportEmailTransport: vi.fn(() => ({
+    send: mockSend
+  })),
+  isMarketingSendAllowedForRecipient: vi.fn(() => true),
+  isEmailInAllowlist: vi.fn(() => false)
 }));
 
 describe('Phase D: CRM & Customer 360 Test Matrix', () => {

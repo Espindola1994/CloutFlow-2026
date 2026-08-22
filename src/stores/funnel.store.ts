@@ -8,6 +8,7 @@ interface FunnelState {
   serviceSlug: string | null;
   followerType: 'real' | 'niche' | null;
   username: string | null;
+  email: string | null;
   profileData: Record<string, unknown> | null;
   
   // Generalized Target State
@@ -27,6 +28,7 @@ interface FunnelState {
   setService: (slug: string) => void;
   setFollowerType: (type: 'real' | 'niche' | null) => void;
   setUsername: (username: string) => void;
+  setEmail: (email: string) => void;
   setProfileData: (data: Record<string, unknown>) => void;
   setTarget: (target: {
     targetType: TargetType;
@@ -34,6 +36,7 @@ interface FunnelState {
     targetUrl?: string | null;
     socialUsername?: string | null;
     profileUrl?: string | null;
+    email?: string | null;
     verifiedTargetData?: Record<string, unknown> | null;
   }) => void;
   setNiche: (nicheId: string, custom?: string) => void;
@@ -49,6 +52,7 @@ export const useFunnelStore = create<FunnelState>()(
       serviceSlug: null,
       followerType: null,
       username: null,
+      email: null,
       profileData: null,
       targetType: null,
       targetValue: null,
@@ -68,6 +72,7 @@ export const useFunnelStore = create<FunnelState>()(
           serviceSlug: null,
           followerType: null,
           username: null,
+          email: null,
           profileData: null,
           targetType: null,
           targetValue: null,
@@ -84,6 +89,7 @@ export const useFunnelStore = create<FunnelState>()(
       }),
       setFollowerType: (type) => set({ followerType: type }),
       setUsername: (username) => set({ username, socialUsername: username.replace(/^@+/, ''), profileData: null }),
+      setEmail: (email) => set({ email }),
       setProfileData: (data) => set({ profileData: data }),
       setTarget: (target) => set({
         targetType: target.targetType,
@@ -91,6 +97,7 @@ export const useFunnelStore = create<FunnelState>()(
         targetUrl: target.targetUrl || null,
         socialUsername: target.socialUsername || null,
         profileUrl: target.profileUrl || null,
+        email: target.email !== undefined ? target.email : undefined,
         verifiedTargetData: target.verifiedTargetData || null,
       }),
       setNiche: (nicheId, custom) => set({ nicheId, customNiche: custom || null }),
@@ -101,6 +108,7 @@ export const useFunnelStore = create<FunnelState>()(
         serviceSlug: null,
         followerType: null,
         username: null,
+        email: null,
         profileData: null,
         targetType: null,
         targetValue: null,

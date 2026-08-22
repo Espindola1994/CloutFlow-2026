@@ -1,9 +1,16 @@
 import { db } from '@/db';
-import { emailLogs, emailSuppressions } from '@/db/schema';
-import { eq } from 'drizzle-orm';
-import { getMarketingEmailTransport, getTransactionalEmailTransport } from '@/integrations/email/transport';
+import { emailLogs, emailSuppressions, emailThreads, emailMessages } from '@/db/schema';
+import { eq, desc } from 'drizzle-orm';
+import {
+  getMarketingEmailTransport,
+  getTransactionalEmailTransport,
+  getSupportEmailTransport,
+  isMarketingSendAllowedForRecipient,
+} from '@/integrations/email/transport';
 import { normalizeCrmEmail } from './crm.service';
 import { interpolateTemplate, escapeHtml } from './templates';
+import { sanitizeHtml } from '@/lib/email/sanitize';
+import { isEmailSuppressed } from '@/services/lifecycle/unsubscribe.service';
 
 export interface SendManualEmailParams {
   customerEmail: string;
@@ -13,6 +20,7 @@ export interface SendManualEmailParams {
   body: string;
   adminName?: string;
   orderId?: string;
+  threadId?: string;
   variables?: Record<string, any>;
 }
 
@@ -21,6 +29,8 @@ export interface SendManualEmailResult {
   provider: string;
   providerMessageId?: string;
   emailLogId?: string;
+  threadId?: string;
+  messageId?: string;
   status: string;
   reason?: string;
   error?: string;
@@ -35,19 +45,20 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
       success: false,
       provider: 'NONE',
       status: 'INVALID_RECIPIENT',
-      error: 'Invalid recipient email address.'
+      error: 'Invalid recipient email address.',
     };
   }
 
   // 2. Check suppression if category is marketing
   if (params.category === 'marketing') {
-    const [suppressed] = await db.query.emailSuppressions.findMany({
-      where: eq(emailSuppressions.customerEmail, normalizedEmail)
+    const foundSuppressions = await db.query.emailSuppressions.findMany({
+      where: eq(emailSuppressions.customerEmail, normalizedEmail),
     });
+    const suppressed = foundSuppressions && (foundSuppressions as any[]).length > 0 ? (foundSuppressions as any[])[0] : null;
 
     if (suppressed) {
       // Log blocked attempt
-      const [log] = await db.insert(emailLogs).values({
+      const insertedLogs = await db.insert(emailLogs).values({
         customerEmail: normalizedEmail,
         sendOrigin: 'MANUAL',
         category: 'marketing',
@@ -56,26 +67,37 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
         status: 'SUPPRESSED',
         subject: params.subject,
         metadata: {
-          suppressionReason: suppressed.reason,
+          suppressionReason: (suppressed as any)?.reason || 'USER_UNSUBSCRIBED',
           attemptedBy: params.adminName || 'Admin',
-          orderId: params.orderId
-        }
+          orderId: params.orderId,
+        },
       }).returning();
 
       return {
         success: false,
         provider: 'RESEND',
-        emailLogId: log.id,
+        emailLogId: (insertedLogs as any)?.[0]?.id || 'suppressed-log',
         status: 'BLOCKED_SUPPRESSED',
-        reason: `Recipient is marketing-suppressed: ${suppressed.reason}`
+        reason: `Recipient is marketing-suppressed: ${(suppressed as any)?.reason || 'USER_UNSUBSCRIBED'}`,
       };
     }
   }
 
-  // 3. Select correct transport based on category
-  const transport = params.category === 'marketing'
-    ? getMarketingEmailTransport()
-    : getTransactionalEmailTransport();
+  // 3. Routing: SUPPORT -> Gmail SMTP; TRANSACTIONAL -> Resend; MARKETING -> Marketing (Resend/Controlled)
+  let transport;
+  let providerName = 'RESEND';
+
+  if (params.category === 'support') {
+    transport = getSupportEmailTransport();
+    providerName = 'GMAIL';
+  } else if (params.category === 'transactional') {
+    transport = getTransactionalEmailTransport();
+    providerName = 'RESEND';
+  } else {
+    // Marketing
+    transport = getMarketingEmailTransport(normalizedEmail);
+    providerName = 'RESEND';
+  }
 
   // 4. Interpolate variables safely
   const vars = params.variables || {};
@@ -88,7 +110,8 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
       to: normalizedEmail,
       subject: finalSubject,
       html: finalBody,
-      category: params.category
+      text: finalBody.replace(/<[^>]+>/g, ' '),
+      category: params.category,
     });
 
     const isSent = result.success && !result.blocked;
@@ -104,7 +127,7 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
       sendOrigin: 'MANUAL',
       category: params.category,
       templateId: params.templateId || 'CUSTOM',
-      provider: 'RESEND',
+      provider: providerName,
       providerMessageId: result.messageId || null,
       status: logStatus,
       subject: finalSubject,
@@ -113,18 +136,78 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
         adminName: params.adminName || 'Admin',
         orderId: params.orderId,
         error: result.error ? String(result.error) : null,
-        reason: result.reason
-      }
+        reason: result.reason,
+      },
     }).returning();
+
+    // 7. If support or associated with a conversation thread, persist outbound email_message
+    let threadId = params.threadId;
+    let messageId: string | undefined;
+
+    if (isSent && (params.category === 'support' || threadId)) {
+      if (!threadId) {
+        // Create or find support thread for customer
+        const [existingThread] = await db.query.emailThreads.findMany({
+          where: eq(emailThreads.customerEmail, normalizedEmail),
+          orderBy: [desc(emailThreads.latestMessageAt)],
+          limit: 1,
+        });
+
+        if (existingThread) {
+          threadId = existingThread.id;
+        } else {
+          const [newThread] = await db.insert(emailThreads).values({
+            customerEmail: normalizedEmail,
+            status: 'WAITING_CUSTOMER',
+            subject: finalSubject,
+            relatedOrderId: params.orderId || null,
+            latestMessageAt: new Date(),
+            unreadCount: 0,
+          }).returning({ id: emailThreads.id });
+          threadId = newThread.id;
+        }
+      }
+
+      if (threadId) {
+        const fromEmail = process.env.GMAIL_USER || process.env.RESEND_FROM_EMAIL || 'support@cloutflow.com';
+        const [outboundMsg] = await db.insert(emailMessages).values({
+          threadId,
+          direction: 'OUTBOUND',
+          provider: providerName,
+          providerMessageId: result.messageId || null,
+          fromEmail,
+          toEmail: normalizedEmail,
+          subject: finalSubject,
+          textBody: finalBody.replace(/<[^>]+>/g, ' '),
+          sanitizedHtmlBody: sanitizeHtml(finalBody),
+          sentAt: new Date(),
+          metadata: {
+            adminName: params.adminName || 'Admin',
+            templateId: params.templateId,
+          },
+        }).returning({ id: emailMessages.id });
+
+        messageId = outboundMsg.id;
+
+        // Update thread status & timestamp
+        await db.update(emailThreads).set({
+          status: 'WAITING_CUSTOMER',
+          latestMessageAt: new Date(),
+          updatedAt: new Date(),
+        }).where(eq(emailThreads.id, threadId));
+      }
+    }
 
     return {
       success: isSent,
-      provider: 'RESEND',
+      provider: providerName,
       providerMessageId: result.messageId,
       emailLogId: log.id,
+      threadId,
+      messageId,
       status: logStatus,
       reason: result.reason,
-      error: result.error ? String(result.error) : undefined
+      error: result.error ? String(result.error) : undefined,
     };
   } catch (err: any) {
     const [log] = await db.insert(emailLogs).values({
@@ -132,21 +215,21 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
       sendOrigin: 'MANUAL',
       category: params.category,
       templateId: params.templateId || 'CUSTOM',
-      provider: 'RESEND',
+      provider: providerName,
       status: 'FAILED',
       subject: finalSubject,
       metadata: {
         adminName: params.adminName || 'Admin',
-        error: err?.message || String(err)
-      }
+        error: err?.message || String(err),
+      },
     }).returning();
 
     return {
       success: false,
-      provider: 'RESEND',
+      provider: providerName,
       emailLogId: log.id,
       status: 'FAILED',
-      error: err?.message || 'Unexpected failure while dispatching manual email.'
+      error: err?.message || 'Unexpected failure while dispatching manual email.',
     };
   }
 }

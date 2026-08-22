@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { offers, checkoutContexts } from '@/db/schema';
+import { offers, checkoutContexts, paymentLeads, customers } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import crypto from 'crypto';
 import { z } from 'zod';
+import { emitLifecycleEvent } from '@/services/lifecycle/event.service';
 
 const ALLOWED_TARGET_HOSTS: Record<string, string[]> = {
   instagram: ['instagram.com', 'www.instagram.com'],
@@ -19,6 +20,7 @@ const checkoutContextCreateSchema = z.object({
   targetUrl: z.string().url().optional().nullable(),
   socialUsername: z.string().optional().nullable(),
   profileUrl: z.string().url().optional().nullable(),
+  email: z.string().email().optional().nullable(),
   utmSource: z.string().optional().nullable(),
   utmMedium: z.string().optional().nullable(),
   utmCampaign: z.string().optional().nullable(),
@@ -119,6 +121,7 @@ export async function POST(request: Request) {
     const cleanUsername = data.socialUsername
       ? data.socialUsername.replace(/^@+/, '').trim()
       : null;
+    const normalizedEmail = data.email ? data.email.trim().toLowerCase() : null;
 
     // 4. Persist Context in Database
     await db.insert(checkoutContexts).values({
@@ -130,6 +133,7 @@ export async function POST(request: Request) {
       targetUrl: data.targetUrl ? data.targetUrl.trim() : null,
       socialUsername: cleanUsername,
       profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
+      customerEmail: normalizedEmail,
       offerId: offer.id,
       perfectpayProductId: offer.perfectpayProductId,
       perfectpayPlanId: offer.perfectpayPlanId,
@@ -141,7 +145,80 @@ export async function POST(request: Request) {
       expiresAt,
     });
 
-    // 5. Construct Checkout URL preserving all existing query params & appending src=CFCTX_...
+    // 5. Early CRM Lead Capture & Lifecycle Events (Persist BEFORE user leaves for checkout)
+    if (normalizedEmail) {
+      try {
+        // Upsert customer / lead identity
+        const [existingCustomer] = await db.query.customers.findMany({
+          where: eq(customers.email, normalizedEmail),
+          limit: 1,
+        });
+
+        if (!existingCustomer) {
+          await db.insert(customers).values({
+            email: normalizedEmail,
+            name: cleanUsername || null,
+            totalOrders: 0,
+            totalSpentCents: 0,
+          }).onConflictDoNothing();
+        }
+
+        // Persist payment lead record for CRM & abandonment tracking
+        const [insertedLead] = await db.insert(paymentLeads).values({
+          provider: 'perfectpay',
+          externalReference: contextId,
+          productId: offer.perfectpayProductId,
+          planId: offer.perfectpayPlanId,
+          customerEmail: normalizedEmail,
+          customerName: cleanUsername || null,
+          rawStatus: 'checkout_started',
+          normalizedStatus: 'pre_checkout',
+          inferredStatus: 'checkout_started',
+          amountCents: offer.priceCents,
+          currency: 'USD',
+          utmSource: data.utmSource || null,
+          utmMedium: data.utmMedium || null,
+          utmCampaign: data.utmCampaign || null,
+          utmContent: data.utmContent || null,
+          utmTerm: data.utmTerm || null,
+          src: contextId,
+        }).returning({ id: paymentLeads.id });
+
+        // Emit Canonical Lifecycle Events
+        await emitLifecycleEvent({
+          customerEmail: normalizedEmail,
+          eventType: 'LEAD_CAPTURED',
+          idempotencyKey: `LEAD_CAPTURED:${contextId}:${normalizedEmail}`,
+          payload: {
+            contextId,
+            leadId: insertedLead?.id,
+            platform,
+            service,
+            targetHandle: cleanUsername,
+            offerId: offer.id,
+          },
+        });
+
+        await emitLifecycleEvent({
+          customerEmail: normalizedEmail,
+          eventType: 'CHECKOUT_STARTED',
+          idempotencyKey: `CHECKOUT_STARTED:${contextId}:${normalizedEmail}`,
+          payload: {
+            contextId,
+            leadId: insertedLead?.id,
+            platform,
+            service,
+            targetHandle: cleanUsername,
+            offerId: offer.id,
+            priceCents: offer.priceCents,
+          },
+        });
+      } catch (leadError) {
+        console.error('[CheckoutContextAPI] Failed to record lead/lifecycle event:', leadError);
+      }
+    }
+
+    // 6. Construct Checkout URL preserving all existing query params & appending src=CFCTX_...
     const checkoutUrlObj = new URL(offer.externalCheckoutUrl);
     checkoutUrlObj.searchParams.set('src', contextId);
 

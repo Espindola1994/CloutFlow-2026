@@ -11,3 +11,4 @@ export * from './checkout-contexts';
 export * from './fulfillment-chains';
 export * from './lifecycle';
 export * from './crm';
+export * from './email-inbox';

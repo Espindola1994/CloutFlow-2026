@@ -1,0 +1,44 @@
+name: Email Inbox Sync Cron
+
+on:
+  schedule:
+    - cron: '*/5 * * * *' # Every 5 minutes
+  workflow_dispatch:
+
+jobs:
+  sync-inbox:
+    name: Sync Gmail Support Inbox
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Inbox Sync Endpoint
+        run: |
+          APP_URL="${{ secrets.APP_URL }}"
+          CRON_SECRET="${{ secrets.CRON_SECRET }}"
+          
+          if [ -z "$APP_URL" ]; then
+            echo "APP_URL secret is not set. Skipping."
+            exit 1
+          fi
+
+          # Strip trailing slash if present
+          CLEAN_APP_URL="${APP_URL%/}"
+          
+          echo "Triggering Inbox Sync at $CLEAN_APP_URL/api/internal/email/inbox-sync"
+          
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST \
+            -H "Authorization: Bearer $CRON_SECRET" \
+            -H "Content-Type: application/json" \
+            "$CLEAN_APP_URL/api/internal/email/inbox-sync")
+
+          HTTP_BODY=$(echo "$RESPONSE" | sed -e '$d')
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n 1 | cut -d: -f2)
+
+          echo "Response Body: $HTTP_BODY"
+          echo "HTTP Status: $HTTP_STATUS"
+
+          if [ "$HTTP_STATUS" -lt 200 ] || [ "$HTTP_STATUS" -ge 300 ]; then
+            echo "Inbox sync failed with status $HTTP_STATUS"
+            exit 1
+          fi
+
+          echo "Inbox sync completed successfully."

@@ -1,6 +1,7 @@
 import { db } from '@/db';
 import { lifecycleEvents, lifecycleAutomations } from '@/db/schema';
 import { eq, or, and, ne } from 'drizzle-orm';
+import { sendAutomaticTransactionalEmail } from '@/services/email/transactional-trigger.service';
 
 export type LifecycleEventType = 'LEAD_CAPTURED' | 'CHECKOUT_STARTED' | 'CHECKOUT_ABANDONED' | 'PAYMENT_APPROVED' | 'ORDER_COMPLETED' | 'REPEAT_PURCHASE' | 'ORDER_REFUNDED';
 
@@ -121,6 +122,31 @@ export async function emitLifecycleEvent(params: EmitLifecycleEventParams): Prom
             eq(lifecycleAutomations.status, 'PENDING')
           )
         );
+    }
+
+    // 4. Automatic Transactional Email Triggers
+    if (params.eventType === 'PAYMENT_APPROVED' && params.payload?.orderId) {
+      sendAutomaticTransactionalEmail({
+        type: 'PAYMENT_APPROVED',
+        orderId: String(params.payload.orderId),
+        customerEmail: normalizedEmail,
+        customerName: params.payload.customerName ? String(params.payload.customerName) : undefined,
+        target: (params.payload.targetHandle || params.payload.target) ? String(params.payload.targetHandle || params.payload.target) : undefined,
+        platform: params.payload.platform ? String(params.payload.platform) : undefined,
+        service: params.payload.service ? String(params.payload.service) : undefined,
+        quantity: typeof params.payload.quantity === 'number' ? params.payload.quantity : undefined,
+      }).catch((err) => console.error('[LifecycleEventService] Automatic transactional email error:', err));
+    } else if (params.eventType === 'ORDER_COMPLETED' && params.payload?.orderId) {
+      sendAutomaticTransactionalEmail({
+        type: 'ORDER_COMPLETED',
+        orderId: String(params.payload.orderId),
+        customerEmail: normalizedEmail,
+        customerName: params.payload.customerName ? String(params.payload.customerName) : undefined,
+        target: (params.payload.targetHandle || params.payload.target) ? String(params.payload.targetHandle || params.payload.target) : undefined,
+        platform: params.payload.platform ? String(params.payload.platform) : undefined,
+        service: params.payload.service ? String(params.payload.service) : undefined,
+        quantity: typeof params.payload.quantity === 'number' ? params.payload.quantity : undefined,
+      }).catch((err) => console.error('[LifecycleEventService] Automatic transactional email error:', err));
     }
 
     return {
