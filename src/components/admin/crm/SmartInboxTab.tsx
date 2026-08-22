@@ -19,6 +19,12 @@ import {
 } from "lucide-react";
 import { sanitizeHtml } from "@/lib/email/sanitize";
 
+interface SyncStatus {
+  lastSyncAt: string | null;
+  isLocked: boolean;
+  isError: boolean;
+}
+
 interface ThreadSummary {
   id: string;
   customerEmail: string;
@@ -96,6 +102,47 @@ export function SmartInboxTab() {
   const [replySending, setReplySending] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
   const [counts, setCounts] = useState({ total: 0, needsReply: 0, waitingCustomer: 0, resolved: 0, unread: 0 });
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  // Fetch sync status
+  const fetchSyncStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/inbox/sync");
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setSyncStatus(data.data);
+      }
+    } catch (err) {
+      console.error("Failed to load sync status:", err);
+    }
+  }, []);
+
+  // Trigger manual sync
+  const handleSyncNow = async () => {
+    try {
+      setIsSyncing(true);
+      const res = await fetch("/api/admin/inbox/sync", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await fetchThreads();
+        await fetchSyncStatus();
+      }
+    } catch (err) {
+      console.error("Failed to sync inbox:", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // Setup periodic sync (every 60s)
+  useEffect(() => {
+    fetchSyncStatus();
+    const interval = setInterval(() => {
+      handleSyncNow();
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch thread list
   const fetchThreads = useCallback(async () => {
@@ -212,14 +259,32 @@ export function SmartInboxTab() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Inbox className="w-5 h-5 text-blue-400" />
-              <h3 className="font-bold text-white text-base">Smart Support Inbox</h3>
+              <div className="flex flex-col">
+                <h3 className="font-bold text-white text-base leading-tight">Smart Support Inbox</h3>
+                {syncStatus && (
+                  <div className="flex items-center gap-1.5 text-[9px] text-neutral-400">
+                    <span className="flex items-center gap-1">
+                      <span className={`w-1.5 h-1.5 rounded-full ${syncStatus.isError ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
+                      Gmail {syncStatus.isError ? 'Error' : 'Connected'}
+                    </span>
+                    <span>•</span>
+                    <span>
+                      {syncStatus.lastSyncAt 
+                        ? `Last sync ${new Date(syncStatus.lastSyncAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}`
+                        : 'Never synced'}
+                    </span>
+                  </div>
+                )}
+              </div>
             </div>
             <button
-              onClick={() => fetchThreads()}
-              className="p-1.5 text-neutral-400 hover:text-white bg-neutral-800/50 hover:bg-neutral-800 rounded-lg transition-colors"
-              title="Refresh Inbox"
+              onClick={() => handleSyncNow()}
+              disabled={isSyncing}
+              className="px-2.5 py-1.5 flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-white bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors border border-neutral-700 disabled:opacity-50"
+              title="Sync Now"
             >
-              <RefreshCw className={`w-4 h-4 ${loadingList ? "animate-spin text-blue-400" : ""}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing || loadingList ? "animate-spin text-blue-400" : ""}`} />
+              {isSyncing ? "Syncing..." : "Sync Now"}
             </button>
           </div>
 

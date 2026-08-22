@@ -12,11 +12,30 @@ import { eq, or, and, sql, desc } from 'drizzle-orm';
 import { sanitizeHtml } from '@/lib/email/sanitize';
 import { ImapFlow } from 'imapflow';
 
+/**
+ * Extracts clean text and sanitized HTML from an inbound email payload using mailparser.
+ */
+import { simpleParser } from 'mailparser';
+
+async function parseEmailBody(rawSource: string | Buffer): Promise<{ text: string, html: string }> {
+  try {
+    const parsed = await simpleParser(rawSource);
+    return {
+      text: parsed.text || '',
+      html: parsed.html || parsed.textAsHtml || ''
+    };
+  } catch (err) {
+    console.error('Failed to parse email source:', err);
+    return { text: '', html: '' };
+  }
+}
+
 export interface InboundEmailPayload {
   messageId: string;
   fromEmail: string;
   toEmail: string;
   subject: string;
+  rawSource?: string | Buffer;
   textBody?: string;
   htmlBody?: string;
   inReplyTo?: string;
@@ -207,8 +226,17 @@ export async function ingestInboundEmail(payload: InboundEmailPayload): Promise<
     // 3. Find or Create Thread
     const { threadId, isNewThread } = await findOrCreateThread(payload);
 
-    // 4. Sanitize HTML body
-    const sanitizedHtml = payload.htmlBody ? sanitizeHtml(payload.htmlBody) : null;
+    // 4. Sanitize HTML body or Parse Raw Source
+    let textBody = payload.textBody || null;
+    let htmlBody = payload.htmlBody || null;
+    
+    if (payload.rawSource && (!textBody || !htmlBody)) {
+      const parsed = await parseEmailBody(payload.rawSource);
+      if (!textBody && parsed.text) textBody = parsed.text;
+      if (!htmlBody && parsed.html) htmlBody = parsed.html;
+    }
+    
+    const sanitizedHtml = htmlBody ? sanitizeHtml(htmlBody) : null;
 
     // 5. Insert Message
     const [insertedMsg] = await db.insert(emailMessages).values({
@@ -222,7 +250,7 @@ export async function ingestInboundEmail(payload: InboundEmailPayload): Promise<
       fromEmail: normalizedEmail,
       toEmail: payload.toEmail.trim().toLowerCase(),
       subject: payload.subject,
-      textBody: payload.textBody || null,
+      textBody: textBody,
       sanitizedHtmlBody: sanitizedHtml,
       receivedAt: payload.receivedAt || new Date(),
       metadata: payload.metadata || {},
@@ -252,10 +280,74 @@ export async function ingestInboundEmail(payload: InboundEmailPayload): Promise<
   }
 }
 
+import { settings } from '@/db/schema';
+
+// Helper to manage sync cursor in settings table
+async function getSyncCursor() {
+  const [record] = await db.query.settings.findMany({
+    where: eq(settings.key, 'inbox_sync_cursor'),
+    limit: 1,
+  });
+  if (!record || !record.value) {
+    return { uidValidity: 0, lastUid: 0 };
+  }
+  return record.value as { uidValidity: number; lastUid: number };
+}
+
+async function updateSyncCursor(uidValidity: number, lastUid: number) {
+  const value = { uidValidity, lastUid };
+  await db.insert(settings)
+    .values({ key: 'inbox_sync_cursor', value, isPublic: false })
+    .onConflictDoUpdate({
+      target: settings.key,
+      set: { value, updatedAt: new Date() }
+    });
+}
+
+/**
+ * Ensures only one sync runs at a time.
+ */
+async function acquireSyncLock(): Promise<boolean> {
+  // Simple DB-based lock using a setting with a short lease (e.g. 5 minutes)
+  const now = new Date();
+  
+  // Try to find an existing lock
+  const [record] = await db.query.settings.findMany({
+    where: eq(settings.key, 'inbox_sync_lock'),
+    limit: 1,
+  });
+  
+  if (record && record.value) {
+    const lockData = record.value as { lockedAt: string };
+    const lockedAt = new Date(lockData.lockedAt);
+    
+    // If lock is less than 5 minutes old, we can't acquire it
+    if (now.getTime() - lockedAt.getTime() < 5 * 60 * 1000) {
+      return false;
+    }
+  }
+  
+  // Acquire or refresh the lock
+  await db.insert(settings)
+    .values({ key: 'inbox_sync_lock', value: { lockedAt: now.toISOString() }, isPublic: false })
+    .onConflictDoUpdate({
+      target: settings.key,
+      set: { value: { lockedAt: now.toISOString() }, updatedAt: now }
+    });
+    
+  return true;
+}
+
+async function releaseSyncLock() {
+  await db.update(settings)
+    .set({ value: { lockedAt: new Date(0).toISOString() } })
+    .where(eq(settings.key, 'inbox_sync_lock'));
+}
+
 /**
  * Synchronizes recent messages from Gmail IMAP using GMAIL_USER + GMAIL_APP_PASSWORD.
  */
-export async function syncGmailInbox(options?: { sinceMinutes?: number; limit?: number }) {
+export async function syncGmailInbox(options?: { limit?: number }) {
   const gmailUser = process.env.GMAIL_USER;
   const gmailPass = process.env.GMAIL_APP_PASSWORD;
 
@@ -266,6 +358,17 @@ export async function syncGmailInbox(options?: { sinceMinutes?: number; limit?: 
       ignoredCount: 0,
       duplicateCount: 0,
       error: 'Gmail IMAP credentials (GMAIL_USER, GMAIL_APP_PASSWORD) not configured.',
+    };
+  }
+  
+  const lockAcquired = await acquireSyncLock();
+  if (!lockAcquired) {
+    return {
+      success: true, // not an error, just skipping
+      syncedCount: 0,
+      ignoredCount: 0,
+      duplicateCount: 0,
+      status: 'SYNC_ALREADY_RUNNING',
     };
   }
 
@@ -286,59 +389,84 @@ export async function syncGmailInbox(options?: { sinceMinutes?: number; limit?: 
 
   try {
     await client.connect();
-    const lock = await client.getMailboxLock('INBOX');
+    const mailbox = await client.mailboxOpen('INBOX');
 
-    try {
-      const sinceDate = new Date(Date.now() - (options?.sinceMinutes || 1440) * 60 * 1000); // default last 24h
-      const searchCriteria = { since: sinceDate };
-      const messagesGenerator = client.fetch(
-        searchCriteria,
-        { envelope: true, source: true, bodyStructure: true, internalDate: true, uid: true },
-        { uid: true }
-      );
+    const serverUidValidity = BigInt(mailbox.uidValidity);
+    const { uidValidity: localUidValidity, lastUid: localLastUid } = await getSyncCursor();
 
-      let processed = 0;
-      const maxLimit = options?.limit || 50;
+    let searchCriteria: any;
+    let newLastUid = localLastUid;
 
-      for await (const msg of messagesGenerator) {
-        if (processed >= maxLimit) break;
-        processed++;
+    if (localUidValidity !== Number(serverUidValidity)) {
+      // UIDVALIDITY changed or first sync. Safe bounded fallback.
+      searchCriteria = { since: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }; // Last 30 days fallback
+      newLastUid = 0; 
+    } else {
+      // Normal increment
+      searchCriteria = { uid: `${localLastUid + 1}:*` };
+    }
 
-        const envelope = msg.envelope;
-        if (!envelope || !envelope.from || envelope.from.length === 0) continue;
+    const messagesGenerator = client.fetch(
+      searchCriteria,
+      { envelope: true, source: true, bodyStructure: true, internalDate: true, uid: true },
+      { uid: true }
+    );
 
-        const senderEmail = envelope.from[0].address || '';
-        if (!senderEmail || senderEmail.toLowerCase() === gmailUser.toLowerCase()) {
-          continue; // Skip self
-        }
+    let processed = 0;
+    const maxLimit = options?.limit || 50;
+    let maxUidProcessed = newLastUid;
 
-        const messageId = envelope.messageId || `imap-${msg.uid}`;
-        const subject = envelope.subject || '(No Subject)';
-        const toEmail = envelope.to?.[0]?.address || gmailUser;
-        const inReplyTo = envelope.inReplyTo;
-        const receivedAt = msg.internalDate ? new Date(msg.internalDate) : new Date();
-
-        // Convert body/source snippet
-        const textBody = msg.source?.toString('utf-8') || '';
-
-        const result = await ingestInboundEmail({
-          messageId,
-          providerMessageId: String(msg.uid),
-          fromEmail: senderEmail,
-          toEmail,
-          subject,
-          textBody,
-          htmlBody: textBody,
-          inReplyTo,
-          receivedAt,
-        });
-
-        if (result.status === 'IMPORTED') syncedCount++;
-        else if (result.status === 'IGNORED_UNKNOWN_SENDER') ignoredCount++;
-        else if (result.status === 'DUPLICATE') duplicateCount++;
+    for await (const msg of messagesGenerator) {
+      if (processed >= maxLimit) break;
+      
+      // If we are using UID bounds, skip if it's somehow lower
+      if (msg.uid <= localLastUid && localUidValidity === Number(serverUidValidity)) {
+         continue; 
       }
-    } finally {
-      lock.release();
+      
+      processed++;
+
+      const envelope = msg.envelope;
+      if (!envelope || !envelope.from || envelope.from.length === 0) continue;
+
+      const senderEmail = envelope.from[0].address || '';
+      if (!senderEmail || senderEmail.toLowerCase() === gmailUser.toLowerCase()) {
+        if (msg.uid > maxUidProcessed) maxUidProcessed = msg.uid;
+        continue; // Skip self
+      }
+
+      const messageId = envelope.messageId || `imap-${msg.uid}`;
+      const subject = envelope.subject || '(No Subject)';
+      const toEmail = envelope.to?.[0]?.address || gmailUser;
+      const inReplyTo = envelope.inReplyTo;
+      const receivedAt = msg.internalDate ? new Date(msg.internalDate) : new Date();
+
+      const rawSource = msg.source || Buffer.from('');
+
+      const result = await ingestInboundEmail({
+        messageId,
+        providerMessageId: String(msg.uid),
+        fromEmail: senderEmail,
+        toEmail,
+        subject,
+        rawSource,
+        inReplyTo,
+        receivedAt,
+      });
+
+      if (result.status === 'IMPORTED') syncedCount++;
+      else if (result.status === 'IGNORED_UNKNOWN_SENDER') ignoredCount++;
+      else if (result.status === 'DUPLICATE') duplicateCount++;
+      
+      // Update cursor safely after each message
+      if (msg.uid > maxUidProcessed) {
+        maxUidProcessed = msg.uid;
+      }
+    }
+    
+    // Save new cursor
+    if (maxUidProcessed > newLastUid || localUidValidity !== Number(serverUidValidity)) {
+       await updateSyncCursor(Number(serverUidValidity), maxUidProcessed);
     }
 
     await client.logout();
@@ -348,6 +476,7 @@ export async function syncGmailInbox(options?: { sinceMinutes?: number; limit?: 
       syncedCount,
       ignoredCount,
       duplicateCount,
+      status: 'COMPLETED'
     };
   } catch (error) {
     console.error('[Gmail Sync] IMAP Error:', error);
@@ -362,6 +491,9 @@ export async function syncGmailInbox(options?: { sinceMinutes?: number; limit?: 
       ignoredCount,
       duplicateCount,
       error: error instanceof Error ? error.message : 'Unknown IMAP error',
+      status: 'FAILED'
     };
+  } finally {
+    await releaseSyncLock();
   }
 }

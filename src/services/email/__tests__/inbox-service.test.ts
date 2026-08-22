@@ -28,10 +28,14 @@ vi.mock('@/db', () => {
           findFirst: vi.fn(),
           findMany: vi.fn(),
         },
+        settings: {
+          findMany: vi.fn(),
+        }
       },
       insert: vi.fn(() => ({
         values: vi.fn(() => ({
           returning: vi.fn().mockResolvedValue([{ id: 'thread-123' }]),
+          onConflictDoUpdate: vi.fn().mockResolvedValue([]),
         })),
       })),
       update: vi.fn(() => ({
@@ -111,6 +115,39 @@ describe('Smart Inbox Sender Recognition & Ingestion Engine (Requirements H, I, 
       toEmail: 'support@cloutflow.com',
       subject: 'Where is my order?',
       textBody: 'Hi, please update me on order delivery.',
+      receivedAt: new Date(),
+    });
+
+    expect(result.status).toBe('IMPORTED');
+  });
+
+  it('Requirement F, G, H, I: Parses raw MIME structure, decodes multipart/quoted-printable cleanly', async () => {
+    // Known customer
+    (db.query.customers.findMany as any).mockResolvedValueOnce([{ id: 'cust-1', email: 'buyer@example.com' }]);
+    // No duplicate message
+    (db.query.emailMessages.findFirst as any).mockResolvedValueOnce(null);
+    // Thread search
+    (db.query.emailThreads.findMany as any).mockResolvedValueOnce([]);
+    (db.query.orders.findMany as any).mockResolvedValueOnce([{ id: 'order-123' }]);
+
+    const mimeRaw = [
+      'Content-Type: multipart/alternative; boundary="boundary-123"',
+      '',
+      '--boundary-123',
+      'Content-Type: text/plain; charset="utf-8"',
+      'Content-Transfer-Encoding: quoted-printable',
+      '',
+      'Tudo bem e voc=C3=AA?',
+      '',
+      '--boundary-123--',
+    ].join('\r\n');
+
+    const result = await ingestInboundEmail({
+      messageId: '<mime-test@gmail.com>',
+      fromEmail: 'buyer@example.com',
+      toEmail: 'support@cloutflow.com',
+      subject: 'Re: Teste',
+      rawSource: mimeRaw,
       receivedAt: new Date(),
     });
 

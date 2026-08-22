@@ -22,17 +22,31 @@ export async function POST(request: Request) {
     }
 
     const result = await syncGmailInbox({
-      sinceMinutes: 1440, // Check last 24 hours
       limit: 50,
     });
 
+    if (!result.success && result.status !== 'SYNC_ALREADY_RUNNING') {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: result.error || 'Sync failed',
+          data: {
+            syncedCount: result.syncedCount,
+            ignoredCount: result.ignoredCount,
+            duplicateCount: result.duplicateCount,
+          }
+        },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
-      success: result.success,
+      success: true,
       data: {
         syncedCount: result.syncedCount,
         ignoredCount: result.ignoredCount,
         duplicateCount: result.duplicateCount,
-        error: result.error,
+        status: result.status,
       },
     });
   } catch (error) {
