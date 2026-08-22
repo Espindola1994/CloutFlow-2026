@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { pool } from '@/db';
+// import { pool } from '@/db';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 1 minute max for migrations
@@ -126,6 +126,8 @@ const MIGRATION_0005_STATEMENTS = [
 
 export async function POST(req: NextRequest) {
   try {
+    const isLocal = process.env.NODE_ENV === 'development';
+    
     // 1. Safety Precheck - Auth
     const authHeader = req.headers.get('authorization');
     const secret = process.env.CRON_SECRET || process.env.INTERNAL_SYNC_SECRET || req.nextUrl.searchParams.get('secret');
@@ -142,8 +144,17 @@ export async function POST(req: NextRequest) {
         error: 'BLOCKED: DATABASE_URL not found' 
       }, { status: 500 });
     }
-
-    const client = await pool.connect();
+    
+    // For Vercel Edge/Serverless to Supabase we might need IPv4 resolution fallback if IPv6 fails, but pg handles it mostly fine unless there's a strict network issue.
+    // Ensure connection string uses IPv4 resolution or standard host.
+    // If we're failing with getaddrinfo ENOTFOUND db.rlsvzrunjoaiuthtfwdi.supabase.co, we might need a pooled connection string or just to use postgresql://... as it was provided.
+    const poolConfig = {
+        connectionString: process.env.DATABASE_URL,
+        ssl: { rejectUnauthorized: false }
+    };
+    const { Pool } = require('pg');
+    const localPool = new Pool(poolConfig);
+    const client = await localPool.connect();
 
     try {
       // 3. Safety Precheck - inspect actual schema and history
@@ -366,6 +377,7 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     } finally {
       client.release();
+      await localPool.end();
     }
   } catch (err: unknown) {
     console.error('Endpoint unexpected error:', err);
