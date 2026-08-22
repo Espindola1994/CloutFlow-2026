@@ -1,6 +1,20 @@
-import { pgTable, text, timestamp, varchar, integer, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, varchar, integer, jsonb, index, bigint } from 'drizzle-orm/pg-core';
 import { orders } from './orders';
 import { customers } from './customers';
+
+export const emailInboxSyncState = pgTable('email_inbox_sync_state', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  mailboxKey: varchar('mailbox_key', { length: 255 }).notNull().unique(),
+  uidValidity: text('uid_validity'),
+  lastProcessedUid: bigint('last_processed_uid', { mode: 'number' }),
+  lastSuccessfulSyncAt: timestamp('last_successful_sync_at', { withTimezone: true }),
+  lastAttemptAt: timestamp('last_attempt_at', { withTimezone: true }),
+  lockToken: text('lock_token'),
+  lockExpiresAt: timestamp('lock_expires_at', { withTimezone: true }),
+  lastError: text('last_error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+});
 
 export const emailThreads = pgTable('email_threads', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),

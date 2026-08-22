@@ -50,7 +50,7 @@ export async function POST() {
 }
 
 import { db } from '@/db';
-import { settings } from '@/db/schema';
+import { emailInboxSyncState } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
 export async function GET() {
@@ -60,23 +60,17 @@ export async function GET() {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const cursorRecords = await db.select({ updatedAt: settings.updatedAt }).from(settings).where(eq(settings.key, 'inbox_sync_cursor')).limit(1);
-    const cursorRecord = cursorRecords[0];
-
-    const lockRecords = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'inbox_sync_lock')).limit(1);
-    const lockRecord = lockRecords[0];
+    const records = await db.select().from(emailInboxSyncState).where(eq(emailInboxSyncState.mailboxKey, 'gmail_default')).limit(1);
+    const record = records[0];
 
     let lastSyncAt = null;
     let isLocked = false;
 
-    if (cursorRecord && cursorRecord.updatedAt) {
-      lastSyncAt = cursorRecord.updatedAt.toISOString();
-    }
-
-    if (lockRecord && lockRecord.value) {
-      const lockData = lockRecord.value as { lockedAt: string };
-      const lockedAt = new Date(lockData.lockedAt);
-      if (new Date().getTime() - lockedAt.getTime() < 5 * 60 * 1000) {
+    if (record) {
+      if (record.lastSuccessfulSyncAt) {
+        lastSyncAt = record.lastSuccessfulSyncAt.toISOString();
+      }
+      if (record.lockExpiresAt && record.lockExpiresAt > new Date()) {
         isLocked = true;
       }
     }
@@ -86,7 +80,7 @@ export async function GET() {
       data: {
         lastSyncAt,
         isLocked,
-        isError: false, // Could expand error tracking later
+        isError: !!record?.lastError,
       }
     });
   } catch (error) {

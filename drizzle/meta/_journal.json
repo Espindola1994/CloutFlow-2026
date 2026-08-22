@@ -43,6 +43,13 @@
       "when": 1787376408900,
       "tag": "0005_luxuriant_bastion",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1787437748153,
+      "tag": "0006_strange_skreet",
+      "breakpoints": true
     }
   ]
 }

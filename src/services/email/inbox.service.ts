@@ -289,62 +289,92 @@ export async function ingestInboundEmail(payload: InboundEmailPayload): Promise<
 
 import { settings } from '@/db/schema';
 
-// Helper to manage sync cursor in settings table
-async function getSyncCursor() {
-  const records = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'inbox_sync_cursor')).limit(1);
+import { emailInboxSyncState } from '@/db/schema';
+
+// Helper to manage sync cursor in dedicated table
+async function getSyncCursor(mailboxKey = 'gmail_default') {
+  const records = await db.select().from(emailInboxSyncState).where(eq(emailInboxSyncState.mailboxKey, mailboxKey)).limit(1);
   const record = records[0];
-  if (!record || !record.value) {
+  if (!record || !record.uidValidity) {
     return { uidValidity: 0, lastUid: 0 };
   }
-  return record.value as { uidValidity: number; lastUid: number };
+  return { 
+    uidValidity: Number(record.uidValidity), 
+    lastUid: record.lastProcessedUid || 0 
+  };
 }
 
-async function updateSyncCursor(uidValidity: number, lastUid: number) {
-  const value = { uidValidity, lastUid };
-  await db.insert(settings)
-    .values({ key: 'inbox_sync_cursor', value, isPublic: false })
+async function updateSyncCursor(uidValidity: number, lastUid: number, mailboxKey = 'gmail_default') {
+  const now = new Date();
+  await db.insert(emailInboxSyncState)
+    .values({ 
+      mailboxKey, 
+      uidValidity: String(uidValidity), 
+      lastProcessedUid: lastUid,
+      lastSuccessfulSyncAt: now,
+      lastAttemptAt: now,
+    })
     .onConflictDoUpdate({
-      target: settings.key,
-      set: { value, updatedAt: new Date() }
+      target: emailInboxSyncState.mailboxKey,
+      set: { 
+        uidValidity: String(uidValidity), 
+        lastProcessedUid: lastUid,
+        lastSuccessfulSyncAt: now,
+        lastAttemptAt: now,
+        updatedAt: now 
+      }
     });
 }
 
 /**
  * Ensures only one sync runs at a time.
  */
-async function acquireSyncLock(): Promise<boolean> {
-  // Simple DB-based lock using a setting with a short lease (e.g. 5 minutes)
+async function acquireSyncLock(mailboxKey = 'gmail_default'): Promise<{ acquired: boolean, token?: string }> {
   const now = new Date();
+  const expiresAt = new Date(now.getTime() + 5 * 60 * 1000); // 5 min lease
+  const token = crypto.randomUUID();
   
-  // Try to find an existing lock
-  const records = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'inbox_sync_lock')).limit(1);
+  // Clean up expired locks first (or let the unique constraint fail if active)
+  
+  const records = await db.select().from(emailInboxSyncState).where(eq(emailInboxSyncState.mailboxKey, mailboxKey)).limit(1);
   const record = records[0];
   
-  if (record && record.value) {
-    const lockData = record.value as { lockedAt: string };
-    const lockedAt = new Date(lockData.lockedAt);
-    
-    // If lock is less than 5 minutes old, we can't acquire it
-    if (now.getTime() - lockedAt.getTime() < 5 * 60 * 1000) {
-      return false;
-    }
+  if (record && record.lockExpiresAt && record.lockExpiresAt > now) {
+    return { acquired: false }; // Still locked
   }
   
   // Acquire or refresh the lock
-  await db.insert(settings)
-    .values({ key: 'inbox_sync_lock', value: { lockedAt: now.toISOString() }, isPublic: false })
+  await db.insert(emailInboxSyncState)
+    .values({ 
+      mailboxKey, 
+      lockToken: token,
+      lockExpiresAt: expiresAt,
+      lastAttemptAt: now,
+    })
     .onConflictDoUpdate({
-      target: settings.key,
-      set: { value: { lockedAt: now.toISOString() }, updatedAt: now }
+      target: emailInboxSyncState.mailboxKey,
+      set: { 
+        lockToken: token,
+        lockExpiresAt: expiresAt,
+        lastAttemptAt: now,
+        updatedAt: now 
+      }
     });
     
-  return true;
+  return { acquired: true, token };
 }
 
-async function releaseSyncLock() {
-  await db.update(settings)
-    .set({ value: { lockedAt: new Date(0).toISOString() } })
-    .where(eq(settings.key, 'inbox_sync_lock'));
+async function releaseSyncLock(token: string, mailboxKey = 'gmail_default') {
+  await db.update(emailInboxSyncState)
+    .set({ 
+      lockToken: null,
+      lockExpiresAt: null,
+      updatedAt: new Date()
+    })
+    .where(and(
+      eq(emailInboxSyncState.mailboxKey, mailboxKey),
+      eq(emailInboxSyncState.lockToken, token)
+    ));
 }
 
 /**
@@ -364,7 +394,7 @@ export async function syncGmailInbox(options?: { limit?: number }) {
     };
   }
   
-  const lockAcquired = await acquireSyncLock();
+  const { acquired: lockAcquired, token: lockToken } = await acquireSyncLock();
   if (!lockAcquired) {
     return {
       success: true, // not an error, just skipping
@@ -515,6 +545,8 @@ export async function syncGmailInbox(options?: { limit?: number }) {
       }
     };
   } finally {
-    await releaseSyncLock();
+    if (lockToken) {
+      await releaseSyncLock(lockToken);
+    }
   }
 }
