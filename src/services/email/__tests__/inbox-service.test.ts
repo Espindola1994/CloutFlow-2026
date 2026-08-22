@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ingestInboundEmail, isRecognizedSender, findOrCreateThread } from '@/services/email/inbox.service';
+import { ingestInboundEmail, isRecognizedSender } from '@/services/email/inbox.service';
 import { db } from '@/db';
+
+type MockFn = ReturnType<typeof vi.fn>;
 
 vi.mock('@/db', () => {
   return {
@@ -53,19 +55,19 @@ describe('Smart Inbox Sender Recognition & Ingestion Engine (Requirements H, I, 
   });
 
   it('Requirement H: Recognizes known lead or customer in CloutFlow', async () => {
-    (db.query.customers.findMany as any).mockResolvedValueOnce([]);
-    (db.query.paymentLeads.findMany as any).mockResolvedValueOnce([{ customerEmail: 'lead@example.com' }]);
+    (db.query.customers.findMany as unknown as MockFn).mockResolvedValueOnce([]);
+    (db.query.paymentLeads.findMany as unknown as MockFn).mockResolvedValueOnce([{ customerEmail: 'lead@example.com' }]);
 
     const recognized = await isRecognizedSender('lead@example.com');
     expect(recognized).toBe(true);
   });
 
   it('Requirement I: Ignores unknown/random Gmail sender from entering CloutFlow Inbox', async () => {
-    (db.query.customers.findMany as any).mockResolvedValueOnce([]);
-    (db.query.paymentLeads.findMany as any).mockResolvedValueOnce([]);
-    (db.query.lifecycleEvents.findMany as any).mockResolvedValueOnce([]);
-    (db.query.orders.findMany as any).mockResolvedValueOnce([]);
-    (db.query.checkoutContexts.findMany as any).mockResolvedValueOnce([]);
+    (db.query.customers.findMany as unknown as MockFn).mockResolvedValueOnce([]);
+    (db.query.paymentLeads.findMany as unknown as MockFn).mockResolvedValueOnce([]);
+    (db.query.lifecycleEvents.findMany as unknown as MockFn).mockResolvedValueOnce([]);
+    (db.query.orders.findMany as unknown as MockFn).mockResolvedValueOnce([]);
+    (db.query.checkoutContexts.findMany as unknown as MockFn).mockResolvedValueOnce([]);
 
     const result = await ingestInboundEmail({
       messageId: '<msg-101@gmail.com>',
@@ -81,9 +83,9 @@ describe('Smart Inbox Sender Recognition & Ingestion Engine (Requirements H, I, 
 
   it('Requirement J: Ignores duplicate Gmail message via Message-ID deduplication', async () => {
     // Known sender
-    (db.query.customers.findMany as any).mockResolvedValueOnce([{ email: 'buyer@example.com' }]);
+    (db.query.customers.findMany as unknown as MockFn).mockResolvedValueOnce([{ email: 'buyer@example.com' }]);
     // Existing message found in database
-    (db.query.emailMessages.findFirst as any).mockResolvedValueOnce({
+    (db.query.emailMessages.findFirst as unknown as MockFn).mockResolvedValueOnce({
       id: 'existing-msg-id',
       threadId: 'thread-99',
     });
@@ -102,12 +104,12 @@ describe('Smart Inbox Sender Recognition & Ingestion Engine (Requirements H, I, 
 
   it('Requirement H & K: Successfully imports recognized customer email and creates/attaches thread', async () => {
     // Known customer
-    (db.query.customers.findMany as any).mockResolvedValueOnce([{ id: 'cust-1', email: 'buyer@example.com' }]);
+    (db.query.customers.findMany as unknown as MockFn).mockResolvedValueOnce([{ id: 'cust-1', email: 'buyer@example.com' }]);
     // No duplicate message
-    (db.query.emailMessages.findFirst as any).mockResolvedValueOnce(null);
+    (db.query.emailMessages.findFirst as unknown as MockFn).mockResolvedValueOnce(null);
     // Thread search
-    (db.query.emailThreads.findMany as any).mockResolvedValueOnce([]);
-    (db.query.orders.findMany as any).mockResolvedValueOnce([{ id: 'order-123' }]);
+    (db.query.emailThreads.findMany as unknown as MockFn).mockResolvedValueOnce([]);
+    (db.query.orders.findMany as unknown as MockFn).mockResolvedValueOnce([{ id: 'order-123' }]);
 
     const result = await ingestInboundEmail({
       messageId: '<new-msg@gmail.com>',
@@ -123,12 +125,12 @@ describe('Smart Inbox Sender Recognition & Ingestion Engine (Requirements H, I, 
 
   it('Requirement F, G, H, I: Parses raw MIME structure, decodes multipart/quoted-printable cleanly', async () => {
     // Known customer
-    (db.query.customers.findMany as any).mockResolvedValueOnce([{ id: 'cust-1', email: 'buyer@example.com' }]);
+    (db.query.customers.findMany as unknown as MockFn).mockResolvedValueOnce([{ id: 'cust-1', email: 'buyer@example.com' }]);
     // No duplicate message
-    (db.query.emailMessages.findFirst as any).mockResolvedValueOnce(null);
+    (db.query.emailMessages.findFirst as unknown as MockFn).mockResolvedValueOnce(null);
     // Thread search
-    (db.query.emailThreads.findMany as any).mockResolvedValueOnce([]);
-    (db.query.orders.findMany as any).mockResolvedValueOnce([{ id: 'order-123' }]);
+    (db.query.emailThreads.findMany as unknown as MockFn).mockResolvedValueOnce([]);
+    (db.query.orders.findMany as unknown as MockFn).mockResolvedValueOnce([{ id: 'order-123' }]);
 
     const mimeRaw = [
       'Content-Type: multipart/alternative; boundary="boundary-123"',

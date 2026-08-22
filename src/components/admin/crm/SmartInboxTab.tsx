@@ -3,21 +3,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import {
   Inbox,
-  Mail,
   Send,
-  CheckCircle2,
-  Clock,
   Search,
-  Filter,
   RefreshCw,
-  User,
-  ArrowRight,
   AlertCircle,
-  ExternalLink,
   MessageSquare,
   Sparkles,
 } from "lucide-react";
-import { sanitizeHtml } from "@/lib/email/sanitize";
 
 interface SyncStatus {
   lastSyncAt: string | null;
@@ -95,6 +87,7 @@ export function SmartInboxTab() {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [threadDetail, setThreadDetail] = useState<ThreadDetail | null>(null);
   const [loadingList, setLoadingList] = useState(true);
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
@@ -118,36 +111,9 @@ export function SmartInboxTab() {
     }
   }, []);
 
-  // Trigger manual sync
-  const handleSyncNow = async () => {
-    try {
-      setIsSyncing(true);
-      const res = await fetch("/api/admin/inbox/sync", { method: "POST" });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        await fetchThreads();
-        await fetchSyncStatus();
-      }
-    } catch (err) {
-      console.error("Failed to sync inbox:", err);
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  // Setup periodic sync (every 60s)
-  useEffect(() => {
-    fetchSyncStatus();
-    const interval = setInterval(() => {
-      handleSyncNow();
-    }, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
   // Fetch thread list
   const fetchThreads = useCallback(async () => {
     try {
-      setLoadingList(true);
       const params = new URLSearchParams();
       if (filterStatus !== "ALL") params.set("status", filterStatus);
       if (searchQuery.trim()) params.set("search", searchQuery.trim());
@@ -166,14 +132,62 @@ export function SmartInboxTab() {
     }
   }, [filterStatus, searchQuery]);
 
+  // Trigger manual sync
+  const handleSyncNow = useCallback(async () => {
+    try {
+      setIsSyncing(true);
+      const res = await fetch("/api/admin/inbox/sync", { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        await fetchThreads();
+        await fetchSyncStatus();
+      }
+    } catch (err) {
+      console.error("Failed to sync inbox:", err);
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [fetchThreads, fetchSyncStatus]);
+
+  // Setup periodic sync (every 60s)
   useEffect(() => {
-    fetchThreads();
+    let mounted = true;
+    
+    const initSync = async () => {
+      if (mounted) {
+        await fetchSyncStatus();
+      }
+    };
+    
+    initSync();
+    
+    const interval = setInterval(() => {
+      if (mounted) {
+        handleSyncNow();
+      }
+    }, 60000);
+    
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [fetchSyncStatus, handleSyncNow]);
+
+  useEffect(() => {
+    let isCancelled = false;
+    (async () => {
+      if (!isCancelled) {
+        await fetchThreads();
+      }
+    })();
+    return () => {
+      isCancelled = true;
+    };
   }, [fetchThreads]);
 
   // Fetch thread detail when selected
   const fetchThreadDetail = useCallback(async (id: string) => {
     try {
-      setLoadingDetail(true);
       setReplyError(null);
       const res = await fetch(`/api/admin/inbox/threads/${id}`);
       const data = await res.json();
@@ -188,11 +202,25 @@ export function SmartInboxTab() {
   }, []);
 
   useEffect(() => {
+    let isCancelled = false;
+    
     if (selectedThreadId) {
-      fetchThreadDetail(selectedThreadId);
+      (async () => {
+        if (!isCancelled) {
+          await fetchThreadDetail(selectedThreadId);
+        }
+      })();
     } else {
-      setThreadDetail(null);
+      setTimeout(() => {
+        if (!isCancelled) {
+          setThreadDetail(null);
+        }
+      }, 0);
     }
+    
+    return () => {
+      isCancelled = true;
+    };
   }, [selectedThreadId, fetchThreadDetail]);
 
   // Send Reply inside CloutFlow
@@ -222,8 +250,9 @@ export function SmartInboxTab() {
       } else {
         setReplyError(data.error || "Failed to dispatch reply");
       }
-    } catch (err: any) {
-      setReplyError(err?.message || "Failed to send reply");
+    } catch (err: unknown) {
+      const errorMsg = err instanceof Error ? err.message : "Failed to send reply";
+      setReplyError(errorMsg);
     } finally {
       setReplySending(false);
     }
@@ -420,7 +449,7 @@ export function SmartInboxTab() {
                 <span className="text-xs text-neutral-400 font-semibold">Status:</span>
                 <select
                   value={threadDetail.thread.status}
-                  onChange={(e) => handleUpdateStatus(e.target.value as any)}
+                  onChange={(e) => handleUpdateStatus(e.target.value as "NEEDS_REPLY" | "WAITING_CUSTOMER" | "RESOLVED")}
                   className="bg-[#111827] border border-neutral-700 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500"
                 >
                   <option value="NEEDS_REPLY">NEEDS REPLY</option>

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { syncGmailInbox } from '@/services/email/inbox.service';
 import { requireAdmin } from '@/lib/auth/session';
 
-export async function POST(request: Request) {
+export async function POST() {
   try {
     const admin = await requireAdmin();
     if (!admin) {
@@ -51,7 +51,7 @@ import { db } from '@/db';
 import { settings } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
     const admin = await requireAdmin();
     if (!admin) {

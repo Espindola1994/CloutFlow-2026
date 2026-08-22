@@ -394,7 +394,7 @@ export async function syncGmailInbox(options?: { limit?: number }) {
     const serverUidValidity = BigInt(mailbox.uidValidity);
     const { uidValidity: localUidValidity, lastUid: localLastUid } = await getSyncCursor();
 
-    let searchCriteria: any;
+    let searchCriteria: import('imapflow').SearchObject;
     let newLastUid = localLastUid;
 
     if (localUidValidity !== Number(serverUidValidity)) {
