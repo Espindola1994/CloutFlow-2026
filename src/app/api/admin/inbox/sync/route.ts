@@ -60,9 +60,11 @@ export async function GET() {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const [cursorRecord] = await db.select({ updatedAt: settings.updatedAt }).from(settings).where(eq(settings.key, 'inbox_sync_cursor')).limit(1);
+    const cursorRecords = await db.select({ updatedAt: settings.updatedAt }).from(settings).where(eq(settings.key, 'inbox_sync_cursor')).limit(1);
+    const cursorRecord = cursorRecords[0];
 
-    const [lockRecord] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'inbox_sync_lock')).limit(1);
+    const lockRecords = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'inbox_sync_lock')).limit(1);
+    const lockRecord = lockRecords[0];
 
     let lastSyncAt = null;
     let isLocked = false;

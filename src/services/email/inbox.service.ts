@@ -8,7 +8,7 @@ import {
   emailThreads,
   emailMessages,
 } from '@/db/schema';
-import { eq, or, and, sql, desc, inArray } from 'drizzle-orm';
+import { eq, or, and, sql, desc } from 'drizzle-orm';
 import { sanitizeHtml } from '@/lib/email/sanitize';
 import { ImapFlow } from 'imapflow';
 
@@ -291,7 +291,8 @@ import { settings } from '@/db/schema';
 
 // Helper to manage sync cursor in settings table
 async function getSyncCursor() {
-  const [record] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'inbox_sync_cursor')).limit(1);
+  const records = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'inbox_sync_cursor')).limit(1);
+  const record = records[0];
   if (!record || !record.value) {
     return { uidValidity: 0, lastUid: 0 };
   }
@@ -316,7 +317,8 @@ async function acquireSyncLock(): Promise<boolean> {
   const now = new Date();
   
   // Try to find an existing lock
-  const [record] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'inbox_sync_lock')).limit(1);
+  const records = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'inbox_sync_lock')).limit(1);
+  const record = records[0];
   
   if (record && record.value) {
     const lockData = record.value as { lockedAt: string };
