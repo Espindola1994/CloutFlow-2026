@@ -148,16 +148,16 @@ export async function findOrCreateThread(payload: InboundEmailPayload): Promise<
   }
 
   // 2. Try finding recent active thread by customer email and normalized subject
-  const cleanSubject = payload.subject.replace(/^(re|fwd|fw):\s*/i, '').trim();
+  const cleanSubject = payload.subject ? payload.subject.replace(/^(re|fwd|fw):\s*/i, '').trim() : '';
   const foundThreads = await db.query.emailThreads.findMany({
     where: and(
       eq(emailThreads.customerEmail, normalizedEmail),
-      sql`LOWER(${emailThreads.subject}) LIKE LOWER(${'%' + cleanSubject + '%'})`
+      cleanSubject ? sql`LOWER(${emailThreads.subject}) LIKE LOWER(${'%' + cleanSubject + '%'})` : undefined
     ),
     orderBy: [desc(emailThreads.latestMessageAt)],
     limit: 1,
   });
-  const matchingThread = foundThreads && Array.isArray(foundThreads) ? foundThreads[0] : null;
+  const matchingThread = foundThreads && Array.isArray(foundThreads) && foundThreads.length > 0 ? foundThreads[0] : null;
 
   if (matchingThread) {
     return { threadId: matchingThread.id, isNewThread: false };
@@ -230,10 +230,17 @@ export async function ingestInboundEmail(payload: InboundEmailPayload): Promise<
     let textBody = payload.textBody || null;
     let htmlBody = payload.htmlBody || null;
     
+    // Fallback parser if we only have raw source
     if (payload.rawSource && (!textBody || !htmlBody)) {
       const parsed = await parseEmailBody(payload.rawSource);
       if (!textBody && parsed.text) textBody = parsed.text;
       if (!htmlBody && parsed.html) htmlBody = parsed.html;
+    }
+    
+    // Always fallback to textBody if htmlBody is missing after parse
+    if (!htmlBody && textBody) {
+      // Very basic formatting for text fallback to HTML if HTML was totally absent
+      htmlBody = `<div style="white-space: pre-wrap;">${textBody}</div>`;
     }
     
     const sanitizedHtml = htmlBody ? sanitizeHtml(htmlBody) : null;
@@ -454,14 +461,17 @@ export async function syncGmailInbox(options?: { limit?: number }) {
         receivedAt,
       });
 
+      // Update cursor safely ONLY if ingestion succeeds or safely ignored/duplicate.
+      // Do not advance cursor if FAILED, so we don't lose emails permanently due to a temporary DB error.
+      if (result.status === 'IMPORTED' || result.status === 'IGNORED_UNKNOWN_SENDER' || result.status === 'DUPLICATE') {
+         if (msg.uid > maxUidProcessed) {
+           maxUidProcessed = msg.uid;
+         }
+      }
+
       if (result.status === 'IMPORTED') syncedCount++;
       else if (result.status === 'IGNORED_UNKNOWN_SENDER') ignoredCount++;
       else if (result.status === 'DUPLICATE') duplicateCount++;
-      
-      // Update cursor safely after each message
-      if (msg.uid > maxUidProcessed) {
-        maxUidProcessed = msg.uid;
-      }
     }
     
     // Save new cursor

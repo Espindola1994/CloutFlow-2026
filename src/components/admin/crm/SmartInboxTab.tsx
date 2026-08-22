@@ -139,11 +139,21 @@ export function SmartInboxTab() {
       const res = await fetch("/api/admin/inbox/sync", { method: "POST" });
       const data = await res.json();
       if (res.ok && data.success) {
+        // Show compact diagnostic toast/alert 
+        const { syncedCount, duplicateCount, ignoredCount } = data.data;
+        if (syncedCount > 0) {
+          alert(`Synced • ${syncedCount} new message(s)\nDuplicates skipped: ${duplicateCount}\nUnknown skipped: ${ignoredCount}`);
+        } else {
+          alert(`Synced • no new messages\nDuplicates skipped: ${duplicateCount}\nUnknown skipped: ${ignoredCount}`);
+        }
         await fetchThreads();
         await fetchSyncStatus();
+      } else {
+         alert(`Sync failed: ${data.error || "Unknown error"}`);
       }
     } catch (err) {
       console.error("Failed to sync inbox:", err);
+      alert("Sync failed: Network or server error");
     } finally {
       setIsSyncing(false);
     }
@@ -528,13 +538,17 @@ export function SmartInboxTab() {
 
                       {m.sanitizedHtmlBody ? (
                         <div
-                          className="prose prose-invert text-xs leading-relaxed max-w-none break-words"
+                          className="prose prose-invert text-xs leading-relaxed max-w-none break-words [&_blockquote]:border-l-2 [&_blockquote]:border-neutral-600 [&_blockquote]:pl-3 [&_blockquote]:opacity-80"
                           dangerouslySetInnerHTML={{ __html: m.sanitizedHtmlBody }}
                         />
                       ) : (
-                        <p className="text-xs leading-relaxed whitespace-pre-wrap break-words">
-                          {m.textBody || m.subject}
-                        </p>
+                        <div className="text-xs leading-relaxed break-words">
+                          {m.textBody && m.textBody.includes('Content-Type: ') ? (
+                             <pre className="whitespace-pre-wrap font-mono text-[10px] overflow-x-auto bg-neutral-900/50 p-2 rounded border border-neutral-700/50">{m.textBody}</pre>
+                          ) : (
+                             <p className="whitespace-pre-wrap">{m.textBody || m.subject}</p>
+                          )}
+                        </div>
                       )}
                     </div>
                   </div>

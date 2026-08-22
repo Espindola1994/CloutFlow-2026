@@ -199,8 +199,13 @@ export async function POST(request: Request) {
             name: cleanUsername || null,
             totalOrders: 0,
             totalSpentCents: 0,
-          }).onConflictDoNothing().catch(async () => {
-            // Fallback insert without onConflictDoNothing in case unique constraint is absent
+          }).onConflictDoUpdate({
+            target: customers.email,
+            set: {
+              name: cleanUsername || null,
+            }
+          }).catch(async () => {
+            // Fallback insert without onConflictDoUpdate in case unique constraint is absent
             await db.insert(customers).values({
               email: normalizedEmail,
               name: cleanUsername || null,
