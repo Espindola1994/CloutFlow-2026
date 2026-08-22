@@ -11,6 +11,7 @@ import {
   Sliders,
   ArrowRight,
   Activity,
+  Info,
 } from "lucide-react";
 import { AdminBadge, AdminButton, AdminModal } from "../ui";
 import {
@@ -214,10 +215,26 @@ export function PeakerrAutoDispatchCard() {
   const fetchFailedOrders = async () => {
     setLoadingFailed(true);
     try {
-      const res = await fetch("/api/admin/debug-failed-orders");
+      const res = await fetch("/api/admin/fulfillment/inspect?status=FAILED");
       const json = await res.json();
       if (json.success && json.data) {
         setFailedOrdersData(json.data);
+        setShowFailedModal(true);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setLoadingFailed(false);
+    }
+  };
+
+  const fetchStatusInspection = async (status: string) => {
+    setLoadingFailed(true); // Reusing this loading state for now
+    try {
+      const res = await fetch(`/api/admin/fulfillment/inspect?status=${status}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        setFailedOrdersData(json.data); // Reusing this state for the generic inspector
         setShowFailedModal(true);
       }
     } catch {
@@ -418,15 +435,20 @@ export function PeakerrAutoDispatchCard() {
 
               {/* Status Grid: 5 columns / 2 rows */}
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-                <div className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Not Dispatched</span>
+                <div className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#65737A] transition-colors"
+                  onClick={() => fetchStatusInspection('NOT_DISPATCHED')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Not Dispatched</span>
+                    <span className="text-[9px] text-[#65737A] font-bold">Inspect</span>
+                  </div>
                   <span className="text-[18px] font-bold text-[#142126] font-mono leading-none">
                     {fulfillmentStats?.notDispatched ?? "—"}
                   </span>
                 </div>
 
                 <div
-                  onClick={fetchTargetQueue}
+                  onClick={() => fetchStatusInspection('WAITING_TARGET_SLOT')}
                   className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#0F8F8A] transition-colors"
                 >
                   <div className="flex items-center justify-between">
@@ -439,7 +461,7 @@ export function PeakerrAutoDispatchCard() {
                 </div>
 
                 <div
-                  onClick={fetchFailedOrders}
+                  onClick={() => fetchStatusInspection('WAITING_PROVIDER')}
                   className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#D97706] transition-colors"
                 >
                   <div className="flex items-center justify-between">
@@ -451,36 +473,60 @@ export function PeakerrAutoDispatchCard() {
                   </span>
                 </div>
 
-                <div className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Submitting</span>
+                <div 
+                  className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#65737A] transition-colors"
+                  onClick={() => fetchStatusInspection('SUBMITTING')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Submitting</span>
+                    <span className="text-[9px] text-[#65737A] font-bold">Inspect</span>
+                  </div>
                   <span className="text-[18px] font-bold text-[#142126] font-mono leading-none">
                     {fulfillmentStats?.submitting ?? "—"}
                   </span>
                 </div>
 
-                <div className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Processing</span>
+                <div 
+                  className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#0F8F8A] transition-colors"
+                  onClick={() => fetchStatusInspection('PROCESSING')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Processing</span>
+                    <span className="text-[9px] text-[#0F8F8A] font-bold">Inspect</span>
+                  </div>
                   <span className="text-[18px] font-bold text-[#0F8F8A] font-mono leading-none">
                     {fulfillmentStats?.processing ?? "—"}
                   </span>
                 </div>
 
-                <div className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Partial</span>
+                <div 
+                  className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#F59E0B] transition-colors"
+                  onClick={() => fetchStatusInspection('PARTIAL')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Partial</span>
+                    <span className="text-[9px] text-[#F59E0B] font-bold">Inspect</span>
+                  </div>
                   <span className="text-[18px] font-bold text-[#F59E0B] font-mono leading-none">
                     {fulfillmentStats?.partial ?? "—"}
                   </span>
                 </div>
 
-                <div className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Completed</span>
+                <div 
+                  className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#16B77A] transition-colors"
+                  onClick={() => fetchStatusInspection('COMPLETED')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Completed</span>
+                    <span className="text-[9px] text-[#16B77A] font-bold">Inspect</span>
+                  </div>
                   <span className="text-[18px] font-bold text-[#16B77A] font-mono leading-none">
                     {fulfillmentStats?.completed ?? "—"}
                   </span>
                 </div>
 
                 <div
-                  onClick={fetchFailedOrders}
+                  onClick={() => fetchStatusInspection('FAILED')}
                   className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#EF4444] transition-colors"
                 >
                   <div className="flex items-center justify-between">
@@ -492,8 +538,14 @@ export function PeakerrAutoDispatchCard() {
                   </span>
                 </div>
 
-                <div className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between">
-                  <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Canceled</span>
+                <div 
+                  className="h-[56px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-[8px_12px] flex flex-col justify-between cursor-pointer hover:border-[#65737A] transition-colors"
+                  onClick={() => fetchStatusInspection('CANCELED')}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase font-semibold text-[#65737A] tracking-wider">Canceled</span>
+                    <span className="text-[9px] text-[#65737A] font-bold">Inspect</span>
+                  </div>
                   <span className="text-[18px] font-bold text-[#65737A] font-mono leading-none">
                     {fulfillmentStats?.canceled ?? "—"}
                   </span>
@@ -867,7 +919,7 @@ export function PeakerrAutoDispatchCard() {
         )}
       </AdminModal>
 
-      {/* MODAL: FAILED ORDERS FORENSIC (Read Only) */}
+      {/* MODAL: GENERIC ORDER INSPECTION (Read Only) */}
       <AdminModal
         open={showFailedModal}
         onOpenChange={(open) => {
@@ -876,8 +928,8 @@ export function PeakerrAutoDispatchCard() {
             setInspectFailedOrder(null);
           }
         }}
-        title="Failed Orders Forensic (Read-Only)"
-        description="Strictly no mutations allowed."
+        title="Operational Order Inspector (Read-Only)"
+        description="Comprehensive diagnostic & safe operational actions."
         className="sm:max-w-3xl"
       >
         <div>
@@ -890,14 +942,19 @@ export function PeakerrAutoDispatchCard() {
                 ← Back to List
               </button>
 
-              <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+              {/* HUMAN READABLE DIAGNOSIS SUMMARY */}
+              {inspectFailedOrder.diagnosis?.summary && (
+                <div className="p-3 bg-[#E7F5F4] border border-[#B6ECD7] rounded-[7px] text-xs text-[#0B4F4C] font-semibold flex items-center gap-2">
+                  <Info className="w-4 h-4 text-[#0F8F8A] shrink-0" />
+                  <span>{inspectFailedOrder.diagnosis.summary}</span>
+                </div>
+              )}
+
+              {/* ORDER DETAILS GRID */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
                 <div className="p-2.5 rounded-[6px] bg-[#F7F9FA] border border-[#E3E8EA]">
                   <span className="text-[#65737A] text-[10px] block">Public ID</span>
                   <strong className="text-[#142126]">{inspectFailedOrder.order.publicId}</strong>
-                </div>
-                <div className="p-2.5 rounded-[6px] bg-[#F7F9FA] border border-[#E3E8EA]">
-                  <span className="text-[#65737A] text-[10px] block">UUID</span>
-                  <strong className="text-[#65737A]">{inspectFailedOrder.order.id}</strong>
                 </div>
                 <div className="p-2.5 rounded-[6px] bg-[#F7F9FA] border border-[#E3E8EA]">
                   <span className="text-[#65737A] text-[10px] block">Payment / Fulfillment</span>
@@ -908,81 +965,72 @@ export function PeakerrAutoDispatchCard() {
                 <div className="p-2.5 rounded-[6px] bg-[#F7F9FA] border border-[#E3E8EA]">
                   <span className="text-[#65737A] text-[10px] block">Platform / Service</span>
                   <strong className="text-[#142126]">
-                    {inspectFailedOrder.order.platform} / {inspectFailedOrder.order.service} (
-                    {inspectFailedOrder.order.quantity})
+                    {inspectFailedOrder.order.platform} / {inspectFailedOrder.order.service} ({inspectFailedOrder.order.quantity})
                   </strong>
                 </div>
-                <div className="p-2.5 rounded-[6px] bg-[#F7F9FA] border border-[#E3E8EA] col-span-2">
+                <div className="p-2.5 rounded-[6px] bg-[#F7F9FA] border border-[#E3E8EA]">
+                  <span className="text-[#65737A] text-[10px] block">Created / Updated</span>
+                  <strong className="text-[#65737A]">
+                    {new Date(inspectFailedOrder.order.createdAt).toLocaleString()}
+                  </strong>
+                </div>
+                <div className="p-2.5 rounded-[6px] bg-[#F7F9FA] border border-[#E3E8EA] sm:col-span-2">
                   <span className="text-[#65737A] text-[10px] block">Target</span>
                   <strong className="text-[#142126] break-all">{inspectFailedOrder.order.targetUrl || "—"}</strong>
                 </div>
               </div>
 
+              {/* PROVIDER DETAILS */}
               <div className="space-y-2">
-                <h4 className="text-xs font-bold text-[#142126] uppercase tracking-wider">Fulfillment Orders</h4>
-                {inspectFailedOrder.fulfillmentOrders.length === 0 ? (
-                  <div className="p-3 bg-[#F7F9FA] rounded-[6px] text-xs text-[#8A979D] border border-[#E3E8EA]">
-                    No records found.
+                <h4 className="text-xs font-bold text-[#142126] uppercase tracking-wider">Provider Information</h4>
+                <div className="p-3 bg-[#F7F9FA] rounded-[6px] border border-[#E3E8EA] text-xs font-mono grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div>
+                    <span className="text-[#65737A] block text-[10px]">Provider:</span>
+                    <strong className="text-[#142126]">{inspectFailedOrder.providerInfo?.provider || "—"}</strong>
                   </div>
-                ) : (
-                  inspectFailedOrder.fulfillmentOrders.map((fo: any) => {
-                    const isConflict =
-                      fo.lastError &&
-                      (fo.lastError.toLowerCase().includes("active order") ||
-                        fo.lastError.toLowerCase().includes("wait until order being completed"));
-                    return (
-                      <div
-                        key={fo.id}
-                        className="p-3 bg-[#F7F9FA] rounded-[6px] border border-[#E3E8EA] text-xs font-mono space-y-1"
-                      >
-                        <div>
-                          <span className="text-[#65737A]">Provider:</span>{" "}
-                          <span className="text-[#142126]">{fo.provider}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#65737A]">Provider Service:</span>{" "}
-                          <span className="text-[#142126]">{fo.externalServiceId || "—"}</span>
-                        </div>
-                        <div>
-                          <span className="text-[#65737A]">Provider Order ID:</span>{" "}
-                          <span className="text-[#D97706] font-bold">
-                            {fo.externalOrderId || "NO PROVIDER ORDER ID RECORDED"}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-[#65737A]">Status:</span>{" "}
-                          <span className="text-[#EF4444] font-bold">{fo.status}</span>
-                        </div>
-                        {isConflict && (
-                          <div className="p-2 my-1 rounded-[6px] bg-[#FEF6E7] border border-[#FDE68A] text-[#D97706] font-bold">
-                            Classification: PROVIDER_ACTIVE_ORDER_CONFLICT
-                          </div>
-                        )}
-                        <div>
-                          <span className="text-[#65737A]">Error:</span>{" "}
-                          <span className="text-[#EF4444]">{fo.lastError || "—"}</span>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <h4 className="text-xs font-bold text-[#142126] uppercase tracking-wider">Order Events</h4>
-                <div className="p-3 bg-[#F7F9FA] rounded-[6px] border border-[#E3E8EA] max-h-44 overflow-y-auto space-y-2">
-                  {inspectFailedOrder.orderEvents.map((ev: any) => (
-                    <div key={ev.id} className="text-[11px] font-mono border-b border-[#E3E8EA] pb-2 last:border-0">
-                      <span className="text-[#8A979D]">[{new Date(ev.createdAt).toISOString()}]</span>{" "}
-                      <span className="text-[#0F8F8A] font-semibold">{ev.status || ev.fulfillmentStatus}</span>{" "}
-                      <span className="text-[#142126]">{ev.description}</span>
-                    </div>
-                  ))}
+                  <div>
+                    <span className="text-[#65737A] block text-[10px]">Provider Tier:</span>
+                    <strong className="text-[#142126]">{inspectFailedOrder.providerInfo?.tier || "—"}</strong>
+                  </div>
+                  <div>
+                    <span className="text-[#65737A] block text-[10px]">Provider Service ID:</span>
+                    <strong className="text-[#142126]">{inspectFailedOrder.providerInfo?.serviceId || "—"}</strong>
+                  </div>
+                  <div>
+                    <span className="text-[#65737A] block text-[10px]">Provider Order ID:</span>
+                    <strong className="text-[#D97706]">{inspectFailedOrder.providerInfo?.orderId || "NO ORDER ID"}</strong>
+                  </div>
+                  <div>
+                    <span className="text-[#65737A] block text-[10px]">Provider Cost:</span>
+                    <strong className="text-[#142126]">
+                      {inspectFailedOrder.providerInfo?.costCents ? `$${(inspectFailedOrder.providerInfo.costCents / 100).toFixed(2)}` : "None"}
+                    </strong>
+                  </div>
+                  <div>
+                    <span className="text-[#65737A] block text-[10px]">Cost Source:</span>
+                    <strong className="text-[#142126]">{inspectFailedOrder.providerInfo?.costSource || "UNKNOWN"}</strong>
+                  </div>
                 </div>
               </div>
 
+              {/* DIAGNOSIS DETAILS */}
+              {inspectFailedOrder.diagnosis?.details && Object.keys(inspectFailedOrder.diagnosis.details).length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="text-xs font-bold text-[#142126] uppercase tracking-wider">Diagnosis Details</h4>
+                  <div className="p-3 bg-[#F7F9FA] rounded-[6px] border border-[#E3E8EA] text-xs font-mono space-y-1.5">
+                    {Object.entries(inspectFailedOrder.diagnosis.details).map(([key, value]) => (
+                      <div key={key} className="flex justify-between border-b border-[#EDF1F2] pb-1 last:border-0">
+                        <span className="text-[#65737A]">{key}:</span>
+                        <strong className="text-[#142126] text-right">{String(value)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* SAFE ACTIONS */}
               <div className="pt-3 border-t border-[#EDF1F2] flex items-center justify-end gap-2">
-                {inspectFailedOrder.order.fulfillmentStatus === "FAILED" && (
+                {inspectFailedOrder.order.fulfillmentStatus === "FAILED" && inspectFailedOrder.diagnosis?.details?.isRetrySafe && (
                   <AdminButton
                     variant="primary"
                     onClick={() => {
@@ -991,7 +1039,7 @@ export function PeakerrAutoDispatchCard() {
                       setReconcileSuccess(null);
                     }}
                   >
-                    <span>Reconcile as WAITING_PROVIDER</span>
+                    <span>Reconcile Order</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </AdminButton>
                 )}
@@ -1015,18 +1063,28 @@ export function PeakerrAutoDispatchCard() {
           ) : (
             <div className="space-y-2">
               {failedOrdersData.length === 0 ? (
-                <p className="text-xs text-[#8A979D] text-center py-6">No FAILED orders found.</p>
+                <p className="text-xs text-[#8A979D] text-center py-6">No matching orders found for this status.</p>
               ) : (
                 failedOrdersData.map((d) => (
                   <div
                     key={d.order.id}
-                    className="p-3 rounded-[6px] bg-[#F7F9FA] border border-[#E3E8EA] flex items-center justify-between"
+                    className="p-3 rounded-[6px] bg-[#F7F9FA] border border-[#E3E8EA] flex flex-col sm:flex-row sm:items-center justify-between gap-2"
                   >
                     <div className="space-y-0.5">
-                      <div className="font-mono text-xs text-[#142126] font-bold">{d.order.publicId}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-xs text-[#142126] font-bold">{d.order.publicId}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#EDF1F2] text-[#65737A] font-semibold">
+                          {d.order.fulfillmentStatus}
+                        </span>
+                      </div>
                       <div className="text-[11px] text-[#65737A]">
                         {d.order.platform} / {d.order.service} ({d.order.quantity})
                       </div>
+                      {d.diagnosis?.summary && (
+                        <div className="text-[11px] text-[#0F8F8A] font-medium pt-0.5">
+                          {d.diagnosis.summary}
+                        </div>
+                      )}
                     </div>
                     <AdminButton size="sm" variant="secondary" onClick={() => setInspectFailedOrder(d)}>
                       Inspect
