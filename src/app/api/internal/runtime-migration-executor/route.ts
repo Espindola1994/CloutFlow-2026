@@ -75,7 +75,25 @@ export async function POST(request: Request) {
       },
     };
 
-    const body = await request.json().catch(() => ({}));
+    if (body.verify_queries === true) {
+      const { rows: contactMeta } = await pool.query(`SELECT count(*) FROM crm_contact_metadata;`);
+      const { rows: notes } = await pool.query(`SELECT count(*) FROM crm_notes;`);
+      const { rows: emailLogs } = await pool.query(`SELECT count(*) FROM email_logs;`);
+      const { rows: emailThreads } = await pool.query(`SELECT count(*) FROM email_threads;`);
+      const { rows: emailMessages } = await pool.query(`SELECT count(*) FROM email_messages;`);
+      const { rows: checkouts } = await pool.query(`SELECT id, customer_email FROM checkout_contexts LIMIT 1;`);
+      const { rows: automations } = await pool.query(`SELECT count(*) FROM lifecycle_automations;`);
+
+      result.query_verification = {
+        crm_contact_metadata_count: contactMeta[0].count,
+        crm_notes_count: notes[0].count,
+        email_logs_count: emailLogs[0].count,
+        email_threads_count: emailThreads[0].count,
+        email_messages_count: emailMessages[0].count,
+        checkout_contexts_customer_email_query: 'PASS',
+        lifecycle_automations_count: automations[0].count,
+      };
+    }
     
     if (body.apply_manual_sql === true) {
       // If Drizzle kit runner is used or manual SQL in transaction
