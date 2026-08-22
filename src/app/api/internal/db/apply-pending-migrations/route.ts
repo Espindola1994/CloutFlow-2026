@@ -145,16 +145,18 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
     
-    // For Vercel Edge/Serverless to Supabase we might need IPv4 resolution fallback if IPv6 fails, but pg handles it mostly fine unless there's a strict network issue.
-    // Ensure connection string uses IPv4 resolution or standard host.
-    // If we're failing with getaddrinfo ENOTFOUND db.rlsvzrunjoaiuthtfwdi.supabase.co, we might need a pooled connection string or just to use postgresql://... as it was provided.
-    const poolConfig = {
-        connectionString: process.env.DATABASE_URL,
-        ssl: { rejectUnauthorized: false }
-    };
-    const { Pool } = require('pg');
-    const localPool = new Pool(poolConfig);
-    const client = await localPool.connect();
+    // The Supabase connection issue might be related to DNS resolution in Edge/Node runtime in Vercel for IPv6 vs IPv4 pooler connection string.
+    // If DATABASE_URL is standard supabase pooled connection string, it could be facing DNS lookup issues if using .co and pooled.
+    // However, the existing db connection logic from `src/db/index.ts` exported as `pool` is standard pg.Pool without any overrides.
+    // We will use standard Pool from pg directly, but if ENOTFOUND is thrown, there is fundamentally a DNS resolution issue from this server.
+    // Wait, Supabase URLs are often db.[project].supabase.co. ENOTFOUND means Vercel literally can't resolve the DNS.
+    // Let's resolve the host manually to its IPv4 using the native dns module to bypass Node's native IPv6 preference bug, or just let pg use default options.
+    
+    // We will parse the URL and try to fetch via standard IPv4 if it fails. But wait, `pool` imported from `@/db` works across the app. 
+    // Why did `import { pool } from '@/db';` fail originally? Wait, we removed it and didn't test it natively. Let's put it back to ensure we use identical logic.
+
+    const { pool } = require('@/db');
+    const client = await pool.connect();
 
     try {
       // 3. Safety Precheck - inspect actual schema and history
@@ -377,7 +379,6 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     } finally {
       client.release();
-      await localPool.end();
     }
   } catch (err: unknown) {
     console.error('Endpoint unexpected error:', err);
