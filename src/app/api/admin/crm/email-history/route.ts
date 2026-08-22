@@ -26,37 +26,38 @@ export async function GET(request: Request) {
     const allOrders = await db.query.orders.findMany();
     const orderMap = new Map(allOrders.map((o) => [o.id, o]));
 
-    let items = logs.map((log) => {
-      const orderId = (log.metadata as Record<string, unknown>)?.orderId as string | undefined;
-      const order = orderId ? orderMap.get(orderId) : undefined;
+    let items = [
+      ...logs.map((log) => {
+        const orderId = (log.metadata as Record<string, unknown>)?.orderId as string | undefined;
+        const order = orderId ? orderMap.get(orderId) : undefined;
+        return {
+          id: log.id,
+          recipient: log.customerEmail,
+          subject: log.subject || '(No Subject)',
+          origin: log.sendOrigin,
+          category: log.category,
+          template: log.templateId || log.sequenceType || 'CUSTOM',
+          provider: log.provider,
+          providerMessageId: log.providerMessageId,
+          status: log.status,
+          stepNumber: log.stepNumber,
+          sentAt: log.sentAt,
+          createdAt: log.createdAt,
+          metadata: log.metadata,
+          relatedOrder: order ? {
+            id: order.id,
+            publicId: order.publicId || order.id,
+            platform: order.platform,
+            service: order.service,
+            targetHandle: order.socialUsername || order.targetUrl,
+            paymentStatus: order.paymentStatus,
+            fulfillmentStatus: order.fulfillmentStatus,
+          } : null,
+        };
+      })
+    ];
 
-      return {
-        id: log.id,
-        recipient: log.customerEmail,
-        subject: log.subject || '(No Subject)',
-        origin: log.sendOrigin,
-        category: log.category,
-        template: log.templateId || log.sequenceType || 'CUSTOM',
-        provider: log.provider,
-        providerMessageId: log.providerMessageId,
-        status: log.status,
-        stepNumber: log.stepNumber,
-        sentAt: log.sentAt,
-        createdAt: log.createdAt,
-        metadata: log.metadata,
-        relatedOrder: order
-          ? {
-              id: order.id,
-              publicId: order.publicId || order.id,
-              platform: order.platform,
-              service: order.service,
-              targetHandle: order.socialUsername || order.targetUrl,
-              paymentStatus: order.paymentStatus,
-              fulfillmentStatus: order.fulfillmentStatus,
-            }
-          : null,
-      };
-    });
+    items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     if (category && category !== 'ALL') {
       items = items.filter((i) => i.category.toLowerCase() === category.toLowerCase());

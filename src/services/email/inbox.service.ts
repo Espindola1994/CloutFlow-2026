@@ -290,9 +290,11 @@ export async function syncGmailInbox(options?: { sinceMinutes?: number; limit?: 
 
     try {
       const sinceDate = new Date(Date.now() - (options?.sinceMinutes || 1440) * 60 * 1000); // default last 24h
+      const searchCriteria = { since: sinceDate };
       const messagesGenerator = client.fetch(
-        { since: sinceDate },
-        { envelope: true, source: true, bodyStructure: true, internalDate: true }
+        searchCriteria,
+        { envelope: true, source: true, bodyStructure: true, internalDate: true, uid: true },
+        { uid: true }
       );
 
       let processed = 0;

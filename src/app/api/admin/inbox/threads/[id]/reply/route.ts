@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { emailThreads, emailMessages } from '@/db/schema';
+import { emailThreads, emailMessages, emailLogs } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { requireAdmin } from '@/lib/auth';
 import { getSupportEmailTransport } from '@/integrations/email/transport';
@@ -100,6 +100,26 @@ export async function POST(
         adminName: session?.name || 'Admin',
       },
     }).returning({ id: emailMessages.id });
+
+    // 4.1 Also create an email_log so it shows up in the Sent History Tab
+    await db.insert(emailLogs).values({
+      customerEmail: recipientEmail,
+      subject: replySubject,
+      sendOrigin: 'MANUAL',
+      category: 'support',
+      provider: 'GMAIL',
+      providerMessageId: sendResult.messageId || null,
+      status: 'SENT',
+      sentAt: new Date(),
+      templateId: 'SMART_INBOX_REPLY',
+      metadata: {
+        adminId: session?.id || 'admin_root',
+        adminName: session?.name || 'Admin',
+        threadId: thread.id,
+        messageId: insertedMsg.id,
+        orderId: thread.relatedOrderId,
+      },
+    });
 
     // 5. Update Thread Status (default: WAITING_CUSTOMER) and latestMessageAt
     await db.update(emailThreads).set({

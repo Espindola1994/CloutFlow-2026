@@ -170,7 +170,9 @@ export function AutomationsTab() {
               ) : (
                 items.map((auto) => {
                   const statusColor =
-                    auto.status === "COMPLETED"
+                    !auto.status
+                      ? "bg-neutral-700/30 text-neutral-400 border-neutral-700"
+                      : auto.status === "COMPLETED"
                       ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
                       : auto.status === "PENDING"
                       ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
@@ -199,7 +201,7 @@ export function AutomationsTab() {
                         </div>
                       </td>
                       <td className="p-3.5 text-neutral-300">
-                        {new Date(auto.scheduledFor).toLocaleString()}
+                        {auto.scheduledFor ? new Date(auto.scheduledFor).toLocaleString() : "—"}
                       </td>
                       <td className="p-3.5">
                         <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusColor}`}>

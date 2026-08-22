@@ -49,7 +49,11 @@ export async function GET(request: Request) {
         service: ctx?.service || null,
         emailLogStatus: emailLog?.status || null,
         lastError: a.errorLog && Array.isArray(a.errorLog) && a.errorLog.length > 0
-          ? (a.errorLog[a.errorLog.length - 1] as any)?.reason || JSON.stringify(a.errorLog[a.errorLog.length - 1])
+          ? (typeof (a.errorLog[a.errorLog.length - 1] as any)?.reason === 'string'
+              ? (a.errorLog[a.errorLog.length - 1] as any).reason
+              : typeof a.errorLog[a.errorLog.length - 1] === 'string'
+                ? a.errorLog[a.errorLog.length - 1]
+                : JSON.stringify(a.errorLog[a.errorLog.length - 1]))
           : null,
       };
     });
