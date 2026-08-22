@@ -149,7 +149,15 @@ export async function POST(request: Request) {
       });
     } catch (dbInsertError: unknown) {
       const msg = dbInsertError instanceof Error ? dbInsertError.message : String(dbInsertError);
-      console.warn('[CheckoutContextAPI] Primary insert with customerEmail failed, attempting fallback insert:', msg);
+      console.warn(
+        JSON.stringify({
+          level: 'warn',
+          event: 'CHECKOUT_CONTEXT_SCHEMA_FALLBACK',
+          message: 'Primary insert with customerEmail failed, attempting fallback insert without customerEmail',
+          contextId,
+          error: msg,
+        })
+      );
       // Fallback insert without customerEmail in case of DB schema mismatch
       await db.insert(checkoutContexts).values({
         contextId,
