@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-// import { pool } from '@/db';
+import { pool } from '@/db';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // 1 minute max for migrations
@@ -155,7 +155,6 @@ export async function POST(req: NextRequest) {
     // We will parse the URL and try to fetch via standard IPv4 if it fails. But wait, `pool` imported from `@/db` works across the app. 
     // Why did `import { pool } from '@/db';` fail originally? Wait, we removed it and didn't test it natively. Let's put it back to ensure we use identical logic.
 
-    const { pool } = require('@/db');
     const client = await pool.connect();
 
     try {
