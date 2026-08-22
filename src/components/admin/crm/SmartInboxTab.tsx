@@ -98,6 +98,8 @@ export function SmartInboxTab() {
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
 
+  const [syncBanner, setSyncBanner] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
   // Fetch sync status
   const fetchSyncStatus = useCallback(async () => {
     try {
@@ -136,24 +138,23 @@ export function SmartInboxTab() {
   const handleSyncNow = useCallback(async () => {
     try {
       setIsSyncing(true);
+      setSyncBanner(null);
       const res = await fetch("/api/admin/inbox/sync", { method: "POST" });
       const data = await res.json();
       if (res.ok && data.success) {
-        // Show compact diagnostic toast/alert 
         const { syncedCount, duplicateCount, ignoredCount } = data.data;
-        if (syncedCount > 0) {
-          alert(`Synced • ${syncedCount} new message(s)\nDuplicates skipped: ${duplicateCount}\nUnknown skipped: ${ignoredCount}`);
-        } else {
-          alert(`Synced • no new messages\nDuplicates skipped: ${duplicateCount}\nUnknown skipped: ${ignoredCount}`);
-        }
+        const msg = syncedCount > 0
+          ? `Synced • ${syncedCount} new message(s) ingested (Duplicates: ${duplicateCount}, Ignored: ${ignoredCount})`
+          : `Synced • Inbox is up to date (Duplicates: ${duplicateCount}, Ignored: ${ignoredCount})`;
+        setSyncBanner({ type: 'success', message: msg });
         await fetchThreads();
         await fetchSyncStatus();
       } else {
-         alert(`Sync failed: ${data.error || "Unknown error"}`);
+        setSyncBanner({ type: 'error', message: `Sync failed: ${data.error || "Unknown server error"}` });
       }
     } catch (err) {
       console.error("Failed to sync inbox:", err);
-      alert("Sync failed: Network or server error");
+      setSyncBanner({ type: 'error', message: "Sync failed: Network or communication error" });
     } finally {
       setIsSyncing(false);
     }
@@ -338,6 +339,26 @@ export function SmartInboxTab() {
               className="w-full bg-[#111827] border border-neutral-700/60 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 transition-colors"
             />
           </div>
+
+          {/* Sync Status Banner */}
+          {syncBanner && (
+            <div className={`p-2.5 rounded-lg text-[11px] flex items-center justify-between gap-2 ${
+              syncBanner.type === 'error'
+                ? 'bg-red-950/50 border border-red-800/60 text-red-300'
+                : 'bg-emerald-950/50 border border-emerald-800/60 text-emerald-300'
+            }`}>
+              <div className="flex items-center gap-1.5 leading-tight">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <span>{syncBanner.message}</span>
+              </div>
+              <button
+                onClick={() => setSyncBanner(null)}
+                className="text-neutral-400 hover:text-white text-xs px-1"
+              >
+                ✕
+              </button>
+            </div>
+          )}
 
           {/* Filter Pills */}
           <div className="flex flex-wrap gap-1.5 text-[11px] font-semibold">

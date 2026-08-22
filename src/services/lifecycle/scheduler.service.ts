@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { lifecycleAutomations, lifecycleEvents } from '@/db/schema';
-import { eq, and, lte, inArray } from 'drizzle-orm';
+import { eq, and, lte, gte, inArray } from 'drizzle-orm';
 import crypto from 'crypto';
 import { emitLifecycleEvent } from './event.service';
 
@@ -29,17 +29,30 @@ export async function evaluateCheckoutAbandonments(thresholdMinutes = DEFAULT_AB
   let createdAbandonments = 0;
 
   for (const lead of potentialLeads) {
-    // 2. Check if a PAYMENT_APPROVED event exists for this customerEmail after the lead event
-    const [payment] = await db.query.lifecycleEvents.findMany({
+    // 2. Check if a PAYMENT_APPROVED or already existing CHECKOUT_ABANDONED event exists for this customerEmail
+    const [payment] = (await db.query.lifecycleEvents.findMany({
       where: and(
         eq(lifecycleEvents.customerEmail, lead.customerEmail),
         eq(lifecycleEvents.eventType, 'PAYMENT_APPROVED')
       ),
       limit: 1,
-    });
+    })) || [];
 
     if (payment) {
       // Payment exists, do not emit CHECKOUT_ABANDONED
+      continue;
+    }
+
+    const [existingAbandonment] = (await db.query.lifecycleEvents.findMany({
+      where: and(
+        eq(lifecycleEvents.customerEmail, lead.customerEmail),
+        eq(lifecycleEvents.eventType, 'CHECKOUT_ABANDONED'),
+        gte(lifecycleEvents.createdAt, lead.createdAt)
+      ),
+      limit: 1,
+    })) || [];
+
+    if (existingAbandonment) {
       continue;
     }
 

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { runLifecycleWorker } from '@/services/lifecycle/worker.service';
+import { evaluateCheckoutAbandonments } from '@/services/lifecycle/scheduler.service';
 
 /**
  * INTERNAL LIFECYCLE WORKER ENDPOINT
@@ -20,7 +21,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // 2. Run Worker
+    // 2. Evaluate and emit new CHECKOUT_ABANDONED events
+    await evaluateCheckoutAbandonments();
+
+    // 3. Run Worker to process ready automations
     const result = await runLifecycleWorker();
 
     return NextResponse.json({

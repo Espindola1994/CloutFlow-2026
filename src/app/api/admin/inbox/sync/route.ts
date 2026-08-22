@@ -23,6 +23,7 @@ export async function POST() {
             ignoredCount: result.ignoredCount,
             duplicateCount: result.duplicateCount,
             status: result.status,
+            diagnostics: result.diagnostics,
           }
         },
         { status: 500 }
@@ -36,6 +37,7 @@ export async function POST() {
         ignoredCount: result.ignoredCount,
         duplicateCount: result.duplicateCount,
         status: result.status,
+        diagnostics: result.diagnostics,
       },
     });
   } catch (error) {
@@ -58,15 +60,9 @@ export async function GET() {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const [cursorRecord] = await db.query.settings.findMany({
-      where: eq(settings.key, 'inbox_sync_cursor'),
-      limit: 1,
-    });
+    const [cursorRecord] = await db.select({ updatedAt: settings.updatedAt }).from(settings).where(eq(settings.key, 'inbox_sync_cursor')).limit(1);
 
-    const [lockRecord] = await db.query.settings.findMany({
-      where: eq(settings.key, 'inbox_sync_lock'),
-      limit: 1,
-    });
+    const [lockRecord] = await db.select({ value: settings.value }).from(settings).where(eq(settings.key, 'inbox_sync_lock')).limit(1);
 
     let lastSyncAt = null;
     let isLocked = false;

@@ -94,8 +94,8 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
     transport = getTransactionalEmailTransport();
     providerName = 'RESEND';
   } else {
-    // Marketing
-    transport = getMarketingEmailTransport(normalizedEmail);
+    // Marketing (Manual sends bypass the lifecycle kill switch, relying on auth + suppression instead)
+    transport = getMarketingEmailTransport(normalizedEmail, true);
     providerName = 'RESEND';
   }
 

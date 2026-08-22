@@ -36,11 +36,12 @@ export function isMarketingSendAllowedForRecipient(email: string): boolean {
   return isEmailInAllowlist(email);
 }
 
-export function getMarketingEmailTransport(recipientEmail?: string): EmailTransport {
+export function getMarketingEmailTransport(recipientEmail?: string, forceManualAllowed: boolean = false): EmailTransport {
   const isGlobalEnabled = process.env.LIFECYCLE_EMAILS_ENABLED === 'true';
   const isAllowlisted = recipientEmail ? isEmailInAllowlist(recipientEmail) : false;
 
-  if (!isGlobalEnabled && !isAllowlisted) {
+  // Manual sends by admins should not be blocked by the lifecycle automations kill switch
+  if (!isGlobalEnabled && !isAllowlisted && !forceManualAllowed) {
     return new DisabledEmailTransport('BLOCKED_SEND_DISABLED');
   }
 
