@@ -75,6 +75,7 @@ export async function POST(request: Request) {
       },
     };
 
+    const body = await request.json().catch(() => ({}));
     if (body.verify_queries === true) {
       const { rows: contactMeta } = await pool.query(`SELECT count(*) FROM crm_contact_metadata;`);
       const { rows: notes } = await pool.query(`SELECT count(*) FROM crm_notes;`);
