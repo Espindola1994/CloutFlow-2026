@@ -134,6 +134,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Safety Precheck - DB Connection & URL
+    // Try to fallback if next.js caches the env differently, or just try to connect and if it fails, log error.
     if (!process.env.DATABASE_URL) {
       return NextResponse.json({ 
         databaseUrlAvailable: false,
@@ -371,7 +372,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       status: 'BLOCKED',
       error: 'Unexpected error occurred',
-      details: String(err)
+      details: (err as Error).message || String(err)
     }, { status: 500 });
   }
 }
