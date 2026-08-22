@@ -83,6 +83,67 @@ export async function POST(request: Request) {
       try {
         await client.query('BEGIN');
         
+        // 0002 Lifecycle
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS "lifecycle_events" (
+            "id" text PRIMARY KEY NOT NULL,
+            "customer_email" varchar(255) NOT NULL,
+            "customer_id" text,
+            "event_type" varchar(100) NOT NULL,
+            "idempotency_key" varchar(255) NOT NULL,
+            "payload" jsonb DEFAULT '{}' NOT NULL,
+            "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+            CONSTRAINT "lifecycle_events_idempotency_key_unique" UNIQUE("idempotency_key")
+          );
+        `);
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS "lifecycle_automations" (
+            "id" text PRIMARY KEY NOT NULL,
+            "lifecycle_event_id" text NOT NULL,
+            "customer_email" varchar(255) NOT NULL,
+            "automation_id" varchar(100) NOT NULL,
+            "action_type" varchar(50) NOT NULL,
+            "scheduled_for" timestamp with time zone NOT NULL,
+            "status" varchar(50) DEFAULT 'PENDING' NOT NULL,
+            "claimed_at" timestamp with time zone,
+            "claim_token" varchar(255),
+            "attempts" integer DEFAULT 0 NOT NULL,
+            "last_attempt_at" timestamp with time zone,
+            "error_log" jsonb DEFAULT '[]',
+            "context_data" jsonb DEFAULT '{}' NOT NULL,
+            "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+            "updated_at" timestamp with time zone DEFAULT now() NOT NULL
+          );
+        `);
+
+        // 0003 Email logs & suppressions
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS "email_suppressions" (
+            "id" text PRIMARY KEY NOT NULL,
+            "customer_email" varchar(255) NOT NULL,
+            "reason" varchar(100) NOT NULL,
+            "source" varchar(100) NOT NULL,
+            "created_at" timestamp with time zone DEFAULT now() NOT NULL,
+            CONSTRAINT "email_suppressions_customer_email_unique" UNIQUE("customer_email")
+          );
+        `);
+        await client.query(`
+          CREATE TABLE IF NOT EXISTS "email_logs" (
+            "id" text PRIMARY KEY NOT NULL,
+            "customer_email" varchar(255) NOT NULL,
+            "lifecycle_automation_id" text,
+            "sequence_type" varchar(100),
+            "step_number" integer,
+            "provider" varchar(50) DEFAULT 'RESEND' NOT NULL,
+            "provider_message_id" varchar(255),
+            "status" varchar(50) NOT NULL,
+            "subject" text,
+            "metadata" jsonb DEFAULT '{}',
+            "sent_at" timestamp with time zone,
+            "created_at" timestamp with time zone DEFAULT now() NOT NULL
+          );
+        `);
+
         // 0004
         await client.query(`
           CREATE TABLE IF NOT EXISTS "crm_contact_metadata" (
@@ -173,6 +234,15 @@ export async function POST(request: Request) {
         await client.query(`
           DO $$
           BEGIN
+            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'lifecycle_automations_lifecycle_event_id_lifecycle_events_id_fk') THEN
+              ALTER TABLE "lifecycle_automations" ADD CONSTRAINT "lifecycle_automations_lifecycle_event_id_lifecycle_events_id_fk" FOREIGN KEY ("lifecycle_event_id") REFERENCES "public"."lifecycle_events"("id") ON DELETE no action ON UPDATE no action;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'lifecycle_events_customer_id_customers_id_fk') THEN
+              ALTER TABLE "lifecycle_events" ADD CONSTRAINT "lifecycle_events_customer_id_customers_id_fk" FOREIGN KEY ("customer_id") REFERENCES "public"."customers"("id") ON DELETE no action ON UPDATE no action;
+            END IF;
+            IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'email_logs_lifecycle_automation_id_lifecycle_automations_id_fk') THEN
+              ALTER TABLE "email_logs" ADD CONSTRAINT "email_logs_lifecycle_automation_id_lifecycle_automations_id_fk" FOREIGN KEY ("lifecycle_automation_id") REFERENCES "public"."lifecycle_automations"("id") ON DELETE no action ON UPDATE no action;
+            END IF;
             IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'email_messages_thread_id_email_threads_id_fk') THEN
               ALTER TABLE "email_messages" ADD CONSTRAINT "email_messages_thread_id_email_threads_id_fk" FOREIGN KEY ("thread_id") REFERENCES "public"."email_threads"("id") ON DELETE cascade ON UPDATE no action;
             END IF;
@@ -186,6 +256,14 @@ export async function POST(request: Request) {
         `);
 
         // Indexes
+        await client.query(`CREATE INDEX IF NOT EXISTS "lifecycle_automations_status_idx" ON "lifecycle_automations" USING btree ("status");`);
+        await client.query(`CREATE INDEX IF NOT EXISTS "lifecycle_automations_scheduled_for_idx" ON "lifecycle_automations" USING btree ("scheduled_for");`);
+        await client.query(`CREATE INDEX IF NOT EXISTS "lifecycle_automations_customer_email_idx" ON "lifecycle_automations" USING btree ("customer_email");`);
+        await client.query(`CREATE INDEX IF NOT EXISTS "lifecycle_events_customer_email_idx" ON "lifecycle_events" USING btree ("customer_email");`);
+        await client.query(`CREATE INDEX IF NOT EXISTS "lifecycle_events_event_type_idx" ON "lifecycle_events" USING btree ("event_type");`);
+        await client.query(`CREATE INDEX IF NOT EXISTS "email_logs_customer_email_idx" ON "email_logs" USING btree ("customer_email");`);
+        await client.query(`CREATE INDEX IF NOT EXISTS "email_logs_automation_id_idx" ON "email_logs" USING btree ("lifecycle_automation_id");`);
+        await client.query(`CREATE UNIQUE INDEX IF NOT EXISTS "email_logs_automation_step_unique_idx" ON "email_logs" USING btree ("lifecycle_automation_id","step_number");`);
         await client.query(`CREATE INDEX IF NOT EXISTS "email_messages_thread_id_idx" ON "email_messages" USING btree ("thread_id");`);
         await client.query(`CREATE INDEX IF NOT EXISTS "email_messages_message_id_idx" ON "email_messages" USING btree ("message_id");`);
         await client.query(`CREATE INDEX IF NOT EXISTS "email_messages_provider_message_id_idx" ON "email_messages" USING btree ("provider_message_id");`);
