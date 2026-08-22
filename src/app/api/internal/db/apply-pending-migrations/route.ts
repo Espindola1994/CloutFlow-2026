@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
       let drizzleEntries: string[] = [];
       if (migrationTableCheck.rows[0]?.exists) {
         const res = await client.query(`SELECT hash, tag FROM "drizzle"."__drizzle_migrations" ORDER BY created_at DESC;`);
-        drizzleEntries = res.rows.map(r => r.tag || r.hash);
+        drizzleEntries = res.rows.map((r: any) => r.tag || r.hash);
       }
       // console.log("drizzleEntries", drizzleEntries);
 
@@ -180,7 +180,7 @@ export async function POST(req: NextRequest) {
         WHERE table_schema = 'public' 
         AND table_name IN ('crm_notes', 'crm_contact_metadata', 'email_messages', 'email_threads');
       `);
-      const existingTables = tablesCheck.rows.map(r => r.table_name);
+      const existingTables = tablesCheck.rows.map((r: any) => r.table_name);
 
       // Check email_logs columns
       const emailLogsColsCheck = await client.query(`
@@ -189,7 +189,7 @@ export async function POST(req: NextRequest) {
         WHERE table_schema = 'public' AND table_name = 'email_logs' 
         AND column_name IN ('send_origin', 'category', 'template_id');
       `);
-      const emailLogsCols = emailLogsColsCheck.rows.map(r => r.column_name);
+      const emailLogsCols = emailLogsColsCheck.rows.map((r: any) => r.column_name);
 
       // Check checkout_contexts columns
       const checkoutContextsColsCheck = await client.query(`
@@ -198,7 +198,7 @@ export async function POST(req: NextRequest) {
         WHERE table_schema = 'public' AND table_name = 'checkout_contexts' 
         AND column_name = 'customer_email';
       `);
-      const checkoutContextsCols = checkoutContextsColsCheck.rows.map(r => r.column_name);
+      const checkoutContextsCols = checkoutContextsColsCheck.rows.map((r: any) => r.column_name);
 
       const has0004Tables = existingTables.includes('crm_notes') && existingTables.includes('crm_contact_metadata');
       const has0004Cols = emailLogsCols.length === 3;
@@ -264,7 +264,7 @@ export async function POST(req: NextRequest) {
 
       // Update drizzle migration journal records
       const existingTagsRes = await client.query(`SELECT tag, hash FROM "drizzle"."__drizzle_migrations";`);
-      const existingTags = existingTagsRes.rows.map(r => r.tag || r.hash);
+      const existingTags = existingTagsRes.rows.map((r: any) => r.tag || r.hash);
 
       if (!existingTags.includes('0004_nappy_celestials')) {
         await client.query(`INSERT INTO "drizzle"."__drizzle_migrations" (hash, created_at, tag) VALUES ($1, $2, $3);`, [
@@ -291,7 +291,7 @@ export async function POST(req: NextRequest) {
         WHERE table_schema = 'public' 
         AND table_name IN ('crm_notes', 'crm_contact_metadata', 'email_messages', 'email_threads');
       `);
-      const afterTables = afterTablesRes.rows.map(r => r.table_name);
+      const afterTables = afterTablesRes.rows.map((r: any) => r.table_name);
 
       const afterEmailLogsColsRes = await client.query(`
         SELECT column_name 
@@ -299,7 +299,7 @@ export async function POST(req: NextRequest) {
         WHERE table_schema = 'public' AND table_name = 'email_logs' 
         AND column_name IN ('send_origin', 'category', 'template_id');
       `);
-      const afterEmailLogsCols = afterEmailLogsColsRes.rows.map(r => r.column_name);
+      const afterEmailLogsCols = afterEmailLogsColsRes.rows.map((r: any) => r.column_name);
 
       const afterCheckoutContextsColsRes = await client.query(`
         SELECT column_name 
@@ -307,7 +307,7 @@ export async function POST(req: NextRequest) {
         WHERE table_schema = 'public' AND table_name = 'checkout_contexts' 
         AND column_name = 'customer_email';
       `);
-      const afterCheckoutContextsCols = afterCheckoutContextsColsRes.rows.map(r => r.column_name);
+      const afterCheckoutContextsCols = afterCheckoutContextsColsRes.rows.map((r: any) => r.column_name);
 
       // Verify FKs
       const fksRes = await client.query(`
@@ -320,7 +320,7 @@ export async function POST(req: NextRequest) {
           'email_threads_related_order_id_orders_id_fk'
         );
       `);
-      const fks = fksRes.rows.map(r => r.constraint_name);
+      const fks = fksRes.rows.map((r: any) => r.constraint_name);
 
       // Verify Indexes
       const idxRes = await client.query(`
@@ -339,7 +339,7 @@ export async function POST(req: NextRequest) {
           'email_threads_related_order_idx'
         );
       `);
-      const indexes = idxRes.rows.map(r => r.indexname);
+      const indexes = idxRes.rows.map((r: any) => r.indexname);
 
       return NextResponse.json({
         status: 'PASS',
