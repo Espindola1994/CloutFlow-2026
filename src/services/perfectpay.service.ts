@@ -155,9 +155,10 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
         })
         .returning();
       loggedEvent = inserted;
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Catch DB Unique constraint violation on duplicate race condition
-      if (err.code === '23505' || err.message?.includes('duplicate key')) {
+      const errorObj = err as { code?: string; message?: string };
+      if (errorObj?.code === '23505' || errorObj?.message?.includes('duplicate key')) {
         return {
           success: true,
           authenticated: isAuthenticated,
@@ -330,6 +331,39 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
           action: 'ORDER_UPDATED',
           orderId: existingOrder.id,
           publicId: existingOrder.publicId,
+          mode: 'VERIFIED',
+        };
+      }
+
+      // Monetary Safety Guard for NEW Order Creation:
+      // Check if monetary amount is resolvable.
+      // Distinguish:
+      // A. Explicit amount = 0 -> legitimate $0 order (e.g. promotional/free checkout)
+      // B. Amount is absent/unresolved AND no matchedOffer price -> DO NOT silently fabricate a $0 order.
+      //    Instead: emit structured error/alert, preserve webhook event with error, and route to safe review path.
+      if (parsed.amountCents === undefined && !matchedOffer) {
+        console.error('[PerfectPay] Unresolved monetary amount for approved event without matched offer:', {
+          externalOrderId: parsed.externalOrderId,
+          productId: parsed.productId,
+          planId: parsed.planId,
+          normalizedStatus: parsed.normalizedStatus,
+        });
+
+        if (loggedEvent) {
+          await tx
+            .update(webhookEvents)
+            .set({
+              processingStatus: 'UNRESOLVED_AMOUNT_ERROR',
+              errorMessage: 'Unresolved monetary amount: no authoritative transaction amount or catalog offer found.',
+            })
+            .where(eq(webhookEvents.id, loggedEvent.id));
+        }
+
+        return {
+          success: false,
+          authenticated: true,
+          action: 'EVENT_LOGGED',
+          message: 'Approved event has unresolved monetary amount and no matched offer. Logged for manual forensic review.',
           mode: 'VERIFIED',
         };
       }

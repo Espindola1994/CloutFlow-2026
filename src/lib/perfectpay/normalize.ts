@@ -64,6 +64,203 @@ export interface PerfectPayParsedEvent {
 }
 
 /**
+ * Safely parses and normalizes monetary values into non-negative integer cents.
+ * Rejects NaN, negative, malformed, non-finite, or non-financial values.
+ * Returns null if the value cannot be parsed as a valid financial amount.
+ */
+export function parseMonetaryAmountToCents(val: unknown): number | null {
+  if (val === undefined || val === null) {
+    return null;
+  }
+
+  // Already integer number of cents
+  if (typeof val === 'number') {
+    if (!Number.isFinite(val) || isNaN(val) || val < 0) {
+      return null;
+    }
+    // If it's a decimal number like 5.00 or 19.99, convert to cents
+    // We round to nearest integer to avoid JS floating point inaccuracies (e.g. 19.99 * 100 = 1998.9999999999998)
+    return Math.round(val * 100);
+  }
+
+  if (typeof val === 'string') {
+    const trimmed = val.trim();
+    if (trimmed === '') {
+      return null;
+    }
+    // Reject non-numeric patterns (except decimal dots/commas)
+    // Replace comma with dot if European/Brazilian format (e.g., "19,90")
+    const sanitized = trimmed.replace(',', '.');
+    const parsed = Number(sanitized);
+    if (!Number.isFinite(parsed) || isNaN(parsed) || parsed < 0) {
+      return null;
+    }
+    return Math.round(parsed * 100);
+  }
+
+  return null;
+}
+
+export interface PerfectPayMonetaryResolutionResult {
+  amountCents: number | null;
+  amountResolved: boolean;
+  sourceType: 'TRANSACTION' | 'CATALOG' | 'UNRESOLVED';
+  sourceField?: string;
+  diagnostics?: {
+    conflictDetected?: boolean;
+    conflictingFields?: Array<{ field: string; amountCents: number }>;
+    message?: string;
+  };
+}
+
+/**
+ * Resolves the canonical monetary resolution detail from a PerfectPay payload.
+ * 
+ * Strict Authoritative Precedence:
+ * 1. Explicit amount_cents (integer cents)
+ * 2. Authoritative transaction-paid amount:
+ *    a. sale_amount (Official transaction paid amount)
+ *    b. amount (Legacy transaction paid alias)
+ *    c. other proven transaction-paid amount fields from the payload
+ *    d. sale_amount_without_tax only if transaction amounts not present
+ * 3. Catalog / Plan fallback (only if transaction-level amounts are absent/unresolved):
+ *    a. full_price / price only when proven or top-level fallback
+ *    b. plan.amount / plan.price / plan.full_price
+ *    c. product.amount / product.price
+ * 
+ * Distinguishes between:
+ * - Explicit 0 (e.g., sale_amount = 0 or "0.00") -> amountCents = 0, amountResolved = true
+ * - Absent/unresolved -> amountCents = null, amountResolved = false
+ * 
+ * If two transaction-level fields conflict:
+ * - Does NOT fall back to catalog value.
+ * - Uses the most authoritative field (e.g. sale_amount over amount).
+ * - Records structured diagnostic information.
+ */
+export function resolvePerfectPayMonetaryResolution(body: Record<string, unknown>): PerfectPayMonetaryResolutionResult {
+  // Check transaction-level fields
+  const transactionCandidates: Array<{ field: string; value: unknown }> = [
+    { field: 'amount_cents', value: body.amount_cents },
+    { field: 'sale_amount', value: body.sale_amount },
+    { field: 'amount', value: body.amount },
+    { field: 'sale_amount_without_tax', value: body.sale_amount_without_tax },
+  ];
+
+  const resolvedTxFields: Array<{ field: string; amountCents: number }> = [];
+
+  for (const candidate of transactionCandidates) {
+    if (candidate.value !== undefined && candidate.value !== null) {
+      if (candidate.field === 'amount_cents') {
+        const rawCents = Number(candidate.value);
+        if (Number.isFinite(rawCents) && !isNaN(rawCents) && rawCents >= 0) {
+          resolvedTxFields.push({ field: candidate.field, amountCents: Math.round(rawCents) });
+        }
+      } else {
+        const parsed = parseMonetaryAmountToCents(candidate.value);
+        if (parsed !== null) {
+          resolvedTxFields.push({ field: candidate.field, amountCents: parsed });
+        }
+      }
+    }
+  }
+
+  if (resolvedTxFields.length > 0) {
+    const primary = resolvedTxFields[0];
+    const uniqueValues = new Set(resolvedTxFields.map(f => f.amountCents));
+    const conflictDetected = uniqueValues.size > 1;
+
+    let diagnostics: PerfectPayMonetaryResolutionResult['diagnostics'] = undefined;
+    if (conflictDetected) {
+      diagnostics = {
+        conflictDetected: true,
+        conflictingFields: resolvedTxFields,
+        message: `Transaction monetary fields conflict: ${resolvedTxFields.map(f => `${f.field}=${f.amountCents}`).join(', ')}. Choosing most authoritative field: ${primary.field}.`,
+      };
+      console.warn('[PerfectPay] Monetary Conflict Detected in Transaction Fields:', diagnostics);
+    }
+
+    return {
+      amountCents: primary.amountCents,
+      amountResolved: true,
+      sourceType: 'TRANSACTION',
+      sourceField: primary.field,
+      diagnostics,
+    };
+  }
+
+  // 3. Fallbacks: Plan / Catalog List Price (Only when transaction-paid fields are absent)
+  const plan = (typeof body.plan === 'object' && body.plan !== null ? body.plan : {}) as Record<string, unknown>;
+  const product = (typeof body.product === 'object' && body.product !== null ? body.product : {}) as Record<string, unknown>;
+
+  const catalogCandidates: Array<{ field: string; value: unknown }> = [
+    { field: 'price', value: body.price },
+    { field: 'full_price', value: body.full_price },
+    { field: 'plan.amount', value: plan.amount },
+    { field: 'plan.price', value: plan.price },
+    { field: 'plan.full_price', value: plan.full_price },
+    { field: 'plan.amount_cents', value: plan.amount_cents },
+    { field: 'product.amount', value: product.amount },
+    { field: 'product.price', value: product.price },
+  ];
+
+  for (const candidate of catalogCandidates) {
+    if (candidate.value !== undefined && candidate.value !== null) {
+      if (candidate.field.endsWith('amount_cents')) {
+        const rawCents = Number(candidate.value);
+        if (Number.isFinite(rawCents) && !isNaN(rawCents) && rawCents >= 0) {
+          return {
+            amountCents: Math.round(rawCents),
+            amountResolved: true,
+            sourceType: 'CATALOG',
+            sourceField: candidate.field,
+          };
+        }
+      } else {
+        const parsed = parseMonetaryAmountToCents(candidate.value);
+        if (parsed !== null) {
+          return {
+            amountCents: parsed,
+            amountResolved: true,
+            sourceType: 'CATALOG',
+            sourceField: candidate.field,
+          };
+        }
+      }
+    }
+  }
+
+  return {
+    amountCents: null,
+    amountResolved: false,
+    sourceType: 'UNRESOLVED',
+  };
+}
+
+/**
+ * Resolves the canonical monetary amount in integer cents from a PerfectPay payload.
+ * 
+ * Strict Authoritative Precedence:
+ * 1. Explicit amount_cents (integer cents)
+ * 2. Authoritative transaction-paid amount:
+ *    a. sale_amount (Official transaction paid amount)
+ *    b. amount (Legacy transaction paid alias)
+ *    c. other proven transaction-paid amount fields from the payload
+ *    d. sale_amount_without_tax only if transaction amounts not present
+ * 3. Catalog / Plan fallback (only if transaction amount is absent/unresolved):
+ *    a. price / full_price
+ *    b. plan.amount / plan.price / plan.full_price
+ *    c. product.amount / product.price
+ * 
+ * Distinguishes between:
+ * - Explicit 0 (e.g., sale_amount = 0 or "0.00") -> returns 0 cents
+ * - Absent/unresolved -> returns undefined
+ */
+export function resolvePerfectPayMonetaryAmount(body: Record<string, unknown>): number | undefined {
+  const resolution = resolvePerfectPayMonetaryResolution(body);
+  return resolution.amountResolved && resolution.amountCents !== null ? resolution.amountCents : undefined;
+}
+
+/**
  * Parses and normalizes incoming PerfectPay webhook payloads according to the
  * official PerfectPay Postback Contract, with defensive fallbacks for legacy aliases.
  */
@@ -245,17 +442,8 @@ export function normalizePerfectPayPayload(body: Record<string, unknown>): Perfe
   const customerCity = String(customer.city || body.city || '').trim() || undefined;
   const customerZipCode = String(customer.zip_code || body.zip_code || '').trim() || undefined;
 
-  // 6. Extract Monetary Values (`sale_amount` as Decimal string or number -> converted safely to integer cents)
-  let amountCents: number | undefined;
-  const rawSaleAmount = body.sale_amount !== undefined ? body.sale_amount : body.amount;
-  if (body.amount_cents !== undefined) {
-    amountCents = Number(body.amount_cents);
-  } else if (rawSaleAmount !== undefined) {
-    const parsedNum = typeof rawSaleAmount === 'string' ? parseFloat(rawSaleAmount) : Number(rawSaleAmount);
-    if (!isNaN(parsedNum)) {
-      amountCents = Math.round(parsedNum * 100);
-    }
-  }
+  // 6. Extract Monetary Values via canonical helper
+  const amountCents = resolvePerfectPayMonetaryAmount(body);
 
   // Canonical currency for CloutFlow is USD
   // Parse gateway payload currency if provided, but default canonical to USD
