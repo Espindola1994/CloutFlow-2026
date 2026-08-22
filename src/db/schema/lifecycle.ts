@@ -68,6 +68,9 @@ export const emailLogs = pgTable('email_logs', {
   id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
   customerEmail: varchar('customer_email', { length: 255 }).notNull(),
   lifecycleAutomationId: text('lifecycle_automation_id').references(() => lifecycleAutomations.id),
+  sendOrigin: varchar('send_origin', { length: 50 }).default('AUTOMATION').notNull(), // AUTOMATION | MANUAL
+  category: varchar('category', { length: 50 }).default('marketing').notNull(), // transactional | marketing | support
+  templateId: varchar('template_id', { length: 100 }),
   sequenceType: varchar('sequence_type', { length: 100 }), // e.g. ABANDONED_CART
   stepNumber: integer('step_number'),
   provider: varchar('provider', { length: 50 }).notNull().default('RESEND'),

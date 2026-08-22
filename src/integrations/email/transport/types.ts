@@ -5,7 +5,7 @@ export interface EmailMessage {
   html: string;
   idempotencyKey?: string;
   headers?: Record<string, string>;
-  category?: 'transactional' | 'marketing' | 'recovery';
+  category?: 'transactional' | 'marketing' | 'recovery' | 'support';
 }
 
 export interface EmailSendResult {
