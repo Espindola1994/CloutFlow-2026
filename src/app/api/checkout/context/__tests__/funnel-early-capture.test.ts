@@ -48,7 +48,7 @@ describe('Funnel Early Email Capture & Context Persistence (Requirements A, B, C
   });
 
   it('Requirement A & B: Persists customer email, payment lead, and emits LEAD_CAPTURED / CHECKOUT_STARTED before redirect', async () => {
-    (db.query.offers.findMany as any).mockResolvedValueOnce([
+    vi.mocked(db.query.offers.findMany).mockResolvedValueOnce([
       {
         id: 'offer-123',
         active: true,
@@ -58,9 +58,9 @@ describe('Funnel Early Email Capture & Context Persistence (Requirements A, B, C
         perfectpayProductId: 'PROD_1',
         perfectpayPlanId: 'PLAN_1',
         priceCents: 2990,
-      },
+      } as any,
     ]);
-    (db.query.customers.findMany as any).mockResolvedValueOnce([]);
+    vi.mocked(db.query.customers.findMany).mockResolvedValueOnce([]);
 
     const req = new Request('http://localhost:3000/api/checkout/context', {
       method: 'POST',
@@ -81,5 +81,60 @@ describe('Funnel Early Email Capture & Context Persistence (Requirements A, B, C
     expect(json.data.contextId).toMatch(/^CFCTX_/);
     expect(json.data.checkoutUrl).toContain('src=CFCTX_');
     expect(db.insert).toHaveBeenCalled();
+  });
+
+  it('Regression Test: Checkout succeeds safely even if DB lacks customer_email or lead capture throws', async () => {
+    vi.mocked(db.query.offers.findMany).mockResolvedValueOnce([
+      {
+        id: 'offer-fail-safe',
+        active: true,
+        platform: 'instagram',
+        service: 'followers',
+        externalCheckoutUrl: 'https://checkout.perfectpay.com.br/pay/PPU999',
+        perfectpayProductId: 'PROD_999',
+        perfectpayPlanId: 'PLAN_999',
+        priceCents: 1990,
+      } as any,
+    ]);
+
+    // Simulate primary insert failing (e.g. column customer_email does not exist in production yet)
+    let callCount = 0;
+    vi.mocked(db.insert).mockImplementation(() => ({
+      values: vi.fn(() => {
+        callCount++;
+        if (callCount === 1) {
+          // Primary insert fails due to missing column
+          throw new Error('column "customer_email" of relation "checkout_contexts" does not exist');
+        }
+        return {
+          returning: vi.fn().mockRejectedValue(new Error('Simulated lead error')),
+          onConflictDoNothing: vi.fn().mockReturnValue({
+            catch: vi.fn().mockImplementation(async (cb) => {
+              await cb();
+            }),
+          }),
+        } as any;
+      }),
+    }) as any);
+
+    const req = new Request('http://localhost:3000/api/checkout/context', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        offerId: 'offer-fail-safe',
+        targetType: 'profile',
+        socialUsername: 'growth_user_safe',
+        email: 'growth_user_safe@example.com',
+      }),
+    });
+
+    const res = await checkoutContextPost(req);
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(json.success).toBe(true);
+    expect(json.data.contextId).toMatch(/^CFCTX_/);
+    expect(json.data.checkoutUrl).toContain('https://checkout.perfectpay.com.br/pay/PPU999');
+    expect(json.data.checkoutUrl).toContain('src=CFCTX_');
   });
 });

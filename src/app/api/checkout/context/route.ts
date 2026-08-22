@@ -124,34 +124,65 @@ export async function POST(request: Request) {
     const normalizedEmail = data.email ? data.email.trim().toLowerCase() : null;
 
     // 4. Persist Context in Database
-    await db.insert(checkoutContexts).values({
-      contextId,
-      platform,
-      service,
-      targetType: data.targetType,
-      targetValue: data.targetValue ? data.targetValue.trim() : cleanUsername,
-      targetUrl: data.targetUrl ? data.targetUrl.trim() : null,
-      socialUsername: cleanUsername,
-      profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
-      customerEmail: normalizedEmail,
-      offerId: offer.id,
-      perfectpayProductId: offer.perfectpayProductId,
-      perfectpayPlanId: offer.perfectpayPlanId,
-      utmSource: data.utmSource || null,
-      utmMedium: data.utmMedium || null,
-      utmCampaign: data.utmCampaign || null,
-      utmContent: data.utmContent || null,
-      utmTerm: data.utmTerm || null,
-      expiresAt,
-    });
+    // Fail-Safe: If database column 'customer_email' is missing or insert throws schema/db errors,
+    // we attempt with customerEmail first, and fallback safely without customerEmail to guarantee checkout continuity.
+    try {
+      await db.insert(checkoutContexts).values({
+        contextId,
+        platform,
+        service,
+        targetType: data.targetType,
+        targetValue: data.targetValue ? data.targetValue.trim() : cleanUsername,
+        targetUrl: data.targetUrl ? data.targetUrl.trim() : null,
+        socialUsername: cleanUsername,
+        profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
+        customerEmail: normalizedEmail,
+        offerId: offer.id,
+        perfectpayProductId: offer.perfectpayProductId,
+        perfectpayPlanId: offer.perfectpayPlanId,
+        utmSource: data.utmSource || null,
+        utmMedium: data.utmMedium || null,
+        utmCampaign: data.utmCampaign || null,
+        utmContent: data.utmContent || null,
+        utmTerm: data.utmTerm || null,
+        expiresAt,
+      });
+    } catch (dbInsertError: unknown) {
+      const msg = dbInsertError instanceof Error ? dbInsertError.message : String(dbInsertError);
+      console.warn('[CheckoutContextAPI] Primary insert with customerEmail failed, attempting fallback insert:', msg);
+      // Fallback insert without customerEmail in case of DB schema mismatch
+      await db.insert(checkoutContexts).values({
+        contextId,
+        platform,
+        service,
+        targetType: data.targetType,
+        targetValue: data.targetValue ? data.targetValue.trim() : cleanUsername,
+        targetUrl: data.targetUrl ? data.targetUrl.trim() : null,
+        socialUsername: cleanUsername,
+        profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
+        offerId: offer.id,
+        perfectpayProductId: offer.perfectpayProductId,
+        perfectpayPlanId: offer.perfectpayPlanId,
+        utmSource: data.utmSource || null,
+        utmMedium: data.utmMedium || null,
+        utmCampaign: data.utmCampaign || null,
+        utmContent: data.utmContent || null,
+        utmTerm: data.utmTerm || null,
+        expiresAt,
+      });
+    }
 
     // 5. Early CRM Lead Capture & Lifecycle Events (Persist BEFORE user leaves for checkout)
+    // Non-critical side-effects MUST NEVER abort or break checkout
     if (normalizedEmail) {
       try {
         // Upsert customer / lead identity
         const [existingCustomer] = await db.query.customers.findMany({
           where: eq(customers.email, normalizedEmail),
           limit: 1,
+        }).catch((err) => {
+          console.warn('[CheckoutContextAPI] Customer lookup warning:', err?.message);
+          return [];
         });
 
         if (!existingCustomer) {
@@ -160,29 +191,44 @@ export async function POST(request: Request) {
             name: cleanUsername || null,
             totalOrders: 0,
             totalSpentCents: 0,
-          }).onConflictDoNothing();
+          }).onConflictDoNothing().catch(async () => {
+            // Fallback insert without onConflictDoNothing in case unique constraint is absent
+            await db.insert(customers).values({
+              email: normalizedEmail,
+              name: cleanUsername || null,
+              totalOrders: 0,
+              totalSpentCents: 0,
+            }).catch((err) => console.warn('[CheckoutContextAPI] Customer fallback insert warning:', err?.message));
+          });
         }
 
         // Persist payment lead record for CRM & abandonment tracking
-        const [insertedLead] = await db.insert(paymentLeads).values({
-          provider: 'perfectpay',
-          externalReference: contextId,
-          productId: offer.perfectpayProductId,
-          planId: offer.perfectpayPlanId,
-          customerEmail: normalizedEmail,
-          customerName: cleanUsername || null,
-          rawStatus: 'checkout_started',
-          normalizedStatus: 'pre_checkout',
-          inferredStatus: 'checkout_started',
-          amountCents: offer.priceCents,
-          currency: 'USD',
-          utmSource: data.utmSource || null,
-          utmMedium: data.utmMedium || null,
-          utmCampaign: data.utmCampaign || null,
-          utmContent: data.utmContent || null,
-          utmTerm: data.utmTerm || null,
-          src: contextId,
-        }).returning({ id: paymentLeads.id });
+        let insertedLeadId: string | undefined = undefined;
+        try {
+          const [insertedLead] = await db.insert(paymentLeads).values({
+            provider: 'perfectpay',
+            externalReference: contextId,
+            productId: offer.perfectpayProductId,
+            planId: offer.perfectpayPlanId,
+            customerEmail: normalizedEmail,
+            customerName: cleanUsername || null,
+            rawStatus: 'checkout_started',
+            normalizedStatus: 'pre_checkout',
+            inferredStatus: 'checkout_started',
+            amountCents: offer.priceCents,
+            currency: 'USD',
+            utmSource: data.utmSource || null,
+            utmMedium: data.utmMedium || null,
+            utmCampaign: data.utmCampaign || null,
+            utmContent: data.utmContent || null,
+            utmTerm: data.utmTerm || null,
+            src: contextId,
+          }).returning({ id: paymentLeads.id });
+          insertedLeadId = insertedLead?.id;
+        } catch (leadInsertErr: unknown) {
+          const msg = leadInsertErr instanceof Error ? leadInsertErr.message : String(leadInsertErr);
+          console.warn('[CheckoutContextAPI] Payment lead insert warning:', msg);
+        }
 
         // Emit Canonical Lifecycle Events
         await emitLifecycleEvent({
@@ -191,13 +237,13 @@ export async function POST(request: Request) {
           idempotencyKey: `LEAD_CAPTURED:${contextId}:${normalizedEmail}`,
           payload: {
             contextId,
-            leadId: insertedLead?.id,
+            leadId: insertedLeadId,
             platform,
             service,
             targetHandle: cleanUsername,
             offerId: offer.id,
           },
-        });
+        }).catch((err) => console.warn('[CheckoutContextAPI] LEAD_CAPTURED warning:', err?.message));
 
         await emitLifecycleEvent({
           customerEmail: normalizedEmail,
@@ -205,14 +251,14 @@ export async function POST(request: Request) {
           idempotencyKey: `CHECKOUT_STARTED:${contextId}:${normalizedEmail}`,
           payload: {
             contextId,
-            leadId: insertedLead?.id,
+            leadId: insertedLeadId,
             platform,
             service,
             targetHandle: cleanUsername,
             offerId: offer.id,
             priceCents: offer.priceCents,
           },
-        });
+        }).catch((err) => console.warn('[CheckoutContextAPI] CHECKOUT_STARTED warning:', err?.message));
       } catch (leadError) {
         console.error('[CheckoutContextAPI] Failed to record lead/lifecycle event:', leadError);
       }

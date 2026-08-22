@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, Loader2, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { useFunnelStore } from "@/stores/funnel.store";
 import ProfileLookupModal from "@/components/profile-lookup-modal";
 import {
@@ -144,10 +144,10 @@ export default function ServiceSalesLandingPage() {
         // Secure redirect to PerfectPay with CFCTX token attached in src
         window.location.href = json.data.checkoutUrl;
       } else {
-        setCheckoutError(json.error?.message || "Unable to proceed to checkout. Please verify your target.");
+        setCheckoutError(json.error?.message || "Não foi possível finalizar a compra. Tente novamente.");
       }
     } catch {
-      setCheckoutError("Failed to initiate checkout. Please check your network and try again.");
+      setCheckoutError("Não foi possível finalizar a compra. Tente novamente.");
     }
   };
 
