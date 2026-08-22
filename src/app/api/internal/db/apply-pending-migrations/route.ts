@@ -145,17 +145,19 @@ export async function POST(req: NextRequest) {
       }, { status: 500 });
     }
     
-    // The Supabase connection issue might be related to DNS resolution in Edge/Node runtime in Vercel for IPv6 vs IPv4 pooler connection string.
-    // If DATABASE_URL is standard supabase pooled connection string, it could be facing DNS lookup issues if using .co and pooled.
-    // However, the existing db connection logic from `src/db/index.ts` exported as `pool` is standard pg.Pool without any overrides.
-    // We will use standard Pool from pg directly, but if ENOTFOUND is thrown, there is fundamentally a DNS resolution issue from this server.
-    // Wait, Supabase URLs are often db.[project].supabase.co. ENOTFOUND means Vercel literally can't resolve the DNS.
-    // Let's resolve the host manually to its IPv4 using the native dns module to bypass Node's native IPv6 preference bug, or just let pg use default options.
+    let client;
     
-    // We will parse the URL and try to fetch via standard IPv4 if it fails. But wait, `pool` imported from `@/db` works across the app. 
-    // Why did `import { pool } from '@/db';` fail originally? Wait, we removed it and didn't test it natively. Let's put it back to ensure we use identical logic.
-
-    const client = await pool.connect();
+    // Check if direct connect works with pool
+    try {
+      client = await pool.connect();
+    } catch (directErr: any) {
+      return NextResponse.json({
+        databaseUrlAvailable: true,
+        dbConnection: 'FAIL',
+        error: 'BLOCKED: Cannot connect to PostgreSQL database',
+        details: directErr.message || String(directErr)
+      }, { status: 500 });
+    }
 
     try {
       // 3. Safety Precheck - inspect actual schema and history
