@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   Inbox,
   Send,
@@ -9,6 +9,7 @@ import {
   AlertCircle,
   MessageSquare,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 
 interface SyncStatus {
@@ -94,11 +95,88 @@ export function SmartInboxTab() {
   const [replyText, setReplyText] = useState("");
   const [replySending, setReplySending] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
   const [counts, setCounts] = useState({ total: 0, needsReply: 0, waitingCustomer: 0, resolved: 0, unread: 0 });
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [hasNewMessage, setHasNewMessage] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const [syncBanner, setSyncBanner] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  // Helper: check if scrolled near bottom
+  const isNearBottom = useCallback(() => {
+    if (!messagesContainerRef.current) return true;
+    const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
+    return scrollHeight - scrollTop - clientHeight < 100;
+  }, []);
+
+  const scrollToBottom = useCallback((smooth = true) => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+      setHasNewMessage(false);
+    }
+  }, []);
+
+  // Fetch thread detail when selected
+  const fetchThreadDetail = useCallback(async (id: string, isBackground = false) => {
+    try {
+      if (!isBackground) {
+        setReplyError(null);
+        setRefreshError(null);
+      }
+      const res = await fetch(`/api/admin/inbox/threads/${id}`);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRefreshError(null);
+        setThreadDetail(prev => {
+          if (prev && prev.thread.id === id) {
+            const existingMessageIds = new Set(prev.messages.map(m => m.id));
+            const newMessages = data.data.messages.filter((m: {id: string}) => !existingMessageIds.has(m.id));
+            
+            if (newMessages.length > 0) {
+              // Handle scrolling or unread badge
+              setTimeout(() => {
+                if (isNearBottom()) {
+                  scrollToBottom(true);
+                } else {
+                  setHasNewMessage(true);
+                }
+              }, 50);
+
+              return {
+                ...data.data,
+                messages: [...prev.messages, ...newMessages]
+              };
+            }
+            return {
+              ...data.data,
+              messages: prev.messages
+            };
+          }
+          
+          // Initial thread load
+          setTimeout(() => {
+            scrollToBottom(false);
+          }, 50);
+
+          return data.data;
+        });
+      } else {
+        if (isBackground) {
+          setRefreshError("Não foi possível atualizar novas mensagens em segundo plano.");
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load thread detail:", err);
+      if (isBackground) {
+        setRefreshError("Erro de conexão ao atualizar conversa.");
+      }
+    } finally {
+      setLoadingDetail(false);
+    }
+  }, [isNearBottom, scrollToBottom]);
 
   // Fetch sync status
   const fetchSyncStatus = useCallback(async () => {
@@ -123,9 +201,9 @@ export function SmartInboxTab() {
       const res = await fetch(`/api/admin/inbox/threads?${params.toString()}`);
       const data = await res.json();
 
-      if (res.ok && data.success) {
-        setThreads(data.data.threads);
-        setCounts(data.data.counts);
+      if (res.ok && data.success && data.data) {
+        if (Array.isArray(data.data.threads)) setThreads(data.data.threads);
+        if (data.data.counts) setCounts(data.data.counts);
       }
     } catch (err) {
       console.error("Failed to load threads:", err);
@@ -135,54 +213,39 @@ export function SmartInboxTab() {
   }, [filterStatus, searchQuery]);
 
   // Trigger manual sync
-  const handleSyncNow = useCallback(async () => {
+  const handleSyncNow = useCallback(async (isBackground = false) => {
     try {
-      setIsSyncing(true);
-      setSyncBanner(null);
+      if (!isBackground) {
+        setIsSyncing(true);
+        setSyncBanner(null);
+      }
       const res = await fetch("/api/admin/inbox/sync", { method: "POST" });
       const data = await res.json();
       if (res.ok && data.success) {
         const { syncedCount, duplicateCount, ignoredCount } = data.data;
-        const msg = syncedCount > 0
-          ? `Synced • ${syncedCount} new message(s) ingested (Duplicates: ${duplicateCount}, Ignored: ${ignoredCount})`
-          : `Synced • Inbox is up to date (Duplicates: ${duplicateCount}, Ignored: ${ignoredCount})`;
-        setSyncBanner({ type: 'success', message: msg });
+        if (!isBackground) {
+          const msg = syncedCount > 0
+            ? `Synced • ${syncedCount} new message(s) ingested (Duplicates: ${duplicateCount}, Ignored: ${ignoredCount})`
+            : `Synced • Inbox is up to date (Duplicates: ${duplicateCount}, Ignored: ${ignoredCount})`;
+          setSyncBanner({ type: 'success', message: msg });
+        }
         await fetchThreads();
         await fetchSyncStatus();
+        
+        // REFRESH OPEN THREAD IF APPLICABLE
+        if (selectedThreadId) {
+          await fetchThreadDetail(selectedThreadId, true);
+        }
       } else {
-        setSyncBanner({ type: 'error', message: `Sync failed: ${data.error || "Unknown server error"}` });
+        if (!isBackground) setSyncBanner({ type: 'error', message: `Sync failed: ${data.error || "Unknown server error"}` });
       }
     } catch (err) {
       console.error("Failed to sync inbox:", err);
-      setSyncBanner({ type: 'error', message: "Sync failed: Network or communication error" });
+      if (!isBackground) setSyncBanner({ type: 'error', message: "Sync failed: Network or communication error" });
     } finally {
-      setIsSyncing(false);
+      if (!isBackground) setIsSyncing(false);
     }
-  }, [fetchThreads, fetchSyncStatus]);
-
-  // Setup periodic sync (every 60s)
-  useEffect(() => {
-    let mounted = true;
-    
-    const initSync = async () => {
-      if (mounted) {
-        await fetchSyncStatus();
-      }
-    };
-    
-    initSync();
-    
-    const interval = setInterval(() => {
-      if (mounted) {
-        handleSyncNow();
-      }
-    }, 60000);
-    
-    return () => {
-      mounted = false;
-      clearInterval(interval);
-    };
-  }, [fetchSyncStatus, handleSyncNow]);
+  }, [fetchThreads, fetchSyncStatus, selectedThreadId, fetchThreadDetail]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -195,22 +258,6 @@ export function SmartInboxTab() {
       isCancelled = true;
     };
   }, [fetchThreads]);
-
-  // Fetch thread detail when selected
-  const fetchThreadDetail = useCallback(async (id: string) => {
-    try {
-      setReplyError(null);
-      const res = await fetch(`/api/admin/inbox/threads/${id}`);
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setThreadDetail(data.data);
-      }
-    } catch (err) {
-      console.error("Failed to load thread detail:", err);
-    } finally {
-      setLoadingDetail(false);
-    }
-  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -475,8 +522,14 @@ export function SmartInboxTab() {
                 </div>
               </div>
 
-              {/* Status Selector */}
+              {/* Status Selector & Refresh Error Indicator */}
               <div className="flex items-center gap-2">
+                {refreshError && (
+                  <span className="text-[10px] text-amber-400 bg-amber-500/10 border border-amber-500/20 px-2 py-0.5 rounded flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3 text-amber-400" />
+                    {refreshError}
+                  </span>
+                )}
                 <span className="text-xs text-neutral-400 font-semibold">Status:</span>
                 <select
                   value={threadDetail.thread.status}
@@ -533,7 +586,15 @@ export function SmartInboxTab() {
             </div>
 
             {/* Messages Scroll Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div
+              ref={messagesContainerRef}
+              onScroll={() => {
+                if (isNearBottom()) {
+                  setHasNewMessage(false);
+                }
+              }}
+              className="flex-1 overflow-y-auto p-4 space-y-4 relative"
+            >
               {threadDetail.messages.map((m) => {
                 const isOutbound = m.direction === "OUTBOUND";
                 return (
@@ -575,7 +636,23 @@ export function SmartInboxTab() {
                   </div>
                 );
               })}
+              <div ref={messagesEndRef} />
             </div>
+
+            {/* Floating New Message Indicator */}
+            {hasNewMessage && (
+              <div className="relative">
+                <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20">
+                  <button
+                    onClick={() => scrollToBottom(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold shadow-lg shadow-blue-500/30 transition-all animate-bounce"
+                  >
+                    <span>1 nova mensagem</span>
+                    <ChevronDown className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            )}
 
             {/* Reply Composer Box */}
             <div className="p-4 border-t border-neutral-800 bg-[#0e1422] space-y-3">

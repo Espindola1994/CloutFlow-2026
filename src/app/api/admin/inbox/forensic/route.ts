@@ -39,9 +39,9 @@ export async function GET(request: Request) {
       for await (const msg of client.fetch('1:*', { envelope: true, uid: true, internalDate: true })) {
         allMessages.push({
           uid: msg.uid,
-          from: msg.envelope.from?.[0]?.address,
-          to: msg.envelope.to?.[0]?.address,
-          subject: msg.envelope.subject,
+          from: msg.envelope?.from?.[0]?.address,
+          to: msg.envelope?.to?.[0]?.address,
+          subject: msg.envelope?.subject,
           date: msg.internalDate,
         });
       }
