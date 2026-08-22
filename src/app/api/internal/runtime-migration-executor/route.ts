@@ -76,7 +76,21 @@ export async function POST(request: Request) {
     };
 
     const body = await request.json().catch(() => ({}));
-    if (body.verify_queries === true) {
+
+    if (body.get_active_offer === true) {
+      const { rows: offersList } = await pool.query(`SELECT id, platform, service, price_cents, perfectpay_product_id, perfectpay_plan_id, external_checkout_url FROM offers WHERE active = true LIMIT 1;`);
+      result.active_offer = offersList[0] || null;
+    }
+    if (body.verify_checkout_context === true && body.context_id) {
+      const { rows: ctxRows } = await pool.query(`SELECT * FROM checkout_contexts WHERE context_id = $1;`, [body.context_id]);
+      const { rows: leadRows } = await pool.query(`SELECT * FROM payment_leads WHERE external_reference = $1;`, [body.context_id]);
+      const { rows: eventRows } = await pool.query(`SELECT * FROM lifecycle_events WHERE idempotency_key LIKE $1;`, [`%:${body.context_id}:%`]);
+      result.checkout_verification = {
+        context: ctxRows[0] || null,
+        lead: leadRows[0] || null,
+        lifecycle_events: eventRows
+      };
+    }
       const { rows: contactMeta } = await pool.query(`SELECT count(*) FROM crm_contact_metadata;`);
       const { rows: notes } = await pool.query(`SELECT count(*) FROM crm_notes;`);
       const { rows: emailLogs } = await pool.query(`SELECT count(*) FROM email_logs;`);
