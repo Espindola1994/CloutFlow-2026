@@ -24,6 +24,44 @@ interface AutomationItem {
   lastError?: string | null;
 }
 
+function formatLiveSince(isoString: string | null | undefined): { dateStr: string; tzStr: string } {
+  if (!isoString) {
+    return { dateStr: 'NOT CONFIGURED', tzStr: '' };
+  }
+
+  // Parse ISO string with offset e.g. 2026-08-23T00:30:00-03:00 or standard ISO
+  const isoMatch = isoString.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?(?:([+-]\d{2}:?\d{2})|Z)?$/);
+  
+  if (isoMatch) {
+    const [, year, month, day, hours, minutes, , tz] = isoMatch;
+    const formattedDate = `${day}/${month}/${year} ${hours}:${minutes}`;
+    let formattedTz = '';
+    if (tz) {
+      if (tz === 'Z') {
+        formattedTz = 'UTC';
+      } else {
+        // e.g. -03:00 -> UTC-03:00
+        formattedTz = `UTC${tz.includes(':') ? tz : tz.slice(0, 3) + ':' + tz.slice(3)}`;
+      }
+    }
+    return { dateStr: formattedDate, tzStr: formattedTz };
+  }
+
+  // Fallback if standard Date parsing works
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) {
+    return { dateStr: 'NOT CONFIGURED', tzStr: '' };
+  }
+
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear();
+  const hours = String(d.getHours()).padStart(2, '0');
+  const minutes = String(d.getMinutes()).padStart(2, '0');
+
+  return { dateStr: `${day}/${month}/${year} ${hours}:${minutes}`, tzStr: '' };
+}
+
 export function AutomationsTab() {
   const [items, setItems] = useState<AutomationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -38,6 +76,37 @@ export function AutomationsTab() {
     blocked: 0,
   });
   const [envInfo, setEnvInfo] = useState<{ isLive: boolean; liveFrom: string | null } | null>(null);
+  const [lifecycleStatus, setLifecycleStatus] = useState<{
+    marketingAutomation: 'LIVE' | 'OFF';
+    lifecycleWorker: 'ACTIVE' | 'ERROR';
+    resend: 'CONFIGURED' | 'CONFIG ERROR';
+    liveSince: string | null;
+    lifecycleEmailsEnabled: boolean;
+    liveFromConfigured: boolean;
+  } | null>(null);
+  const [statusError, setStatusError] = useState(false);
+  const [lastChecked, setLastChecked] = useState<string | null>(null);
+
+  const fetchStatus = useCallback(async () => {
+    try {
+      setStatusError(false);
+      const res = await fetch('/api/admin/crm/automations/status');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setLifecycleStatus(data.data);
+          setLastChecked(new Date().toLocaleTimeString());
+        } else {
+          setStatusError(true);
+        }
+      } else {
+        setStatusError(true);
+      }
+    } catch (err) {
+      console.error("Failed to load status:", err);
+      setStatusError(true);
+    }
+  }, []);
 
   const fetchAutomations = useCallback(async () => {
     try {
@@ -66,30 +135,182 @@ export function AutomationsTab() {
     let isCancelled = false;
     (async () => {
       if (!isCancelled) {
-        await fetchAutomations();
+        await Promise.all([fetchAutomations(), fetchStatus()]);
       }
     })();
     return () => {
       isCancelled = true;
     };
-  }, [fetchAutomations]);
+  }, [fetchAutomations, fetchStatus]);
 
   return (
     <div className="space-y-4">
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
-        <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800">
-          <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider block mb-1">
-            Status do Motor
-          </span>
-          <div className="flex items-center gap-2 mt-1">
-            <span className={`w-2.5 h-2.5 rounded-full ${envInfo?.isLive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
-            <span className={`text-sm font-black ${envInfo?.isLive ? 'text-emerald-400' : 'text-amber-400'}`}>
-              {envInfo?.isLive ? 'Marketing: LIVE' : 'Marketing: OFF'}
+      {/* Section Header & Email & Lifecycle Health */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold text-neutral-300 uppercase tracking-wider">
+            EMAIL &amp; LIFECYCLE HEALTH
+          </h3>
+          {lastChecked && (
+            <span className="text-[11px] text-neutral-400">
+              Last checked: <span className="text-neutral-300 font-mono">{lastChecked}</span>
             </span>
+          )}
+        </div>
+
+        {/* 4 Primary Operational Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          {/* Card 1: Marketing Automation */}
+          <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800 flex flex-col justify-between">
+            <div>
+              <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider block mb-1">
+                MARKETING AUTOMATION
+              </span>
+              <div className="flex items-center gap-2 mt-1">
+                {statusError ? (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-neutral-500" />
+                    <span className="text-sm font-black text-neutral-400">STATUS UNAVAILABLE</span>
+                  </>
+                ) : !lifecycleStatus ? (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-neutral-600 animate-pulse" />
+                    <span className="text-sm font-black text-neutral-400">LOADING...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className={`w-2.5 h-2.5 rounded-full ${lifecycleStatus.marketingAutomation === 'LIVE' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                    <span className={`text-sm font-black ${lifecycleStatus.marketingAutomation === 'LIVE' ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {lifecycleStatus.marketingAutomation}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+            <p className="text-[11px] text-neutral-500 mt-2">
+              Automated lifecycle marketing emails
+            </p>
+          </div>
+
+          {/* Card 2: Lifecycle Worker */}
+          <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800 flex flex-col justify-between">
+            <div>
+              <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider block mb-1">
+                LIFECYCLE WORKER
+              </span>
+              <div className="flex items-center gap-2 mt-1">
+                {statusError ? (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-neutral-500" />
+                    <span className="text-sm font-black text-neutral-400">STATUS UNAVAILABLE</span>
+                  </>
+                ) : !lifecycleStatus ? (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-neutral-600 animate-pulse" />
+                    <span className="text-sm font-black text-neutral-400">LOADING...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className={`w-2.5 h-2.5 rounded-full ${lifecycleStatus.lifecycleWorker === 'ACTIVE' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <span className={`text-sm font-black ${lifecycleStatus.lifecycleWorker === 'ACTIVE' ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {lifecycleStatus.lifecycleWorker}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+            <p className="text-[11px] text-neutral-500 mt-2">
+              Processes scheduled lifecycle automations
+            </p>
+          </div>
+
+          {/* Card 3: Resend Configuration */}
+          <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800 flex flex-col justify-between">
+            <div>
+              <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider block mb-1">
+                RESEND
+              </span>
+              <div className="flex items-center gap-2 mt-1">
+                {statusError ? (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-neutral-500" />
+                    <span className="text-sm font-black text-neutral-400">STATUS UNAVAILABLE</span>
+                  </>
+                ) : !lifecycleStatus ? (
+                  <>
+                    <span className="w-2.5 h-2.5 rounded-full bg-neutral-600 animate-pulse" />
+                    <span className="text-sm font-black text-neutral-400">LOADING...</span>
+                  </>
+                ) : (
+                  <>
+                    <span className={`w-2.5 h-2.5 rounded-full ${lifecycleStatus.resend === 'CONFIGURED' ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                    <span className={`text-sm font-black ${lifecycleStatus.resend === 'CONFIGURED' ? 'text-emerald-400' : 'text-red-400'}`}>
+                      {lifecycleStatus.resend}
+                    </span>
+                  </>
+                )}
+              </div>
+            </div>
+            <p className="text-[11px] text-neutral-500 mt-2">
+              Outbound marketing email provider
+            </p>
+          </div>
+
+          {/* Card 4: Live Since */}
+          <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800 flex flex-col justify-between">
+            <div>
+              <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider block mb-1">
+                LIVE SINCE
+              </span>
+              <div className="mt-1">
+                {statusError ? (
+                  <span className="text-sm font-black text-neutral-400">STATUS UNAVAILABLE</span>
+                ) : !lifecycleStatus ? (
+                  <span className="text-sm font-black text-neutral-400">LOADING...</span>
+                ) : (
+                  (() => {
+                    const formatted = formatLiveSince(lifecycleStatus.liveSince);
+                    const isConfigured = lifecycleStatus.liveFromConfigured && formatted.dateStr !== 'NOT CONFIGURED';
+                    return (
+                      <div className="flex items-baseline gap-1.5 flex-wrap">
+                        <span className={`text-sm font-black ${isConfigured ? 'text-white' : 'text-amber-400'}`}>
+                          {formatted.dateStr}
+                        </span>
+                        {isConfigured && formatted.tzStr && (
+                          <span className="text-[10px] font-semibold text-neutral-400">
+                            {formatted.tzStr}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()
+                )}
+              </div>
+            </div>
+            <p className="text-[11px] text-neutral-500 mt-2">
+              Historical backlog protection boundary
+            </p>
           </div>
         </div>
+      </div>
+
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
         <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800">
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider block">
+              Marketing
+            </span>
+            {statusError ? (
+              <span className="text-[10px] font-bold text-neutral-400 uppercase">UNAVAILABLE</span>
+            ) : (
+              <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                lifecycleStatus?.marketingAutomation === 'LIVE' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+              }`}>
+                {lifecycleStatus?.marketingAutomation || (envInfo?.isLive ? 'LIVE' : 'OFF')}
+              </span>
+            )}
+          </div>
           <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider block mb-1">
             Total Scheduled Jobs
           </span>
@@ -146,7 +367,7 @@ export function AutomationsTab() {
           </div>
 
           <button
-            onClick={() => fetchAutomations()}
+            onClick={() => { fetchAutomations(); fetchStatus(); }}
             className="p-1.5 text-neutral-400 hover:text-white bg-neutral-800/80 hover:bg-neutral-800 rounded-lg"
             title="Refresh Automations"
           >
