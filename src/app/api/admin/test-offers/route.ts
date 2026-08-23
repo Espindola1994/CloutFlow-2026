@@ -10,7 +10,7 @@ import { getPostPurchaseOfferTemplate } from '@/services/lifecycle/templates.ser
 
 export async function GET() {
   try {
-    const authResult = await requireAdmin();
+    const authResult = await requireAdmin().catch(() => null);
     if (!authResult) {
       return NextResponse.json({ success: false, error: { message: 'Unauthorized' } }, { status: 401 });
     }
@@ -32,7 +32,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const authResult = await requireAdmin();
+    const authResult = await requireAdmin().catch(() => null);
     if (!authResult) {
       return NextResponse.json({ success: false, error: { message: 'Unauthorized' } }, { status: 401 });
     }
