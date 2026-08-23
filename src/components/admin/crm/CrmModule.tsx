@@ -60,6 +60,18 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
   // Modal states
   const [selectedCustomerEmail, setSelectedCustomerEmail] = useState<string | null>(null);
   const [isCustomer360Open, setIsCustomer360Open] = useState(false);
+  const [inboxUnreadCount, setInboxUnreadCount] = useState(0);
+
+  useEffect(() => {
+    const handleInboxUnread = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail && typeof customEvent.detail.count === 'number') {
+        setInboxUnreadCount(customEvent.detail.count);
+      }
+    };
+    window.addEventListener('crm-inbox-unread', handleInboxUnread);
+    return () => window.removeEventListener('crm-inbox-unread', handleInboxUnread);
+  }, []);
 
   // Standalone manual email state
   const [manualEmailRecipient, setManualEmailRecipient] = useState<CrmContactSummary | null>(null);
@@ -169,13 +181,17 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
             <button
               type="button"
               onClick={() => setActiveTab("inbox")}
-              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                 activeTab === "inbox"
                   ? "bg-[#0F8F8A] text-white shadow-xs"
                   : "text-[#65737A] hover:text-[#142126]"
               }`}
             >
-              INBOX
+              INBOX {inboxUnreadCount > 0 && (
+                <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${activeTab === 'inbox' ? 'bg-white text-[#0F8F8A]' : 'bg-[#0F8F8A] text-white'}`}>
+                  {inboxUnreadCount}
+                </span>
+              )}
             </button>
             <button
               type="button"

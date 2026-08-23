@@ -25,6 +25,7 @@ export const emailThreads = pgTable('email_threads', {
   relatedOrderId: text('related_order_id').references(() => orders.id),
   latestMessageAt: timestamp('latest_message_at', { withTimezone: true }).defaultNow().notNull(),
   unreadCount: integer('unread_count').notNull().default(0),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => {

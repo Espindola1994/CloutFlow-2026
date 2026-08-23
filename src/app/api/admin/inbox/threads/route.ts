@@ -13,11 +13,16 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get('status'); // ALL, NEEDS_REPLY, WAITING_CUSTOMER, RESOLVED, UNREAD
+    const status = searchParams.get('status'); // ALL, NEEDS_REPLY, WAITING_CUSTOMER, RESOLVED, UNREAD, TRASH
     const search = searchParams.get('search')?.trim().toLowerCase();
 
     // Query threads
+    // If status is TRASH, show only soft-deleted threads
+    // Otherwise, hide soft-deleted threads
     const threads = await db.query.emailThreads.findMany({
+      where: status === 'TRASH' 
+        ? sql`deleted_at IS NOT NULL`
+        : sql`deleted_at IS NULL`,
       orderBy: [desc(emailThreads.latestMessageAt)],
     });
 
@@ -79,9 +84,9 @@ export async function GET(request: Request) {
       })
     );
 
-    // Apply Filter
+    // Apply Filter (TRASH is already filtered in SQL, ALL means non-deleted)
     let filtered = threadList;
-    if (status && status !== 'ALL') {
+    if (status && status !== 'ALL' && status !== 'TRASH') {
       if (status === 'UNREAD') {
         filtered = filtered.filter((t) => t.unreadCount > 0);
       } else {
@@ -106,7 +111,7 @@ export async function GET(request: Request) {
       data: {
         threads: filtered,
         counts: {
-          total: threadList.length,
+          total: threadList.length, // this reflects current query context (trash or active)
           needsReply: threadList.filter((t) => t.status === 'NEEDS_REPLY').length,
           waitingCustomer: threadList.filter((t) => t.status === 'WAITING_CUSTOMER').length,
           resolved: threadList.filter((t) => t.status === 'RESOLVED').length,

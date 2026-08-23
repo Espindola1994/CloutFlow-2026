@@ -12,6 +12,16 @@ vi.mock('lucide-react', () => ({
   MessageSquare: () => <div data-testid="icon-msg" />,
   Sparkles: () => <div data-testid="icon-sparkles" />,
   ChevronDown: () => <div data-testid="icon-chevron" />,
+  Trash2: () => <div data-testid="icon-trash2" />,
+  MoreVertical: () => <div data-testid="icon-morevertical" />,
+  Volume2: () => <div data-testid="icon-volume2" />,
+  VolumeX: () => <div data-testid="icon-volumex" />,
+  User: () => <div data-testid="icon-user" />,
+  Copy: () => <div data-testid="icon-copy" />,
+  RotateCcw: () => <div data-testid="icon-rotateccw" />,
+  CheckSquare: () => <div data-testid="icon-checksquare" />,
+  Square: () => <div data-testid="icon-square" />,
+  FileText: () => <div data-testid="icon-filetext" />,
 }));
 
 const mockDataThread1 = {

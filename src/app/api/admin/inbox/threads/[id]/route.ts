@@ -112,7 +112,7 @@ export async function PATCH(
   try {
     const { id } = await props.params;
     const body = await request.json();
-    const { status, relatedOrderId } = body;
+    const { status, relatedOrderId, unreadCount, deletedAt } = body;
 
     // Validate allowed support states
     const ALLOWED_STATUSES = ['NEEDS_REPLY', 'WAITING_CUSTOMER', 'RESOLVED'];
@@ -128,6 +128,8 @@ export async function PATCH(
     };
     if (status) updates.status = status;
     if (relatedOrderId !== undefined) updates.relatedOrderId = relatedOrderId || null;
+    if (unreadCount !== undefined) updates.unreadCount = typeof unreadCount === 'number' ? unreadCount : 1;
+    if (deletedAt !== undefined) updates.deletedAt = deletedAt ? new Date(deletedAt) : null;
 
     const [updated] = await db.update(emailThreads)
       .set(updates)
@@ -142,6 +144,44 @@ export async function PATCH(
     console.error('[AdminThreadStatusAPI] Error:', error);
     return NextResponse.json(
       { success: false, error: 'Failed to update thread status' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(
+  request: Request,
+  props: { params: Promise<{ id: string }> }
+) {
+  try {
+    await requireAdmin();
+  } catch {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
+  try {
+    const { id } = await props.params;
+    const { searchParams } = new URL(request.url);
+    const permanent = searchParams.get('permanent') === 'true';
+
+    if (permanent) {
+      // Permanent delete: only delete email_messages and email_thread
+      // Cascade delete handles email_messages via FK, but we explicitly delete to be ultra-safe
+      await db.delete(emailMessages).where(eq(emailMessages.threadId, id));
+      await db.delete(emailThreads).where(eq(emailThreads.id, id));
+      return NextResponse.json({ success: true, message: 'Thread permanently deleted' });
+    } else {
+      // Soft delete: set deletedAt
+      const [updated] = await db.update(emailThreads)
+        .set({ deletedAt: new Date(), updatedAt: new Date() })
+        .where(eq(emailThreads.id, id))
+        .returning();
+      return NextResponse.json({ success: true, data: updated, message: 'Thread moved to trash' });
+    }
+  } catch (error) {
+    console.error('[AdminThreadDeleteAPI] Error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete thread' },
       { status: 500 }
     );
   }

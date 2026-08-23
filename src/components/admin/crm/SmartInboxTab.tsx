@@ -10,6 +10,16 @@ import {
   MessageSquare,
   Sparkles,
   ChevronDown,
+  Trash2,
+  MoreVertical,
+  Volume2,
+  VolumeX,
+  User,
+  Copy,
+  RotateCcw,
+  CheckSquare,
+  Square,
+  FileText,
 } from "lucide-react";
 
 interface SyncStatus {
@@ -94,16 +104,53 @@ export function SmartInboxTab() {
   const [searchQuery, setSearchQuery] = useState("");
   const [replyText, setReplyText] = useState("");
   const [replySending, setReplySending] = useState(false);
+  const [internalNoteText, setInternalNoteText] = useState("");
+  const [internalNoteSending, setInternalNoteSending] = useState(false);
   const [replyError, setReplyError] = useState<string | null>(null);
   const [refreshError, setRefreshError] = useState<string | null>(null);
   const [counts, setCounts] = useState({ total: 0, needsReply: 0, waitingCustomer: 0, resolved: 0, unread: 0 });
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [hasNewMessage, setHasNewMessage] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [selectedThreadIds, setSelectedThreadIds] = useState<Set<string>>(new Set());
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [showTrashConfirm, setShowTrashConfirm] = useState<{ id: string } | null>(null);
+  const [showBulkActionConfirm, setShowBulkActionConfirm] = useState<{ action: string } | null>(null);
+  const [isCustomerContextOpen, setIsCustomerContextOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   const [syncBanner, setSyncBanner] = useState<{ type: 'success' | 'error' | 'info'; message: string } | null>(null);
+
+  useEffect(() => {
+    // Update CRM document title with unread count
+    if (counts.unread > 0) {
+      document.title = `(${counts.unread}) CloutFlow Admin`;
+    } else {
+      document.title = 'CloutFlow Admin';
+    }
+    
+    // Also notify parent CRM if possible, via an event
+    window.dispatchEvent(new CustomEvent('crm-inbox-unread', { detail: { count: counts.unread } }));
+  }, [counts.unread]);
+
+  const playNotificationSound = useCallback(() => {
+    if (!soundEnabled) return;
+    try {
+      const audio = new Audio('/notification.mp3'); // Assuming standard notification sound exists or browser defaults
+      audio.volume = 0.5;
+      audio.play().catch(e => console.log('Audio play failed', e));
+    } catch (e) {
+      console.log('Audio init failed', e);
+    }
+  }, [soundEnabled]);
+
+  const showToast = useCallback((message: string) => {
+    setToastMessage(message);
+    setTimeout(() => setToastMessage(null), 5000);
+  }, []);
 
   // Helper: check if scrolled near bottom
   const isNearBottom = useCallback(() => {
@@ -119,7 +166,14 @@ export function SmartInboxTab() {
     }
   }, []);
 
-  // Fetch thread detail when selected
+  // Handle selecting thread with draft preservation
+  const handleSelectThread = (threadId: string) => {
+    if (selectedThreadId) {
+      setDrafts(prev => ({ ...prev, [selectedThreadId]: replyText }));
+    }
+    setSelectedThreadId(threadId);
+    setReplyText(drafts[threadId] || "");
+  };
   const fetchThreadDetail = useCallback(async (id: string, isBackground = false) => {
     try {
       if (!isBackground) {
@@ -136,6 +190,12 @@ export function SmartInboxTab() {
             const newMessages = data.data.messages.filter((m: {id: string}) => !existingMessageIds.has(m.id));
             
             if (newMessages.length > 0) {
+              const inboundNew = newMessages.filter((m: {direction: string}) => m.direction === 'INBOUND');
+              if (inboundNew.length > 0 && isBackground) {
+                playNotificationSound();
+                showToast(`New message from ${inboundNew[0].fromEmail}`);
+              }
+              
               // Handle scrolling or unread badge
               setTimeout(() => {
                 if (isNearBottom()) {
@@ -202,7 +262,20 @@ export function SmartInboxTab() {
       const data = await res.json();
 
       if (res.ok && data.success && data.data) {
-        if (Array.isArray(data.data.threads)) setThreads(data.data.threads);
+        setThreads(prevThreads => {
+           // Compare to detect new unread inbound messages for toast/sound
+           if (prevThreads.length > 0) {
+             const prevIds = new Set(prevThreads.map(t => t.id));
+             const newInboundThreads = data.data.threads.filter((t: any) => 
+               !prevIds.has(t.id) && t.unreadCount > 0 && t.latestMessageDirection === 'INBOUND'
+             );
+             if (newInboundThreads.length > 0) {
+                playNotificationSound();
+                showToast(`New message from ${newInboundThreads[0].customerEmail}`);
+             }
+           }
+           return Array.isArray(data.data.threads) ? data.data.threads : [];
+        });
         if (data.data.counts) setCounts(data.data.counts);
       }
     } catch (err) {
@@ -339,7 +412,86 @@ export function SmartInboxTab() {
     };
   }, [selectedThreadId, fetchThreadDetail]);
 
-  // Send Reply inside CloutFlow
+  // Bulk Operations
+  const handleBulkAction = async (action: string) => {
+    if (selectedThreadIds.size === 0) return;
+    try {
+      const res = await fetch("/api/admin/inbox/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          threadIds: Array.from(selectedThreadIds),
+          action,
+        }),
+      });
+      if (res.ok) {
+        setSelectedThreadIds(new Set());
+        setShowBulkActionConfirm(null);
+        await fetchThreads();
+        if (selectedThreadId && selectedThreadIds.has(selectedThreadId) && (action === 'TRASH' || action === 'DELETE_PERMANENT')) {
+          setSelectedThreadId(null);
+        }
+      }
+    } catch (e) {
+      console.error("Bulk action failed:", e);
+    }
+  };
+
+  // Clear Resolved
+  const handleClearResolved = async () => {
+    try {
+      const res = await fetch("/api/admin/inbox/clear-resolved", { method: "POST" });
+      if (res.ok) {
+        await fetchThreads();
+      }
+    } catch (e) {
+      console.error("Clear resolved failed:", e);
+    }
+  };
+
+  // Single Delete / Restore
+  const handleDeleteThread = async (id: string, permanent = false) => {
+    try {
+      const res = await fetch(`/api/admin/inbox/threads/${id}?permanent=${permanent}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setShowTrashConfirm(null);
+        if (selectedThreadId === id) setSelectedThreadId(null);
+        await fetchThreads();
+      }
+    } catch (e) {
+      console.error("Delete thread failed:", e);
+    }
+  };
+
+  const handleRestoreThread = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/inbox/threads/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ deletedAt: null }),
+      });
+      if (res.ok) {
+        await fetchThreads();
+      }
+    } catch (e) {
+      console.error("Restore thread failed:", e);
+    }
+  };
+
+  const handleMarkAsUnread = async (id: string) => {
+    try {
+      await fetch(`/api/admin/inbox/threads/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ unreadCount: 1 }),
+      });
+      await fetchThreads();
+    } catch (e) {
+      console.error("Mark unread failed:", e);
+    }
+  };
   const handleSendReply = async () => {
     if (!selectedThreadId || !replyText.trim()) return;
 
@@ -360,6 +512,7 @@ export function SmartInboxTab() {
 
       if (res.ok && data.success) {
         setReplyText("");
+        setDrafts(prev => ({ ...prev, [selectedThreadId]: "" }));
         // Refresh detail & list
         await fetchThreadDetail(selectedThreadId);
         fetchThreads();
@@ -374,7 +527,36 @@ export function SmartInboxTab() {
     }
   };
 
-  // Change thread status
+  // Internal Note Creation
+  const handleAddInternalNote = async () => {
+    if (!selectedThreadId || !internalNoteText.trim() || !threadDetail) return;
+    try {
+      setInternalNoteSending(true);
+      const res = await fetch("/api/admin/crm/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerId: threadDetail.thread.customerId,
+          email: threadDetail.customer.email,
+          content: internalNoteText.trim(),
+          source: 'INBOX'
+        }),
+      });
+      if (res.ok) {
+        setInternalNoteText("");
+        // A note is just added to customer CRM, optionally we could show it in inbox UI,
+        // but for now we just show a toast and clear it
+        showToast("Internal note added");
+      } else {
+        setReplyError("Failed to add internal note");
+      }
+    } catch (e) {
+      console.error(e);
+      setReplyError("Failed to add internal note");
+    } finally {
+      setInternalNoteSending(false);
+    }
+  };
   const handleUpdateStatus = async (newStatus: "NEEDS_REPLY" | "WAITING_CUSTOMER" | "RESOLVED") => {
     if (!selectedThreadId) return;
     try {
@@ -410,7 +592,7 @@ export function SmartInboxTab() {
                   <div className="flex items-center gap-1.5 text-[9px] text-neutral-400">
                     <span className="flex items-center gap-1">
                       <span className={`w-1.5 h-1.5 rounded-full ${syncStatus.isError ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
-                      Gmail {syncStatus.isError ? 'Error' : 'Connected'}
+                      {syncStatus.isError ? 'SYNC ERROR' : 'LIVE'}
                     </span>
                     <span>•</span>
                     <span>
@@ -422,15 +604,26 @@ export function SmartInboxTab() {
                 )}
               </div>
             </div>
-            <button
-              onClick={() => handleSyncNow()}
-              disabled={isSyncing}
-              className="px-2.5 py-1.5 flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-white bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors border border-neutral-700 disabled:opacity-50"
-              title="Sync Now"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${isSyncing || loadingList ? "animate-spin text-blue-400" : ""}`} />
-              {isSyncing ? "Syncing..." : "Sync Now"}
-            </button>
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setSoundEnabled(!soundEnabled)}
+                className={`p-1.5 rounded-lg border transition-colors ${
+                  soundEnabled ? "bg-blue-600/20 border-blue-500/40 text-blue-400" : "bg-neutral-800 border-neutral-700 text-neutral-400"
+                }`}
+                title={soundEnabled ? "Sound notifications enabled" : "Sound notifications disabled"}
+              >
+                {soundEnabled ? <Volume2 className="w-3.5 h-3.5" /> : <VolumeX className="w-3.5 h-3.5" />}
+              </button>
+              <button
+                onClick={() => handleSyncNow()}
+                disabled={isSyncing}
+                className="px-2.5 py-1.5 flex items-center gap-1.5 text-xs font-semibold text-neutral-300 hover:text-white bg-neutral-800 hover:bg-neutral-700 rounded-lg transition-colors border border-neutral-700 disabled:opacity-50"
+                title="Sync Now"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isSyncing || loadingList ? "animate-spin text-blue-400" : ""}`} />
+                {isSyncing ? "Syncing..." : "Sync Now"}
+              </button>
+            </div>
           </div>
 
           {/* Search Box */}
@@ -473,6 +666,7 @@ export function SmartInboxTab() {
               { id: "WAITING_CUSTOMER", label: `Waiting (${counts.waitingCustomer})` },
               { id: "RESOLVED", label: `Resolved (${counts.resolved})` },
               { id: "UNREAD", label: `Unread (${counts.unread})` },
+              { id: "TRASH", label: `Trash` },
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -486,6 +680,41 @@ export function SmartInboxTab() {
                 {tab.label}
               </button>
             ))}
+          </div>
+          <div className="flex items-center justify-between mt-2">
+            <div className="flex items-center gap-2">
+               <button onClick={() => {
+                 if (selectedThreadIds.size === threads.length) setSelectedThreadIds(new Set());
+                 else setSelectedThreadIds(new Set(threads.map(t => t.id)));
+               }} className="p-1 hover:bg-neutral-800 rounded">
+                 {selectedThreadIds.size === threads.length && threads.length > 0 ? <CheckSquare className="w-4 h-4 text-blue-400" /> : <Square className="w-4 h-4 text-neutral-400" />}
+               </button>
+               {selectedThreadIds.size > 0 && (
+                 <span className="text-[10px] text-neutral-400 font-medium">{selectedThreadIds.size} selected</span>
+               )}
+            </div>
+            {selectedThreadIds.size > 0 && (
+              <div className="flex items-center gap-1">
+                 {filterStatus !== 'TRASH' && (
+                   <>
+                     <button onClick={() => setShowBulkActionConfirm({ action: 'RESOLVE' })} className="px-2 py-1 text-[10px] bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded border border-neutral-700">Resolve</button>
+                     <button onClick={() => setShowBulkActionConfirm({ action: 'MARK_UNREAD' })} className="px-2 py-1 text-[10px] bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded border border-neutral-700">Unread</button>
+                     <button onClick={() => setShowBulkActionConfirm({ action: 'TRASH' })} className="px-2 py-1 text-[10px] bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded border border-neutral-700">Trash</button>
+                   </>
+                 )}
+                 {filterStatus === 'TRASH' && (
+                   <>
+                     <button onClick={() => setShowBulkActionConfirm({ action: 'RESTORE' })} className="px-2 py-1 text-[10px] bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded border border-neutral-700">Restore</button>
+                     <button onClick={() => setShowBulkActionConfirm({ action: 'DELETE_PERMANENT' })} className="px-2 py-1 text-[10px] bg-red-900/50 hover:bg-red-800/50 text-red-300 rounded border border-red-800/50">Delete</button>
+                   </>
+                 )}
+              </div>
+            )}
+            {selectedThreadIds.size === 0 && filterStatus === 'RESOLVED' && counts.resolved > 0 && (
+              <button onClick={() => setShowBulkActionConfirm({ action: 'CLEAR_RESOLVED' })} className="px-2 py-1 text-[10px] bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded border border-neutral-700">
+                Clear Resolved
+              </button>
+            )}
           </div>
         </div>
 
@@ -503,52 +732,66 @@ export function SmartInboxTab() {
           ) : (
             threads.map((t) => {
               const isSelected = t.id === selectedThreadId;
+              const isChecked = selectedThreadIds.has(t.id);
               const statusColor =
                 t.status === "NEEDS_REPLY"
                   ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
                   : t.status === "WAITING_CUSTOMER"
                   ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
                   : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+              
+              const isUnread = t.unreadCount > 0;
+              const isNew = isUnread && t.latestMessageDirection === 'INBOUND';
 
               return (
                 <div
                   key={t.id}
-                  onClick={() => setSelectedThreadId(t.id)}
-                  className={`p-3.5 cursor-pointer transition-colors relative ${
-                    isSelected ? "bg-neutral-800/90" : "hover:bg-neutral-800/40 bg-[#090d16]"
+                  className={`p-3.5 flex gap-3 cursor-pointer transition-colors relative border-l-2 ${
+                    isSelected ? "bg-neutral-800/90 border-blue-500" : isUnread ? "bg-[#0c1424] hover:bg-neutral-800/40 border-blue-400" : "hover:bg-neutral-800/40 bg-[#090d16] border-transparent"
                   }`}
                 >
-                  <div className="flex items-start justify-between gap-2 mb-1">
-                    <span className="font-semibold text-xs text-neutral-200 truncate">
-                      {t.customerEmail}
-                    </span>
-                    <span className="text-[10px] text-neutral-400 flex-shrink-0">
-                      {new Date(t.latestMessageAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </span>
+                  <div className="pt-0.5" onClick={(e) => {
+                    e.stopPropagation();
+                    const newSet = new Set(selectedThreadIds);
+                    if (newSet.has(t.id)) newSet.delete(t.id);
+                    else newSet.add(t.id);
+                    setSelectedThreadIds(newSet);
+                  }}>
+                    {isChecked ? <CheckSquare className="w-4 h-4 text-blue-400" /> : <Square className="w-4 h-4 text-neutral-500" />}
                   </div>
-
-                  <div className="text-xs font-medium text-white line-clamp-1 mb-1">
-                    {t.subject}
-                  </div>
-
-                  <div className="text-[11px] text-neutral-400 line-clamp-1 mb-2">
-                    {t.snippet}
-                  </div>
-
-                  <div className="flex items-center justify-between gap-2">
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusColor}`}>
-                      {t.status.replace("_", " ")}
-                    </span>
-
-                    {t.relatedOrder && (
-                      <span className="text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20 truncate max-w-[140px]">
-                        Order #{t.relatedOrder.publicId.slice(-6)}
+                  
+                  <div className="flex-1 min-w-0" onClick={() => handleSelectThread(t.id)}>
+                    <div className="flex items-start justify-between gap-2 mb-1">
+                      <div className="flex items-center gap-1.5 min-w-0">
+                         <span className={`font-semibold text-xs truncate ${isUnread ? "text-white" : "text-neutral-200"}`}>
+                           {t.customerEmail}
+                         </span>
+                         {isNew && <span className="px-1.5 py-0.5 rounded text-[8px] font-black bg-blue-600 text-white shrink-0 uppercase tracking-widest">New</span>}
+                      </div>
+                      <span className={`text-[10px] flex-shrink-0 ${isUnread ? "text-blue-400 font-medium" : "text-neutral-400"}`}>
+                        {new Date(t.latestMessageAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                       </span>
-                    )}
+                    </div>
 
-                    {t.unreadCount > 0 && (
-                      <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-                    )}
+                    <div className={`text-xs line-clamp-1 mb-1 ${isUnread ? "font-bold text-white" : "font-medium text-neutral-300"}`}>
+                      {t.subject}
+                    </div>
+
+                    <div className={`text-[11px] line-clamp-1 mb-2 ${isUnread ? "text-neutral-300" : "text-neutral-400"}`}>
+                      {t.snippet}
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusColor}`}>
+                        {t.status.replace("_", " ")}
+                      </span>
+
+                      {t.relatedOrder && (
+                        <span className="text-[10px] text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-md border border-blue-500/20 truncate max-w-[140px]">
+                          Order #{t.relatedOrder.publicId.slice(-6)}
+                        </span>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -565,8 +808,13 @@ export function SmartInboxTab() {
             <div className="p-4 border-b border-neutral-800 bg-[#0e1422] flex items-center justify-between flex-wrap gap-3">
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => setSelectedThreadId(null)}
-                  className="lg:hidden p-1 text-neutral-400 hover:text-white"
+                  onClick={() => {
+                    if (selectedThreadId) {
+                      setDrafts(prev => ({ ...prev, [selectedThreadId]: replyText }));
+                    }
+                    setSelectedThreadId(null);
+                  }}
+                  className="lg:hidden p-1.5 text-neutral-400 hover:text-white bg-neutral-800 rounded-lg"
                 >
                   ← Back
                 </button>
@@ -574,9 +822,15 @@ export function SmartInboxTab() {
                   <h2 className="text-sm font-bold text-white line-clamp-1">
                     {threadDetail.thread.subject}
                   </h2>
-                  <p className="text-xs text-neutral-400">
-                    With <span className="text-neutral-200">{threadDetail.customer.email}</span>
-                  </p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <button 
+                      onClick={() => setIsCustomerContextOpen(!isCustomerContextOpen)}
+                      className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      {threadDetail.customer.email}
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -588,60 +842,86 @@ export function SmartInboxTab() {
                     {refreshError}
                   </span>
                 )}
-                <span className="text-xs text-neutral-400 font-semibold">Status:</span>
-                <select
-                  value={threadDetail.thread.status}
-                  onChange={(e) => handleUpdateStatus(e.target.value as "NEEDS_REPLY" | "WAITING_CUSTOMER" | "RESOLVED")}
-                  className="bg-[#111827] border border-neutral-700 text-xs text-white rounded-lg px-2.5 py-1.5 focus:outline-none focus:border-blue-500"
+                
+                <button 
+                  onClick={() => handleUpdateStatus("RESOLVED")}
+                  className={`px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors ${
+                    threadDetail.thread.status === "RESOLVED" 
+                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      : "bg-neutral-800 text-neutral-300 border-neutral-700 hover:bg-neutral-700"
+                  }`}
                 >
-                  <option value="NEEDS_REPLY">NEEDS REPLY</option>
-                  <option value="WAITING_CUSTOMER">WAITING CUSTOMER</option>
-                  <option value="RESOLVED">RESOLVED</option>
-                </select>
+                  Resolve
+                </button>
+
+                <div className="relative group">
+                  <button className="p-1.5 text-neutral-400 hover:text-white bg-neutral-800 hover:bg-neutral-700 rounded-lg border border-neutral-700">
+                    <MoreVertical className="w-4 h-4" />
+                  </button>
+                  <div className="absolute right-0 top-full mt-1 w-48 bg-[#131b2e] border border-neutral-700 rounded-xl shadow-xl overflow-hidden hidden group-hover:block z-50">
+                    <button onClick={() => handleMarkAsUnread(threadDetail.thread.id)} className="w-full text-left px-4 py-2.5 text-xs text-neutral-200 hover:bg-neutral-800 border-b border-neutral-800/50">Mark as unread</button>
+                    <button onClick={() => { navigator.clipboard.writeText(threadDetail.customer.email); showToast('Email copied'); }} className="w-full text-left px-4 py-2.5 text-xs text-neutral-200 hover:bg-neutral-800 border-b border-neutral-800/50 flex items-center gap-2"><Copy className="w-3 h-3" /> Copy customer email</button>
+                    <button onClick={() => setShowTrashConfirm({ id: threadDetail.thread.id })} className="w-full text-left px-4 py-2.5 text-xs text-red-400 hover:bg-red-950/30 flex items-center gap-2"><Trash2 className="w-3 h-3" /> Delete conversation</button>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* Customer 360 Strip (Top Context Banner) */}
-            <div className="bg-[#131b2e] px-4 py-2.5 border-b border-neutral-800 flex items-center justify-between flex-wrap gap-4 text-xs">
-              <div className="flex items-center gap-6">
-                <div>
-                  <span className="text-[10px] text-neutral-400 block uppercase font-bold tracking-wider">Customer</span>
-                  <span className="font-semibold text-white">{threadDetail.customer.name || threadDetail.customer.email.split("@")[0]}</span>
+            {/* Customer Context Side Drawer / Panel (Expandable) */}
+            {isCustomerContextOpen && (
+              <div className="bg-[#131b2e] border-b border-neutral-800 p-4">
+                <div className="flex items-start justify-between mb-3">
+                  <h3 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                    <User className="w-3.5 h-3.5 text-blue-400" /> Customer Context
+                  </h3>
+                  <button onClick={() => setIsCustomerContextOpen(false)} className="text-neutral-400 hover:text-white text-xs">✕ Close</button>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+                  <div>
+                    <span className="text-[10px] text-neutral-500 block mb-0.5">Email</span>
+                    <span className="font-semibold text-neutral-200">{threadDetail.customer.email}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-neutral-500 block mb-0.5">Name</span>
+                    <span className="font-semibold text-neutral-200">{threadDetail.customer.name || 'N/A'}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-neutral-500 block mb-0.5">Total Orders</span>
+                    <span className="font-semibold text-blue-400">{threadDetail.orders.length}</span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-neutral-500 block mb-0.5">Lifetime Value</span>
+                    <span className="font-semibold text-emerald-400">
+                      R$ {(threadDetail.orders.reduce((sum, o) => sum + o.amountCents, 0) / 100).toFixed(2)}
+                    </span>
+                  </div>
                 </div>
 
                 {threadDetail.orders.length > 0 && (
-                  <>
+                  <div className="mt-4 pt-4 border-t border-neutral-800/50 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
                     <div>
-                      <span className="text-[10px] text-neutral-400 block uppercase font-bold tracking-wider">Latest Order</span>
-                      <span className="font-semibold text-white">
-                        #{threadDetail.orders[0].publicId.slice(-8)} ({threadDetail.orders[0].service})
-                      </span>
+                      <span className="text-[10px] text-neutral-500 block mb-0.5">Latest Order</span>
+                      <span className="font-semibold text-neutral-200">#{threadDetail.orders[0].publicId.slice(-8)} ({threadDetail.orders[0].service})</span>
                     </div>
-
                     <div>
-                      <span className="text-[10px] text-neutral-400 block uppercase font-bold tracking-wider">Target @</span>
-                      <span className="font-semibold text-blue-400">
-                        {threadDetail.orders[0].targetHandle ? `@${threadDetail.orders[0].targetHandle}` : "N/A"}
-                      </span>
+                      <span className="text-[10px] text-neutral-500 block mb-0.5">Target @</span>
+                      <span className="font-semibold text-blue-400">{threadDetail.orders[0].targetHandle ? `@${threadDetail.orders[0].targetHandle}` : "N/A"}</span>
                     </div>
-
                     <div>
-                      <span className="text-[10px] text-neutral-400 block uppercase font-bold tracking-wider">Payment</span>
+                      <span className="text-[10px] text-neutral-500 block mb-0.5">Payment</span>
                       <span className={`font-semibold ${threadDetail.orders[0].paymentStatus === "paid" ? "text-emerald-400" : "text-amber-400"}`}>
                         {threadDetail.orders[0].paymentStatus.toUpperCase()}
                       </span>
                     </div>
-
                     <div>
-                      <span className="text-[10px] text-neutral-400 block uppercase font-bold tracking-wider">Fulfillment</span>
-                      <span className="font-semibold text-neutral-200">
-                        {threadDetail.orders[0].fulfillmentStatus.toUpperCase()}
-                      </span>
+                      <span className="text-[10px] text-neutral-500 block mb-0.5">Fulfillment</span>
+                      <span className="font-semibold text-neutral-200">{threadDetail.orders[0].fulfillmentStatus.toUpperCase()}</span>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
-            </div>
+            )}
 
             {/* Messages Scroll Area */}
             <div
@@ -712,7 +992,7 @@ export function SmartInboxTab() {
               </div>
             )}
 
-            {/* Reply Composer Box */}
+            {/* Reply / Internal Note Composer Box */}
             <div className="p-4 border-t border-neutral-800 bg-[#0e1422] space-y-3">
               {replyError && (
                 <div className="p-2.5 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400 flex items-center gap-2">
@@ -725,27 +1005,53 @@ export function SmartInboxTab() {
                 <textarea
                   rows={3}
                   value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
+                  onChange={(e) => {
+                     setReplyText(e.target.value);
+                     if (selectedThreadId) {
+                        setDrafts(prev => ({ ...prev, [selectedThreadId]: e.target.value }));
+                     }
+                  }}
                   placeholder={`Reply to ${threadDetail.customer.email} using Gmail Support...`}
                   className="w-full bg-[#111827] border border-neutral-700/80 rounded-xl p-3 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500 transition-colors resize-none"
                 />
               </div>
 
               <div className="flex items-center justify-between">
-                <span className="text-[11px] text-neutral-400 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                  Sent via authenticated Support Gmail · In-Reply-To preserved
-                </span>
+                <div className="flex items-center gap-4">
+                  <span className="text-[11px] text-neutral-400 flex items-center gap-1.5 hidden sm:flex">
+                    <Sparkles className="w-3.5 h-3.5 text-blue-400" />
+                    Sent via authenticated Support Gmail
+                  </span>
+                </div>
 
-                <button
-                  type="button"
-                  onClick={handleSendReply}
-                  disabled={replySending || !replyText.trim()}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>{replySending ? "Sending..." : "Send Reply"}</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!replyText.trim()) return;
+                      // Move text to internal note and clear reply draft
+                      setInternalNoteText(replyText);
+                      setReplyText("");
+                      if (selectedThreadId) setDrafts(prev => ({ ...prev, [selectedThreadId]: "" }));
+                      setTimeout(() => handleAddInternalNote(), 50);
+                    }}
+                    disabled={internalNoteSending || !replyText.trim()}
+                    className="px-3 py-2 bg-neutral-800 hover:bg-neutral-700 disabled:opacity-50 text-neutral-300 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer border border-neutral-700"
+                    title="Save text as an internal note (not sent to customer)"
+                  >
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>Internal Note</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendReply}
+                    disabled={replySending || !replyText.trim()}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-md transition-all cursor-pointer"
+                  >
+                    <Send className="w-3.5 h-3.5" />
+                    <span>{replySending ? "Sending..." : "Send Reply"}</span>
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -759,6 +1065,79 @@ export function SmartInboxTab() {
           </div>
         )}
       </div>
+      {/* Delete Confirmation Modal */}
+      {showTrashConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#111827] border border-neutral-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 className="text-base font-bold text-white">Delete this conversation?</h3>
+            <p className="text-xs text-neutral-400 leading-relaxed">
+              This removes the conversation from the Smart Inbox. Customer orders, lifecycle history, CRM history and sent email audit records will not be deleted.
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setShowTrashConfirm(null)}
+                className="px-4 py-2 text-xs font-semibold text-neutral-300 hover:text-white bg-neutral-800 rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleDeleteThread(showTrashConfirm.id, filterStatus === 'TRASH')}
+                className="px-4 py-2 text-xs font-bold text-white bg-red-600 hover:bg-red-500 rounded-xl"
+              >
+                {filterStatus === 'TRASH' ? 'Delete Permanently' : 'Delete Conversation'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Action Confirmation Modal */}
+      {showBulkActionConfirm && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+          <div className="bg-[#111827] border border-neutral-800 rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4">
+            <h3 className="text-base font-bold text-white">
+              {showBulkActionConfirm.action === 'CLEAR_RESOLVED' 
+                ? 'Move all resolved conversations to Trash?' 
+                : `Apply ${showBulkActionConfirm.action} to ${selectedThreadIds.size} conversations?`}
+            </h3>
+            <p className="text-xs text-neutral-400 leading-relaxed">
+              {showBulkActionConfirm.action === 'CLEAR_RESOLVED'
+                ? `This will move ${counts.resolved} resolved conversation(s) to Trash. They can be restored at any time.`
+                : `This action will be applied to the selected conversation(s).`}
+            </p>
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                onClick={() => setShowBulkActionConfirm(null)}
+                className="px-4 py-2 text-xs font-semibold text-neutral-300 hover:text-white bg-neutral-800 rounded-xl"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  if (showBulkActionConfirm.action === 'CLEAR_RESOLVED') {
+                    handleClearResolved();
+                    setShowBulkActionConfirm(null);
+                  } else {
+                    handleBulkAction(showBulkActionConfirm.action);
+                  }
+                }}
+                className="px-4 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-xl"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed bottom-6 right-6 bg-[#111827] border border-blue-500/40 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-50 animate-fade-in">
+          <Sparkles className="w-4 h-4 text-blue-400 shrink-0" />
+          <span className="text-xs font-medium">{toastMessage}</span>
+          <button onClick={() => setToastMessage(null)} className="text-neutral-400 hover:text-white text-xs ml-2">✕</button>
+        </div>
+      )}
     </div>
   );
 }
