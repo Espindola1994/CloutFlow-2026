@@ -136,7 +136,10 @@ export async function GET(request: Request) {
 
       report.dbThreads = threads;
       report.dbMessages = messages;
-      report.dbSyncStates = syncStates;
+      report.dbSyncStates = syncStates.map((s) => ({
+        ...s,
+        lastProcessedUid: s.lastProcessedUid ? Number(s.lastProcessedUid) : null,
+      }));
     } catch (dbErr: any) {
       report.dbError = dbErr.message;
     }
