@@ -106,22 +106,32 @@ export async function emitLifecycleEvent(params: EmitLifecycleEventParams): Prom
 
     // 3. Supress pending automations that contradict this event (Phase B rules)
     if (params.eventType === 'PAYMENT_APPROVED' || params.eventType === 'ORDER_COMPLETED' || params.eventType === 'REPEAT_PURCHASE' || params.eventType === 'ORDER_REFUNDED') {
-      // If a customer makes a purchase, immediately suppress any pending Abandoned Checkout emails
-      await tx.update(lifecycleAutomations)
-        .set({
-          status: 'SUPPRESSED_CONVERTED',
-          updatedAt: new Date(),
-          errorLog: [{ 
-            timestamp: new Date().toISOString(), 
-            reason: `Suppressed by event ${params.eventType}` 
-          }]
-        })
-        .where(
-          and(
-            eq(lifecycleAutomations.customerEmail, normalizedEmail),
-            eq(lifecycleAutomations.status, 'PENDING')
-          )
-        );
+      const journeyId = (params.payload as any)?.checkoutContextId || (params.payload as any)?.externalReference || (params.payload as any)?.paymentLeadId || (params.payload as any)?.checkoutToken || (params.payload as any)?.sourceEventId;
+
+      // Find pending automations
+      const pendingAutomations = await tx.query.lifecycleAutomations.findMany({
+        where: and(
+          eq(lifecycleAutomations.customerEmail, normalizedEmail),
+          eq(lifecycleAutomations.status, 'PENDING')
+        )
+      });
+
+      for (const auto of pendingAutomations) {
+        const autoJourneyId = (auto.contextData as any)?.journeyId;
+        // Suppress if the journey matches, OR if there's no journey tracking on the event/automation (legacy fallback)
+        if (!journeyId || !autoJourneyId || journeyId === autoJourneyId) {
+          await tx.update(lifecycleAutomations)
+            .set({
+              status: 'SUPPRESSED_CONVERTED',
+              updatedAt: new Date(),
+              errorLog: [{ 
+                timestamp: new Date().toISOString(), 
+                reason: `Suppressed by event ${params.eventType}` 
+              }]
+            })
+            .where(eq(lifecycleAutomations.id, auto.id));
+        }
+      }
     }
 
     // 4. Automatic Transactional Email Triggers

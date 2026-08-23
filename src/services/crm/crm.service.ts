@@ -189,6 +189,11 @@ export function deriveContactStatus(params: {
     return 'LEAD';
   }
 
+  // A repeat buyer might have a currently abandoned checkout journey
+  if (params.latestLifecycleState === 'CHECKOUT_ABANDONED') {
+    return 'ABANDONED'; // Operationally abandoned, even if they have past orders
+  }
+
   if (params.latestOrderStatus === 'paid') {
     if (params.latestFulfillmentStatus === 'completed') return 'COMPLETED';
     if (params.latestFulfillmentStatus === 'processing' || params.latestFulfillmentStatus === 'dispatched') return 'FULFILLING';

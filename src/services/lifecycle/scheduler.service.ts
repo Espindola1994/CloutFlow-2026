@@ -29,25 +29,63 @@ export async function evaluateCheckoutAbandonments(thresholdMinutes = DEFAULT_AB
   let createdAbandonments = 0;
 
   for (const lead of potentialLeads) {
-    // 2. Check if a PAYMENT_APPROVED or already existing CHECKOUT_ABANDONED event exists for this customerEmail
-    const [payment] = (await db.query.lifecycleEvents.findMany({
+    // Determine the journey identifier, if present. 
+    // Fall back to the event id if there is no strong canonical journey ID, though modern events should have one.
+    const leadPayload = lead.payload as Record<string, any> || {};
+    const journeyId = leadPayload.checkoutContextId || leadPayload.externalReference || leadPayload.paymentLeadId || leadPayload.checkoutToken || lead.id;
+
+    // 2. Check if a PAYMENT_APPROVED exists *for this specific journey* (i.e. originating from this attempt).
+    // Or, as a temporal fallback, if a PAYMENT_APPROVED exists AFTER this checkout started, we must check if it's related.
+    // To strictly avoid suppressing a new journey with a historical purchase, we MUST ensure the payment is part of the same journey.
+    // If the event doesn't explicitly link the journey, we fall back to: Is there a PAYMENT_APPROVED for this email created AFTER the LEAD_CAPTURED?
+    
+    // Get all payments for this user AFTER the checkout started
+    const subsequentPayments = await db.query.lifecycleEvents.findMany({
       where: and(
         eq(lifecycleEvents.customerEmail, lead.customerEmail),
-        eq(lifecycleEvents.eventType, 'PAYMENT_APPROVED')
+        eq(lifecycleEvents.eventType, 'PAYMENT_APPROVED'),
+        gte(lifecycleEvents.createdAt, lead.createdAt) // MUST be after the checkout started
       ),
-      limit: 1,
-    })) || [];
+      limit: 10,
+    });
 
-    if (payment) {
-      // Payment exists, do not emit CHECKOUT_ABANDONED
+    let converted = false;
+    for (const payment of subsequentPayments) {
+       const payPayload = payment.payload as Record<string, any> || {};
+       const payJourneyId = payPayload.checkoutContextId || payPayload.externalReference || payPayload.paymentLeadId || payPayload.checkoutToken || payPayload.sourceEventId;
+       
+       if (payJourneyId && payJourneyId === journeyId) {
+          converted = true;
+          break;
+       }
+       // If there's no strict journey identifier match, we fall back to assuming any payment right after the checkout start converts it.
+       // However, to be safer, if both have journey IDs and they MISMATCH, it's NOT a conversion of THIS journey.
+       if (!payJourneyId || !journeyId || (payJourneyId === journeyId)) {
+          // If we can't definitively separate them, we assume the subsequent payment converted it to be safe.
+          // BUT if we HAVE canonical IDs and they match, it's converted.
+          // For now, if there is ANY payment after the checkout started, we will treat it as converted unless we can prove otherwise.
+          // Actually, the requirements state: "temporal fallback only if no stronger relation exists". 
+          // Let's implement that:
+          if (!payJourneyId || !journeyId) {
+            converted = true;
+            break;
+          }
+       }
+    }
+
+    if (converted) {
       continue;
     }
 
+    // 3. Check if we already emitted an abandonment for THIS journey.
+    // The idempotency key MUST include the journeyId, not just the email + type.
+    const idempotencyKey = `CHECKOUT_ABANDONED:JOURNEY:${journeyId}`;
+    
     const [existingAbandonment] = (await db.query.lifecycleEvents.findMany({
       where: and(
         eq(lifecycleEvents.customerEmail, lead.customerEmail),
         eq(lifecycleEvents.eventType, 'CHECKOUT_ABANDONED'),
-        gte(lifecycleEvents.createdAt, lead.createdAt)
+        eq(lifecycleEvents.idempotencyKey, idempotencyKey)
       ),
       limit: 1,
     })) || [];
@@ -56,8 +94,7 @@ export async function evaluateCheckoutAbandonments(thresholdMinutes = DEFAULT_AB
       continue;
     }
 
-    // 3. Emit CHECKOUT_ABANDONED idempotently
-    const idempotencyKey = `CHECKOUT_ABANDONED:LEAD:${lead.id}`;
+    // 4. Emit CHECKOUT_ABANDONED idempotently, bound to the journey
     const result = await emitLifecycleEvent({
       customerEmail: lead.customerEmail,
       customerId: lead.customerId || undefined,
@@ -66,12 +103,13 @@ export async function evaluateCheckoutAbandonments(thresholdMinutes = DEFAULT_AB
       payload: {
         ...(lead.payload as Record<string, unknown>),
         sourceEventId: lead.id,
+        journeyId,
         evaluatedAt: new Date().toISOString(),
       },
     });
 
     if (result.success && !result.isDuplicate && result.eventId) {
-      // Schedule Cart Recovery sequence
+      // Schedule Cart Recovery sequence scoped to this journey
       const now = new Date();
       
       // Step 1: Immediate
@@ -81,7 +119,7 @@ export async function evaluateCheckoutAbandonments(thresholdMinutes = DEFAULT_AB
         automationId: 'ABANDONED_CART_STEP_1',
         actionType: 'ABANDONED_CART',
         scheduledFor: now,
-        contextData: { ...(lead.payload as object), stepNumber: 1 }
+        contextData: { ...(lead.payload as object), stepNumber: 1, journeyId }
       });
 
       // Step 2: +24 hours
@@ -92,7 +130,7 @@ export async function evaluateCheckoutAbandonments(thresholdMinutes = DEFAULT_AB
         automationId: 'ABANDONED_CART_STEP_2',
         actionType: 'ABANDONED_CART',
         scheduledFor: step2Time,
-        contextData: { ...(lead.payload as object), stepNumber: 2 }
+        contextData: { ...(lead.payload as object), stepNumber: 2, journeyId }
       });
 
       // Step 3: +48 hours
@@ -103,7 +141,7 @@ export async function evaluateCheckoutAbandonments(thresholdMinutes = DEFAULT_AB
         automationId: 'ABANDONED_CART_STEP_3',
         actionType: 'ABANDONED_CART',
         scheduledFor: step3Time,
-        contextData: { ...(lead.payload as object), stepNumber: 3 }
+        contextData: { ...(lead.payload as object), stepNumber: 3, journeyId }
       });
 
       createdAbandonments++;
