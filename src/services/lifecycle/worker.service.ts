@@ -96,7 +96,7 @@ export async function runLifecycleWorker(limit = 10) {
 
         // Ensure automation is eligible (Safe Activation boundary check)
         // If it was created before lifecycle go-live, we don't send to avoid backlog surge,
-        // EXCEPT if it's the exact approved controlled test target: 96rogerio@gmail.com
+        // EXCEPT if it is within the allowed safe rollout window.
         const lifecycleGoLiveRaw = process.env.LIFECYCLE_EMAILS_LIVE_FROM;
         const goLiveDate = lifecycleGoLiveRaw ? new Date(lifecycleGoLiveRaw) : null;
         
