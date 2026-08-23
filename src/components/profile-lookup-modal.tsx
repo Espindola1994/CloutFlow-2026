@@ -3,14 +3,12 @@
 import Image from "next/image";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  ArrowLeft,
   ArrowRight,
   Check,
   CircleAlert,
   Link2,
   LockKeyhole,
   Mail,
-  ShieldCheck,
   X,
 } from "lucide-react";
 
@@ -21,10 +19,6 @@ import youtubeIcon from "@/assets/home-icons-vector/youtube.svg";
 import { useFunnelStore } from "@/stores/funnel.store";
 
 import {
-  InstagramVerifiedProfile,
-  TikTokVerifiedProfile,
-  TwitterVerifiedProfile,
-  YouTubeVerifiedProfile,
   VerifiedSocialProfile,
 } from "@/lib/social/types";
 import { validateEmailFormat } from "@/lib/social/normalize";
@@ -121,7 +115,10 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
     return raw;
   }, [identifier, mode]);
 
-  // State reset helper
+  const handleClose = () => {
+    resetState();
+    onClose();
+  };
   const resetState = () => {
     pollingRef.current.active = false;
     setStep(1);
@@ -134,10 +131,11 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
 
   useEffect(() => {
     if (!open) {
-      resetState();
+      pollingRef.current.active = false;
+      // We do not reset visual state synchronously in the effect to avoid cascading renders,
+      // it should be reset when closing intentionally or unmounting.
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, pollingRef]);
+  }, [open]);
 
   const isProfileRestricted = useMemo(() => {
     if (!verifiedProfile) return false;
@@ -145,13 +143,13 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
       return Boolean(verifiedProfile.is_private);
     }
     if (verifiedProfile.platform === "tiktok") {
-      return Boolean(verifiedProfile.is_private || (verifiedProfile as any).private_account || (verifiedProfile as any).privateAccount);
+      return Boolean(verifiedProfile.is_private || (verifiedProfile as unknown as Record<string, unknown>).private_account || (verifiedProfile as unknown as Record<string, unknown>).privateAccount);
     }
     if (verifiedProfile.platform === "twitter") {
-      return Boolean(verifiedProfile.is_private || (verifiedProfile as any).is_protected || (verifiedProfile as any).protected);
+      return Boolean((verifiedProfile as unknown as Record<string, unknown>).is_protected || (verifiedProfile as unknown as Record<string, unknown>).protected);
     }
     if (verifiedProfile.platform === "youtube") {
-      return Boolean(verifiedProfile.is_private || verifiedProfile.is_restricted || (verifiedProfile as any).restricted || (verifiedProfile as any).unavailable);
+      return Boolean((verifiedProfile as unknown as Record<string, unknown>).is_private || (verifiedProfile as unknown as Record<string, unknown>).is_hidden);
     }
     return false;
   }, [verifiedProfile]);
@@ -188,11 +186,11 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
     useFunnelStore.getState().setTarget({
       targetType: resolvedTargetType,
       targetValue: normalizedUsername,
-      targetUrl: (verifiedProfile as any).profile_url || `https://${platform === 'twitter' ? 'x.com' : `${platform}.com`}/${normalizedUsername}`,
+      targetUrl: (verifiedProfile as unknown as Record<string, unknown>).profile_url as string || `https://${platform === 'twitter' ? 'x.com' : `${platform}.com`}/${normalizedUsername}`,
       socialUsername: normalizedUsername,
-      profileUrl: (verifiedProfile as any).profile_url || null,
+      profileUrl: (verifiedProfile as unknown as Record<string, unknown>).profile_url as string || null,
       email: cleanEmail,
-      verifiedTargetData: verifiedProfile as any,
+      verifiedTargetData: verifiedProfile as unknown as Record<string, unknown>,
     });
 
     onContinue();
@@ -210,7 +208,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
     }
 
     if (!identifier.trim()) {
-      setErrorMessage("Por favor, informe seu @username ou link de canal/perfil/publicação.");
+      setErrorMessage("Please enter your @username or channel/profile/post link.");
       return;
     }
 
@@ -280,7 +278,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           }
 
           if (statusJson.status === "failed") {
-            setErrorMessage(statusJson.message || "Não encontramos esse perfil. Confira o @ ou link e tente novamente.");
+            setErrorMessage(statusJson.message || "We couldn't find this profile. Check the @ or link and try again.");
             setStep(1);
             setIsLoading(false);
             return;
@@ -288,7 +286,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
         }
 
         if (pollingRef.current.active) {
-          setErrorMessage("Não foi possível concluir esta busca agora. Tente novamente.");
+          setErrorMessage("The search is taking longer than expected. Please try again.");
           setStep(1);
           setIsLoading(false);
         }
@@ -299,14 +297,14 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
       clearTimeout(progressTimer1);
       clearTimeout(progressTimer2);
       clearTimeout(progressTimer3);
-      setErrorMessage(data.message || "Não encontramos esse perfil. Confira o @ ou link e tente novamente.");
+      setErrorMessage(data.message || "We couldn't find this profile. Check the @ or link and try again.");
       setStep(1);
       setIsLoading(false);
-    } catch (err) {
+    } catch {
       clearTimeout(progressTimer1);
       clearTimeout(progressTimer2);
       clearTimeout(progressTimer3);
-      setErrorMessage("A consulta demorou mais que o esperado ou falhou. Tente novamente.");
+      setErrorMessage("The search is taking longer than expected. Please try again.");
       setStep(1);
       setIsLoading(false);
     }
@@ -335,7 +333,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
               <Image src={meta.icon} alt="" width={18} height={18} />
               <span>{meta.label}</span>
             </div>
-            <button className="pl-close" type="button" onClick={onClose} aria-label="Close"><X /></button>
+            <button className="pl-close" type="button" onClick={handleClose} aria-label="Close"><X /></button>
             <div className="pl-heading">
               <span className="pl-step-tag">STEP 1 OF 3</span>
               <h2>Almost there!</h2>
@@ -422,7 +420,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
 
         {step === 2 && (
           <div className="pl-step-container">
-            <button className="pl-close" type="button" onClick={onClose} aria-label="Close"><X /></button>
+            <button className="pl-close" type="button" onClick={handleClose} aria-label="Close"><X /></button>
             <div className="pl-heading">
               <span className="pl-step-tag">STEP 2 OF 3</span>
               <h2>Searching...</h2>

@@ -432,4 +432,70 @@ describe("ProfileLookupModal Step 3 Navigation and Test Matrix", () => {
     expect(screen.getByText(/Profile Found/i)).toBeDefined();
     expect(onContinue).not.toHaveBeenCalled();
   });
+
+  // Test J: Combined Step 1 -> Step 2 -> Step 3 Polling Lifecycle & 10s processing vs 45s deadline
+  it("J: 10s processing produces no timeout, and 45s deadline produces English timeout", async () => {
+    // 1. Initial pending resolve response
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes("/api/search/resolve")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            status: "pending",
+            requestId: "test-req-123",
+          }),
+        });
+      }
+      if (url.includes("/api/search/status")) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            status: "pending",
+            requestId: "test-req-123",
+          }),
+        });
+      }
+      return Promise.reject(new Error("unhandled fetch"));
+    });
+
+    const onContinue = vi.fn();
+    const onClose = vi.fn();
+
+    render(
+      <ProfileLookupModal
+        platform="instagram"
+        service="followers"
+        open={true}
+        onClose={onClose}
+        onContinue={onContinue}
+      />
+    );
+
+    fireEvent.change(screen.getByPlaceholderText("yourusername"), { target: { value: "guilhermeterraaa" } });
+    fireEvent.change(screen.getByPlaceholderText("you@example.com"), { target: { value: "test@example.com" } });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText(/Find my profile/i));
+    });
+
+    // Advance 10 seconds (multiple polling cycles)
+    await act(async () => {
+      vi.advanceTimersByTime(10000);
+    });
+
+    // Must NOT have timed out at 10s
+    expect(screen.queryByText(/The search is taking longer than expected/i)).toBeNull();
+    expect(screen.getByText(/STEP 2 OF 3/i)).toBeDefined();
+
+    // Advance past the 45s deadline (another 36s => total 46s)
+    await act(async () => {
+      vi.advanceTimersByTime(36000);
+    });
+
+    // Must now show the English timeout message and revert to Step 1
+    expect(screen.getByText(/The search is taking longer than expected. Please try again./i)).toBeDefined();
+    expect(screen.getByText(/STEP 1 OF 3/i)).toBeDefined();
+  });
 });
