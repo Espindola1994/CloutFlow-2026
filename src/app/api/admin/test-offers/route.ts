@@ -7,6 +7,7 @@ import { generateOfferCode, POST_PURCHASE_OFFER_CAMPAIGN, POST_PURCHASE_DISCOUNT
 import { getMarketingEmailTransport } from '@/integrations/email/transport';
 
 import { getPostPurchaseOfferTemplate } from '@/services/lifecycle/templates.service';
+import { getEffectiveOfferStatus } from '@/services/offers/offer-status';
 
 export async function GET() {
   try {
@@ -23,7 +24,13 @@ export async function GET() {
       orderBy: [desc(customerOffers.createdAt)]
     });
 
-    return NextResponse.json({ success: true, data: { items: testOffers } });
+    const now = new Date();
+    const items = testOffers.map(o => ({
+      ...o,
+      status: getEffectiveOfferStatus(o, now)
+    }));
+
+    return NextResponse.json({ success: true, data: { items } });
   } catch (error) {
     console.error('[AdminTestOffers] Failed to list test offers:', error);
     return NextResponse.json({ success: false, error: { message: 'Internal server error' } }, { status: 500 });
@@ -71,13 +78,12 @@ export async function POST(request: Request) {
       where: and(
         eq(customerOffers.customerEmail, normalizedEmail),
         eq(customerOffers.campaignType, POST_PURCHASE_OFFER_CAMPAIGN),
-        eq(customerOffers.sourceOrderId, 'ADMIN_TEST'),
-        eq(customerOffers.status, 'ACTIVE')
+        eq(customerOffers.sourceOrderId, 'ADMIN_TEST')
       )
     });
 
     const now = new Date();
-    const hasActive = activeTestOffers.some(o => o.expiresAt && new Date(o.expiresAt) > now);
+    const hasActive = activeTestOffers.some(o => getEffectiveOfferStatus(o, now) === 'ACTIVE');
 
     if (hasActive) {
       return NextResponse.json({ success: false, error: { message: 'This contact already has an active Test Offer.' } }, { status: 409 });
@@ -103,7 +109,16 @@ export async function POST(request: Request) {
       }
     }).returning();
 
+    const offerWithEffectiveStatus = {
+      ...newOffer,
+      status: getEffectiveOfferStatus(newOffer, now)
+    };
+
     if (sendEmail) {
+      if (offerWithEffectiveStatus.status === 'EXPIRED') {
+        return NextResponse.json({ success: false, error: { message: 'This Test Offer has expired. Create a new Test Offer.' } }, { status: 400 });
+      }
+
       const emailRes = await sendTestEmail(normalizedEmail, code, expiresAt);
       if (!emailRes.success) {
          // Log but don't fail offer creation
@@ -111,7 +126,7 @@ export async function POST(request: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, data: newOffer });
+    return NextResponse.json({ success: true, data: offerWithEffectiveStatus });
   } catch (error) {
     console.error('[AdminTestOffers] Failed to create test offer:', error);
     return NextResponse.json({ success: false, error: { message: 'Internal server error' } }, { status: 500 });

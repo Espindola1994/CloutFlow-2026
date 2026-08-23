@@ -1,4 +1,5 @@
 import { buildUnsubscribeUrl } from './unsubscribe.service';
+import { formatOfferDateTime } from '@/services/offers/offer-status';
 
 interface CartRecoveryTemplateData {
   returnUrl: string;
@@ -16,8 +17,7 @@ export function getPostPurchaseOfferTemplate(contextData: Record<string, unknown
 
   let formattedDate = '48 hours';
   if (expiresAtStr) {
-    const expiresAt = new Date(expiresAtStr);
-    formattedDate = expiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    formattedDate = formatOfferDateTime(expiresAtStr, { style: 'email' });
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cloutflow.co';

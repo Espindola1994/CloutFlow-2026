@@ -8,23 +8,19 @@ import {
   ShoppingCart, 
   Clock, 
   Activity, 
-  CheckCircle2, 
-  AlertCircle, 
   MessageSquare, 
-  ShieldAlert, 
-  Plus, 
-  ExternalLink,
-  UserCheck,
-  Tag,
-  Loader2,
   RefreshCw,
-  FileText
+  FileText,
+  Loader2,
+  Plus,
+  Tag
 } from "lucide-react";
 import { toast } from "sonner";
 import { CrmContactDetail } from "@/services/crm/crm.service";
 import { AdminBadge, PlatformIcon } from "../ui";
 import { ManualEmailModal } from "./ManualEmailModal";
 import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
+import { getEffectiveOfferStatus, formatOfferDateTime } from "@/services/offers/offer-status";
 
 interface Customer360ModalProps {
   email: string | null;
@@ -65,7 +61,7 @@ export function Customer360Modal({
       } else {
         toast.error("Failed to load customer details.");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error loading customer 360:", err);
     } finally {
       setLoading(false);
@@ -74,7 +70,6 @@ export function Customer360Modal({
 
   useEffect(() => {
     if (isOpen && email) {
-      setLoading(true);
       loadCustomer();
     }
   }, [isOpen, email, loadCustomer]);
@@ -152,7 +147,7 @@ export function Customer360Modal({
                     SUPPRESSED
                   </AdminBadge>
                 )}
-                {contact?.offers?.some(o => ['CREATED', 'SCHEDULED', 'SENT'].includes(o.status)) && (
+                {contact?.offers?.some(o => getEffectiveOfferStatus(o) === 'ACTIVE') && (
                   <AdminBadge variant="warning" size="sm" className="bg-[#FFEDD5] text-[#C2410C] border-[#FFEDD5]">
                     ACTIVE OFFER
                   </AdminBadge>
@@ -471,42 +466,47 @@ export function Customer360Modal({
                     </div>
                   ) : (
                     <div className="space-y-3">
-                      {contact.offers.map((offer) => (
-                        <div key={offer.id} className="p-4 rounded-xl bg-[#FAFCFC] border border-[#D9E2E3] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="font-bold text-xs text-[#142126] font-mono bg-white px-2 py-0.5 rounded border border-[#D9E2E3]">
-                                {offer.code}
-                              </span>
-                              <AdminBadge
-                                variant={
-                                  offer.status === "REDEEMED" ? "success" :
-                                  ["CREATED", "SCHEDULED", "SENT"].includes(offer.status) ? "warning" : "default"
-                                }
-                                size="sm"
-                              >
-                                {offer.status}
-                              </AdminBadge>
-                              <span className="text-[11px] font-bold text-[#0F8F8A]">
-                                {offer.discountValue}{offer.discountType === "PERCENTAGE" ? "% OFF" : " OFF"}
-                              </span>
-                              {(offer.metadata as any)?.source === 'ADMIN_TEST' && (
-                                <AdminBadge variant="danger" size="sm">
-                                  TEST
+                      {contact.offers.map((offer) => {
+                        const effectiveStatus = getEffectiveOfferStatus(offer);
+                        const isTestOffer = offer.metadata && typeof offer.metadata === 'object' && 'source' in offer.metadata && (offer.metadata as { source?: string }).source === 'ADMIN_TEST';
+                        return (
+                          <div key={offer.id} className="p-4 rounded-xl bg-[#FAFCFC] border border-[#D9E2E3] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-bold text-xs text-[#142126] font-mono bg-white px-2 py-0.5 rounded border border-[#D9E2E3]">
+                                  {offer.code}
+                                </span>
+                                <AdminBadge
+                                  variant={
+                                    effectiveStatus === "ACTIVE" ? "warning" :
+                                    effectiveStatus === "REDEEMED" ? "success" :
+                                    effectiveStatus === "EXPIRED" ? "default" : "default"
+                                  }
+                                  size="sm"
+                                >
+                                  {effectiveStatus}
                                 </AdminBadge>
-                              )}
-                            </div>
-                            <p className="text-[11px] text-[#65737A] mt-1">
-                              Campaign: {offer.campaignType.replace(/_/g, " ")}
-                            </p>
-                            <div className="text-[11px] text-[#8A979D] mt-1 space-x-2">
-                              <span>Created: {new Date(offer.createdAt).toLocaleDateString()}</span>
-                              {offer.expiresAt && <span>· Expires: {new Date(offer.expiresAt).toLocaleDateString()}</span>}
-                              {offer.redeemedAt && <span className="text-[#0F8F8A]">· Redeemed: {new Date(offer.redeemedAt).toLocaleDateString()}</span>}
+                                <span className="text-[11px] font-bold text-[#0F8F8A]">
+                                  {`${String(offer.discountValue)}${offer.discountType === 'PERCENTAGE' ? '% OFF' : ' OFF'}`}
+                                </span>
+                                {isTestOffer ? (
+                                  <AdminBadge variant="danger" size="sm">
+                                    TEST
+                                  </AdminBadge>
+                                ) : null}
+                              </div>
+                              <p className="text-[11px] text-[#65737A] mt-1">
+                                Campaign: {offer.campaignType.replace(/_/g, " ")}
+                              </p>
+                              <div className="text-[11px] text-[#8A979D] mt-1 space-x-2">
+                                <span>Created: {formatOfferDateTime(offer.createdAt)}</span>
+                                {offer.expiresAt && <span>· Expires: {formatOfferDateTime(offer.expiresAt)}</span>}
+                                {offer.redeemedAt && <span className="text-[#0F8F8A]">· Redeemed: {formatOfferDateTime(offer.redeemedAt)}</span>}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

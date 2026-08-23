@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Plus, RefreshCw, Trash2, XCircle } from "lucide-react";
 import { AdminButton, AdminIconButton, AdminModal, AdminTable, AdminTableHeader, AdminTableBody, AdminTableRow, AdminTableHead, AdminTableCell } from "../ui";
+import { getEffectiveOfferStatus, formatOfferDateTime, CanonicalOfferStatus } from "@/services/offers/offer-status";
 
 // Define local offer interface to avoid any
 interface TestOffer {
@@ -9,7 +10,7 @@ interface TestOffer {
   code: string;
   createdAt: string;
   expiresAt: string;
-  status: string;
+  status: CanonicalOfferStatus | string;
 }
 
 export function TestOffersTab() {
@@ -23,7 +24,6 @@ export function TestOffersTab() {
 
   const fetchOffers = useCallback(async () => {
     try {
-      setLoading(true);
       const res = await fetch("/api/admin/test-offers");
       const json = await res.json();
       if (res.ok && json.success) {
@@ -39,6 +39,21 @@ export function TestOffersTab() {
   useEffect(() => {
     fetchOffers();
   }, [fetchOffers]);
+
+  // UI live timer for expiration update every 15 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setOffers(current => current.map(offer => {
+        const now = new Date();
+        const effectiveStatus = getEffectiveOfferStatus(offer, now);
+        if (effectiveStatus !== offer.status) {
+          return { ...offer, status: effectiveStatus };
+        }
+        return offer;
+      }));
+    }, 15000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleCreateOffer = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,34 +158,39 @@ export function TestOffersTab() {
               </AdminTableRow>
             </AdminTableHeader>
             <AdminTableBody>
-              {offers.map(o => (
-                <AdminTableRow key={o.id}>
-                  <AdminTableCell className="font-medium text-[#142126]">{o.customerEmail}</AdminTableCell>
-                  <AdminTableCell className="font-mono">{o.code}</AdminTableCell>
-                  <AdminTableCell>25%</AdminTableCell>
-                  <AdminTableCell>{new Date(o.createdAt).toLocaleDateString()}</AdminTableCell>
-                  <AdminTableCell>{new Date(o.expiresAt).toLocaleString()}</AdminTableCell>
-                  <AdminTableCell>
-                    <span className={`px-2 py-0.5 rounded-[4px] text-[10px] font-semibold ${
-                      o.status === 'ACTIVE' ? 'bg-[#E8F8F2] text-[#16B77A]' : 'bg-[#F1F5F5] text-[#65737A]'
-                    }`}>
-                      {o.status} TEST
-                    </span>
-                  </AdminTableCell>
-                  <AdminTableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      {o.status === 'ACTIVE' && (
-                        <AdminIconButton size="sm" variant="outline" onClick={() => handleExpire(o.id)} title="Expire">
-                          <XCircle className="w-3.5 h-3.5" />
+              {offers.map(o => {
+                const effectiveStatus = getEffectiveOfferStatus(o);
+                return (
+                  <AdminTableRow key={o.id}>
+                    <AdminTableCell className="font-medium text-[#142126]">{o.customerEmail}</AdminTableCell>
+                    <AdminTableCell className="font-mono">{o.code}</AdminTableCell>
+                    <AdminTableCell>25%</AdminTableCell>
+                    <AdminTableCell>{formatOfferDateTime(o.createdAt)}</AdminTableCell>
+                    <AdminTableCell>{formatOfferDateTime(o.expiresAt, { includeSeconds: true })}</AdminTableCell>
+                    <AdminTableCell>
+                      <span className={`px-2 py-0.5 rounded-[4px] text-[10px] font-semibold ${
+                        effectiveStatus === 'ACTIVE' ? 'bg-[#E8F8F2] text-[#16B77A]' :
+                        effectiveStatus === 'REDEEMED' ? 'bg-[#E0F2FE] text-[#0284C7]' :
+                        'bg-[#F1F5F5] text-[#65737A]'
+                      }`}>
+                        {effectiveStatus} TEST
+                      </span>
+                    </AdminTableCell>
+                    <AdminTableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        {effectiveStatus === 'ACTIVE' && (
+                          <AdminIconButton size="sm" variant="outline" onClick={() => handleExpire(o.id)} title="Expire">
+                            <XCircle className="w-3.5 h-3.5" />
+                          </AdminIconButton>
+                        )}
+                        <AdminIconButton size="sm" variant="danger" onClick={() => handleDelete(o.id)} title="Delete">
+                          <Trash2 className="w-3.5 h-3.5" />
                         </AdminIconButton>
-                      )}
-                      <AdminIconButton size="sm" variant="danger" onClick={() => handleDelete(o.id)} title="Delete">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </AdminIconButton>
-                    </div>
-                  </AdminTableCell>
-                </AdminTableRow>
-              ))}
+                      </div>
+                    </AdminTableCell>
+                  </AdminTableRow>
+                );
+              })}
             </AdminTableBody>
           </AdminTable>
         )}

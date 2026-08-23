@@ -81,6 +81,44 @@ describe('Admin Test Offers API', () => {
       expect(json.error.message).toContain('already has an active Test Offer');
     });
 
+    it('returns effective EXPIRED status for expired offers in GET', async () => {
+      const pastDate = new Date(Date.now() - 3600000);
+      (db.query.customerOffers.findMany as any).mockResolvedValueOnce([
+        { id: 'off-1', sourceOrderId: 'ADMIN_TEST', status: 'ACTIVE', expiresAt: pastDate }
+      ]);
+
+      const response = await GET();
+      expect(response.status).toBe(200);
+      const json = await response.json();
+      expect(json.success).toBe(true);
+      expect(json.data.items[0].status).toBe('EXPIRED');
+    });
+
+    it('blocks sending email if offer is already expired', async () => {
+      (db.query.customers.findFirst as any).mockResolvedValueOnce({ id: '1', email: 'test@example.com' });
+      (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]); // No active offers
+
+      // Mock insert returning an expired offer
+      const pastDate = new Date(Date.now() - 1000);
+      (db.insert as any).mockReturnValueOnce({
+        values: vi.fn().mockReturnValue({
+          returning: vi.fn().mockResolvedValue([{ id: 'mock-offer-expired', expiresAt: pastDate, status: 'ACTIVE' }])
+        })
+      });
+
+      const request = new Request('http://localhost/api/admin/test-offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerEmail: 'test@example.com', validHours: -1, sendEmail: true })
+      });
+
+      const response = await POST(request);
+      expect(response.status).toBe(400);
+      const json = await response.json();
+      expect(json.success).toBe(false);
+      expect(json.error.message).toContain('This Test Offer has expired. Create a new Test Offer.');
+    });
+
     it('creates a test offer and sends an email when sendEmail is true', async () => {
       (db.query.customers.findFirst as any).mockResolvedValueOnce({ id: '1', email: 'test@example.com' });
       (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]); // No active offers
