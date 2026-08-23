@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { customerOffers, customers } from '@/db/schema';
+import { customerOffers, customers, orders, paymentLeads } from '@/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { requireAdmin } from '@/lib/auth';
 import { generateOfferCode, POST_PURCHASE_OFFER_CAMPAIGN, POST_PURCHASE_DISCOUNT_PERCENT } from '@/services/lifecycle/post-purchase.service';
@@ -47,11 +47,22 @@ export async function POST(request: Request) {
     const normalizedEmail = customerEmail.trim().toLowerCase();
 
     // Verify customer exists
+    // CRM actually uses paymentLeads, orders, and lifecycleEvents primarily to establish identity.
+    // The explicit customers table might be rarely/inconsistently populated compared to CRM views.
+    // Let's modify the lookup to query orders or paymentLeads if customers fails or returns null.
     const existingCustomer = await db.query.customers.findFirst({
       where: eq(customers.email, normalizedEmail)
     });
 
-    if (!existingCustomer) {
+    const hasOrder = await db.query.orders.findFirst({
+      where: eq(orders.customerEmail, normalizedEmail)
+    });
+
+    const hasLead = await db.query.paymentLeads.findFirst({
+      where: eq(paymentLeads.customerEmail, normalizedEmail)
+    });
+
+    if (!existingCustomer && !hasOrder && !hasLead) {
       return NextResponse.json({ success: false, error: { message: 'Select an existing CloutFlow contact to create a test offer.' } }, { status: 404 });
     }
 

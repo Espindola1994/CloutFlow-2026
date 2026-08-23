@@ -7,6 +7,8 @@ vi.mock('@/db', () => ({
   db: {
     query: {
       customers: { findFirst: vi.fn() },
+      orders: { findFirst: vi.fn() },
+      paymentLeads: { findFirst: vi.fn() },
       customerOffers: { findMany: vi.fn() }
     },
     insert: vi.fn().mockReturnValue({ values: vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([{ id: 'mock-offer-123' }]) }) }),
@@ -38,6 +40,8 @@ describe('Admin Test Offers API', () => {
     it('requires an existing CRM contact', async () => {
       // Setup mock to return null for customer
       (db.query.customers.findFirst as any).mockResolvedValueOnce(null);
+      (db.query.orders.findFirst as any).mockResolvedValueOnce(null);
+      (db.query.paymentLeads.findFirst as any).mockResolvedValueOnce(null);
 
       const request = new Request('http://localhost/api/admin/test-offers', {
         method: 'POST',
