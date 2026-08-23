@@ -1,5 +1,5 @@
 import React from "react";
-import { ArrowLeft, Bell, MoreVertical, ChevronDown, UserPlus, Link2, Film, Lock } from "lucide-react";
+import { ArrowLeft, Bell, MoreVertical, ChevronDown, UserPlus, Link2, Film } from "lucide-react";
 import { InstagramVerifiedProfile } from "@/lib/social/types";
 import { VerifiedBadge } from "./VerifiedBadge";
 import { RestrictedProfileNotice } from "./RestrictedProfileNotice";
@@ -18,7 +18,7 @@ function formatCount(num: number): string {
   return num.toLocaleString();
 }
 
-function hasValue(val: any): boolean {
+function hasValue(val: unknown): boolean {
   if (val === null || val === undefined) return false;
   if (typeof val === "string" && val.trim() === "") return false;
   if (Array.isArray(val) && val.length === 0) return false;
@@ -27,8 +27,9 @@ function hasValue(val: any): boolean {
 
 export function InstagramPreview({ profile, onClose }: { profile: InstagramVerifiedProfile; onClose: () => void }) {
   const posts = hasValue(profile.posts) ? profile.posts.slice(0, 3) : [];
-  const isVerified = Boolean(profile.is_verified || (profile as any).verified || (profile as any).isVerified);
-  const hasStory = Boolean(profile.has_active_story || (profile as any).has_story || (profile as any).has_stories || (profile as any).story_available);
+  const profileRecord = profile as unknown as Record<string, unknown>;
+  const isVerified = Boolean(profile.is_verified || profileRecord.verified || profileRecord.isVerified);
+  const hasStory = Boolean(profile.has_active_story || profileRecord.has_story || profileRecord.has_stories || profileRecord.story_available);
 
   return (
     <div className="w-full bg-[#ffffff] text-[#262626] rounded-[24px] overflow-hidden border border-neutral-200/90 shadow-sm select-none font-sans">
@@ -253,11 +254,11 @@ export function InstagramPreview({ profile, onClose }: { profile: InstagramVerif
       </div>
 
       {/* Media Grid or Private Message */}
-      {profile.is_private && posts.length === 0 ? (
+      {profile.is_private ? (
         <div className="p-[16px] bg-white">
           <RestrictedProfileNotice
             title="This profile is private"
-            description="Make your profile public to continue."
+            description="Your Instagram profile is private. Please make your profile public and try again."
           />
         </div>
       ) : (
