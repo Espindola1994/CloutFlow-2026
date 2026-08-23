@@ -51,7 +51,7 @@ export function TestOffersTab() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           customerEmail: formEmail,
-          validHours: parseInt(formValidHours, 10),
+          validHours: parseFloat(formValidHours),
           sendEmail: formSendEmail
         })
       });
@@ -205,7 +205,7 @@ export function TestOffersTab() {
               onChange={e => setFormValidHours(e.target.value)}
               className="w-full border rounded p-2 focus:outline-hidden"
             >
-              <option value="1">1 Hour</option>
+              <option value="0.08333333333333333">5 Minutes</option>
               <option value="24">24 Hours</option>
               <option value="48">48 Hours</option>
             </select>

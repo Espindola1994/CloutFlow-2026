@@ -72,7 +72,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: { message: 'This contact already has an active Test Offer.' } }, { status: 409 });
     }
 
-    const expiresAt = new Date(now.getTime() + validHours * 60 * 60 * 1000);
+    const validHoursNumber = typeof validHours === 'string' ? parseFloat(validHours) : Number(validHours);
+    const expiresAt = new Date(now.getTime() + validHoursNumber * 60 * 60 * 1000);
     const code = generateOfferCode();
 
     const [newOffer] = await db.insert(customerOffers).values({

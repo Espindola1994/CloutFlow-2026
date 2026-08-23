@@ -96,6 +96,83 @@ describe('Admin Test Offers API', () => {
       // Verify db.insert was called
       expect(db.insert).toHaveBeenCalled();
     });
+
+    it('creates a test offer with default validity of 48 hours', async () => {
+      (db.query.customers.findFirst as any).mockResolvedValueOnce({ id: '1', email: 'test@example.com' });
+      (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]); // No active offers
+
+      const mockNow = new Date('2026-08-23T10:00:00.000Z');
+      vi.useFakeTimers();
+      vi.setSystemTime(mockNow);
+
+      const request = new Request('http://localhost/api/admin/test-offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerEmail: 'test@example.com' })
+      });
+
+      await POST(request);
+      
+      const insertCall = (db.insert as any).mock.results[0].value.values.mock.calls[0][0];
+      const expiresAt = insertCall.expiresAt;
+      
+      const expectedExpiresAt = new Date(mockNow.getTime() + 48 * 60 * 60 * 1000);
+      expect(expiresAt.getTime()).toBe(expectedExpiresAt.getTime());
+
+      vi.useRealTimers();
+    });
+
+    it('creates a test offer with exactly 5 minutes validity when validHours is 0.08333333333333333', async () => {
+      (db.query.customers.findFirst as any).mockResolvedValueOnce({ id: '1', email: 'test@example.com' });
+      (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]);
+
+      const mockNow = new Date('2026-08-23T10:00:00.000Z');
+      vi.useFakeTimers();
+      vi.setSystemTime(mockNow);
+
+      const request = new Request('http://localhost/api/admin/test-offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerEmail: 'test@example.com', validHours: 0.08333333333333333 })
+      });
+
+      await POST(request);
+      
+      const insertCall = (db.insert as any).mock.results[0].value.values.mock.calls[0][0];
+      const expiresAt = insertCall.expiresAt;
+      
+      const expectedExpiresAt = new Date(mockNow.getTime() + 5 * 60 * 1000);
+      
+      // Allow 1ms tolerance for float math
+      expect(Math.abs(expiresAt.getTime() - expectedExpiresAt.getTime())).toBeLessThan(2);
+
+      vi.useRealTimers();
+    });
+
+    it('creates a test offer with exactly 24 hours validity when validHours is 24', async () => {
+      (db.query.customers.findFirst as any).mockResolvedValueOnce({ id: '1', email: 'test@example.com' });
+      (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]);
+
+      const mockNow = new Date('2026-08-23T10:00:00.000Z');
+      vi.useFakeTimers();
+      vi.setSystemTime(mockNow);
+
+      const request = new Request('http://localhost/api/admin/test-offers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerEmail: 'test@example.com', validHours: 24 })
+      });
+
+      await POST(request);
+      
+      const insertCall = (db.insert as any).mock.results[0].value.values.mock.calls[0][0];
+      const expiresAt = insertCall.expiresAt;
+      
+      const expectedExpiresAt = new Date(mockNow.getTime() + 24 * 60 * 60 * 1000);
+      expect(expiresAt.getTime()).toBe(expectedExpiresAt.getTime());
+
+      vi.useRealTimers();
+    });
   });
 
   describe('PATCH /api/admin/test-offers/[id]', () => {
