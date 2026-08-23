@@ -25,6 +25,7 @@ vi.mock('@/db', () => ({
       orders: { findMany: vi.fn() },
       paymentLeads: { findMany: vi.fn() },
       checkoutContexts: { findMany: vi.fn() },
+      customerOffers: { findMany: vi.fn().mockResolvedValue([]) },
       emailThreads: { findMany: vi.fn().mockResolvedValue([]) },
       emailMessages: { findMany: vi.fn().mockResolvedValue([]) }
     },

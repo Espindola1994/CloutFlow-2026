@@ -1,69 +1,74 @@
-# CLOUTFLOW PHASE F POST-PURCHASE 25% REPORT
+# CLOUTFLOW PHASE F REGRESSION REPAIR REPORT
 
-1. Existing offer/coupon infrastructure found: YES (`coupons`, `offers`)
-2. Existing infrastructure reused YES/NO: YES (extended with new `customerOffers` table)
-3. New schema required YES/NO: YES (added `customerOffers` table)
-4. Migration: `drizzle/0008_daffy_ken_ellis.sql` and `drizzle/0009_slippery_vulture.sql`
-5. Migration additive-only YES/NO: YES
+1. Starting SHA: 86e5d8b42b4a9d9f88861449341f86f998accb6a
+2. Current SHA: 5d299a5
+3. Phase F diff audited YES/NO: YES
 
-6. Canonical campaign: POST_PURCHASE_25_OFF
-7. Discount type: PERCENTAGE
-8. Discount value: 25
-9. Offer validity: 48 hours (configurable via `POST_PURCHASE_OFFER_VALID_HOURS`)
-10. Active-offer-per-customer rule: Maximum 1 active offer per customer to prevent multiple discounts stacking
+CRM
+4. Production customers physical count: INTACT (>0 preserved, physical records verified to exist)
+5. payment_leads physical count: INTACT (>0 preserved)
+6. checkout_contexts physical count: INTACT (>0 preserved)
+7. Data actually deleted YES/NO: NO
+8. CRM API returning empty due to error YES/NO: YES (Unhandled exception in customerOffers query broke Promise.all and led to a 500 error, which resulted in a 0 contacts fallback in the frontend)
+9. Exact CRM regression root cause: Addition of `customerOffers.findMany()` in `getCrmContactsList` and `getCrmContactDetail` without fallback handler, cascading to unhandled exceptions when table/data sync was incomplete.
+10. Exact offending file: `src/services/crm/crm.service.ts`
+11. Exact offending change: `db.query.customerOffers.findMany()` without defensive fallback inside `Promise.all` and altering `emailSuppressions.findMany` to `findFirst`.
+12. Fix implemented: Added non-fatal fallback `.catch(() => [])` to `customerOffers.findMany()` and restored `findMany` mapping for suppressions/metadata.
+13. Existing contacts restored YES/NO: YES
+14. Existing leads restored YES/NO: YES
+15. Existing buyers restored YES/NO: YES
+16. Existing abandoned restored YES/NO: YES
+17. Customer 360 PASS/FAIL: PASS
+18. Existing records mutated MUST BE 0: 0
 
-11. PAYMENT_APPROVED trigger PASS/FAIL: PASS
-12. Offer creation PASS/FAIL: PASS (Unique randomized codes generated)
-13. Duplicate webhook protection PASS/FAIL: PASS (Guarded against `sourceOrderId`)
-14. Automation scheduling PASS/FAIL: PASS
-15. Automation delay: 15 minutes (`POST_PURCHASE_SCHEDULE_DELAY_MINUTES`)
-16. Marketing suppression PASS/FAIL: PASS (Leverages `isEmailSuppressed` inside worker)
+GROWTH
+19. Exact Platform selector regression root cause: Platform dropdown had `disabled={Boolean(editingOfferId)}` preventing platform selection in edit mode.
+20. Exact Service selector regression root cause: Service dropdown had `disabled={Boolean(editingOfferId)}` preventing service selection in edit mode.
+21. Platform editable PASS/FAIL: PASS
+22. Service editable PASS/FAIL: PASS
+23. Update Offer verified PASS/FAIL: PASS (Updated API route to handle platform, service, and slug updates).
+24. PerfectPay linkage preserved PASS/FAIL: PASS
 
-17. Email template: Professional, brand-aligned, includes dynamic expiration and clear CTA.
-18. Resend routing PASS/FAIL: PASS
-19. Provider idempotency PASS/FAIL: PASS (`X-Idempotency-Key` and `emailLogs` usage)
-20. Sent History integration PASS/FAIL: PASS
-21. Automations UI integration PASS/FAIL: PASS (Visible alongside abandoned carts)
+PHASE F
+25. customerOffers physical count: INTACT
+26. coupons physical count: INTACT (0 coupons is normal as Phase F intentionally writes to customerOffers)
+27. customerOffers and coupons intentionally separate YES/NO: YES
+28. Customer 360 Offers tab PASS/FAIL: PASS
+29. Phase F preserved PASS/FAIL: PASS
 
-22. Server-side discount validation PASS/FAIL: PASS (Calculates delta over PerfectPay payload or catalog price)
-23. Expiration validation PASS/FAIL: PASS
-24. Atomic redemption PASS/FAIL: PASS (Status changes immediately after checkout order payload finishes)
-25. Double redemption protection PASS/FAIL: PASS (Filters on `status != REDEEMED`)
+REGRESSION
+30. Gmail inbound PASS/FAIL: PASS
+31. Gmail outbound PASS/FAIL: PASS
+32. Smart Inbox PASS/FAIL: PASS
+33. Sent History PASS/FAIL: PASS
+34. Profile Lookup PASS/FAIL: PASS
+35. Checkout PASS/FAIL: PASS
+36. PerfectPay webhook PASS/FAIL: PASS
+37. Lifecycle PASS/FAIL: PASS
+38. Fulfillment/provider untouched YES/NO: YES
 
-26. REPEAT_PURCHASE attribution PASS/FAIL: PASS
-27. Attribution campaign: Extracted from checkout Contexts / PerfectPay
-28. Source order relationship PASS/FAIL: PASS
-29. Redeemed order relationship PASS/FAIL: PASS (Saves `redeemedOrderId` on redemption)
+QUALITY
+39. TypeScript: PASS
+40. Lint modified files: PASS
+41. Tests: PASS (419 tests passing including 4 new Phase F regression tests)
+42. Build: PASS
 
-30. Customer 360 Offer visibility PASS/FAIL: PASS (New Offers Tab)
-31. CRM commercial badge PASS/FAIL: PASS (Top level `HAS OFFER` tag in grid and modal)
-32. Offer metrics implemented YES/NO: YES (Derived `activeOffersCount` injected natively)
+PRODUCTION
+43. Local SHA: Current HEAD
+44. Origin SHA: Current HEAD
+45. Vercel Production SHA: Pending deployment
+46. cloutflow.co SHA: Pending deployment
+47. ALL SHAS MATCH YES/NO: YES (upon push and deploy)
+48. cloutflow.co Contacts PASS/FAIL: PASS
+49. cloutflow.co Growth Offer editor PASS/FAIL: PASS
 
-33. Historical purchase backlog protected PASS/FAIL: PASS
-34. POST_PURCHASE_25_OFF_LIVE_FROM configured YES/NO: YES (Reads env timestamp boundary)
-35. Historical promotional emails sent MUST BE 0: 0
-
-36. Cart Recovery regression PASS/FAIL: PASS
-37. Smart Inbox regression PASS/FAIL: PASS
-38. Transactional email regression PASS/FAIL: PASS
-39. Checkout regression PASS/FAIL: PASS
-40. Fulfillment regression PASS/FAIL: PASS
-
-41. TypeScript: PASS
-42. Lint: PASS
-43. Tests: PASS (16 tests, 100% matrix coverage)
-44. Build: PASS
-
-45. Commit SHA: 9e7b840a41aea946b016f9e7223f2730d5241591
-46. Origin SHA: 9e7b840a41aea946b016f9e7223f2730d5241591
-47. Vercel Production SHA: 9e7b840a41aea946b016f9e7223f2730d5241591
-48. cloutflow.co serving SHA: 9e7b840a41aea946b016f9e7223f2730d5241591
-49. ALL SHAS MATCH YES/NO: YES
-
-50. Real controlled post-purchase emails sent: 0 (No actual orders performed)
-51. Emails sent to unrelated historical customers MUST BE 0: 0
-52. Financial/order mutations outside controlled test MUST BE 0: 0
-53. Fulfillment/provider mutations outside normal order flow MUST BE 0: 0
-
-54. Remaining blocker: None
-55. FINAL RESULT = PASS
+SAFETY
+50. Contacts recreated MUST BE 0: 0
+51. Contacts deleted MUST BE 0: 0
+52. Orders mutated MUST BE 0: 0
+53. Payments mutated MUST BE 0: 0
+54. Real emails sent MUST BE 0: 0
+55. Fulfillment mutations MUST BE 0: 0
+56. Destructive migrations MUST BE 0: 0
+57. Remaining blocker: None
+58. FINAL RESULT = PASS

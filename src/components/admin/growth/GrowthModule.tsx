@@ -161,11 +161,14 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
 
       if (editingOfferId) {
         // PATCH existing offer
-        const res = await fetch(`/api/admin/offers/${editingOfferId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: formName,
+          const res = await fetch(`/api/admin/offers/${editingOfferId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              platform: formPlatform,
+              service: formService,
+              slug,
+              name: formName,
             quantity: parseInt(formQuantity, 10),
             priceCents,
             oldPriceCents,
@@ -638,13 +641,12 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
         <form onSubmit={handleSaveOffer} className="space-y-4 text-[12px]">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-[#142126] font-semibold block mb-1">Platform</label>
-              <select
-                value={formPlatform}
-                disabled={Boolean(editingOfferId)}
-                onChange={(e) => setFormPlatform(e.target.value as Platform)}
-                className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] disabled:opacity-50 focus:outline-hidden focus:border-[#0F8F8A]"
-              >
+                <label className="text-[#142126] font-semibold block mb-1">Platform</label>
+                <select
+                  value={formPlatform}
+                  onChange={(e) => setFormPlatform(e.target.value as Platform)}
+                  className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] focus:outline-hidden focus:border-[#0F8F8A]"
+                >
                 <option value="instagram">Instagram</option>
                 <option value="tiktok">TikTok</option>
                 <option value="twitter">X (Twitter)</option>
@@ -652,13 +654,12 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
               </select>
             </div>
             <div>
-              <label className="text-[#142126] font-semibold block mb-1">Service</label>
-              <select
-                value={formService}
-                disabled={Boolean(editingOfferId)}
-                onChange={(e) => setFormService(e.target.value)}
-                className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] disabled:opacity-50 focus:outline-hidden focus:border-[#0F8F8A]"
-              >
+                <label className="text-[#142126] font-semibold block mb-1">Service</label>
+                <select
+                  value={formService}
+                  onChange={(e) => setFormService(e.target.value)}
+                  className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 text-[#142126] focus:outline-hidden focus:border-[#0F8F8A]"
+                >
                 <option value="followers">Followers</option>
                 <option value="likes">Likes</option>
                 <option value="views">Views</option>

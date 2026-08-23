@@ -6,6 +6,9 @@ import { z } from 'zod';
 import { eq } from 'drizzle-orm';
 
 const offerUpdateSchema = z.object({
+  platform: z.string().optional(),
+  service: z.string().optional(),
+  slug: z.string().optional(),
   name: z.string().min(1).optional(),
   quantity: z.number().int().positive().optional(),
   bonusQuantity: z.number().int().nonnegative().optional(),
@@ -106,6 +109,9 @@ export async function PATCH(
       updatedAt: new Date(),
     };
 
+    if (data.platform !== undefined) updatePayload.platform = data.platform;
+    if (data.service !== undefined) updatePayload.service = data.service;
+    if (data.slug !== undefined) updatePayload.slug = data.slug;
     if (data.name !== undefined) updatePayload.name = data.name;
     if (data.quantity !== undefined) updatePayload.quantity = data.quantity;
     if (data.bonusQuantity !== undefined) updatePayload.bonusQuantity = data.bonusQuantity;

@@ -241,7 +241,7 @@ export function deriveContactStatus(params: {
       db.query.emailSuppressions.findMany(),
       db.query.crmContactMetadata.findMany(),
       db.query.lifecycleAutomations.findMany({ orderBy: [desc(lifecycleAutomations.createdAt)] }),
-      db.query.customerOffers.findMany()
+      db.query.customerOffers.findMany().catch(err => { console.error('[CRM] Non-fatal error loading offers:', err); return [] as (typeof customerOffers.$inferSelect)[]; })
     ]);
   
     // Aggregate by canonical normalized email
@@ -454,10 +454,10 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
       where: eq(checkoutContexts.customerEmail, normalized),
       orderBy: [desc(checkoutContexts.createdAt)]
     }),
-    db.query.emailSuppressions.findFirst({
+    db.query.emailSuppressions.findMany({
       where: eq(emailSuppressions.customerEmail, normalized)
     }),
-    db.query.crmContactMetadata.findFirst({
+    db.query.crmContactMetadata.findMany({
       where: eq(crmContactMetadata.customerEmail, normalized)
     }),
     db.query.emailThreads.findMany({
@@ -467,7 +467,7 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
     db.query.customerOffers.findMany({
       where: eq(customerOffers.customerEmail, normalized),
       orderBy: [desc(customerOffers.createdAt)]
-    })
+    }).catch(err => { console.error('[CRM] Non-fatal error loading contact offers:', err); return []; })
   ]);
 
   // Aggregate metadata
@@ -568,9 +568,9 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
     createdAt: ctx.createdAt.toISOString()
   }));
 
-  const isSuppressed = !!userSuppression;
-  const suppressionReason = isSuppressed ? userSuppression.reason : null;
-  const rawTags = userMetadata?.tags || '';
+  const isSuppressed = userSuppression.length > 0;
+  const suppressionReason = isSuppressed ? userSuppression[0].reason : null;
+  const rawTags = userMetadata[0]?.tags || '';
   const tags = rawTags.split(',').map((t: string) => t.trim()).filter(Boolean);
 
   const ordersCount = mappedOrders.length;
