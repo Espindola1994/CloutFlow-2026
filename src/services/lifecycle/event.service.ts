@@ -109,12 +109,22 @@ export async function emitLifecycleEvent(params: EmitLifecycleEventParams): Prom
       const journeyId = (params.payload as any)?.checkoutContextId || (params.payload as any)?.externalReference || (params.payload as any)?.paymentLeadId || (params.payload as any)?.checkoutToken || (params.payload as any)?.sourceEventId;
 
       // Find pending automations
-      const pendingAutomations = await tx.query.lifecycleAutomations.findMany({
-        where: and(
-          eq(lifecycleAutomations.customerEmail, normalizedEmail),
-          eq(lifecycleAutomations.status, 'PENDING')
-        )
-      });
+      let pendingAutomations: any[] = [];
+      if (tx.query && tx.query.lifecycleAutomations) {
+        pendingAutomations = await tx.query.lifecycleAutomations.findMany({
+          where: and(
+            eq(lifecycleAutomations.customerEmail, normalizedEmail),
+            eq(lifecycleAutomations.status, 'PENDING')
+          )
+        });
+      } else if (typeof tx.select === 'function') {
+        pendingAutomations = await tx.select().from(lifecycleAutomations).where(
+          and(
+            eq(lifecycleAutomations.customerEmail, normalizedEmail),
+            eq(lifecycleAutomations.status, 'PENDING')
+          )
+        );
+      }
 
       for (const auto of pendingAutomations) {
         const autoJourneyId = (auto.contextData as any)?.journeyId;

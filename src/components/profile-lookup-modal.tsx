@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -108,7 +108,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
 
   const { setUsername, setProfileData } = useFunnelStore();
 
-  const pollingRef = useMemo(() => ({ active: false }), []);
+  const pollingRef = React.useRef({ active: false });
 
   const handle = useMemo(() => {
     const raw = identifier.trim().replace(/^@/, "");
@@ -122,7 +122,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
 
   useEffect(() => {
     if (!open) {
-      pollingRef.active = false;
+      pollingRef.current.active = false;
       setStep(1);
       setProgress(0);
       setErrorMessage(null);
@@ -187,7 +187,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
 
   const handleStartSearch = async () => {
     setErrorMessage(null);
-    pollingRef.active = true;
+    pollingRef.current.active = true;
 
     // 1. Email format local validation
     const emailRes = validateEmailFormat(email);
@@ -241,9 +241,9 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
         const startTime = Date.now();
         const maxPollDuration = 45000;
 
-        while (pollingRef.active && Date.now() - startTime < maxPollDuration) {
+        while (pollingRef.current.active && Date.now() - startTime < maxPollDuration) {
           await new Promise((r) => setTimeout(r, 2500));
-          if (!pollingRef.active) break;
+          if (!pollingRef.current.active) break;
 
           const statusRes = await fetch(`/api/search/status?requestId=${encodeURIComponent(currentRequestId)}`);
           const statusJson = await statusRes.json().catch(() => null);
@@ -274,7 +274,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
           }
         }
 
-        if (pollingRef.active) {
+        if (pollingRef.current.active) {
           setErrorMessage("Não foi possível concluir esta busca agora. Tente novamente.");
           setStep(1);
           setIsLoading(false);
