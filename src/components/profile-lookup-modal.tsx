@@ -105,6 +105,7 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [verifiedProfile, setVerifiedProfile] = useState<VerifiedSocialProfile | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { setUsername, setProfileData } = useFunnelStore();
 
@@ -120,15 +121,22 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
     return raw;
   }, [identifier, mode]);
 
+  // State reset helper
+  const resetState = () => {
+    pollingRef.current.active = false;
+    setStep(1);
+    setProgress(0);
+    setErrorMessage(null);
+    setVerifiedProfile(null);
+    setIsLoading(false);
+    setIsSubmitting(false);
+  };
+
   useEffect(() => {
     if (!open) {
-      pollingRef.current.active = false;
-      setStep(1);
-      setProgress(0);
-      setErrorMessage(null);
-      setVerifiedProfile(null);
-      setIsLoading(false);
+      resetState();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, pollingRef]);
 
   const isProfileRestricted = useMemo(() => {
@@ -159,11 +167,16 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
     return "Channel unavailable";
   }, [isProfileRestricted, platform]);
 
+  const handleSearchAnotherProfile = () => {
+    resetState();
+  };
+
   const handleContinue = () => {
-    // Logical Guard: Do not proceed if profile is private or restricted
-    if (isProfileRestricted || !verifiedProfile) {
+    if (isProfileRestricted || !verifiedProfile || isSubmitting) {
       return;
     }
+
+    setIsSubmitting(true);
 
     // Persist verified target state and email in Funnel Store
     const normalizedUsername = verifiedProfile.username.replace(/^@+/, '').trim();
@@ -470,17 +483,17 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
 
             <div className="pl-confirm-block">
               <button
-                className="pl-confirm-btn"
+                className={`pl-confirm-btn ${isSubmitting ? 'opacity-70' : ''}`}
                 type="button"
                 onClick={handleContinue}
-                disabled={isProfileRestricted}
+                disabled={isProfileRestricted || isSubmitting}
               >
-                {!isProfileRestricted && <Check className="w-4 h-4 text-white stroke-[2.5]" />}
-                <span>{ctaLabel}</span>
+                {!isProfileRestricted && !isSubmitting && <Check className="w-4 h-4 text-white stroke-[2.5]" />}
+                <span>{isSubmitting ? "Continuing..." : ctaLabel}</span>
                 {!isProfileRestricted && <ArrowRight className="w-4 h-4 text-white stroke-[2.2]" />}
               </button>
 
-              <button className="pl-search-another-btn" type="button" onClick={() => setStep(1)}>
+              <button className="pl-search-another-btn" type="button" onClick={handleSearchAnotherProfile}>
                 Search another profile
               </button>
             </div>
