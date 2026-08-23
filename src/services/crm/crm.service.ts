@@ -62,6 +62,7 @@ export interface CrmContactDetail extends CrmContactSummary {
     expiresAt: string | null;
     redeemedAt: string | null;
     createdAt: string;
+    metadata?: unknown;
   }>;
   lifecycleTimeline: Array<{
     id: string;
@@ -623,6 +624,7 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
       expiresAt: o.expiresAt ? o.expiresAt.toISOString() : null,
       redeemedAt: o.redeemedAt ? o.redeemedAt.toISOString() : null,
       createdAt: o.createdAt.toISOString(),
+      metadata: o.metadata
     })),
     lifecycleTimeline: timeline,
     emails,

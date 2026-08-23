@@ -490,6 +490,11 @@ export function Customer360Modal({
                               <span className="text-[11px] font-bold text-[#0F8F8A]">
                                 {offer.discountValue}{offer.discountType === "PERCENTAGE" ? "% OFF" : " OFF"}
                               </span>
+                              {(offer.metadata as any)?.source === 'ADMIN_TEST' && (
+                                <AdminBadge variant="danger" size="sm">
+                                  TEST
+                                </AdminBadge>
+                              )}
                             </div>
                             <p className="text-[11px] text-[#65737A] mt-1">
                               Campaign: {offer.campaignType.replace(/_/g, " ")}

@@ -15,6 +15,7 @@ import {
   Power
 } from "lucide-react";
 import { Plan, OrderBumpOffer, UpsellOffer, Coupon, AbTest, Platform } from "../types";
+import { TestOffersTab } from "./TestOffersTab";
 import {
   AdminButton,
   AdminIconButton,
@@ -37,7 +38,7 @@ interface GrowthModuleProps {
 }
 
 export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleProps) {
-  const [activeTab, setActiveTab] = useState<"plans" | "offers" | "coupons" | "ab">("plans");
+  const [activeTab, setActiveTab] = useState<"plans" | "offers" | "coupons" | "ab" | "test_offers">("plans");
   const [platformFilter, setPlatformFilter] = useState<string>("all");
   
   // Real Offers State from Supabase
@@ -316,6 +317,17 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
             }`}
           >
             A/B Tests ({abTests.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("test_offers")}
+            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
+              activeTab === "test_offers"
+                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                : "text-[#65737A] hover:text-[#142126]"
+            }`}
+          >
+            Test Offers
           </button>
         </div>
       </div>
@@ -631,7 +643,8 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
         </div>
       )}
 
-      {/* Create / Edit Offer Modal */}
+      {/* 5. TEST OFFERS TAB */}
+      {activeTab === "test_offers" && <TestOffersTab />}
       <AdminModal
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
