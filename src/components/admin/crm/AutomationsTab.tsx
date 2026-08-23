@@ -2,15 +2,8 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
-  Clock,
-  CheckCircle2,
-  AlertCircle,
   Search,
-  Filter,
   RefreshCw,
-  Zap,
-  ShieldAlert,
-  ArrowRight,
 } from "lucide-react";
 
 interface AutomationItem {
@@ -44,10 +37,10 @@ export function AutomationsTab() {
     failed: 0,
     blocked: 0,
   });
+  const [envInfo, setEnvInfo] = useState<{ isLive: boolean; liveFrom: string | null } | null>(null);
 
   const fetchAutomations = useCallback(async () => {
     try {
-      setLoading(true);
       const params = new URLSearchParams();
       if (filterStatus !== "ALL") params.set("status", filterStatus);
       if (searchQuery.trim()) params.set("search", searchQuery.trim());
@@ -57,6 +50,10 @@ export function AutomationsTab() {
       if (res.ok && data.success) {
         setItems(data.data.items);
         setCounts(data.data.counts);
+        setEnvInfo({
+          isLive: data.data.isLive ?? false,
+          liveFrom: data.data.liveFrom ?? null
+        });
       }
     } catch (err) {
       console.error("Failed to load automations:", err);
@@ -66,13 +63,32 @@ export function AutomationsTab() {
   }, [filterStatus, searchQuery]);
 
   useEffect(() => {
-    fetchAutomations();
+    let isCancelled = false;
+    (async () => {
+      if (!isCancelled) {
+        await fetchAutomations();
+      }
+    })();
+    return () => {
+      isCancelled = true;
+    };
   }, [fetchAutomations]);
 
   return (
     <div className="space-y-4">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+        <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800">
+          <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider block mb-1">
+            Status do Motor
+          </span>
+          <div className="flex items-center gap-2 mt-1">
+            <span className={`w-2.5 h-2.5 rounded-full ${envInfo?.isLive ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+            <span className={`text-sm font-black ${envInfo?.isLive ? 'text-emerald-400' : 'text-amber-400'}`}>
+              {envInfo?.isLive ? 'Marketing: LIVE' : 'Marketing: OFF'}
+            </span>
+          </div>
+        </div>
         <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800">
           <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider block mb-1">
             Total Scheduled Jobs

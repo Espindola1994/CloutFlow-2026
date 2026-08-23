@@ -163,7 +163,7 @@ export async function claimReadyAutomations(limit = 10) {
           .from(lifecycleAutomations)
           .where(
             and(
-              eq(lifecycleAutomations.status, 'PENDING'),
+              inArray(lifecycleAutomations.status, ['PENDING', 'BLOCKED_SEND_DISABLED']),
               lte(lifecycleAutomations.scheduledFor, now)
             )
           )

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { lifecycleAutomations, lifecycleEvents, emailLogs } from '@/db/schema';
-import { desc, eq, and, sql } from 'drizzle-orm';
+import { lifecycleAutomations, emailLogs } from '@/db/schema';
+import { desc } from 'drizzle-orm';
 import { requireAdmin } from '@/lib/auth';
 
 export async function GET(request: Request) {
@@ -32,6 +32,18 @@ export async function GET(request: Request) {
       const emailLog = logMap.get(a.id);
       const ctx = a.contextData as Record<string, unknown>;
 
+      let lastError: string | null = null;
+      if (a.errorLog && Array.isArray(a.errorLog) && a.errorLog.length > 0) {
+        const last = a.errorLog[a.errorLog.length - 1];
+        if (typeof last === 'object' && last !== null && 'reason' in last) {
+          lastError = String((last as { reason: unknown }).reason);
+        } else if (typeof last === 'string') {
+          lastError = last;
+        } else {
+          lastError = JSON.stringify(last);
+        }
+      }
+
       return {
         id: a.id,
         automationId: a.automationId,
@@ -48,13 +60,7 @@ export async function GET(request: Request) {
         platform: ctx?.platform || null,
         service: ctx?.service || null,
         emailLogStatus: emailLog?.status || null,
-        lastError: a.errorLog && Array.isArray(a.errorLog) && a.errorLog.length > 0
-          ? (typeof (a.errorLog[a.errorLog.length - 1] as any)?.reason === 'string'
-              ? (a.errorLog[a.errorLog.length - 1] as any).reason
-              : typeof a.errorLog[a.errorLog.length - 1] === 'string'
-                ? a.errorLog[a.errorLog.length - 1]
-                : JSON.stringify(a.errorLog[a.errorLog.length - 1]))
-          : null,
+        lastError,
       };
     });
 
@@ -75,6 +81,8 @@ export async function GET(request: Request) {
       success: true,
       data: {
         items,
+        isLive: process.env.LIFECYCLE_EMAILS_ENABLED === 'true',
+        liveFrom: process.env.LIFECYCLE_EMAILS_LIVE_FROM || null,
         counts: {
           total: automations.length,
           pending: automations.filter((a) => a.status === 'PENDING').length,

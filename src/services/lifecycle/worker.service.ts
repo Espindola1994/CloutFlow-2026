@@ -94,6 +94,25 @@ export async function runLifecycleWorker(limit = 10) {
         const transport = getMarketingEmailTransport(normalizedEmail);
         const idempotencyKey = `lifecycle/${automation.id}/step/${stepNumber}`;
 
+        // Ensure automation is eligible (Safe Activation boundary check)
+        // If it was created before lifecycle go-live, we don't send to avoid backlog surge,
+        // EXCEPT if it's the exact approved controlled test target: 96rogerio@gmail.com
+        const lifecycleGoLiveRaw = process.env.LIFECYCLE_EMAILS_LIVE_FROM;
+        const goLiveDate = lifecycleGoLiveRaw ? new Date(lifecycleGoLiveRaw) : null;
+        
+        let bypassHistoricalBlock = false;
+        if (normalizedEmail === '96rogerio@gmail.com') {
+           bypassHistoricalBlock = true;
+        }
+
+        if (goLiveDate && new Date(automation.createdAt) < goLiveDate && !bypassHistoricalBlock) {
+           console.warn(`[LifecycleWorker] Automation ${automation.id} created before LIFECYCLE_EMAILS_LIVE_FROM. Skipping historical backlog.`);
+           await db.update(lifecycleAutomations).set({ status: 'SUPPRESSED_HISTORICAL', updatedAt: new Date(), claimToken: null, claimedAt: null }).where(eq(lifecycleAutomations.id, automation.id));
+           await logEmailSend(automation.id, normalizedEmail, automation.actionType, stepNumber, 'SUPPRESSED_HISTORICAL', 'Historical backlog protection');
+           succeeded++;
+           continue;
+        }
+
         const sendResult = await transport.send({
            to: normalizedEmail,
            subject: template.subject,

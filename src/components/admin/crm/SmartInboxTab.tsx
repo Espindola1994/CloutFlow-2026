@@ -249,6 +249,64 @@ export function SmartInboxTab() {
 
   useEffect(() => {
     let isCancelled = false;
+    let syncInterval: NodeJS.Timeout | null = null;
+    let syncTimeout: NodeJS.Timeout | null = null;
+    let isSyncInProgress = false;
+
+    // We do NOT want to sync if document is hidden to save bandwidth/API quotas.
+    const pollSync = async () => {
+      // Respect visibility, cancel flag, and lock to prevent overlapping calls
+      if (isCancelled || isSyncInProgress) return;
+      if (document.hidden) return;
+
+      try {
+        isSyncInProgress = true;
+        await handleSyncNow(true); // background sync
+      } catch (err) {
+        console.error("Auto-sync interval failed:", err);
+      } finally {
+        isSyncInProgress = false;
+      }
+    };
+
+    // When visibility changes to visible, do an immediate sync, then restart interval
+    const handleVisibilityChange = () => {
+      if (!document.hidden && !isCancelled) {
+        // Clear existing scheduled stuff
+        if (syncInterval) clearInterval(syncInterval);
+        if (syncTimeout) clearTimeout(syncTimeout);
+
+        // Wait a tiny bit then sync immediately on tab focus
+        syncTimeout = setTimeout(() => {
+          pollSync();
+          syncInterval = setInterval(pollSync, 60000);
+        }, 500);
+      } else {
+        // Stop polling when hidden
+        if (syncInterval) clearInterval(syncInterval);
+        if (syncTimeout) clearTimeout(syncTimeout);
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Initial behavior when component mounts:
+    // Sync immediately if visible, then start 60s interval
+    if (!document.hidden) {
+      pollSync();
+      syncInterval = setInterval(pollSync, 60000);
+    }
+
+    return () => {
+      isCancelled = true;
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (syncInterval) clearInterval(syncInterval);
+      if (syncTimeout) clearTimeout(syncTimeout);
+    };
+  }, [handleSyncNow]);
+
+  useEffect(() => {
+    let isCancelled = false;
     (async () => {
       if (!isCancelled) {
         await fetchThreads();
