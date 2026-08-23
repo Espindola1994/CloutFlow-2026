@@ -100,12 +100,7 @@ export async function runLifecycleWorker(limit = 10) {
         const lifecycleGoLiveRaw = process.env.LIFECYCLE_EMAILS_LIVE_FROM;
         const goLiveDate = lifecycleGoLiveRaw ? new Date(lifecycleGoLiveRaw) : null;
         
-        let bypassHistoricalBlock = false;
-        if (normalizedEmail === '96rogerio@gmail.com') {
-           bypassHistoricalBlock = true;
-        }
-
-        if (goLiveDate && new Date(automation.createdAt) < goLiveDate && !bypassHistoricalBlock) {
+        if (goLiveDate && new Date(automation.createdAt) < goLiveDate) {
            console.warn(`[LifecycleWorker] Automation ${automation.id} created before LIFECYCLE_EMAILS_LIVE_FROM. Skipping historical backlog.`);
            await db.update(lifecycleAutomations).set({ status: 'SUPPRESSED_HISTORICAL', updatedAt: new Date(), claimToken: null, claimedAt: null }).where(eq(lifecycleAutomations.id, automation.id));
            await logEmailSend(automation.id, normalizedEmail, automation.actionType, stepNumber, 'SUPPRESSED_HISTORICAL', 'Historical backlog protection');
