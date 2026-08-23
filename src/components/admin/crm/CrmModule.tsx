@@ -160,17 +160,17 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <AdminSectionHeader
         title="CRM & Communication"
         description="Unified customer relationship manager, Smart Gmail Inbox, sent email history, and lifecycle automations."
         actions={
-          <div className="flex items-center bg-[#FAFCFC] border border-[#D9E2E3] rounded-lg p-1 text-xs font-semibold overflow-x-auto max-w-full">
+          <div className="flex items-center bg-[#FAFCFC] border border-[#D9E2E3] rounded-lg p-1 text-xs font-semibold overflow-x-auto max-w-full h-[38px]">
             <button
               type="button"
               onClick={() => setActiveTab("contacts")}
-              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap ${
+              className={`px-3 py-1 rounded-md transition-all cursor-pointer whitespace-nowrap text-xs ${
                 activeTab === "contacts"
                   ? "bg-[#0F8F8A] text-white shadow-xs"
                   : "text-[#65737A] hover:text-[#142126]"
@@ -181,7 +181,7 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
             <button
               type="button"
               onClick={() => setActiveTab("inbox")}
-              className={`px-3 py-1.5 rounded-md transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-md transition-all cursor-pointer whitespace-nowrap text-xs flex items-center gap-1.5 ${
                 activeTab === "inbox"
                   ? "bg-[#0F8F8A] text-white shadow-xs"
                   : "text-[#65737A] hover:text-[#142126]"
@@ -221,48 +221,49 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
 
       {/* 1. CONTACTS CRM TAB */}
       {activeTab === "contacts" && (
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {/* Summary counters */}
           <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <div className="p-3.5 rounded-xl bg-white border border-[#D9E2E3]">
-              <span className="text-[11px] font-semibold text-[#8A979D] uppercase block">Total Contacts</span>
-              <span className="text-base font-bold text-[#142126] mt-0.5 block">{counts.total}</span>
+            <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
+              <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Total Contacts</span>
+              <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.total}</span>
             </div>
-            <div className="p-3.5 rounded-xl bg-white border border-[#D9E2E3]">
-              <span className="text-[11px] font-semibold text-[#8A979D] uppercase block">Active Leads</span>
-              <span className="text-base font-bold text-[#142126] mt-0.5 block">{counts.leads}</span>
+            <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
+              <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Active Leads</span>
+              <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.leads}</span>
             </div>
-            <div className="p-3.5 rounded-xl bg-white border border-[#D9E2E3]">
-              <span className="text-[11px] font-semibold text-[#8A979D] uppercase block">Buyers</span>
-              <span className="text-base font-bold text-[#0F8F8A] mt-0.5 block">{counts.customers}</span>
+            <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
+              <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Buyers</span>
+              <span className="text-[22px] font-bold text-[#0F8F8A] block leading-none mt-1">{counts.customers}</span>
             </div>
-            <div className="p-3.5 rounded-xl bg-white border border-[#D9E2E3]">
-              <span className="text-[11px] font-semibold text-[#8A979D] uppercase block">Abandoned</span>
-              <span className="text-base font-bold text-[#F04438] mt-0.5 block">{counts.abandoned}</span>
+            <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
+              <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Abandoned</span>
+              <span className="text-[22px] font-bold text-[#F04438] block leading-none mt-1">{counts.abandoned}</span>
             </div>
-            <div className="p-3.5 rounded-xl bg-white border border-[#D9E2E3]">
-              <span className="text-[11px] font-semibold text-[#8A979D] uppercase block">Suppressed</span>
-              <span className="text-base font-bold text-[#65737A] mt-0.5 block">{counts.suppressed}</span>
+            <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
+              <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Suppressed</span>
+              <span className="text-[22px] font-bold text-[#65737A] block leading-none mt-1">{counts.suppressed}</span>
             </div>
           </div>
 
           {/* Search & Filter Bar */}
-          <AdminCard padded={false} className="p-4">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="bg-white border border-[#D9E2E3] rounded-[10px] p-3">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5">
               <div className="flex-1">
                 <AdminSearchInput
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search contact by email, @target, name or order ID..."
                   onClear={() => setSearchQuery("")}
+                  className="h-10 text-xs"
                 />
               </div>
 
-              <div className="flex items-center gap-3 overflow-x-auto">
+              <div className="flex items-center gap-2 overflow-x-auto">
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-lg px-3 py-2 text-xs text-[#142126] font-semibold focus:outline-hidden focus:border-[#0F8F8A] transition-colors cursor-pointer"
+                  className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[10px] px-3 h-10 text-xs text-[#142126] font-semibold focus:outline-hidden focus:border-[#0F8F8A] transition-colors cursor-pointer"
                 >
                   <option value="ALL">All Contact States</option>
                   <option value="LEADS">Leads Only</option>
@@ -282,17 +283,17 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
                 </select>
               </div>
             </div>
-          </AdminCard>
+          </div>
 
           {loading ? (
-            <AdminCard padded={false} className="p-12 text-center">
-              <Loader2 className="w-8 h-8 animate-spin text-[#0F8F8A] mx-auto mb-3" />
+            <AdminCard padded={false} className="p-8 text-center">
+              <Loader2 className="w-7 h-7 animate-spin text-[#0F8F8A] mx-auto mb-2" />
               <p className="text-xs font-semibold text-[#65737A]">Loading CRM contacts...</p>
             </AdminCard>
           ) : filteredContacts.length === 0 ? (
-            <AdminCard padded={false} className="p-12 text-center">
-              <div className="w-12 h-12 rounded-xl bg-[#F1F5F5] border border-[#D9E2E3] flex items-center justify-center mx-auto mb-3 text-[#65737A]">
-                <Users className="w-6 h-6" />
+            <AdminCard padded={false} className="p-8 text-center">
+              <div className="w-10 h-10 rounded-xl bg-[#F1F5F5] border border-[#D9E2E3] flex items-center justify-center mx-auto mb-2 text-[#65737A]">
+                <Users className="w-5 h-5" />
               </div>
               <h4 className="text-sm font-semibold text-[#142126]">No contacts match your filter</h4>
               <p className="text-xs text-[#65737A] mt-1 max-w-sm mx-auto">
@@ -306,14 +307,14 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
                 <AdminTable>
                   <AdminTableHeader>
                     <AdminTableRow>
-                      <AdminTableHead>Customer Identity</AdminTableHead>
-                      <AdminTableHead>Target & Platform</AdminTableHead>
-                      <AdminTableHead>Customer Type</AdminTableHead>
-                      <AdminTableHead>Operational State</AdminTableHead>
-                      <AdminTableHead>Orders</AdminTableHead>
-                      <AdminTableHead>Gross Value</AdminTableHead>
-                      <AdminTableHead>Last Activity</AdminTableHead>
-                      <AdminTableHead className="text-right">Actions</AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Customer Identity</AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Target & Platform</AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Customer Type</AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Operational State</AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Orders</AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Gross Value</AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Last Activity</AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold text-right">Actions</AdminTableHead>
                     </AdminTableRow>
                   </AdminTableHeader>
                   <AdminTableBody>
@@ -321,20 +322,20 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
                       <AdminTableRow 
                         key={c.email}
                         onClick={() => handleOpen360(c.email)}
-                        className="cursor-pointer hover:bg-[#F8FAFA] transition-colors"
+                        className="cursor-pointer hover:bg-[#F8FAFA] transition-colors h-[54px]"
                       >
-                        <AdminTableCell>
+                        <AdminTableCell className="py-2">
                           <div>
                             <span className="font-semibold text-xs text-[#142126] block">
                               {c.email}
                             </span>
                             {c.name && (
-                              <span className="text-[11px] text-[#8A979D]">{c.name}</span>
+                              <span className="text-[11px] text-[#8A979D] block">{c.name}</span>
                             )}
                           </div>
                         </AdminTableCell>
 
-                        <AdminTableCell>
+                        <AdminTableCell className="py-2">
                           {c.target ? (
                             <div className="flex items-center gap-1.5">
                               <PlatformIcon platform={c.platform || "instagram"} size={14} />
@@ -345,19 +346,20 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
                           )}
                         </AdminTableCell>
 
-                        <AdminTableCell>
+                        <AdminTableCell className="py-2">
                           <AdminBadge
                             variant={
                               c.customerType === "REPEAT BUYER" ? "success" :
                               c.customerType === "CUSTOMER" ? "info" : "default"
                             }
                             size="sm"
+                            className="h-[22px] px-1.5 py-0 text-[10px] inline-flex items-center"
                           >
                             {c.customerType}
                           </AdminBadge>
                         </AdminTableCell>
 
-                        <AdminTableCell>
+                        <AdminTableCell className="py-2">
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <AdminBadge
                               variant={
@@ -367,49 +369,50 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
                                 c.derivedStatus === "WAITING PAYMENT" ? "warning" : "default"
                               }
                               size="sm"
+                              className="h-[22px] px-1.5 py-0 text-[10px] inline-flex items-center"
                             >
                               {c.derivedStatus}
                             </AdminBadge>
                             {c.suppressed && (
-                              <AdminBadge variant="danger" size="sm">
+                              <AdminBadge variant="danger" size="sm" className="h-[22px] px-1.5 py-0 text-[10px] inline-flex items-center">
                                 SUPPRESSED
                               </AdminBadge>
                             )}
                           </div>
                         </AdminTableCell>
 
-                        <AdminTableCell>
+                        <AdminTableCell className="py-2">
                           <span className="text-xs font-semibold text-[#142126]">{c.ordersCount}</span>
                         </AdminTableCell>
 
-                        <AdminTableCell>
+                        <AdminTableCell className="py-2">
                           <span className="text-xs font-bold text-[#0F8F8A]">
                             ${(c.totalSpentCents / 100).toFixed(2)}
                           </span>
                         </AdminTableCell>
 
-                        <AdminTableCell>
+                        <AdminTableCell className="py-2">
                           <span className="text-xs text-[#8A979D]">
                             {new Date(c.lastActivity).toLocaleDateString()}
                           </span>
                         </AdminTableCell>
 
-                        <AdminTableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1.5">
+                        <AdminTableCell className="py-2 text-right">
+                          <div className="flex items-center justify-end gap-1">
                             <button
                               type="button"
                               onClick={(e) => handleOpenManualEmail(c, e)}
                               title="Send Manual Email"
-                              className="p-1.5 rounded-lg text-[#65737A] hover:text-[#0F8F8A] hover:bg-[#0F8F8A]/10 transition-colors"
+                              className="p-1 rounded-md text-[#65737A] hover:text-[#0F8F8A] hover:bg-[#0F8F8A]/10 transition-colors"
                             >
-                              <Mail className="w-4 h-4" />
+                              <Mail className="w-3.5 h-3.5" />
                             </button>
                             <button
                               type="button"
                               onClick={() => handleOpen360(c.email)}
-                              className="p-1.5 rounded-lg text-[#65737A] hover:text-[#142126] hover:bg-[#D9E2E3]/40 transition-colors"
+                              className="p-1 rounded-md text-[#65737A] hover:text-[#142126] hover:bg-[#D9E2E3]/40 transition-colors"
                             >
-                              <ChevronRight className="w-4 h-4" />
+                              <ChevronRight className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </AdminTableCell>
@@ -420,21 +423,22 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
               </div>
 
               {/* Mobile Cards View */}
-              <div className="grid grid-cols-1 gap-3 md:hidden">
+              <div className="grid grid-cols-1 gap-2.5 md:hidden">
                 {filteredContacts.map((c) => (
                   <div
                     key={c.email}
                     onClick={() => handleOpen360(c.email)}
-                    className="p-4 rounded-xl bg-white border border-[#D9E2E3] space-y-3 cursor-pointer"
+                    className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] space-y-2.5 cursor-pointer"
                   >
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="font-bold text-xs text-[#142126] block">{c.email}</span>
-                        {c.name && <span className="text-[11px] text-[#8A979D]">{c.name}</span>}
+                        {c.name && <span className="text-[11px] text-[#8A979D] block">{c.name}</span>}
                       </div>
                       <AdminBadge
                         variant={c.customerType === "REPEAT BUYER" ? "success" : c.customerType === "CUSTOMER" ? "info" : "default"}
                         size="sm"
+                        className="h-[22px] px-1.5 py-0 text-[10px] inline-flex items-center"
                       >
                         {c.customerType}
                       </AdminBadge>
@@ -442,12 +446,12 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       <div>
-                        <span className="text-[#8A979D] block text-[11px]">Target</span>
-                        <span className="font-semibold text-[#142126]">{c.target || "None"}</span>
+                        <span className="text-[#8A979D] block text-[10px] uppercase font-semibold">Target</span>
+                        <span className="font-semibold text-[#142126] text-xs block">{c.target || "None"}</span>
                       </div>
                       <div>
-                        <span className="text-[#8A979D] block text-[11px]">State</span>
-                        <span className="font-semibold text-[#142126]">{c.derivedStatus}</span>
+                        <span className="text-[#8A979D] block text-[10px] uppercase font-semibold">State</span>
+                        <span className="font-semibold text-[#142126] text-xs block">{c.derivedStatus}</span>
                       </div>
                     </div>
 
@@ -458,7 +462,7 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
                       <button
                         type="button"
                         onClick={(e) => handleOpenManualEmail(c, e)}
-                        className="flex items-center gap-1 text-[#0F8F8A] font-bold"
+                        className="flex items-center gap-1 text-[#0F8F8A] font-bold text-xs"
                       >
                         <Mail className="w-3.5 h-3.5" />
                         Email

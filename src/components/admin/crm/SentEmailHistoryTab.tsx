@@ -73,55 +73,55 @@ export function SentEmailHistoryTab() {
   }, [fetchHistory]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800">
-          <span className="text-[11px] text-neutral-400 font-bold uppercase tracking-wider block mb-1">
+        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
+          <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
             Total Dispatched
           </span>
-          <span className="text-2xl font-black text-white">{counts.total}</span>
+          <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.total}</span>
         </div>
-        <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800">
-          <span className="text-[11px] text-emerald-400 font-bold uppercase tracking-wider block mb-1">
+        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
+          <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
             Successfully Sent
           </span>
-          <span className="text-2xl font-black text-emerald-400">{counts.sent}</span>
+          <span className="text-[22px] font-bold text-[#059669] block leading-none mt-1">{counts.sent}</span>
         </div>
-        <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800">
-          <span className="text-[11px] text-red-400 font-bold uppercase tracking-wider block mb-1">
+        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
+          <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
             Failed Sends
           </span>
-          <span className="text-2xl font-black text-red-400">{counts.failed}</span>
+          <span className="text-[22px] font-bold text-[#F04438] block leading-none mt-1">{counts.failed}</span>
         </div>
-        <div className="p-4 rounded-xl bg-[#0e1422] border border-neutral-800">
-          <span className="text-[11px] text-amber-400 font-bold uppercase tracking-wider block mb-1">
+        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
+          <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
             Suppressed / Blocked
           </span>
-          <span className="text-2xl font-black text-amber-400">{counts.suppressed}</span>
+          <span className="text-[22px] font-bold text-[#D97706] block leading-none mt-1">{counts.suppressed}</span>
         </div>
       </div>
 
       {/* Filter Controls */}
-      <div className="p-4 rounded-xl bg-[#0c1220] border border-neutral-800 flex flex-wrap items-center justify-between gap-3">
+      <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 flex-1 max-w-md">
-          <Search className="w-4 h-4 text-neutral-400" />
+          <Search className="w-4 h-4 text-[#8A979D]" />
           <input
             type="text"
             placeholder="Search by recipient email, subject, or order..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#111827] border border-neutral-700/80 rounded-xl px-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-blue-500"
+            className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[10px] px-3 h-10 text-xs text-[#142126] placeholder-[#8A979D] focus:outline-none focus:border-[#0F8F8A]"
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-neutral-400">Category:</span>
+        <div className="flex items-center gap-2.5">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#65737A]">
+            <span>Category:</span>
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
-              className="bg-[#111827] border border-neutral-700 rounded-lg px-2 py-1 text-xs text-white"
+              className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-md px-2 h-9 text-xs text-[#142126] font-semibold focus:outline-none focus:border-[#0F8F8A] cursor-pointer"
             >
               <option value="ALL">All Categories</option>
               <option value="transactional">Transactional</option>
@@ -130,12 +130,12 @@ export function SentEmailHistoryTab() {
             </select>
           </div>
 
-          <div className="flex items-center gap-1.5 text-xs">
-            <span className="text-neutral-400">Origin:</span>
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-[#65737A]">
+            <span>Origin:</span>
             <select
               value={filterOrigin}
               onChange={(e) => setFilterOrigin(e.target.value)}
-              className="bg-[#111827] border border-neutral-700 rounded-lg px-2 py-1 text-xs text-white"
+              className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-md px-2 h-9 text-xs text-[#142126] font-semibold focus:outline-none focus:border-[#0F8F8A] cursor-pointer"
             >
               <option value="ALL">All Origins</option>
               <option value="AUTOMATION">Automation</option>
@@ -145,39 +145,39 @@ export function SentEmailHistoryTab() {
 
           <button
             onClick={() => fetchHistory()}
-            className="p-1.5 text-neutral-400 hover:text-white bg-neutral-800/80 hover:bg-neutral-800 rounded-lg"
+            className="p-2 text-[#65737A] hover:text-[#142126] bg-[#FAFCFC] hover:bg-[#F1F5F5] rounded-md border border-[#D9E2E3] transition-colors"
             title="Refresh History"
           >
-            <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin text-blue-400" : ""}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#0F8F8A]" : ""}`} />
           </button>
         </div>
       </div>
 
       {/* Table / List */}
-      <div className="bg-[#0c1220] border border-neutral-800 rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-[#D9E2E3] rounded-[10px] overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-neutral-300">
-            <thead className="bg-[#090d16] text-[11px] font-bold text-neutral-400 uppercase tracking-wider border-b border-neutral-800">
+          <table className="w-full text-left text-xs text-[#142126]">
+            <thead className="bg-[#F7F9FA] text-[10px] font-semibold text-[#65737A] uppercase tracking-wider border-b border-[#E3E8EA]">
               <tr>
-                <th className="p-3.5">Recipient & @Handle</th>
-                <th className="p-3.5">Subject & Template</th>
-                <th className="p-3.5">Origin & Category</th>
-                <th className="p-3.5">Provider</th>
-                <th className="p-3.5">Status</th>
-                <th className="p-3.5">Sent Time</th>
+                <th className="py-2.5 px-3">Recipient & @Handle</th>
+                <th className="py-2.5 px-3">Subject & Template</th>
+                <th className="py-2.5 px-3">Origin & Category</th>
+                <th className="py-2.5 px-3">Provider</th>
+                <th className="py-2.5 px-3">Status</th>
+                <th className="py-2.5 px-3">Sent Time</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-neutral-800/50">
+            <tbody className="divide-y divide-[#EDF1F2]">
               {loading && items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-neutral-500">
-                    <RefreshCw className="w-5 h-5 animate-spin mx-auto text-blue-400 mb-2" />
+                  <td colSpan={6} className="p-8 text-center text-[#65737A]">
+                    <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#0F8F8A] mb-2" />
                     Loading email logs...
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-8 text-center text-neutral-500">
+                  <td colSpan={6} className="p-8 text-center text-[#65737A]">
                     No email audit records found.
                   </td>
                 </tr>
@@ -185,47 +185,47 @@ export function SentEmailHistoryTab() {
                 items.map((log) => {
                   const statusColor =
                     log.status === "SENT"
-                      ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                      ? "bg-[#E6F4EA] text-[#059669] border-[#059669]/30"
                       : log.status.startsWith("SUPPRESSED")
-                      ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-                      : "bg-red-500/10 text-red-400 border-red-500/20";
+                      ? "bg-[#FFF4E5] text-[#D97706] border-[#FFB020]"
+                      : "bg-[#FEE4E2] text-[#F04438] border-[#F04438]/30";
 
                   return (
-                    <tr key={log.id} className="hover:bg-neutral-800/40 transition-colors">
-                      <td className="p-3.5 font-medium text-white">
+                    <tr key={log.id} className="hover:bg-[#F8FAFA] transition-colors h-[54px]">
+                      <td className="py-2 px-3 font-semibold text-[#142126]">
                         <div>{log.recipient}</div>
                         {log.relatedOrder?.targetHandle && (
-                          <div className="text-[11px] text-blue-400">
+                          <div className="text-[11px] text-[#0F8F8A] font-medium">
                             @{log.relatedOrder.targetHandle}
                           </div>
                         )}
                       </td>
-                      <td className="p-3.5">
-                        <div className="font-semibold text-neutral-200 line-clamp-1">{log.subject}</div>
-                        <div className="text-[10px] text-neutral-400">Template: {log.template}</div>
+                      <td className="py-2 px-3">
+                        <div className="font-semibold text-[#142126] line-clamp-1">{log.subject}</div>
+                        <div className="text-[11px] text-[#8A979D]">Template: {log.template}</div>
                       </td>
-                      <td className="p-3.5">
-                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-neutral-800 text-neutral-300 mr-1.5 border border-neutral-700">
+                      <td className="py-2 px-3">
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-[#F1F5F5] text-[#65737A] mr-1.5 border border-[#D9E2E3]">
                           {log.origin}
                         </span>
-                        <span className="text-[10px] text-neutral-400 uppercase font-semibold">
+                        <span className="text-[10px] text-[#8A979D] uppercase font-semibold">
                           {log.category}
                         </span>
                       </td>
-                      <td className="p-3.5 font-mono text-[11px] text-neutral-300">
+                      <td className="py-2 px-3 font-mono text-[11px] text-[#65737A]">
                         {log.provider}
                         {log.providerMessageId && (
-                          <div className="text-[9px] text-neutral-500 truncate max-w-[120px]">
+                          <div className="text-[9px] text-[#8A979D] truncate max-w-[120px]">
                             {log.providerMessageId}
                           </div>
                         )}
                       </td>
-                      <td className="p-3.5">
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${statusColor}`}>
+                      <td className="py-2 px-3">
+                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold border ${statusColor}`}>
                           {log.status}
                         </span>
                       </td>
-                      <td className="p-3.5 text-neutral-400 text-[11px]">
+                      <td className="py-2 px-3 text-[#8A979D] text-[11px]">
                         {new Date(log.sentAt || log.createdAt).toLocaleString()}
                       </td>
                     </tr>

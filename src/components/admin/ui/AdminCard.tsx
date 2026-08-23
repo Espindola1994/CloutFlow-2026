@@ -49,28 +49,28 @@ export function AdminStatCard({
   className,
 }: AdminStatCardProps) {
   return (
-    <AdminCard className={cn("flex flex-col justify-between", className)}>
+    <AdminCard className={cn("flex flex-col justify-between p-3.5", className)} padded={false}>
       <div className="flex items-start justify-between">
-        <span className="text-[12px] font-semibold text-[#65737A] uppercase tracking-wider">
+        <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
           {title}
         </span>
         {Icon && (
-          <div className="p-2 rounded-lg bg-[#E7F5F4] text-[#0F8F8A]">
-            <Icon className="w-4 h-4" />
+          <div className="p-1.5 rounded-lg bg-[#E7F5F4] text-[#0F8F8A]">
+            <Icon className="w-3.5 h-3.5" />
           </div>
         )}
       </div>
 
-      <div className="mt-3">
-        <div className="text-[22px] font-bold text-[#142126] tracking-tight">
+      <div className="mt-1">
+        <div className="text-[22px] md:text-[24px] font-bold text-[#142126] tracking-tight">
           {value}
         </div>
         {(subValue || change) && (
-          <div className="mt-1 flex items-center gap-2 text-[11px]">
+          <div className="mt-0.5 flex items-center gap-1.5 text-[11px]">
             {change && (
               <span
                 className={cn(
-                  "font-medium",
+                  "font-semibold",
                   change.isPositive ? "text-[#16B77A]" : "text-[#EF4444]"
                 )}
               >
