@@ -127,20 +127,24 @@ export async function POST(request: Request) {
     // Phase F: Evaluate offer code
     let appliedOfferCode: string | null = null;
     if (data.offerCode) {
-      const { customerOffers } = await import('@/db/schema');
-      const { gt, and, ne } = await import('drizzle-orm');
-      const [customerOffer] = await db.query.customerOffers.findMany({
-        where: and(
-          eq(customerOffers.code, data.offerCode),
-          gt(customerOffers.expiresAt, new Date()),
-          ne(customerOffers.status, 'REDEEMED'),
-          ne(customerOffers.status, 'EXPIRED'),
-          ne(customerOffers.status, 'CANCELED')
-        ),
-        limit: 1
-      });
-      if (customerOffer) {
-        appliedOfferCode = customerOffer.code;
+      try {
+        const { customerOffers } = await import('@/db/schema');
+        const { gt, and, ne } = await import('drizzle-orm');
+        const [customerOffer] = await db.query.customerOffers.findMany({
+          where: and(
+            eq(customerOffers.code, data.offerCode),
+            gt(customerOffers.expiresAt, new Date()),
+            ne(customerOffers.status, 'REDEEMED'),
+            ne(customerOffers.status, 'EXPIRED'),
+            ne(customerOffers.status, 'CANCELED')
+          ),
+          limit: 1
+        });
+        if (customerOffer) {
+          appliedOfferCode = customerOffer.code;
+        }
+      } catch (err) {
+        console.warn('[CheckoutContextAPI] customerOffers lookup warning:', err instanceof Error ? err.message : String(err));
       }
     }
 
