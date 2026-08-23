@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { offers, checkoutContexts, paymentLeads, customers } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { offers, paymentLeads, customers } from '@/db/schema';
+import { eq, and, sql } from 'drizzle-orm';
 import crypto from 'crypto';
 import { z } from 'zod';
 import { emitLifecycleEvent } from '@/services/lifecycle/event.service';
@@ -149,76 +149,75 @@ export async function POST(request: Request) {
     }
 
     // 4. Persist Context in Database
+    // 4. Persist Context in Database
     // Defensive Insert Strategy:
     // Production database table 'checkout_contexts' may not have recently added columns like 'applied_offer_code' or 'customer_email'.
     // We attempt insert with all fields, catching column/schema errors and degrading gracefully to base table columns to guarantee 100% checkout uptime.
     try {
       if (appliedOfferCode) {
-        await db.insert(checkoutContexts).values({
-          contextId,
-          platform,
-          service,
-          targetType: data.targetType,
-          targetValue: data.targetValue ? data.targetValue.trim() : cleanUsername,
-          targetUrl: data.targetUrl ? data.targetUrl.trim() : null,
-          socialUsername: cleanUsername,
-          profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
-          offerId: offer.id,
-          appliedOfferCode,
-          perfectpayProductId: offer.perfectpayProductId,
-          perfectpayPlanId: offer.perfectpayPlanId,
-          utmSource: data.utmSource || null,
-          utmMedium: data.utmMedium || null,
-          utmCampaign: data.utmCampaign || null,
-          utmContent: data.utmContent || null,
-          utmTerm: data.utmTerm || null,
-          expiresAt,
-        } as any);
+        await db.execute(sql`
+          INSERT INTO checkout_contexts (
+            id, context_id, platform, service, target_type, target_value, target_url, 
+            social_username, profile_url, offer_id, applied_offer_code, perfectpay_product_id, perfectpay_plan_id, 
+            utm_source, utm_medium, utm_campaign, utm_content, utm_term, expires_at
+          ) VALUES (
+            ${crypto.randomUUID()}, ${contextId}, ${platform}, ${service}, ${data.targetType}, 
+            ${data.targetValue ? data.targetValue.trim() : cleanUsername}, 
+            ${data.targetUrl ? data.targetUrl.trim() : null}, ${cleanUsername}, 
+            ${data.profileUrl ? data.profileUrl.trim() : null}, ${offer.id}, ${appliedOfferCode},
+            ${offer.perfectpayProductId}, ${offer.perfectpayPlanId}, 
+            ${data.utmSource || null}, 
+            ${data.utmMedium || null}, 
+            ${data.utmCampaign || null}, 
+            ${data.utmContent || null}, 
+            ${data.utmTerm || null}, 
+            ${expiresAt}
+          )
+        `);
       } else {
-        // Base insert without appliedOfferCode and without customerEmail
-        await db.insert(checkoutContexts).values({
-          contextId,
-          platform,
-          service,
-          targetType: data.targetType,
-          targetValue: data.targetValue ? data.targetValue.trim() : cleanUsername,
-          targetUrl: data.targetUrl ? data.targetUrl.trim() : null,
-          socialUsername: cleanUsername,
-          profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
-          offerId: offer.id,
-          perfectpayProductId: offer.perfectpayProductId,
-          perfectpayPlanId: offer.perfectpayPlanId,
-          utmSource: data.utmSource || null,
-          utmMedium: data.utmMedium || null,
-          utmCampaign: data.utmCampaign || null,
-          utmContent: data.utmContent || null,
-          utmTerm: data.utmTerm || null,
-          expiresAt,
-        } as any);
+        await db.execute(sql`
+          INSERT INTO checkout_contexts (
+            id, context_id, platform, service, target_type, target_value, target_url, 
+            social_username, profile_url, offer_id, perfectpay_product_id, perfectpay_plan_id, 
+            utm_source, utm_medium, utm_campaign, utm_content, utm_term, expires_at
+          ) VALUES (
+            ${crypto.randomUUID()}, ${contextId}, ${platform}, ${service}, ${data.targetType}, 
+            ${data.targetValue ? data.targetValue.trim() : cleanUsername}, 
+            ${data.targetUrl ? data.targetUrl.trim() : null}, ${cleanUsername}, 
+            ${data.profileUrl ? data.profileUrl.trim() : null}, ${offer.id}, 
+            ${offer.perfectpayProductId}, ${offer.perfectpayPlanId}, 
+            ${data.utmSource || null}, 
+            ${data.utmMedium || null}, 
+            ${data.utmCampaign || null}, 
+            ${data.utmContent || null}, 
+            ${data.utmTerm || null}, 
+            ${expiresAt}
+          )
+        `);
       }
     } catch (dbInsertError: unknown) {
       const msg = dbInsertError instanceof Error ? dbInsertError.message : String(dbInsertError);
       console.warn('[CheckoutContextAPI] Primary insert error, attempting base fallback insert:', msg);
       // Fallback: strictly baseline columns guaranteed to exist in checkout_contexts
-      await db.insert(checkoutContexts).values({
-        contextId,
-        platform,
-        service,
-        targetType: data.targetType,
-        targetValue: data.targetValue ? data.targetValue.trim() : cleanUsername,
-        targetUrl: data.targetUrl ? data.targetUrl.trim() : null,
-        socialUsername: cleanUsername,
-        profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
-        offerId: offer.id,
-        perfectpayProductId: offer.perfectpayProductId,
-        perfectpayPlanId: offer.perfectpayPlanId,
-        utmSource: data.utmSource || null,
-        utmMedium: data.utmMedium || null,
-        utmCampaign: data.utmCampaign || null,
-        utmContent: data.utmContent || null,
-        utmTerm: data.utmTerm || null,
-        expiresAt,
-      } as any);
+      await db.execute(sql`
+          INSERT INTO checkout_contexts (
+            id, context_id, platform, service, target_type, target_value, target_url, 
+            social_username, profile_url, offer_id, perfectpay_product_id, perfectpay_plan_id, 
+            utm_source, utm_medium, utm_campaign, utm_content, utm_term, expires_at
+          ) VALUES (
+            ${crypto.randomUUID()}, ${contextId}, ${platform}, ${service}, ${data.targetType}, 
+            ${data.targetValue ? data.targetValue.trim() : cleanUsername}, 
+            ${data.targetUrl ? data.targetUrl.trim() : null}, ${cleanUsername}, 
+            ${data.profileUrl ? data.profileUrl.trim() : null}, ${offer.id}, 
+            ${offer.perfectpayProductId}, ${offer.perfectpayPlanId}, 
+            ${data.utmSource || null}, 
+            ${data.utmMedium || null}, 
+            ${data.utmCampaign || null}, 
+            ${data.utmContent || null}, 
+            ${data.utmTerm || null}, 
+            ${expiresAt}
+          )
+        `);
     }
 
     // 5. Early CRM Lead Capture & Lifecycle Events (Persist BEFORE user leaves for checkout)
