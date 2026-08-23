@@ -378,6 +378,12 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
                                 SUPPRESSED
                               </AdminBadge>
                             )}
+                            {c.activeOffersCount && c.activeOffersCount > 0 ? (
+                              <AdminBadge variant="warning" size="sm" className="h-[22px] px-1.5 py-0 text-[10px] inline-flex items-center bg-[#FFEDD5] text-[#C2410C] border-[#FFEDD5]">
+                                <Tag className="w-3 h-3 mr-1" />
+                                HAS OFFER
+                              </AdminBadge>
+                            ) : null}
                           </div>
                         </AdminTableCell>
 

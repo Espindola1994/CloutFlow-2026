@@ -26,6 +26,7 @@ const checkoutContextCreateSchema = z.object({
   utmCampaign: z.string().optional().nullable(),
   utmContent: z.string().optional().nullable(),
   utmTerm: z.string().optional().nullable(),
+  offerCode: z.string().optional().nullable(),
 });
 
 function validateSocialUrl(urlStr: string, platform: string): boolean {
@@ -123,6 +124,26 @@ export async function POST(request: Request) {
       : null;
     const normalizedEmail = data.email ? data.email.trim().toLowerCase() : null;
 
+    // Phase F: Evaluate offer code
+    let appliedOfferCode: string | null = null;
+    if (data.offerCode) {
+      const { customerOffers } = await import('@/db/schema');
+      const { gt, and, ne } = await import('drizzle-orm');
+      const [customerOffer] = await db.query.customerOffers.findMany({
+        where: and(
+          eq(customerOffers.code, data.offerCode),
+          gt(customerOffers.expiresAt, new Date()),
+          ne(customerOffers.status, 'REDEEMED'),
+          ne(customerOffers.status, 'EXPIRED'),
+          ne(customerOffers.status, 'CANCELED')
+        ),
+        limit: 1
+      });
+      if (customerOffer) {
+        appliedOfferCode = customerOffer.code;
+      }
+    }
+
     // 4. Persist Context in Database
     // Fail-Safe: If database column 'customer_email' is missing or insert throws schema/db errors,
     // we attempt with customerEmail first, and fallback safely without customerEmail to guarantee checkout continuity.
@@ -138,6 +159,7 @@ export async function POST(request: Request) {
         profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
         customerEmail: normalizedEmail,
         offerId: offer.id,
+        appliedOfferCode,
         perfectpayProductId: offer.perfectpayProductId,
         perfectpayPlanId: offer.perfectpayPlanId,
         utmSource: data.utmSource || null,
@@ -169,6 +191,7 @@ export async function POST(request: Request) {
         socialUsername: cleanUsername,
         profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
         offerId: offer.id,
+        appliedOfferCode,
         perfectpayProductId: offer.perfectpayProductId,
         perfectpayPlanId: offer.perfectpayPlanId,
         utmSource: data.utmSource || null,
@@ -280,6 +303,11 @@ export async function POST(request: Request) {
     // 6. Construct Checkout URL preserving all existing query params & appending src=CFCTX_...
     const checkoutUrlObj = new URL(offer.externalCheckoutUrl);
     checkoutUrlObj.searchParams.set('src', contextId);
+
+    if (appliedOfferCode) {
+      // Pass coupon code directly to PerfectPay
+      checkoutUrlObj.searchParams.set('cupom', appliedOfferCode);
+    }
 
     return NextResponse.json({
       success: true,

@@ -381,6 +381,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
       let resolvedSocialUsername: string | null = null;
       let resolvedProfileUrl: string | null = null;
       let resolvedTargetUrl: string | null = null;
+      let appliedOfferCode: string | null = null;
 
       const rawSrcRef = parsed.src || parsed.checkoutReference;
       if (rawSrcRef && rawSrcRef.startsWith('CFCTX_')) {
@@ -400,6 +401,7 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
             resolvedSocialUsername = foundContext.socialUsername;
             resolvedProfileUrl = foundContext.profileUrl;
             resolvedTargetUrl = foundContext.targetUrl;
+            appliedOfferCode = foundContext.appliedOfferCode || null;
 
             // Mark context as consumed on approved order creation
             await tx
@@ -410,6 +412,13 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
             console.log('[PerfectPay] Checkout Context validation failed / mismatch. Discarding target.');
           }
         }
+      }
+
+      // Determine subtotal and calculate applied discount if a coupon was used
+      const subtotalCents = matchedOffer ? Number(matchedOffer.priceCents) : totalCents;
+      let discountCents = 0;
+      if (subtotalCents > totalCents) {
+        discountCents = subtotalCents - totalCents;
       } else if (parsed.checkoutReference && !parsed.checkoutReference.startsWith('CFCTX_')) {
         resolvedSocialUsername = parsed.checkoutReference;
       }
@@ -431,8 +440,8 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
           profileUrl: resolvedProfileUrl,
           targetUrl: resolvedTargetUrl,
           quantity,
-          subtotalCents: totalCents,
-          discountCents: 0,
+          subtotalCents,
+          discountCents,
           totalCents,
           currency: parsed.currency || 'USD',
           status: 'PROCESSING',
@@ -449,6 +458,24 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
           paidAt: new Date(),
         })
         .returning();
+
+      // Phase F: Atomic Offer Redemption
+      if (appliedOfferCode) {
+        const { customerOffers } = await import('@/db/schema');
+        const { and, eq, ne } = await import('drizzle-orm');
+        await tx.update(customerOffers)
+          .set({
+            status: 'REDEEMED',
+            redeemedAt: new Date(),
+            redeemedOrderId: newOrder.id,
+          })
+          .where(
+            and(
+              eq(customerOffers.code, appliedOfferCode),
+              ne(customerOffers.status, 'REDEEMED')
+            )
+          );
+      }
 
       // Snapshot order item: minimal, secure, and useful snapshot (no duplicate PII, tokens, or raw body)
       await tx.insert(orderItems).values({

@@ -1,8 +1,9 @@
 import { claimReadyAutomations, handleAutomationFailure, markAutomationCompleted } from './scheduler.service';
 import { db } from '@/db';
 import { lifecycleAutomations, lifecycleEvents, emailLogs } from '@/db/schema';
+import { customerOffers } from '@/db/schema/offers';
 import { eq, and, gt } from 'drizzle-orm';
-import { getCartRecoveryTemplate } from './templates.service';
+import { getCartRecoveryTemplate, getPostPurchaseOfferTemplate } from './templates.service';
 import { getMarketingEmailTransport } from '@/integrations/email/transport';
 import { isEmailSuppressed } from './unsubscribe.service';
 
@@ -129,6 +130,61 @@ export async function runLifecycleWorker(limit = 10) {
            const blockStatus = (sendResult.error || sendResult.reason) as string;
            await logEmailSend(automation.id, normalizedEmail, automation.actionType, stepNumber, blockStatus, template.subject);
            // Put automation in a safe non-retrying blocked state or completed without consuming retry attempts
+           await db.update(lifecycleAutomations).set({ status: blockStatus, updatedAt: new Date(), claimToken: null, claimedAt: null }).where(eq(lifecycleAutomations.id, automation.id));
+           succeeded++;
+        } else {
+           throw new Error(sendResult.error as string || 'Unknown email send error');
+        }
+      } else if (automation.automationId === 'POST_PURCHASE_25_OFF') {
+        const stepNumber = 1;
+        
+        // Ensure not already sent (Idempotency against email_logs)
+        const [existingLog] = await db.query.emailLogs.findMany({
+          where: and(
+            eq(emailLogs.lifecycleAutomationId, automation.id),
+            eq(emailLogs.status, 'SENT')
+          ),
+          limit: 1,
+        });
+
+        if (existingLog) {
+          console.warn(`[LifecycleWorker] Automation ${automation.id} already has a SENT log. Skipping to prevent duplicate.`);
+          await markAutomationCompleted(automation.id, claimResult.claimToken!);
+          succeeded++;
+          continue;
+        }
+
+        const contextData = automation.contextData as Record<string, unknown>;
+        const template = getPostPurchaseOfferTemplate(contextData, { customerEmail: normalizedEmail });
+        
+        const transport = getMarketingEmailTransport(normalizedEmail);
+        const idempotencyKey = `lifecycle/${automation.id}/promo`;
+
+        const sendResult = await transport.send({
+           to: normalizedEmail,
+           subject: template.subject,
+           html: template.html,
+           idempotencyKey,
+           headers: {
+             'X-Idempotency-Key': idempotencyKey,
+           },
+           category: 'marketing'
+        });
+
+        if (sendResult.success) {
+           await logEmailSend(automation.id, normalizedEmail, 'POST_PURCHASE_25_OFF', stepNumber, 'SENT', template.subject, sendResult.messageId);
+           
+           if (contextData?.offerId) {
+             await db.update(customerOffers)
+               .set({ status: 'SENT' })
+               .where(eq(customerOffers.id, contextData.offerId as string));
+           }
+
+           await markAutomationCompleted(automation.id, claimResult.claimToken!);
+           succeeded++;
+        } else if (sendResult.reason === 'BLOCKED_SEND_DISABLED' || sendResult.error === 'BLOCKED_EMAIL_CONFIG') {
+           const blockStatus = (sendResult.error || sendResult.reason) as string;
+           await logEmailSend(automation.id, normalizedEmail, 'POST_PURCHASE_25_OFF', stepNumber, blockStatus, template.subject);
            await db.update(lifecycleAutomations).set({ status: blockStatus, updatedAt: new Date(), claimToken: null, claimedAt: null }).where(eq(lifecycleAutomations.id, automation.id));
            succeeded++;
         } else {

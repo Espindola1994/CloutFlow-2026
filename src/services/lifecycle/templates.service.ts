@@ -5,6 +5,55 @@ interface CartRecoveryTemplateData {
   customerEmail: string;
 }
 
+interface PostPurchaseOfferTemplateData {
+  customerEmail: string;
+}
+
+export function getPostPurchaseOfferTemplate(contextData: Record<string, unknown>, data: PostPurchaseOfferTemplateData): { subject: string; html: string } {
+  const unsubscribeUrl = buildUnsubscribeUrl(data.customerEmail);
+  const offerCode = (contextData?.offerCode as string) || '';
+  const expiresAtStr = contextData?.expiresAt as string;
+
+  let formattedDate = '48 hours';
+  if (expiresAtStr) {
+    const expiresAt = new Date(expiresAtStr);
+    formattedDate = expiresAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  }
+
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cloutflow.co';
+  const ctaUrl = `${baseUrl}?offer=${encodeURIComponent(offerCode)}`;
+
+  return {
+    subject: "Thanks for your order — here’s 25% off your next one",
+    html: `
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; color: #111827;">
+        <h2 style="color: #111827; margin-bottom: 16px;">Your next boost is 25% off</h2>
+        <p style="color: #4B5563; font-size: 16px; line-height: 1.5; margin-bottom: 16px;">
+          Thanks for choosing CloutFlow.
+        </p>
+        <p style="color: #4B5563; font-size: 16px; line-height: 1.5; margin-bottom: 24px;">
+          As a returning customer, you have <strong>25% off</strong> your next eligible order.
+        </p>
+        <div style="margin: 28px 0;">
+          <a href="${ctaUrl}" style="background-color: #000000; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: 600; display: inline-block;">
+            Use My 25% Off
+          </a>
+        </div>
+        <p style="color: #6B7280; font-size: 14px; margin-top: 24px;">
+          Offer code: <strong>${offerCode}</strong><br/>
+          Offer expires: ${formattedDate}
+        </p>
+        <hr style="border: none; border-top: 1px solid #E5E7EB; margin: 32px 0 20px 0;" />
+        <p style="color: #9CA3AF; font-size: 12px; text-align: center;">
+          CloutFlow<br/>
+          <a href="${unsubscribeUrl}" style="color: #6B7280; text-decoration: underline;">Unsubscribe</a> from marketing communication.
+        </p>
+      </div>
+    `
+  };
+}
+
+
 export function getCartRecoveryTemplate(stepNumber: number, data: CartRecoveryTemplateData): { subject: string; html: string } {
   const unsubscribeUrl = buildUnsubscribeUrl(data.customerEmail);
 

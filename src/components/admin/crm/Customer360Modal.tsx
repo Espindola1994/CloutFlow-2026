@@ -41,7 +41,7 @@ export function Customer360Modal({
 }: Customer360ModalProps) {
   const [contact, setContact] = useState<CrmContactDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "lifecycle" | "emails" | "automations" | "conversations" | "notes">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "orders" | "lifecycle" | "emails" | "automations" | "conversations" | "notes" | "offers">("overview");
   
   // Note creation
   const [newNoteText, setNewNoteText] = useState("");
@@ -152,6 +152,11 @@ export function Customer360Modal({
                     SUPPRESSED
                   </AdminBadge>
                 )}
+                {contact?.offers?.some(o => ['CREATED', 'SCHEDULED', 'SENT'].includes(o.status)) && (
+                  <AdminBadge variant="warning" size="sm" className="bg-[#FFEDD5] text-[#C2410C] border-[#FFEDD5]">
+                    ACTIVE OFFER
+                  </AdminBadge>
+                )}
               </div>
               <p className="text-xs text-[#65737A] mt-0.5">
                 {email} · Last Activity: <span className="font-semibold text-[#142126]">{contact ? new Date(contact.lastActivity).toLocaleString() : "..."}</span>
@@ -182,10 +187,11 @@ export function Customer360Modal({
             { id: "overview", label: "Overview", icon: Activity },
             { id: "orders", label: `Orders (${contact?.orders?.length || 0})`, icon: ShoppingCart },
             { id: "lifecycle", label: `Lifecycle (${contact?.lifecycleTimeline?.length || 0})`, icon: Clock },
-            { id: "emails", label: `Emails (${contact?.emails?.length || 0})`, icon: Mail },
-            { id: "automations", label: `Automations (${contact?.automations?.length || 0})`, icon: RefreshCw },
-            { id: "conversations", label: `Conversations (${contact?.threads?.length || 0})`, icon: MessageSquare },
-            { id: "notes", label: `Internal Notes (${contact?.notes?.length || 0})`, icon: FileText }
+              { id: "emails", label: `Emails (${contact?.emails?.length || 0})`, icon: Mail },
+              { id: "automations", label: `Automations (${contact?.automations?.length || 0})`, icon: RefreshCw },
+              { id: "conversations", label: `Conversations (${contact?.threads?.length || 0})`, icon: MessageSquare },
+              { id: "notes", label: `Internal Notes (${contact?.notes?.length || 0})`, icon: FileText },
+              { id: "offers", label: `Offers (${contact?.offers?.length || 0})`, icon: Tag }
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -453,9 +459,54 @@ export function Customer360Modal({
                       ))}
                     </div>
                   )}
+                  </div>
+                )}
+
+              {/* 8. OFFERS TAB */}
+              {activeTab === "offers" && (
+                <div className="space-y-4">
+                  {!contact.offers || contact.offers.length === 0 ? (
+                    <div className="p-8 text-center border border-dashed border-[#D9E2E3] rounded-xl text-xs text-[#65737A]">
+                      No promotional offers or coupons recorded.
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {contact.offers.map((offer) => (
+                        <div key={offer.id} className="p-4 rounded-xl bg-[#FAFCFC] border border-[#D9E2E3] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-bold text-xs text-[#142126] font-mono bg-white px-2 py-0.5 rounded border border-[#D9E2E3]">
+                                {offer.code}
+                              </span>
+                              <AdminBadge
+                                variant={
+                                  offer.status === "REDEEMED" ? "success" :
+                                  ["CREATED", "SCHEDULED", "SENT"].includes(offer.status) ? "warning" : "default"
+                                }
+                                size="sm"
+                              >
+                                {offer.status}
+                              </AdminBadge>
+                              <span className="text-[11px] font-bold text-[#0F8F8A]">
+                                {offer.discountValue}{offer.discountType === "PERCENTAGE" ? "% OFF" : " OFF"}
+                              </span>
+                            </div>
+                            <p className="text-[11px] text-[#65737A] mt-1">
+                              Campaign: {offer.campaignType.replace(/_/g, " ")}
+                            </p>
+                            <div className="text-[11px] text-[#8A979D] mt-1 space-x-2">
+                              <span>Created: {new Date(offer.createdAt).toLocaleDateString()}</span>
+                              {offer.expiresAt && <span>· Expires: {new Date(offer.expiresAt).toLocaleDateString()}</span>}
+                              {offer.redeemedAt && <span className="text-[#0F8F8A]">· Redeemed: {new Date(offer.redeemedAt).toLocaleDateString()}</span>}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
-
+  
               {/* 7. NOTES TAB */}
               {activeTab === "notes" && (
                 <div className="space-y-5">

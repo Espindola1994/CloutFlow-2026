@@ -38,3 +38,22 @@ export const adminCostSettings = pgTable('admin_cost_settings', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });
+
+export const customerOffers = pgTable('customer_offers', {
+  id: text('id').primaryKey().$defaultFn(() => crypto.randomUUID()),
+  customerEmail: varchar('customer_email', { length: 255 }).notNull(),
+  sourceOrderId: text('source_order_id'),
+  sourceJourneyId: text('source_journey_id'),
+  campaignType: varchar('campaign_type', { length: 50 }).notNull(), // POST_PURCHASE_25_OFF
+  discountType: varchar('discount_type', { length: 20 }).notNull(), // PERCENTAGE
+  discountValue: integer('discount_value').notNull(), // 25
+  status: varchar('status', { length: 50 }).default('CREATED').notNull(), // CREATED, SCHEDULED, SENT, REDEEMED, EXPIRED, CANCELED
+  code: varchar('code', { length: 50 }).notNull().unique(),
+  validFrom: timestamp('valid_from', { withTimezone: true }),
+  expiresAt: timestamp('expires_at', { withTimezone: true }),
+  redeemedAt: timestamp('redeemed_at', { withTimezone: true }),
+  redeemedOrderId: text('redeemed_order_id'),
+  metadata: jsonb('metadata').default('{}'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+});
+

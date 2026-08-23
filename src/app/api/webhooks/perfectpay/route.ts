@@ -57,6 +57,17 @@ export async function POST(request: Request) {
             // Also evaluate repeat purchase logic if we have customer email
             const { evaluateRepeatPurchase } = await import('@/services/lifecycle/event.service');
             await evaluateRepeatPurchase(String(payload.customer_email), result.orderId!, payload.sale_amount as string);
+
+            // Phase F: Evaluate and schedule Post-Purchase Offer
+            try {
+              const { schedulePostPurchaseOffer } = await import('@/services/lifecycle/post-purchase.service');
+              await schedulePostPurchaseOffer({
+                customerEmail: String(payload.customer_email),
+                sourceOrderId: result.orderId!
+              });
+            } catch (postPurchaseErr) {
+              console.error('[PerfectPayWebhook] Error scheduling post-purchase offer:', postPurchaseErr);
+            }
           } else if (rawStatus === '10' || rawStatus === 'refunded') {
              await emitLifecycleEvent({
                 customerEmail: String(payload.customer_email),

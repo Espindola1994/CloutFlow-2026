@@ -12,6 +12,7 @@ import {
   crmContactMetadata, 
   customers,
   emailThreads,
+  customerOffers,
 } from '@/db/schema';
 import { eq, desc, asc, inArray, or, ilike, and } from 'drizzle-orm';
 import { validateEmailFormat } from '@/lib/social/normalize';
@@ -34,6 +35,7 @@ export interface CrmContactSummary {
   tags: string[];
   derivedStatus: string;
   totalSpentCents: number;
+  activeOffersCount?: number;
 }
 
 export interface CrmContactDetail extends CrmContactSummary {
@@ -48,6 +50,17 @@ export interface CrmContactDetail extends CrmContactSummary {
     amountCents: number;
     paymentStatus: string;
     fulfillmentStatus: string;
+    createdAt: string;
+  }>;
+  offers?: Array<{
+    id: string;
+    code: string;
+    campaignType: string;
+    discountType: string;
+    discountValue: number;
+    status: string;
+    expiresAt: string | null;
+    redeemedAt: string | null;
     createdAt: string;
   }>;
   lifecycleTimeline: Array<{
@@ -211,62 +224,65 @@ export function deriveContactStatus(params: {
 /**
  * Loads all CRM contacts aggregated by normalized email.
  */
-export async function getCrmContactsList(): Promise<CrmContactSummary[]> {
-  // 1. Fetch raw data across lifecycle events, orders, payment leads, suppressions, metadata
-  const [
-    allEvents,
-    allOrders,
-    allLeads,
-    allSuppressions,
-    allMetadata,
-    allAutomations
-  ] = await Promise.all([
-    db.query.lifecycleEvents.findMany({ orderBy: [desc(lifecycleEvents.createdAt)] }),
-    db.query.orders.findMany({ orderBy: [desc(orders.createdAt)] }),
-    db.query.paymentLeads.findMany({ orderBy: [desc(paymentLeads.createdAt)] }),
-    db.query.emailSuppressions.findMany(),
-    db.query.crmContactMetadata.findMany(),
-    db.query.lifecycleAutomations.findMany({ orderBy: [desc(lifecycleAutomations.createdAt)] })
-  ]);
-
-  // Aggregate by canonical normalized email
-  const contactMap = new Map<string, {
-    email: string;
-    name?: string | null;
-    targets: Set<string>;
-    platforms: Set<string>;
-    events: typeof allEvents;
-    orders: typeof allOrders;
-    leads: typeof allLeads;
-    automations: typeof allAutomations;
-    suppressed: boolean;
-    suppressionReason?: string | null;
-    tags: string[];
-    totalSpentCents: number;
-    lastActivityDate: Date;
-  }>();
-
-  function getOrCreate(emailRaw: string) {
-    const email = normalizeCrmEmail(emailRaw);
-    if (!contactMap.has(email)) {
-      contactMap.set(email, {
-        email,
-        name: null,
-        targets: new Set(),
-        platforms: new Set(),
-        events: [],
-        orders: [],
-        leads: [],
-        automations: [],
-        suppressed: false,
-        suppressionReason: null,
-        tags: [],
-        totalSpentCents: 0,
-        lastActivityDate: new Date(0)
-      });
+  export async function getCrmContactsList(): Promise<CrmContactSummary[]> {
+    // 1. Fetch raw data across lifecycle events, orders, payment leads, suppressions, metadata
+    const [
+      allEvents,
+      allOrders,
+      allLeads,
+      allSuppressions,
+      allMetadata,
+      allAutomations,
+      allOffers
+    ] = await Promise.all([
+      db.query.lifecycleEvents.findMany({ orderBy: [desc(lifecycleEvents.createdAt)] }),
+      db.query.orders.findMany({ orderBy: [desc(orders.createdAt)] }),
+      db.query.paymentLeads.findMany({ orderBy: [desc(paymentLeads.createdAt)] }),
+      db.query.emailSuppressions.findMany(),
+      db.query.crmContactMetadata.findMany(),
+      db.query.lifecycleAutomations.findMany({ orderBy: [desc(lifecycleAutomations.createdAt)] }),
+      db.query.customerOffers.findMany()
+    ]);
+  
+    // Aggregate by canonical normalized email
+    const contactMap = new Map<string, {
+      email: string;
+      name?: string | null;
+      targets: Set<string>;
+      platforms: Set<string>;
+      events: typeof allEvents;
+      orders: typeof allOrders;
+      leads: typeof allLeads;
+      automations: typeof allAutomations;
+      offers: typeof allOffers;
+      suppressed: boolean;
+      suppressionReason?: string | null;
+      tags: string[];
+      totalSpentCents: number;
+      lastActivityDate: Date;
+    }>();
+  
+    function getOrCreate(emailRaw: string) {
+      const email = normalizeCrmEmail(emailRaw);
+      if (!contactMap.has(email)) {
+        contactMap.set(email, {
+          email,
+          name: null,
+          targets: new Set(),
+          platforms: new Set(),
+          events: [],
+          orders: [],
+          leads: [],
+          automations: [],
+          offers: [],
+          suppressed: false,
+          tags: [],
+          totalSpentCents: 0,
+          lastActivityDate: new Date(0),
+        });
+      }
+      return contactMap.get(email)!;
     }
-    return contactMap.get(email)!;
-  }
 
   // Populate suppressions
   for (const s of allSuppressions) {
@@ -325,22 +341,30 @@ export async function getCrmContactsList(): Promise<CrmContactSummary[]> {
     if (lead.customerName && !c.name) c.name = lead.customerName;
   }
 
-  // Populate automations
-  for (const auto of allAutomations) {
-    if (!auto.customerEmail) continue;
-    const c = getOrCreate(auto.customerEmail);
-    c.automations.push(auto);
-  }
+    // Populate automations
+    for (const auto of allAutomations) {
+      if (!auto.customerEmail) continue;
+      const c = getOrCreate(auto.customerEmail);
+      c.automations.push(auto);
+    }
 
-  // Compile summary items
-  const summaries: CrmContactSummary[] = [];
-
-  for (const contact of contactMap.values()) {
-    const ordersCount = contact.orders.length;
-    const completedOrders = contact.orders.filter(o => o.fulfillmentStatus === 'COMPLETED' || o.fulfillmentStatus === 'completed').length;
-    const latestOrder = contact.orders[0];
-    const latestEvent = contact.events[0];
-    const latestAutomation = contact.automations[0];
+    // Populate offers
+    for (const offer of allOffers) {
+      if (!offer.customerEmail) continue;
+      const c = getOrCreate(offer.customerEmail);
+      c.offers.push(offer);
+    }
+  
+    // Compile summary items
+    const summaries: CrmContactSummary[] = [];
+  
+    for (const contact of contactMap.values()) {
+      const ordersCount = contact.orders.length;
+      const completedOrders = contact.orders.filter(o => o.fulfillmentStatus === 'COMPLETED' || o.fulfillmentStatus === 'completed').length;
+      const latestOrder = contact.orders[0];
+      const latestEvent = contact.events[0];
+      const latestAutomation = contact.automations[0];
+      const activeOffersCount = contact.offers.filter(o => ['CREATED', 'SCHEDULED', 'SENT'].includes(o.status)).length;
 
     const customerType = ordersCount > 1 ? 'REPEAT BUYER' : ordersCount === 1 ? 'CUSTOMER' : 'LEAD';
 
@@ -348,7 +372,7 @@ export async function getCrmContactsList(): Promise<CrmContactSummary[]> {
     const hasTargetMissing = contact.orders.some(o => (o.fulfillmentStatus === 'FAILED' || o.fulfillmentStatus === 'failed') && !o.socialUsername && !o.username && !o.targetUrl);
     const hasPostLinkMissing = contact.orders.some(o => (o.fulfillmentStatus === 'FAILED' || o.fulfillmentStatus === 'failed') && o.service?.toLowerCase().includes('like') && !o.targetUrl);
 
-    const derived = deriveContactStatus({
+    const derivedStatus = deriveContactStatus({
       ordersCount,
       latestOrderStatus: latestOrder?.paymentStatus,
       latestFulfillmentStatus: latestOrder?.fulfillmentStatus,
@@ -377,8 +401,9 @@ export async function getCrmContactsList(): Promise<CrmContactSummary[]> {
       suppressionReason: contact.suppressionReason,
       customerType,
       tags: contact.tags,
-      derivedStatus: derived,
-      totalSpentCents: contact.totalSpentCents
+      derivedStatus,
+      totalSpentCents: contact.totalSpentCents,
+      activeOffersCount,
     });
   }
 
@@ -402,7 +427,8 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
     userContexts,
     userSuppression,
     userMetadata,
-    userThreads
+    userThreads,
+    userOffers
   ] = await Promise.all([
     db.query.orders.findMany({
       where: eq(orders.customerEmail, normalized),
@@ -425,17 +451,22 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
       orderBy: [desc(crmNotes.createdAt)]
     }),
     db.query.checkoutContexts.findMany({
+      where: eq(checkoutContexts.customerEmail, normalized),
       orderBy: [desc(checkoutContexts.createdAt)]
     }),
-    db.query.emailSuppressions.findMany({
+    db.query.emailSuppressions.findFirst({
       where: eq(emailSuppressions.customerEmail, normalized)
     }),
-    db.query.crmContactMetadata.findMany({
+    db.query.crmContactMetadata.findFirst({
       where: eq(crmContactMetadata.customerEmail, normalized)
     }),
     db.query.emailThreads.findMany({
       where: eq(emailThreads.customerEmail, normalized),
-      orderBy: [desc(emailThreads.latestMessageAt)]
+      orderBy: [desc(emailThreads.createdAt)]
+    }),
+    db.query.customerOffers.findMany({
+      where: eq(customerOffers.customerEmail, normalized),
+      orderBy: [desc(customerOffers.createdAt)]
     })
   ]);
 
@@ -537,10 +568,10 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
     createdAt: ctx.createdAt.toISOString()
   }));
 
-  const isSuppressed = userSuppression.length > 0;
-  const suppressionReason = isSuppressed ? userSuppression[0].reason : null;
-  const rawTags = userMetadata[0]?.tags || '';
-  const tags = rawTags.split(',').map(t => t.trim()).filter(Boolean);
+  const isSuppressed = !!userSuppression;
+  const suppressionReason = isSuppressed ? userSuppression.reason : null;
+  const rawTags = userMetadata?.tags || '';
+  const tags = rawTags.split(',').map((t: string) => t.trim()).filter(Boolean);
 
   const ordersCount = mappedOrders.length;
   const completedOrders = mappedOrders.filter(o => o.fulfillmentStatus === 'completed').length;
@@ -550,7 +581,7 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
 
   const customerType = ordersCount > 1 ? 'REPEAT BUYER' : ordersCount === 1 ? 'CUSTOMER' : 'LEAD';
 
-  const derived = deriveContactStatus({
+  const derivedStatus = deriveContactStatus({
     ordersCount,
     latestOrderStatus: latestOrder?.paymentStatus,
     latestFulfillmentStatus: latestOrder?.fulfillmentStatus,
@@ -559,6 +590,8 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
   });
 
   const lastActivity = timeline[0]?.createdAt || latestOrder?.createdAt || new Date().toISOString();
+
+  const activeOffersCount = userOffers.filter(o => ['CREATED', 'SCHEDULED', 'SENT'].includes(o.status)).length;
 
   return {
     email: normalized,
@@ -576,9 +609,21 @@ export async function getCrmContactDetail(rawEmail: string): Promise<CrmContactD
     suppressionReason,
     customerType,
     tags,
-    derivedStatus: derived,
+    derivedStatus,
     totalSpentCents,
+    activeOffersCount,
     orders: mappedOrders,
+    offers: userOffers.map(o => ({
+      id: o.id,
+      code: o.code,
+      campaignType: o.campaignType,
+      discountType: o.discountType,
+      discountValue: o.discountValue,
+      status: o.status,
+      expiresAt: o.expiresAt ? o.expiresAt.toISOString() : null,
+      redeemedAt: o.redeemedAt ? o.redeemedAt.toISOString() : null,
+      createdAt: o.createdAt.toISOString(),
+    })),
     lifecycleTimeline: timeline,
     emails,
     automations,

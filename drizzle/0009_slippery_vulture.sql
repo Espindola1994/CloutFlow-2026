@@ -1,0 +1,1 @@
+ALTER TABLE "checkout_contexts" ADD COLUMN "applied_offer_code" varchar(50);
