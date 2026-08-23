@@ -28,9 +28,9 @@ async function fetchHiker(endpoint: string, options: RequestInit = {}): Promise<
     });
     clearTimeout(id);
     return res;
-  } catch (err: any) {
+  } catch (err: unknown) {
     clearTimeout(id);
-    if (err.name === "AbortError") {
+    if (err instanceof Error && err.name === "AbortError") {
       throw new Error("PROVIDER_TIMEOUT");
     }
     throw err;
@@ -117,28 +117,74 @@ export async function resolveInstagramProfileByUsername(
     let posts: InstagramPostItem[] = [];
     if (userId && !isPrivate) {
       try {
-        console.log(`[HikerAPI Log] Buscando mídias para userId: ${userId}`);
-        const mediaRes = await fetchHiker(`https://api.hikerapi.com/v1/user/medias?user_id=${encodeURIComponent(userId)}`);
-        console.log(`[HikerAPI Log] Mídias HTTP status: ${mediaRes.status}`);
+        console.log(`[HikerAPI Log] Buscando mídias para userId: ${userId} / username: ${cleanUsername}`);
+        let mediaRes = await fetchHiker(`https://api.hikerapi.com/v1/user/medias?user_id=${encodeURIComponent(userId)}`);
+        console.log(`[HikerAPI Log] Mídias HTTP status (v1/user/medias?user_id): ${mediaRes.status}`);
+
+        // Fallback para outros endpoints de mídia suportados pelo HikerAPI
+        if (!mediaRes.ok) {
+          console.log(`[HikerAPI Log] Tentando fallback v2/user/medias?user_id=${userId}`);
+          mediaRes = await fetchHiker(`https://api.hikerapi.com/v2/user/medias?user_id=${encodeURIComponent(userId)}`);
+          console.log(`[HikerAPI Log] Mídias HTTP status (v2/user/medias): ${mediaRes.status}`);
+        }
+
+        if (!mediaRes.ok) {
+          console.log(`[HikerAPI Log] Tentando fallback v1/user/medias/by/username?username=${cleanUsername}`);
+          mediaRes = await fetchHiker(`https://api.hikerapi.com/v1/user/medias/by/username?username=${encodeURIComponent(cleanUsername)}`);
+          console.log(`[HikerAPI Log] Mídias HTTP status (v1 medias by username): ${mediaRes.status}`);
+        }
+
         if (mediaRes.ok) {
           const mediaJson = await mediaRes.json();
-          const items: any[] = Array.isArray(mediaJson) ? mediaJson : (mediaJson.items || mediaJson.data || Object.values(mediaJson) || []);
-          posts = items.slice(0, 6).map((m: any) => {
-            const rawUrl =
-              m.thumbnail_url ||
-              m.image_versions?.[0]?.url ||
-              m.image_versions2?.candidates?.[0]?.url ||
-              m.resources?.[0]?.thumbnail_url ||
-              m.resources?.[0]?.image_versions?.[0]?.url ||
-              m.display_url ||
-              `https://ui-avatars.com/api/?name=${cleanUsername}`;
+          console.log(`[HikerAPI Log] mediaJson keys:`, Object.keys(mediaJson || {}));
+          const items: unknown[] = Array.isArray(mediaJson)
+            ? mediaJson
+            : (mediaJson.items || mediaJson.data || mediaJson.response?.items || (Array.isArray(mediaJson.medias) ? mediaJson.medias : []));
+          console.log(`[HikerAPI Log] Raw items count: ${items.length}`);
 
-            return {
-              id: String(m.id || m.pk || m.code || Math.random()),
-              thumbnail_url: String(rawUrl),
-              is_video: Boolean(m.media_type === 2 || m.is_video || m.product_type === "clips" || m.product_type === "feed_video"),
+          const parsedPosts: InstagramPostItem[] = [];
+          for (const m of items.slice(0, 6)) {
+            const obj = m as Record<string, unknown>;
+            const getCandidate = (o: Record<string, unknown>, path: string[]): string | undefined => {
+              let curr: unknown = o;
+              for (const p of path) {
+                if (curr && typeof curr === "object" && p in (curr as Record<string, unknown>)) {
+                  curr = (curr as Record<string, unknown>)[p];
+                } else {
+                  return undefined;
+                }
+              }
+              return typeof curr === "string" ? curr : undefined;
             };
-          });
+
+            const rawUrl =
+              (typeof obj.thumbnail_url === "string" ? obj.thumbnail_url : undefined) ||
+              getCandidate(obj, ["image_versions", "0", "url"]) ||
+              getCandidate(obj, ["image_versions2", "candidates", "0", "url"]) ||
+              getCandidate(obj, ["resources", "0", "thumbnail_url"]) ||
+              getCandidate(obj, ["resources", "0", "image_versions", "0", "url"]) ||
+              getCandidate(obj, ["carousel_media", "0", "image_versions2", "candidates", "0", "url"]) ||
+              (typeof obj.display_url === "string" ? obj.display_url : undefined) ||
+              getCandidate(obj, ["cover_media", "image_versions2", "candidates", "0", "url"]) ||
+              getCandidate(obj, ["video_versions", "0", "url"]) ||
+              "";
+
+            if (rawUrl) {
+              parsedPosts.push({
+                id: String(obj.id || obj.pk || obj.code || Math.random()),
+                thumbnail_url: String(rawUrl),
+                is_video: Boolean(
+                  obj.media_type === 2 ||
+                  obj.is_video ||
+                  obj.product_type === "clips" ||
+                  obj.product_type === "feed_video" ||
+                  obj.product_type === "igtv"
+                ),
+              });
+            }
+          }
+          posts = parsedPosts;
+
           console.log(`[HikerAPI Log] Mídias carregadas com sucesso: ${posts.length} posts`);
         }
       } catch (err) {
@@ -165,8 +211,8 @@ export async function resolveInstagramProfileByUsername(
     console.log(`[HikerAPI Log] Perfil normalizado com sucesso para: ${normalized.username}`);
     socialCache.set(cacheKey, normalized, 180);
     return { success: true, data: normalized };
-  } catch (err: any) {
-    if (err.message === "PROVIDER_TIMEOUT") {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === "PROVIDER_TIMEOUT") {
       return { success: false, code: "PROVIDER_TIMEOUT", message: "A consulta demorou mais que o esperado. Tente novamente." };
     }
     console.error("[HikerAPI Log] Erro não tratado:", err);
@@ -229,8 +275,8 @@ export async function resolveInstagramContentToProfile(
       socialCache.set(cacheKey, profileRes.data, 180);
     }
     return profileRes;
-  } catch (err: any) {
-    if (err.message === "PROVIDER_TIMEOUT") {
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === "PROVIDER_TIMEOUT") {
       return { success: false, code: "PROVIDER_TIMEOUT", message: "A consulta demorou mais que o esperado. Tente novamente." };
     }
     console.error("[HikerAPI] Erro ao resolver conteúdo:", err);

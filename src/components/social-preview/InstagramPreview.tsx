@@ -261,29 +261,23 @@ export function InstagramPreview({ profile, onClose }: { profile: InstagramVerif
             description="Your Instagram profile is private. Please make your profile public and try again."
           />
         </div>
-      ) : (
+      ) : posts.length > 0 ? (
         <div className="grid grid-cols-3 gap-[1px] w-full mt-[1px] bg-white">
-          {posts.length > 0 ? (
-            posts.map((post, i) => (
-              <div className="relative aspect-square w-full bg-neutral-100 overflow-hidden rounded-[0px]" key={post.id || i}>
-                <img src={post.thumbnail_url} alt="" className="w-full h-full object-cover" />
-                {post.is_video && (
-                  <span
-                    className="absolute top-[6px] right-[6px] text-[#FFFFFF] pointer-events-none"
-                    style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }}
-                  >
-                    <Film className="w-[14px] h-[14px] min-[390px]:w-[15px] min-[390px]:h-[15px] stroke-[2.2]" />
-                  </span>
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="col-span-3 py-8 text-center text-[12.5px] text-neutral-400 bg-white">
-              No posts yet
+          {posts.map((post, i) => (
+            <div className="relative aspect-square w-full bg-neutral-100 overflow-hidden rounded-[0px]" key={post.id || i}>
+              <img src={post.thumbnail_url} alt="" className="w-full h-full object-cover" />
+              {post.is_video && (
+                <span
+                  className="absolute top-[6px] right-[6px] text-[#FFFFFF] pointer-events-none"
+                  style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.6))" }}
+                >
+                  <Film className="w-[14px] h-[14px] min-[390px]:w-[15px] min-[390px]:h-[15px] stroke-[2.2]" />
+                </span>
+              )}
             </div>
-          )}
+          ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
