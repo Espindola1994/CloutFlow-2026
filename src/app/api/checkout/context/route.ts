@@ -327,21 +327,44 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const errObj = error instanceof Error ? {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      // @ts-expect-error extra fields
-      code: error.code,
-      // @ts-expect-error extra fields
-      detail: error.detail,
-      // @ts-expect-error extra fields
-      table: error.table,
-      // @ts-expect-error extra fields
-      column: error.column,
-      // @ts-expect-error extra fields
-      constraint: error.constraint,
-    } : { message: String(error) };
+    let errObj: Record<string, unknown> = {};
+    if (error instanceof Error) {
+      errObj = {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+      };
+      // Recursively copy properties including non-enumerable or nested cause/driver error
+      const anyErr = error as any;
+      if (anyErr.cause) {
+        errObj.cause = {
+          name: anyErr.cause.name,
+          message: anyErr.cause.message,
+          code: anyErr.cause.code,
+          detail: anyErr.cause.detail,
+          hint: anyErr.cause.hint,
+          position: anyErr.cause.position,
+          internalPosition: anyErr.cause.internalPosition,
+          internalQuery: anyErr.cause.internalQuery,
+          where: anyErr.cause.where,
+          schema: anyErr.cause.schema,
+          table: anyErr.cause.table,
+          column: anyErr.cause.column,
+          dataType: anyErr.cause.dataType,
+          constraint: anyErr.cause.constraint,
+          file: anyErr.cause.file,
+          line: anyErr.cause.line,
+          routine: anyErr.cause.routine,
+        };
+      }
+      for (const k of Object.getOwnPropertyNames(error)) {
+        if (!['stack', 'name', 'message'].includes(k)) {
+          errObj[k] = (error as any)[k];
+        }
+      }
+    } else {
+      errObj = { message: String(error) };
+    }
 
     console.error('[CheckoutContextAPI] Error:', JSON.stringify(errObj));
     return NextResponse.json(
