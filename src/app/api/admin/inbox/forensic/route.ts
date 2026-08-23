@@ -136,10 +136,25 @@ export async function GET(request: Request) {
 
       report.dbThreads = threads;
       report.dbMessages = messages;
+      
+      // Map correctly to avoid BigInt serialization errors from IMAP flow uid properties
+      // or other db fields
       report.dbSyncStates = syncStates.map((s) => ({
         ...s,
         lastProcessedUid: s.lastProcessedUid ? Number(s.lastProcessedUid) : null,
       }));
+      
+      if (report.mailbox && typeof report.mailbox.uidValidity === 'bigint') {
+        report.mailbox.uidValidity = Number(report.mailbox.uidValidity);
+      }
+      
+      if (report.allImapMessages) {
+        report.allImapMessages = report.allImapMessages.map((msg: any) => ({
+            ...msg,
+            uid: typeof msg.uid === 'bigint' ? Number(msg.uid) : msg.uid
+        }));
+      }
+
     } catch (dbErr: any) {
       report.dbError = dbErr.message;
     }
