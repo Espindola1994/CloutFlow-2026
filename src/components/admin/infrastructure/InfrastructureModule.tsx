@@ -91,7 +91,10 @@ export function InfrastructureModule({ integrations, providers, webhooks }: Infr
             { name: "Admin Password Auth", category: "Authentication", status: "CONFIGURED", details: "process.env.ADMIN_PASSWORD active" },
             { name: "Admin Session Cryptography", category: "Authentication", status: "CONFIGURED", details: "HMAC-SHA256 token signing active" },
             { name: "Primary SMM Provider (Peakerr)", category: "SMM Provider", status: "CONFIGURED", details: "Automated dispatch ready" },
-            { name: "Payment Gateway (CenterPag)", category: "Payment Gateway", status: "CONFIGURED", details: "Webhook listener active" }
+            { name: "Payment Gateway (CenterPag)", category: "Payment Gateway", status: "CONFIGURED", details: "Webhook listener active" },
+            { name: "Gmail SMTP Support Outbound", category: "Email Transport", status: "CONFIGURED", details: "Port 465 / 587 authenticated dispatch" },
+            { name: "Gmail IMAP Support Inbound", category: "Email Transport", status: "CONFIGURED", details: "Port 993 TLS live sync engine" },
+            { name: "Resend Transactional & Recovery", category: "Email Transport", status: "CONFIGURED", details: "API Key verified for lifecycle & receipts" }
           ].map((int) => (
             <AdminCard key={int.name} padded={false} className="p-5 flex flex-col justify-between">
               <div>
