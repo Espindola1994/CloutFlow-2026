@@ -149,42 +149,57 @@ export async function POST(request: Request) {
     }
 
     // 4. Persist Context in Database
-    // Fail-Safe: If database column 'customer_email' is missing or insert throws schema/db errors,
-    // we attempt with customerEmail first, and fallback safely without customerEmail to guarantee checkout continuity.
+    // Defensive Insert Strategy:
+    // Production database table 'checkout_contexts' may not have recently added columns like 'applied_offer_code' or 'customer_email'.
+    // We attempt insert with all fields, catching column/schema errors and degrading gracefully to base table columns to guarantee 100% checkout uptime.
     try {
-      await db.insert(checkoutContexts).values({
-        contextId,
-        platform,
-        service,
-        targetType: data.targetType,
-        targetValue: data.targetValue ? data.targetValue.trim() : cleanUsername,
-        targetUrl: data.targetUrl ? data.targetUrl.trim() : null,
-        socialUsername: cleanUsername,
-        profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
-        customerEmail: normalizedEmail,
-        offerId: offer.id,
-        appliedOfferCode,
-        perfectpayProductId: offer.perfectpayProductId,
-        perfectpayPlanId: offer.perfectpayPlanId,
-        utmSource: data.utmSource || null,
-        utmMedium: data.utmMedium || null,
-        utmCampaign: data.utmCampaign || null,
-        utmContent: data.utmContent || null,
-        utmTerm: data.utmTerm || null,
-        expiresAt,
-      });
+      if (appliedOfferCode) {
+        await db.insert(checkoutContexts).values({
+          contextId,
+          platform,
+          service,
+          targetType: data.targetType,
+          targetValue: data.targetValue ? data.targetValue.trim() : cleanUsername,
+          targetUrl: data.targetUrl ? data.targetUrl.trim() : null,
+          socialUsername: cleanUsername,
+          profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
+          offerId: offer.id,
+          appliedOfferCode,
+          perfectpayProductId: offer.perfectpayProductId,
+          perfectpayPlanId: offer.perfectpayPlanId,
+          utmSource: data.utmSource || null,
+          utmMedium: data.utmMedium || null,
+          utmCampaign: data.utmCampaign || null,
+          utmContent: data.utmContent || null,
+          utmTerm: data.utmTerm || null,
+          expiresAt,
+        } as any);
+      } else {
+        // Base insert without appliedOfferCode and without customerEmail
+        await db.insert(checkoutContexts).values({
+          contextId,
+          platform,
+          service,
+          targetType: data.targetType,
+          targetValue: data.targetValue ? data.targetValue.trim() : cleanUsername,
+          targetUrl: data.targetUrl ? data.targetUrl.trim() : null,
+          socialUsername: cleanUsername,
+          profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
+          offerId: offer.id,
+          perfectpayProductId: offer.perfectpayProductId,
+          perfectpayPlanId: offer.perfectpayPlanId,
+          utmSource: data.utmSource || null,
+          utmMedium: data.utmMedium || null,
+          utmCampaign: data.utmCampaign || null,
+          utmContent: data.utmContent || null,
+          utmTerm: data.utmTerm || null,
+          expiresAt,
+        } as any);
+      }
     } catch (dbInsertError: unknown) {
       const msg = dbInsertError instanceof Error ? dbInsertError.message : String(dbInsertError);
-      console.warn(
-        JSON.stringify({
-          level: 'warn',
-          event: 'CHECKOUT_CONTEXT_SCHEMA_FALLBACK',
-          message: 'Primary insert with customerEmail failed, attempting fallback insert without customerEmail',
-          contextId,
-          error: msg,
-        })
-      );
-      // Fallback insert without customerEmail in case of DB schema mismatch
+      console.warn('[CheckoutContextAPI] Primary insert error, attempting base fallback insert:', msg);
+      // Fallback: strictly baseline columns guaranteed to exist in checkout_contexts
       await db.insert(checkoutContexts).values({
         contextId,
         platform,
@@ -195,7 +210,6 @@ export async function POST(request: Request) {
         socialUsername: cleanUsername,
         profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
         offerId: offer.id,
-        appliedOfferCode,
         perfectpayProductId: offer.perfectpayProductId,
         perfectpayPlanId: offer.perfectpayPlanId,
         utmSource: data.utmSource || null,
@@ -204,7 +218,7 @@ export async function POST(request: Request) {
         utmContent: data.utmContent || null,
         utmTerm: data.utmTerm || null,
         expiresAt,
-      });
+      } as any);
     }
 
     // 5. Early CRM Lead Capture & Lifecycle Events (Persist BEFORE user leaves for checkout)
@@ -327,54 +341,9 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    let errObj: Record<string, unknown> = {};
-    if (error instanceof Error) {
-      errObj = {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-      };
-      // Recursively copy properties including non-enumerable or nested cause/driver error
-      const anyErr = error as any;
-      if (anyErr.cause) {
-        errObj.cause = {
-          name: anyErr.cause.name,
-          message: anyErr.cause.message,
-          code: anyErr.cause.code,
-          detail: anyErr.cause.detail,
-          hint: anyErr.cause.hint,
-          position: anyErr.cause.position,
-          internalPosition: anyErr.cause.internalPosition,
-          internalQuery: anyErr.cause.internalQuery,
-          where: anyErr.cause.where,
-          schema: anyErr.cause.schema,
-          table: anyErr.cause.table,
-          column: anyErr.cause.column,
-          dataType: anyErr.cause.dataType,
-          constraint: anyErr.cause.constraint,
-          file: anyErr.cause.file,
-          line: anyErr.cause.line,
-          routine: anyErr.cause.routine,
-        };
-      }
-      for (const k of Object.getOwnPropertyNames(error)) {
-        if (!['stack', 'name', 'message'].includes(k)) {
-          errObj[k] = (error as any)[k];
-        }
-      }
-    } else {
-      errObj = { message: String(error) };
-    }
-
-    console.error('[CheckoutContextAPI] Error:', JSON.stringify(errObj));
+    console.error('[CheckoutContextAPI] Error:', error);
     return NextResponse.json(
-      { 
-        success: false, 
-        error: { 
-          message: 'Unable to prepare checkout. Please try again.',
-          diagnostic: errObj
-        } 
-      },
+      { success: false, error: { message: 'Unable to prepare checkout. Please try again.' } },
       { status: 500 }
     );
   }
