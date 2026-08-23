@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { customerOffers, customers, orders, paymentLeads } from '@/db/schema';
+import { customerOffers, customers, orders, paymentLeads, emailLogs } from '@/db/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import { requireAdmin } from '@/lib/auth';
 import { generateOfferCode, POST_PURCHASE_OFFER_CAMPAIGN, POST_PURCHASE_DISCOUNT_PERCENT } from '@/services/lifecycle/post-purchase.service';
@@ -120,19 +120,43 @@ export async function POST(request: Request) {
 
 async function sendTestEmail(email: string, code: string, expiresAt: Date) {
   try {
-     const transport = getMarketingEmailTransport(email);
+     const transport = getMarketingEmailTransport(email, true);
      const contextData = { offerCode: code, expiresAt: expiresAt.toISOString() };
      const template = getPostPurchaseOfferTemplate(contextData, { customerEmail: email });
      
-     const sendResult = await transport.send({
-       to: email,
-       subject: template.subject,
-       html: template.html,
-       idempotencyKey: `ADMIN_TEST_${code}`,
-       category: 'marketing'
-     });
+      const sendResult = await transport.send({
+        to: email,
+        subject: template.subject,
+        html: template.html,
+        idempotencyKey: `ADMIN_TEST_${code}`,
+        category: 'marketing'
+      });
 
-     if (sendResult.success) {
+      // Log the email attempt since this is an ADMIN_TEST
+      const logStatus = sendResult.success ? 'SENT' : (sendResult.blocked ? 'BLOCKED' : 'FAILED');
+      try {
+        await db.insert(emailLogs).values({
+          customerEmail: email,
+          sendOrigin: 'MANUAL',
+          category: 'marketing',
+          templateId: POST_PURCHASE_OFFER_CAMPAIGN,
+          provider: 'RESEND',
+          providerMessageId: sendResult.messageId || null,
+          status: logStatus,
+          subject: template.subject,
+          sentAt: sendResult.success && !sendResult.blocked ? new Date() : null,
+          metadata: {
+            isTest: true,
+            source: 'ADMIN_TEST',
+            error: sendResult.error ? String(sendResult.error) : null,
+            reason: sendResult.reason
+          }
+        });
+      } catch (logError) {
+        console.error('[AdminTestOffers] Failed to log email attempt:', logError);
+      }
+
+      if (sendResult.success && !sendResult.blocked) {
        return { success: true };
      } else {
        return { success: false, error: sendResult.error || sendResult.reason };

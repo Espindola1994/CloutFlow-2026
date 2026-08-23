@@ -81,14 +81,14 @@ describe('Admin Test Offers API', () => {
       expect(json.error.message).toContain('already has an active Test Offer');
     });
 
-    it('creates a test offer if valid', async () => {
+    it('creates a test offer and sends an email when sendEmail is true', async () => {
       (db.query.customers.findFirst as any).mockResolvedValueOnce({ id: '1', email: 'test@example.com' });
       (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]); // No active offers
 
       const request = new Request('http://localhost/api/admin/test-offers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ customerEmail: 'test@example.com', sendEmail: false })
+        body: JSON.stringify({ customerEmail: 'test@example.com', sendEmail: true })
       });
 
       const response = await POST(request);
@@ -97,8 +97,8 @@ describe('Admin Test Offers API', () => {
       const json = await response.json();
       expect(json.success).toBe(true);
       
-      // Verify db.insert was called
-      expect(db.insert).toHaveBeenCalled();
+      // Verify db.insert was called for offer and email_logs
+      expect(db.insert).toHaveBeenCalledTimes(2);
     });
 
     it('creates a test offer with default validity of 48 hours', async () => {
