@@ -327,9 +327,31 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    console.error('[CheckoutContextAPI] Error:', error);
+    const errObj = error instanceof Error ? {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+      // @ts-expect-error extra fields
+      code: error.code,
+      // @ts-expect-error extra fields
+      detail: error.detail,
+      // @ts-expect-error extra fields
+      table: error.table,
+      // @ts-expect-error extra fields
+      column: error.column,
+      // @ts-expect-error extra fields
+      constraint: error.constraint,
+    } : { message: String(error) };
+
+    console.error('[CheckoutContextAPI] Error:', JSON.stringify(errObj));
     return NextResponse.json(
-      { success: false, error: { message: 'Unable to prepare checkout. Please try again.' } },
+      { 
+        success: false, 
+        error: { 
+          message: 'Unable to prepare checkout. Please try again.',
+          diagnostic: errObj
+        } 
+      },
       { status: 500 }
     );
   }
