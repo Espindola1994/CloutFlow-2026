@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET as getPublicOffer } from '@/app/api/offers/[code]/route';
 
@@ -7,6 +8,7 @@ vi.mock('@/db', () => ({
     query: {
       customerOffers: { findMany: vi.fn() },
       offers: { findMany: vi.fn() },
+      orders: { findMany: vi.fn() },
     },
   },
 }));
@@ -156,5 +158,79 @@ describe('Public Offer Landing API (/api/offers/[code])', () => {
     expect(json.success).toBe(true);
     expect(json.data.code).toBe('CF25-ADM12345');
     expect(json.data.couponCode).toBe('FLOW25');
+  });
+
+  it('F. Evaluates previousTarget from customerOffer metadata if available', async () => {
+    const offerWithMeta = {
+      id: 'cust-off-meta',
+      customerEmail: 'returning@example.com',
+      campaignType: 'POST_PURCHASE_25_OFF',
+      discountType: 'PERCENTAGE',
+      discountValue: 25,
+      status: 'ACTIVE',
+      code: 'CF25-META1234',
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      createdAt: new Date(),
+      metadata: {
+        platform: 'instagram',
+        targetHandle: 'guilhermeterraaa',
+        targetType: 'profile',
+      },
+    };
+
+    (db.query.customerOffers.findMany as any).mockResolvedValueOnce([offerWithMeta]);
+    (db.query.offers.findMany as any).mockResolvedValueOnce([mockActiveGrowthOffer]);
+
+    const req = new Request('http://localhost/api/offers/CF25-META1234');
+    const res = await getPublicOffer(req, { params: { code: 'CF25-META1234' } });
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.previousTarget).toEqual({
+      platform: 'instagram',
+      username: 'guilhermeterraaa',
+      targetType: 'profile',
+      profileUrl: null,
+    });
+    // Ensure no sensitive fields
+    expect(json.data.customerEmail).toBeUndefined();
+  });
+
+  it('G. Evaluates previousTarget from previous customer order history', async () => {
+    const offerWithoutMeta = {
+      id: 'cust-off-history',
+      customerEmail: 'returning2@example.com',
+      campaignType: 'POST_PURCHASE_25_OFF',
+      discountType: 'PERCENTAGE',
+      discountValue: 25,
+      status: 'ACTIVE',
+      code: 'CF25-HIST1234',
+      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+      createdAt: new Date(),
+      sourceOrderId: 'ord-123',
+    };
+
+    const previousOrder = {
+      id: 'ord-123',
+      platform: 'tiktok',
+      socialUsername: 'tiktokcreator',
+      profileUrl: 'https://tiktok.com/@tiktokcreator',
+    };
+
+    (db.query.customerOffers.findMany as any).mockResolvedValueOnce([offerWithoutMeta]);
+    (db.query.orders.findMany as any).mockResolvedValueOnce([previousOrder]);
+    (db.query.offers.findMany as any).mockResolvedValueOnce([mockActiveGrowthOffer]);
+
+    const req = new Request('http://localhost/api/offers/CF25-HIST1234');
+    const res = await getPublicOffer(req, { params: { code: 'CF25-HIST1234' } });
+
+    expect(res.status).toBe(200);
+    const json = await res.json();
+    expect(json.data.previousTarget).toEqual({
+      platform: 'tiktok',
+      username: 'tiktokcreator',
+      targetType: 'profile',
+      profileUrl: 'https://tiktok.com/@tiktokcreator',
+    });
   });
 });

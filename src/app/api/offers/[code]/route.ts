@@ -1,7 +1,8 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from 'next/server';
 import { db } from '@/db';
-import { customerOffers, offers } from '@/db/schema';
-import { eq, and, asc } from 'drizzle-orm';
+import { customerOffers, offers, orders } from '@/db/schema';
+import { eq, asc, desc } from 'drizzle-orm';
 import { getEffectiveOfferStatus, formatOfferDateTime } from '@/services/offers/offer-status';
 import { PERFECTPAY_POST_PURCHASE_COUPON } from '@/lib/coupons';
 
@@ -63,6 +64,60 @@ export async function GET(
     }
 
     // 4. Fetch Active Growth Offers for Package Selection
+    let previousTarget: {
+      platform: string;
+      username: string;
+      targetType?: string;
+      profileUrl?: string | null;
+    } | null = null;
+
+    try {
+      if (customerOffer.metadata && typeof customerOffer.metadata === 'object') {
+        const m = customerOffer.metadata as Record<string, any>;
+        if (m.platform && (m.targetHandle || m.socialUsername || m.username)) {
+          previousTarget = {
+            platform: String(m.platform).toLowerCase(),
+            username: String(m.targetHandle || m.socialUsername || m.username).replace(/^@+/, ''),
+            targetType: m.targetType || 'profile',
+            profileUrl: m.profileUrl || null,
+          };
+        }
+      }
+
+      if (!previousTarget && customerOffer.sourceOrderId && customerOffer.sourceOrderId !== 'ADMIN_TEST') {
+        const [sourceOrder] = await db.query.orders.findMany({
+          where: eq(orders.id, customerOffer.sourceOrderId),
+          limit: 1,
+        }).catch(() => []);
+        if (sourceOrder && sourceOrder.platform && (sourceOrder.socialUsername || sourceOrder.username)) {
+          previousTarget = {
+            platform: String(sourceOrder.platform).toLowerCase(),
+            username: String(sourceOrder.socialUsername || sourceOrder.username).replace(/^@+/, ''),
+            targetType: 'profile',
+            profileUrl: sourceOrder.profileUrl || null,
+          };
+        }
+      }
+
+      if (!previousTarget && customerOffer.customerEmail) {
+        const [lastOrder] = await db.query.orders.findMany({
+          where: eq(orders.customerEmail, customerOffer.customerEmail),
+          orderBy: [desc(orders.createdAt)],
+          limit: 1,
+        }).catch(() => []);
+        if (lastOrder && lastOrder.platform && (lastOrder.socialUsername || lastOrder.username)) {
+          previousTarget = {
+            platform: String(lastOrder.platform).toLowerCase(),
+            username: String(lastOrder.socialUsername || lastOrder.username).replace(/^@+/, ''),
+            targetType: 'profile',
+            profileUrl: lastOrder.profileUrl || null,
+          };
+        }
+      }
+    } catch (targetErr) {
+      console.warn('[PublicOfferAPI] previousTarget evaluation warning:', targetErr);
+    }
+
     const activePackages = await db.query.offers.findMany({
       where: eq(offers.active, true),
       orderBy: [asc(offers.sortOrder), asc(offers.priceCents)],
@@ -103,6 +158,7 @@ export async function GET(
         status: effectiveStatus,
         expiresAt,
         formattedExpiresAt,
+        previousTarget,
         packages: sanitizedPackages,
       },
     });

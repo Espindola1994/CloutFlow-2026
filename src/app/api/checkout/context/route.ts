@@ -123,7 +123,7 @@ export async function POST(request: Request) {
     const cleanUsername = data.socialUsername
       ? data.socialUsername.replace(/^@+/, '').trim()
       : null;
-    const normalizedEmail = data.email ? data.email.trim().toLowerCase() : null;
+    let normalizedEmail = data.email ? data.email.trim().toLowerCase() : null;
 
     // Phase F: Evaluate offer code
     let appliedOfferCode: string | null = null;
@@ -136,6 +136,9 @@ export async function POST(request: Request) {
         });
         if (customerOffer && getEffectiveOfferStatus(customerOffer) === 'ACTIVE') {
           appliedOfferCode = customerOffer.code;
+          if (!normalizedEmail && customerOffer.customerEmail) {
+            normalizedEmail = customerOffer.customerEmail;
+          }
         }
       } catch (err) {
         console.warn('[CheckoutContextAPI] customerOffers lookup warning:', err instanceof Error ? err.message : String(err));
