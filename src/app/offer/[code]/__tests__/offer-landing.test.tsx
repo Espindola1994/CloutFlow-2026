@@ -90,7 +90,7 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     ],
   };
 
-  it('A & B. Renders welcome back prefill with previous target when available', async () => {
+  it('A & B. Renders welcome back prefill with previous target and automatically resolves live avatar', async () => {
     global.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes('/api/offers/')) {
         return Promise.resolve({
@@ -98,17 +98,83 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
           json: async () => mockActiveOfferResponse,
         } as any);
       }
+      if (url.includes('/api/search/resolve')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            resolvedType: 'profile',
+            data: mockResolvedInstagramProfile,
+          }),
+        } as any);
+      }
       return Promise.reject(new Error('Unknown URL'));
     });
 
     render(<OfferLandingPage />);
 
+    // First renders with previous target info
     await waitFor(() => {
       expect(screen.getByText('Welcome Back')).toBeDefined();
       expect(screen.getByText('@guilhermeterraaa')).toBeDefined();
       expect(screen.getByText('gui*****@gmail.com')).toBeDefined();
       expect(screen.getByText('2,000 Followers')).toBeDefined();
     });
+
+    // Automatically resolves real live avatar without any user click and updates image
+    await waitFor(() => {
+      const img = screen.getByAltText('guilhermeterraaa');
+      expect(img).toBeDefined();
+      expect(img.getAttribute('src')).toBe('https://example.com/avatar.jpg');
+    });
+
+    // Remains on Step 01 (does NOT advance to Step 02 preview)
+    expect(screen.getByText('Welcome Back')).toBeDefined();
+    expect(screen.queryByText('Confirm Your Profile')).toBeNull();
+  });
+
+  it('Reuses silent auto-resolved profile when user clicks Confirm & View Packages', async () => {
+    const resolveCalls: any[] = [];
+    global.fetch = vi.fn().mockImplementation((url: string, options?: any) => {
+      if (url.includes('/api/offers/')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockActiveOfferResponse,
+        } as any);
+      }
+      if (url.includes('/api/search/resolve')) {
+        resolveCalls.push({ url, options });
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            resolvedType: 'profile',
+            data: mockResolvedInstagramProfile,
+          }),
+        } as any);
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    render(<OfferLandingPage />);
+
+    // Wait for initial silent resolution
+    await waitFor(() => {
+      const img = screen.getByAltText('guilhermeterraaa');
+      expect(img.getAttribute('src')).toBe('https://example.com/avatar.jpg');
+    });
+
+    expect(resolveCalls.length).toBe(1);
+
+    // User clicks Confirm & View Packages
+    fireEvent.click(screen.getByText('Confirm & View Packages'));
+
+    // Advances to Step 02 preview without making another search request
+    await waitFor(() => {
+      expect(screen.getByText('Confirm Your Profile')).toBeDefined();
+    });
+
+    expect(resolveCalls.length).toBe(1);
   });
 
   it('C. "Use another profile" switches to manual lookup input with platform selection', async () => {

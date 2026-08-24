@@ -175,6 +175,7 @@ describe('Public Offer Landing API (/api/offers/[code])', () => {
         platform: 'instagram',
         targetHandle: 'guilhermeterraaa',
         targetType: 'profile',
+        avatarUrl: 'https://example.com/historical-pic.jpg',
       },
     };
 
@@ -191,7 +192,7 @@ describe('Public Offer Landing API (/api/offers/[code])', () => {
       username: 'guilhermeterraaa',
       targetType: 'profile',
       profileUrl: null,
-      avatarUrl: null,
+      avatarUrl: 'https://example.com/historical-pic.jpg',
       maskedEmail: 'ret*****@example.com',
       previousPackageName: null,
     });

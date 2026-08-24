@@ -16,6 +16,8 @@ interface OfferWelcomeStageProps {
     maskedEmail?: string | null;
     previousPackageName?: string | null;
   };
+  liveAvatarUrl?: string | null;
+  isLoadingLiveAvatar?: boolean;
   timeLeft: string | null;
   theme: OfferPlatformTheme;
   onConfirm: () => void;
@@ -24,11 +26,19 @@ interface OfferWelcomeStageProps {
 
 export function OfferWelcomeStage({
   previousTarget,
+  liveAvatarUrl,
+  isLoadingLiveAvatar = false,
   timeLeft,
   theme,
   onConfirm,
   onSwitchProfile,
 }: OfferWelcomeStageProps) {
+  // Data Priority:
+  // 1. Current live avatar returned by silent resolver
+  // 2. Stored historical real avatar while resolver is loading
+  // 3. Platform placeholder fallback
+  const effectiveAvatarUrl = liveAvatarUrl || previousTarget.avatarUrl || null;
+
   return (
     <div className="w-full max-w-[680px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-200">
       {/* Top Header info */}
@@ -74,9 +84,10 @@ export function OfferWelcomeStage({
             identity={{
               platform: previousTarget.platform,
               username: previousTarget.username,
-              avatarUrl: previousTarget.avatarUrl,
+              avatarUrl: effectiveAvatarUrl,
               maskedEmail: previousTarget.maskedEmail,
               isConfirmed: false,
+              isLoadingAvatar: isLoadingLiveAvatar,
             }}
             theme={theme}
             size="lg"

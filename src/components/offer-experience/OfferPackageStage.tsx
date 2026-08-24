@@ -78,7 +78,7 @@ export function OfferPackageStage({
               identity={{
                 platform,
                 username: verifiedProfile?.username || '',
-                avatarUrl: verifiedProfile?.avatar_url || verifiedProfile?.profile_pic_url,
+                avatarUrl: verifiedProfile?.avatar_url || verifiedProfile?.profile_pic_url || verifiedProfile?.avatarUrl || verifiedProfile?.profileImageUrl || verifiedProfile?.avatar || verifiedProfile?.picture || null,
                 maskedEmail: verifiedProfile?.maskedEmail || null,
                 isConfirmed: true,
               }}

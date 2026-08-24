@@ -87,7 +87,7 @@ export async function GET(
             username: String(m.targetHandle || m.socialUsername || m.username).replace(/^@+/, ''),
             targetType: m.targetType || 'profile',
             profileUrl: m.profileUrl || null,
-            avatarUrl: m.avatarUrl || m.profilePicUrl || m.profileImageUrl || m.avatar || null,
+            avatarUrl: m.avatarUrl || m.profilePicUrl || m.profileImageUrl || m.avatar || m.avatar_url || m.profile_pic_url || m.profile_image_url || m.picture || null,
             maskedEmail: m.maskedEmail || maskedEmail,
             previousPackageName: m.previousPackageName || m.packageName || null,
           };

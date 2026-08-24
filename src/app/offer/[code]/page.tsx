@@ -48,6 +48,12 @@ export default function OfferLandingPage() {
   // Flow State
   const [flowStep, setFlowStep] = useState<FlowStep>('PREFILL');
 
+  // Silent Auto-Resolution State (Step 01 Live Avatar Enrichment)
+  const [liveAvatarUrl, setLiveAvatarUrl] = useState<string | null>(null);
+  const [isLoadingLiveAvatar, setIsLoadingLiveAvatar] = useState(false);
+  const autoResolvedProfileRef = useRef<any | null>(null);
+  const autoResolutionStartedRef = useRef(false);
+
   // Lookup State
   const [targetPlatform, setTargetPlatform] = useState<PlatformKey>('instagram');
   const [lookupInput, setLookupInput] = useState('');
@@ -127,6 +133,128 @@ export default function OfferLandingPage() {
     return () => clearInterval(interval);
   }, [offerData?.expiresAt]);
 
+  const extractAvatarUrl = (profileData: any): string | null => {
+    if (!profileData) return null;
+    return (
+      profileData.avatar_url ||
+      profileData.profile_pic_url ||
+      profileData.profile_pic_url_hd ||
+      profileData.avatarUrl ||
+      profileData.profileImageUrl ||
+      profileData.avatar ||
+      profileData.picture ||
+      null
+    );
+  };
+
+  const isMatchingIdentity = (
+    expectedUsername: string,
+    resolvedUsername: string | undefined
+  ): boolean => {
+    if (!expectedUsername || !resolvedUsername) return false;
+    const cleanExpected = expectedUsername.replace(/^@+/, '').trim().toLowerCase();
+    const cleanResolved = resolvedUsername.replace(/^@+/, '').trim().toLowerCase();
+    return cleanExpected === cleanResolved;
+  };
+
+  // Step 01 Silent Auto-Resolution of Live Avatar
+  useEffect(() => {
+    const prev = offerData?.previousTarget;
+    if (
+      !offerData ||
+      offerData.status !== 'ACTIVE' ||
+      !prev ||
+      !prev.platform ||
+      !prev.username ||
+      autoResolutionStartedRef.current
+    ) {
+      return;
+    }
+
+    autoResolutionStartedRef.current = true;
+    let isCancelled = false;
+
+    const performSilentAutoResolution = async () => {
+      const requestedUsername = prev.username.trim();
+      const requestedPlatform = prev.platform.trim().toLowerCase();
+
+      try {
+        setIsLoadingLiveAvatar(true);
+
+        const res = await fetch('/api/search/resolve', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            input: requestedUsername,
+            selectedPlatform: requestedPlatform,
+          }),
+        });
+        const data = await res.json().catch(() => null);
+
+        if (isCancelled) return;
+
+        if (res.ok && data?.success && data?.data && data?.resolvedType === 'profile') {
+          if (isMatchingIdentity(requestedUsername, data.data.username)) {
+            const liveAvatar = extractAvatarUrl(data.data);
+            if (liveAvatar) {
+              setLiveAvatarUrl(liveAvatar);
+            }
+            autoResolvedProfileRef.current = data.data;
+          }
+          return;
+        }
+
+        // If pending, poll /api/search/status silently
+        if (res.ok && data?.success && data?.status === 'pending' && data?.requestId) {
+          let currentRequestId = data.requestId;
+          const startTime = Date.now();
+          const maxPollDuration = 35000;
+
+          while (!isCancelled && Date.now() - startTime < maxPollDuration) {
+            await new Promise((r) => setTimeout(r, 2500));
+            if (isCancelled) return;
+
+            const statusRes = await fetch(
+              `/api/search/status?requestId=${encodeURIComponent(currentRequestId)}`
+            );
+            const statusJson = await statusRes.json().catch(() => null);
+
+            if (!statusJson) continue;
+            if (statusJson.status === 'pending' && statusJson.requestId) {
+              currentRequestId = statusJson.requestId;
+            }
+            if (statusJson.status === 'complete' && statusJson.data) {
+              if (isMatchingIdentity(requestedUsername, statusJson.data.username)) {
+                const liveAvatar = extractAvatarUrl(statusJson.data);
+                if (liveAvatar) {
+                  setLiveAvatarUrl(liveAvatar);
+                }
+                autoResolvedProfileRef.current = statusJson.data;
+              }
+              return;
+            }
+            if (statusJson.status === 'failed') {
+              // Silent failure: keep historical fallback, don't crash
+              return;
+            }
+          }
+        }
+      } catch {
+        // Silent failure: keep fallback
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingLiveAvatar(false);
+        }
+      }
+    };
+
+    performSilentAutoResolution();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [offerData]);
+
   const handleCopyCouponOnly = async () => {
     if (!offerData?.couponCode) return;
     try {
@@ -134,6 +262,21 @@ export default function OfferLandingPage() {
       setCopied(true);
       setTimeout(() => setCopied(false), 3000);
     } catch {}
+  };
+
+  const handleConfirmWelcome = async () => {
+    if (!offerData?.previousTarget) return;
+    const { username, platform } = offerData.previousTarget;
+
+    // If already auto-resolved and identity matches, reuse result directly!
+    const cachedProfile = autoResolvedProfileRef.current;
+    if (cachedProfile && isMatchingIdentity(username, cachedProfile.username)) {
+      checkRestrictionAndSetProfile(cachedProfile, platform);
+      return;
+    }
+
+    // Otherwise trigger normal lookup
+    handleStartLookup(username, platform);
   };
 
   const handleStartLookup = async (inputStr: string, platform: string) => {
@@ -393,14 +536,11 @@ export default function OfferLandingPage() {
         {flowStep === 'PREFILL' && offerData.previousTarget && (
           <OfferWelcomeStage
             previousTarget={offerData.previousTarget}
+            liveAvatarUrl={liveAvatarUrl}
+            isLoadingLiveAvatar={isLoadingLiveAvatar}
             timeLeft={timeLeft}
             theme={currentTheme}
-            onConfirm={() =>
-              handleStartLookup(
-                offerData.previousTarget!.username,
-                offerData.previousTarget!.platform
-              )
-            }
+            onConfirm={handleConfirmWelcome}
             onSwitchProfile={() => setFlowStep('LOOKUP')}
           />
         )}

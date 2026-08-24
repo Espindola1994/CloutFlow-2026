@@ -23,6 +23,7 @@ export interface RepeatProfileIdentity {
   maskedEmail?: string | null;
   avatarUrl?: string | null;
   isConfirmed?: boolean;
+  isLoadingAvatar?: boolean;
 }
 
 interface RepeatProfilePresentationProps {
@@ -58,6 +59,12 @@ export function RepeatProfilePresentation({
     ? 'w-9 h-9'
     : 'w-11 h-11 sm:w-12 sm:h-12';
 
+  const ringInsetClass = isLg
+    ? '-inset-1'
+    : isSm
+    ? '-inset-0.5'
+    : '-inset-0.5';
+
   const iconBadgeSize = isLg ? 'w-5 h-5' : isSm ? 'w-4 h-4' : 'w-4.5 h-4.5';
   const iconImgSize = isLg ? 12 : isSm ? 9 : 11;
 
@@ -72,6 +79,15 @@ export function RepeatProfilePresentation({
       <div className="flex items-center gap-3.5 min-w-0">
         {/* Avatar Container */}
         <div className="relative shrink-0">
+          {/* Subtle loading ring when silent avatar enrichment is active */}
+          {identity.isLoadingAvatar && (
+            <div
+              className={`absolute ${ringInsetClass} rounded-full border-2 border-transparent border-t-current animate-spin pointer-events-none z-10`}
+              style={{ color: theme.primary }}
+              aria-label="Enriching profile avatar"
+            />
+          )}
+
           {identity.avatarUrl ? (
             <img
               src={identity.avatarUrl}
