@@ -24,11 +24,11 @@ interface OfferLoadingStageProps {
 
 export function OfferLoadingStage({ platform, theme, onCancel }: OfferLoadingStageProps) {
   return (
-    <div className="w-full max-w-[540px] mx-auto py-6 animate-in fade-in zoom-in-95 duration-200">
+    <div className="w-full max-w-[520px] mx-auto py-6 animate-in fade-in zoom-in-95 duration-200">
       <div
         className="bg-white/95 backdrop-blur-xs rounded-2xl p-7 text-center border relative overflow-hidden transition-all"
         style={{
-          boxShadow: '0 8px 24px -4px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04)',
+          boxShadow: '0 8px 24px -4px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03)',
           borderColor: '#E2E8F0',
         }}
       >
@@ -58,7 +58,7 @@ export function OfferLoadingStage({ platform, theme, onCancel }: OfferLoadingSta
         </div>
 
         <span
-          className="inline-block text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border"
+          className="inline-block text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border"
           style={{
             color: theme.primary,
             backgroundColor: theme.accentSubtle,
@@ -68,7 +68,7 @@ export function OfferLoadingStage({ platform, theme, onCancel }: OfferLoadingSta
           {theme.name} Verification
         </span>
 
-        <h2 className="text-[20px] sm:text-[22px] font-black text-[#0F172A] tracking-tight mt-2 mb-1">
+        <h2 className="text-[20px] sm:text-[22px] font-[800] text-[#081126] tracking-tight mt-2 mb-1">
           Locating Profile...
         </h2>
         <p className="text-[13px] text-[#64748B] mb-5 max-w-sm mx-auto font-medium">
@@ -79,7 +79,7 @@ export function OfferLoadingStage({ platform, theme, onCancel }: OfferLoadingSta
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-[#FAFAFC] hover:bg-white hover:text-[#0F172A] text-[12px] font-bold text-[#64748B] transition cursor-pointer shadow-2xs"
+          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-[#E2E8F0] bg-[#FAFAFC] hover:bg-white hover:text-[#081126] text-[12px] font-bold text-[#64748B] transition cursor-pointer shadow-2xs"
         >
           <RotateCcw size={13} />
           <span>Cancel search</span>
@@ -88,3 +88,4 @@ export function OfferLoadingStage({ platform, theme, onCancel }: OfferLoadingSta
     </div>
   );
 }
+

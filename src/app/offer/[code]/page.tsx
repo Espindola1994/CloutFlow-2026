@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react-hooks/purity, react-hooks/set-state-in-effect, @next/next/no-img-element */
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars, react-hooks/purity, react-hooks/set-state-in-effect */
 'use client';
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
@@ -305,7 +305,7 @@ export default function OfferLandingPage() {
   // LOADING STATE
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-between relative overflow-hidden">
+      <main className="min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-hidden font-sans">
         <OfferHeader
           timeLeft={timeLeft}
           isExpiredLocally={isExpiredLocally}
@@ -324,7 +324,7 @@ export default function OfferLandingPage() {
   // EXPIRED OR INVALID STATE
   if (errorMsg || isExpiredLocally || !offerData) {
     return (
-      <main className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-between relative overflow-hidden">
+      <main className="min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-hidden font-sans">
         <OfferHeader
           timeLeft={null}
           isExpiredLocally={true}
@@ -344,14 +344,24 @@ export default function OfferLandingPage() {
   }
 
   return (
-    <main className="min-h-[100dvh] bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-between relative overflow-x-hidden selection:bg-[#1376FF]/20">
-      {/* Platform Ambient Side Glows (2.5D Background Atmosphere) */}
+    <main className="min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-x-hidden selection:bg-[#1376FF]/20 font-sans">
+      {/* Background Decorative Ambience Matching Public Pages */}
       <div
         className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-700 ease-out"
         style={{
-          background: `${currentTheme.ambientGlowLeft}, ${currentTheme.ambientGlowRight}`,
+          background: `
+            radial-gradient(circle at 9% 31%, rgba(120,170,255,.045), transparent 18%),
+            radial-gradient(circle at 90% 33%, color-mix(in srgb, ${currentTheme.primary} 5%, transparent), transparent 20%),
+            ${currentTheme.ambientGlowLeft},
+            ${currentTheme.ambientGlowRight}
+          `,
         }}
       />
+
+      {/* Decorative Brand Dots / Outline Ambience */}
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-30 select-none" aria-hidden="true">
+        <span className="absolute top-[80px] right-[5%] text-[11px] font-bold text-[#1376FF]/25 border border-[#1376FF]/20 rounded-full px-2 py-0.5">✦ CloutFlow Direct</span>
+      </div>
 
       {/* 2.5D Sticky Header & Stepper */}
       <OfferHeader
@@ -363,7 +373,7 @@ export default function OfferLandingPage() {
       />
 
       {/* Main Content Area (adapts to viewport) */}
-      <div className="flex-1 max-w-[1120px] w-full mx-auto px-4 sm:px-6 py-6 z-10 flex flex-col justify-center">
+      <div className="flex-1 max-w-[1120px] w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 z-10 flex flex-col justify-center">
         {/* =========================================================================
             SCREEN 1: WELCOME BACK (PREFILL STAGE)
            ========================================================================= */}

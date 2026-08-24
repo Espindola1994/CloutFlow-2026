@@ -41,38 +41,38 @@ export function OfferHeader({
 }: OfferHeaderProps) {
   return (
     <header className="w-full bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] sticky top-0 z-40 transition-colors duration-300 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)]">
-      {/* Top Navbar Row */}
-      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 h-[60px] flex items-center justify-between">
-        {/* Brand */}
+      {/* Top Navbar Row: 56px */}
+      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 h-[56px] flex items-center justify-between">
+        {/* Brand: canonical CloutFlow brand */}
         <Link
           href="/"
-          className="flex items-center gap-1 text-[#0F172A] font-black text-[18px] tracking-tight hover:opacity-90 transition-opacity"
+          className="flex items-center text-[#081126] font-[800] text-[22px] tracking-tight hover:opacity-90 transition-opacity"
         >
           <span>Clout</span>
           <span className="text-[#1376FF]">Flow</span>
-          <ArrowUpRight className="w-4 h-4 text-[#1376FF] -mt-2 -ml-0.5 stroke-[3]" />
+          <ArrowUpRight className="w-4 h-4 text-[#1376FF] -mt-2 -ml-0.5 stroke-[2.7]" />
         </Link>
 
         {/* Right Status Badges */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5">
           {timeLeft && !isExpiredLocally && (
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#E2E8F0] text-[12px] font-semibold text-[#475569] shadow-[0_2px_6px_rgba(0,0,0,0.03)]">
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#E2E8F0] text-[12px] font-semibold text-[#475569] shadow-[0_2px_6px_rgba(0,0,0,0.02)]">
               <Clock className="w-3.5 h-3.5 text-[#1376FF]" />
               <span>
-                Expires: <strong className="text-[#0F172A] font-mono">{timeLeft}</strong>
+                Expires: <strong className="text-[#081126] font-mono">{timeLeft}</strong>
               </span>
             </div>
           )}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[12px] font-bold text-[#1D4ED8] shadow-[0_2px_6px_rgba(29,78,216,0.06)]">
+          <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[11px] sm:text-[12px] font-bold text-[#1D4ED8] shadow-[0_2px_6px_rgba(29,78,216,0.04)]">
             <Tag className="w-3.5 h-3.5 text-[#2563EB]" />
-            <span>Repeat Purchase · 25% Off</span>
+            <span>25% Off Repeat Offer</span>
           </div>
         </div>
       </div>
 
-      {/* 2.5D Adaptive Stepper */}
+      {/* Lightweight Stepper: 48px */}
       <div className="border-t border-[#F1F5F9] bg-[#FAFAFC]/90">
-        <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-2 flex items-center justify-between sm:justify-center sm:gap-8 text-[12px]">
+        <div className="max-w-[1120px] mx-auto px-4 sm:px-6 h-[48px] flex items-center justify-between sm:justify-center sm:gap-8 text-[12px]">
           {STEPS.map((st, idx) => {
             const isCompleted = currentStepNum > st.num;
             const isCurrent = currentStepNum === st.num;
@@ -80,24 +80,30 @@ export function OfferHeader({
             return (
               <React.Fragment key={st.num}>
                 <div
-                  className={`flex items-center gap-2 transition-transform duration-200 ${
+                  className={`flex items-center gap-2 transition-all duration-200 ${
                     isCurrent ? 'scale-[1.02]' : ''
                   }`}
                 >
-                  {/* Step Bubble with 2.5D elevation */}
+                  {/* Step Bubble with platform-aware completed / current / future state */}
                   <div
                     className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-extrabold transition-all duration-300 ${
                       isCompleted
-                        ? 'bg-[#10B981] text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]'
+                        ? 'border shadow-2xs'
                         : isCurrent
-                        ? 'text-white shadow-[0_3px_10px_rgba(0,0,0,0.18)] ring-2 ring-white'
+                        ? 'text-white shadow-[0_3px_10px_rgba(0,0,0,0.16)] ring-2 ring-white'
                         : 'bg-[#F1F5F9] text-[#94A3B8] border border-[#E2E8F0]'
                     }`}
                     style={{
                       background: isCurrent
                         ? theme.stepActiveBg
                         : isCompleted
-                        ? '#10B981'
+                        ? theme.stepCompletedBg
+                        : undefined,
+                      borderColor: isCompleted
+                        ? theme.stepCompletedBorder
+                        : undefined,
+                      color: isCompleted
+                        ? theme.stepCompletedText
                         : undefined,
                     }}
                   >
@@ -122,7 +128,7 @@ export function OfferHeader({
                   <span
                     className={`font-bold tracking-tight text-[12px] sm:text-[13px] ${
                       isCurrent
-                        ? 'text-[#0F172A]'
+                        ? 'text-[#081126]'
                         : isCompleted
                         ? 'text-[#475569]'
                         : 'text-[#94A3B8]'
@@ -138,9 +144,15 @@ export function OfferHeader({
                 {/* Stepper Divider */}
                 {idx < STEPS.length - 1 && (
                   <div
-                    className={`w-5 sm:w-10 h-[1.5px] rounded transition-colors duration-300 ${
-                      currentStepNum > idx + 1 ? 'bg-[#10B981]' : 'bg-[#E2E8F0]'
+                    className={`w-4 sm:w-10 h-[1.5px] rounded transition-colors duration-300 ${
+                      currentStepNum > idx + 1
+                        ? 'opacity-60'
+                        : 'bg-[#E2E8F0]'
                     }`}
+                    style={{
+                      backgroundColor:
+                        currentStepNum > idx + 1 ? theme.primary : undefined,
+                    }}
                   />
                 )}
               </React.Fragment>
@@ -154,31 +166,31 @@ export function OfferHeader({
 
 export function OfferTrustBar() {
   return (
-    <footer className="w-full max-w-[1120px] mx-auto px-4 sm:px-6 py-4 border-t border-[#E2E8F0]/80">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3 text-[12px]">
-        <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/80 backdrop-blur-xs border border-[#E2E8F0] shadow-[0_2px_6px_rgba(0,0,0,0.02)] hover:border-[#CBD5E1] transition-colors">
-          <div className="w-5 h-5 rounded-md bg-[#ECFDF5] flex items-center justify-center text-[#10B981] shrink-0">
+    <footer className="w-full max-w-[1120px] mx-auto px-4 sm:px-6 py-3 border-t border-[#E2E8F0]/80">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 text-[12px]">
+        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 backdrop-blur-xs border border-[#E2E8F0] shadow-2xs hover:border-[#CBD5E1] transition-colors">
+          <div className="w-5 h-5 rounded-md bg-[#EFF6FF] flex items-center justify-center text-[#1376FF] shrink-0">
             <Check className="w-3.5 h-3.5 stroke-[3]" />
           </div>
           <span className="font-bold text-[#334155] text-[11px] sm:text-[12px]">100% Safe & Secure</span>
         </div>
 
-        <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/80 backdrop-blur-xs border border-[#E2E8F0] shadow-[0_2px_6px_rgba(0,0,0,0.02)] hover:border-[#CBD5E1] transition-colors">
-          <div className="w-5 h-5 rounded-md bg-[#ECFDF5] flex items-center justify-center text-[#10B981] shrink-0">
+        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 backdrop-blur-xs border border-[#E2E8F0] shadow-2xs hover:border-[#CBD5E1] transition-colors">
+          <div className="w-5 h-5 rounded-md bg-[#EFF6FF] flex items-center justify-center text-[#1376FF] shrink-0">
             <Check className="w-3.5 h-3.5 stroke-[3]" />
           </div>
           <span className="font-bold text-[#334155] text-[11px] sm:text-[12px]">No Password Required</span>
         </div>
 
-        <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/80 backdrop-blur-xs border border-[#E2E8F0] shadow-[0_2px_6px_rgba(0,0,0,0.02)] hover:border-[#CBD5E1] transition-colors">
-          <div className="w-5 h-5 rounded-md bg-[#ECFDF5] flex items-center justify-center text-[#10B981] shrink-0">
+        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 backdrop-blur-xs border border-[#E2E8F0] shadow-2xs hover:border-[#CBD5E1] transition-colors">
+          <div className="w-5 h-5 rounded-md bg-[#EFF6FF] flex items-center justify-center text-[#1376FF] shrink-0">
             <Check className="w-3.5 h-3.5 stroke-[3]" />
           </div>
           <span className="font-bold text-[#334155] text-[11px] sm:text-[12px]">Fast Order Delivery</span>
         </div>
 
-        <div className="flex items-center gap-2 p-2.5 rounded-xl bg-white/80 backdrop-blur-xs border border-[#E2E8F0] shadow-[0_2px_6px_rgba(0,0,0,0.02)] hover:border-[#CBD5E1] transition-colors">
-          <div className="w-5 h-5 rounded-md bg-[#ECFDF5] flex items-center justify-center text-[#10B981] shrink-0">
+        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 backdrop-blur-xs border border-[#E2E8F0] shadow-2xs hover:border-[#CBD5E1] transition-colors">
+          <div className="w-5 h-5 rounded-md bg-[#EFF6FF] flex items-center justify-center text-[#1376FF] shrink-0">
             <Check className="w-3.5 h-3.5 stroke-[3]" />
           </div>
           <span className="font-bold text-[#334155] text-[11px] sm:text-[12px]">24/7 Order Support</span>

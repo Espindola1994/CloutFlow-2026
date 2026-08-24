@@ -102,7 +102,6 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Welcome Back')).toBeDefined();
-      expect(screen.getByText('Boost the same profile again?')).toBeDefined();
       expect(screen.getByText('@guilhermeterraaa')).toBeDefined();
     });
   });
@@ -127,11 +126,11 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     fireEvent.click(screen.getByText('Use another profile'));
 
     await waitFor(() => {
-      expect(screen.getByText('Social Lookup')).toBeDefined();
+      expect(screen.getByText('Find Your Profile')).toBeDefined();
       expect(screen.getByPlaceholderText('@username or profile link')).toBeDefined();
       expect(screen.getByText('tiktok')).toBeDefined();
       expect(screen.getByText('youtube')).toBeDefined();
-      expect(screen.getByText('X / Twitter')).toBeDefined();
+      expect(screen.getByText('X')).toBeDefined();
     });
   });
 
@@ -171,15 +170,15 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     render(<OfferLandingPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Find / Confirm Profile')).toBeDefined();
+      expect(screen.getByText('Confirm & View Packages')).toBeDefined();
     });
 
-    // Click Find / Confirm Profile
-    fireEvent.click(screen.getByText('Find / Confirm Profile'));
+    // Click Confirm & View Packages
+    fireEvent.click(screen.getByText('Confirm & View Packages'));
 
     // Step 4: Preview screen rendered
     await waitFor(() => {
-      expect(screen.getByText('Confirm Profile')).toBeDefined();
+      expect(screen.getByText('Confirm Your Profile')).toBeDefined();
       expect(screen.getByText('Use this profile')).toBeDefined();
       expect(screen.getByText('Search another profile')).toBeDefined();
     });
@@ -189,15 +188,12 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
 
     // Step 5: Package selection & FLOW25 coupon
     await waitFor(() => {
-      expect(screen.getByText('Select Your Next Boost')).toBeDefined();
+      expect(screen.getByText('Choose Your Instagram Package')).toBeDefined();
       expect(screen.getAllByText('FLOW25').length).toBeGreaterThan(0);
       expect(screen.getByText('1000 Instagram Followers')).toBeDefined();
       // TikTok package should NOT be in eligible list for Instagram target
       expect(screen.queryByText('1000 TikTok Followers')).toBeNull();
-      // Check the new button text (ignoring the icon text)
-      // The button text is "Copy FLOW25 & Continue", but since we changed the component to use OfferCard,
-      // it doesn't have a single "Copy FLOW25 & Continue" button anymore. It has "COPY" for the coupon and OfferCard CTAs.
-      expect(screen.getByText('COPY')).toBeDefined();
+      expect(screen.getByText('Copy')).toBeDefined();
     });
   });
 
@@ -230,10 +226,10 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     render(<OfferLandingPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Find / Confirm Profile')).toBeDefined();
+      expect(screen.getByText('Confirm & View Packages')).toBeDefined();
     });
 
-    fireEvent.click(screen.getByText('Find / Confirm Profile'));
+    fireEvent.click(screen.getByText('Confirm & View Packages'));
 
     await waitFor(() => {
       const btn = screen.getByText('Make account public to continue');
@@ -266,10 +262,10 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     render(<OfferLandingPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Find / Confirm Profile')).toBeDefined();
+      expect(screen.getByText('Confirm & View Packages')).toBeDefined();
     });
 
-    fireEvent.click(screen.getByText('Find / Confirm Profile'));
+    fireEvent.click(screen.getByText('Confirm & View Packages'));
 
     await waitFor(() => {
       expect(screen.getByText('Search another profile')).toBeDefined();
@@ -278,8 +274,8 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     fireEvent.click(screen.getByText('Search another profile'));
 
     await waitFor(() => {
-      expect(screen.getByText('Social Lookup')).toBeDefined();
-      expect(screen.queryByText('Confirm Profile')).toBeNull();
+      expect(screen.getByText('Find Your Profile')).toBeDefined();
+      expect(screen.queryByText('Confirm Your Profile')).toBeNull();
     });
   });
 
@@ -331,10 +327,10 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
 
     const input = screen.getByPlaceholderText('@username or profile link');
     fireEvent.change(input, { target: { value: 'tiktokstar' } });
-    fireEvent.click(screen.getByText('Locate Profile'));
+    fireEvent.click(screen.getByText('Find TikTok Profile'));
 
     await waitFor(() => {
-      expect(screen.getByText('Confirm Profile')).toBeDefined();
+      expect(screen.getByText('Confirm Your Profile')).toBeDefined();
       expect(screen.getByText('Use this profile')).toBeDefined();
     });
 

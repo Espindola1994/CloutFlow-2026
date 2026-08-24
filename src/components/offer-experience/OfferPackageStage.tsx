@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @next/next/no-img-element */
 'use client';
 
 import React from 'react';
@@ -57,13 +58,21 @@ export function OfferPackageStage({
   onChangeProfile,
   onSelectPackage,
 }: OfferPackageStageProps) {
+  // Grid layout class based on number of packages
+  const getGridClass = (count: number) => {
+    if (count === 1) return 'flex justify-center';
+    if (count === 2) return 'grid grid-cols-1 sm:grid-cols-2 max-w-[720px] mx-auto gap-4';
+    if (count === 3) return 'grid grid-cols-1 md:grid-cols-3 gap-4';
+    return 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4';
+  };
+
   return (
     <div className="w-full max-w-[1080px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-200">
-      {/* Top Bar: Profile Strip + Coupon Strip with 2.5D elevation */}
+      {/* Top Bar: Profile Strip + Coupon Strip */}
       <div
-        className="bg-white/95 backdrop-blur-xs rounded-2xl p-4 sm:p-5 mb-6 border relative overflow-hidden transition-all"
+        className="bg-white/95 backdrop-blur-xs rounded-2xl p-4 sm:p-5 mb-5 border relative overflow-hidden transition-all"
         style={{
-          boxShadow: '0 8px 24px -4px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04)',
+          boxShadow: '0 8px 24px -4px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03)',
           borderColor: '#E2E8F0',
         }}
       >
@@ -79,22 +88,22 @@ export function OfferPackageStage({
               <img
                 src={verifiedProfile?.avatar_url || '/placeholder-avatar.png'}
                 alt=""
-                className="w-12 h-12 rounded-full object-cover bg-[#F1F5F9] border-2 shadow-xs"
+                className="w-11 h-11 rounded-full object-cover bg-[#F1F5F9] border-2 shadow-2xs"
                 style={{ borderColor: theme.primary }}
               />
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white border border-[#E2E8F0] flex items-center justify-center p-0.5 shadow-xs">
+              <div className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-white border border-[#E2E8F0] flex items-center justify-center p-0.5 shadow-2xs">
                 <Image
                   src={PLATFORM_ICONS[platform]}
                   alt=""
-                  width={11}
-                  height={11}
+                  width={10}
+                  height={10}
                   className="object-contain"
                 />
               </div>
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#64748B]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
                   {theme.name} Profile
                 </span>
                 <button
@@ -105,166 +114,180 @@ export function OfferPackageStage({
                   Change
                 </button>
               </div>
-              <p className="text-[16px] font-black text-[#0F172A] tracking-tight">
+              <p className="text-[15px] sm:text-[16px] font-[800] text-[#081126] tracking-tight">
                 @{verifiedProfile?.username}
               </p>
             </div>
           </div>
 
           {/* Coupon Strip */}
-          <div className="flex items-center gap-3 bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-2 rounded-xl shadow-2xs">
+          <div className="flex items-center gap-3 bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-1.5 rounded-xl shadow-2xs">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-black uppercase tracking-wider text-[#10B981] bg-[#ECFDF5] px-2 py-0.5 rounded-full border border-[#A7F3D0]">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#1D4ED8] bg-[#EFF6FF] px-2 py-0.5 rounded-full border border-[#BFDBFE]">
                 25% OFF
               </span>
-              <span className="font-mono text-[14px] font-black text-[#0F172A] tracking-wide">
+              <span className="font-mono text-[13px] font-black text-[#081126] tracking-wide">
                 {couponCode}
               </span>
               {timeLeft && (
                 <span className="text-[11px] text-[#64748B] hidden sm:inline font-medium">
-                  · expires in <strong className="font-mono text-[#0F172A]">{timeLeft}</strong>
+                  · expires in <strong className="font-mono text-[#081126]">{timeLeft}</strong>
                 </span>
               )}
             </div>
             <button
               type="button"
               onClick={onCopyCoupon}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#0F172A] hover:bg-[#1E293B] text-white text-[11px] font-extrabold transition cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1 text-[11px] font-bold text-[#475569] hover:text-[#081126] bg-white border border-[#CBD5E1] px-2.5 py-1 rounded-lg transition shadow-2xs cursor-pointer"
             >
-              {copied ? (
-                <Check className="w-3.5 h-3.5 text-[#10B981] stroke-[3]" />
-              ) : (
-                <Copy className="w-3.5 h-3.5" />
-              )}
-              <span>{copied ? 'COPIED' : 'COPY'}</span>
+              {copied ? <Check size={12} className="text-[#10B981]" /> : <Copy size={12} />}
+              <span>{copied ? 'Copied' : 'Copy'}</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* Section Title */}
-      <div className="mb-5 text-center sm:text-left">
-        <span className="text-[11px] font-black uppercase tracking-wider text-[#1376FF] bg-[#EFF6FF] px-2.5 py-0.5 rounded-md border border-[#BFDBFE]">
-          Step 03 · Available Packages
+      {/* Package Header */}
+      <div className="mb-4 text-center sm:text-left">
+        <span
+          className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-2xs inline-block"
+          style={{
+            color: theme.primary,
+            backgroundColor: theme.accentSubtle,
+            borderColor: theme.cardBorder,
+          }}
+        >
+          Step 03 · Select Boost Package
         </span>
-        <h1 className="text-[24px] sm:text-[28px] font-black text-[#0F172A] tracking-tight mt-1">
-          Select Your Next Boost
-        </h1>
-        <p className="text-[13px] text-[#64748B] mt-0.5 font-medium">
-          Choose your package tier. The 25% discount coupon ({couponCode}) will be ready for checkout.
+        <h2 className="text-[22px] sm:text-[26px] font-[800] text-[#081126] tracking-tight mt-1">
+          Choose Your {theme.name} Package
+        </h2>
+        <p className="text-[13px] text-[#536176] font-medium mt-0.5">
+          Select the package you want to apply with your 25% discount.
         </p>
       </div>
 
-      {/* 2.5D Package Cards Grid */}
-      <div
-        className={`grid gap-4 mb-6 ${
-          eligiblePackages.length === 1
-            ? 'grid-cols-1 max-w-[380px] mx-auto'
-            : eligiblePackages.length === 2
-            ? 'grid-cols-1 sm:grid-cols-2 max-w-[720px] mx-auto'
-            : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
-        }`}
-      >
+      {/* Packages Grid */}
+      <div className={getGridClass(eligiblePackages.length)}>
         {eligiblePackages.map((pkg) => {
           const isSelected = selectedPackageId === pkg.id;
           const price = (pkg.priceCents / 100).toFixed(2);
-          const isPopular = Boolean(pkg.isPopular || pkg.badge);
+          const discountedPrice = ((pkg.priceCents * 0.75) / 100).toFixed(2);
 
           return (
             <div
               key={pkg.id}
               onClick={() => onSelectPackage(pkg.id)}
-              className={`bg-white rounded-2xl border transition-all duration-200 flex flex-col justify-between p-5 relative cursor-pointer group ${
+              className={`group relative flex flex-col justify-between rounded-2xl p-5 bg-white border transition-all duration-200 cursor-pointer ${
+                eligiblePackages.length === 1 ? 'w-full max-w-[380px]' : ''
+              } ${
                 isSelected
-                  ? 'border-2 shadow-lg -translate-y-1'
-                  : isPopular
-                  ? 'border-[#CBD5E1] shadow-md hover:-translate-y-0.5 hover:shadow-lg hover:border-[#94A3B8]'
-                  : 'border-[#E2E8F0] shadow-xs hover:-translate-y-0.5 hover:shadow-md hover:border-[#CBD5E1]'
+                  ? 'border-2 shadow-lg -translate-y-0.5'
+                  : 'hover:border-[#CBD5E1] hover:shadow-md hover:-translate-y-px'
               }`}
               style={{
-                borderColor: isSelected ? theme.primary : undefined,
+                borderColor: isSelected ? theme.primary : '#E2E8F0',
                 boxShadow: isSelected ? theme.cardSelectedGlow : undefined,
               }}
             >
-              {/* Popular / Badge */}
-              {isPopular && (
-                <div className="absolute -top-3 right-4">
+              {/* Suspended Badge */}
+              {(pkg.badge || pkg.isPopular) && (
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
                   <span
-                    className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider text-white shadow-xs"
+                    className="px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white shadow-sm flex items-center gap-1 whitespace-nowrap"
                     style={{ background: theme.ctaGradient }}
                   >
-                    {pkg.badge || 'POPULAR'}
+                    <Sparkles className="w-2.5 h-2.5" />
+                    <span>{pkg.badge || 'POPULAR'}</span>
                   </span>
                 </div>
               )}
 
               <div>
-                {/* Header info */}
-                <div className="mb-3">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
-                    {pkg.name}
+                {/* Header */}
+                <div className="flex items-center justify-between gap-2 mb-2">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B]">
+                    {pkg.service}
                   </span>
-                  <div className="flex items-baseline gap-1.5 mt-0.5">
-                    <span className="text-[28px] font-black text-[#0F172A] tracking-tight">
-                      {pkg.quantity.toLocaleString()}
-                    </span>
-                    <span className="text-[13px] font-bold text-[#64748B] uppercase">
-                      {pkg.service}
-                    </span>
-                  </div>
-                  {pkg.bonusQuantity > 0 && (
-                    <span className="inline-flex items-center gap-1 text-[11px] font-extrabold text-[#10B981] mt-0.5">
-                      <Sparkles className="w-3 h-3" />
-                      +{pkg.bonusQuantity.toLocaleString()} Bonus Included
-                    </span>
-                  )}
+                  <span className="text-[10px] font-bold text-[#1D4ED8] bg-[#EFF6FF] border border-[#BFDBFE] px-2 py-0.5 rounded-full">
+                    25% OFF
+                  </span>
                 </div>
+
+                {/* Package Name & Quantity */}
+                <h3 className="text-[17px] font-[800] text-[#081126] tracking-tight mb-1">
+                  {pkg.name}
+                </h3>
+
+                {pkg.bonusQuantity > 0 && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold mt-0.5" style={{ color: theme.primary }}>
+                    <Sparkles className="w-3 h-3" />
+                    +{pkg.bonusQuantity.toLocaleString()} Bonus Included
+                  </span>
+                )}
 
                 {/* Price Display */}
-                <div className="py-2.5 px-3 rounded-xl bg-[#F8FAFC] border border-[#F1F5F9] mb-4 flex items-baseline justify-between shadow-2xs">
-                  <div className="flex items-baseline gap-1">
-                    <span className="text-[22px] font-black text-[#0F172A] tracking-tight">
+                <div className="my-3 pb-3 border-b border-[#F1F5F9]">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-[22px] font-black text-[#081126]">
+                      ${discountedPrice}
+                    </span>
+                    <span className="text-[13px] text-[#94A3B8] line-through font-medium">
                       ${price}
                     </span>
-                    <span className="text-[11px] text-[#64748B] font-bold">USD</span>
                   </div>
-                  <span className="text-[10px] font-black uppercase text-[#10B981] bg-[#ECFDF5] px-1.5 py-0.5 rounded-full border border-[#A7F3D0]">
-                    25% OFF COUPON
+                  <span className="text-[11px] text-[#64748B] font-medium">
+                    With coupon {couponCode}
                   </span>
                 </div>
 
-                {/* Features */}
-                <ul className="space-y-2 text-[12px] text-[#475569] mb-5">
+                {/* Feature checklist */}
+                <ul className="space-y-2 mb-4 text-[12px] text-[#475569]">
                   <li className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0 stroke-[3]" />
+                    <div
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-white shrink-0 text-[10px]"
+                      style={{ background: theme.primary }}
+                    >
+                      ✓
+                    </div>
                     <span>No password required</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0 stroke-[3]" />
-                    <span>Instant queue & high retention</span>
+                    <div
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-white shrink-0 text-[10px]"
+                      style={{ background: theme.primary }}
+                    >
+                      ✓
+                    </div>
+                    <span>Fast delivery start</span>
                   </li>
                   <li className="flex items-center gap-2">
-                    <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0 stroke-[3]" />
-                    <span>24/7 priority customer support</span>
+                    <div
+                      className="w-4 h-4 rounded-full flex items-center justify-center text-white shrink-0 text-[10px]"
+                      style={{ background: theme.primary }}
+                    >
+                      ✓
+                    </div>
+                    <span>24/7 priority support</span>
                   </li>
                 </ul>
               </div>
 
-              {/* Select Package CTA */}
+              {/* Action Button */}
               <button
                 type="button"
-                className={`w-full py-2.5 px-4 rounded-xl font-black text-[13px] flex items-center justify-center gap-1.5 transition-all duration-150 cursor-pointer shadow-xs ${
+                className={`w-full py-2.5 px-4 rounded-xl font-bold text-[12px] flex items-center justify-center gap-1.5 transition duration-150 ${
                   isSelected
-                    ? 'text-white shadow-md'
-                    : 'bg-[#0F172A] hover:bg-[#1E293B] text-white'
+                    ? 'text-white shadow-sm'
+                    : 'bg-[#F8FAFC] border border-[#CBD5E1] text-[#475569] hover:bg-[#F1F5F9] hover:text-[#081126]'
                 }`}
                 style={{
                   background: isSelected ? theme.ctaGradient : undefined,
                   boxShadow: isSelected ? theme.buttonShadow : undefined,
                 }}
               >
-                <span>{isSelected ? 'Package Selected' : 'Select Package'}</span>
-                <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                <span>Select & Continue</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           );

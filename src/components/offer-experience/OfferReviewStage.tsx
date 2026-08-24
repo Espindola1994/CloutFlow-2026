@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 'use client';
 
 import React from 'react';
@@ -35,27 +36,35 @@ export function OfferReviewStage({
   onExecuteCheckout,
 }: OfferReviewStageProps) {
   const price = (selectedPkg.priceCents / 100).toFixed(2);
+  const discountedPrice = ((selectedPkg.priceCents * 0.75) / 100).toFixed(2);
 
   return (
     <div className="w-full max-w-[620px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-200">
       {/* Title */}
-      <div className="mb-5 text-center sm:text-left">
-        <span className="text-[11px] font-black uppercase tracking-wider text-[#1376FF] bg-[#EFF6FF] px-2.5 py-0.5 rounded-full border border-[#BFDBFE]">
+      <div className="mb-4 text-center sm:text-left">
+        <span
+          className="text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full border shadow-2xs inline-block"
+          style={{
+            color: theme.primary,
+            backgroundColor: theme.accentSubtle,
+            borderColor: theme.cardBorder,
+          }}
+        >
           Step 04 · Review & Checkout
         </span>
-        <h1 className="text-[26px] sm:text-[30px] font-black text-[#0F172A] tracking-tight mt-1">
+        <h1 className="text-[24px] sm:text-[28px] font-[800] text-[#081126] tracking-tight mt-1">
           Review Your Order
         </h1>
-        <p className="text-[13px] text-[#64748B] mt-0.5 font-medium">
-          Confirm your target account and package before proceeding to secure checkout.
+        <p className="text-[13px] text-[#536176] mt-0.5 font-medium">
+          Confirm your target profile and package before continuing to secure checkout.
         </p>
       </div>
 
       {/* 2.5D Order Summary Card */}
       <div
-        className="bg-white/95 backdrop-blur-xs rounded-2xl p-5 sm:p-6 mb-5 border relative overflow-hidden transition-all duration-200 space-y-4"
+        className="bg-white/95 backdrop-blur-xs rounded-2xl p-5 sm:p-6 mb-4 border relative overflow-hidden transition-all duration-200 space-y-4"
         style={{
-          boxShadow: '0 8px 24px -4px rgba(15, 23, 42, 0.08), 0 2px 6px -1px rgba(15, 23, 42, 0.04)',
+          boxShadow: '0 8px 24px -4px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03)',
           borderColor: '#E2E8F0',
         }}
       >
@@ -71,10 +80,10 @@ export function OfferReviewStage({
               <User className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
-                Target Account
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+                Target Profile
               </span>
-              <p className="text-[15px] font-black text-[#0F172A] mt-0.5">
+              <p className="text-[15px] font-[800] text-[#081126] mt-0.5">
                 @{verifiedProfile?.username}
               </p>
               <span className="text-[11px] text-[#64748B] capitalize font-medium">
@@ -98,15 +107,20 @@ export function OfferReviewStage({
               <PackageIcon className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
-                Selected Package
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+                Selected Boost
               </span>
-              <p className="text-[15px] font-black text-[#0F172A] mt-0.5">
+              <p className="text-[15px] font-[800] text-[#081126] mt-0.5">
                 {selectedPkg.name}
               </p>
-              <span className="text-[12px] font-extrabold text-[#0F172A]">
-                ${price} USD
-              </span>
+              <div className="flex items-baseline gap-1.5 mt-0.5">
+                <span className="text-[13px] font-black text-[#081126]">
+                  ${discountedPrice} USD
+                </span>
+                <span className="text-[11px] text-[#94A3B8] line-through font-medium">
+                  ${price}
+                </span>
+              </div>
             </div>
           </div>
           <button
@@ -118,30 +132,20 @@ export function OfferReviewStage({
           </button>
         </div>
 
-        {/* Discount Row */}
-        <div className="flex items-center justify-between pb-1">
-          <div className="flex items-start gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] flex items-center justify-center text-[#10B981] shrink-0 mt-0.5">
-              <Tag className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
-                Repeat Purchase Discount
-              </span>
-              <div className="flex items-center gap-2 mt-0.5">
-                <span className="font-mono text-[14px] font-black text-[#0F172A]">
-                  {couponCode}
-                </span>
-                <span className="text-[11px] font-black text-[#10B981] bg-[#ECFDF5] px-1.5 py-0.5 rounded-full border border-[#A7F3D0]">
-                  25% OFF
-                </span>
-              </div>
-            </div>
+        {/* Discount Object Row */}
+        <div className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+          <div className="flex items-center gap-2.5">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#1D4ED8] bg-[#EFF6FF] px-2 py-0.5 rounded-full border border-[#BFDBFE]">
+              25% OFF
+            </span>
+            <span className="font-mono text-[14px] font-black text-[#081126] tracking-wide">
+              {couponCode}
+            </span>
           </div>
           <button
             type="button"
             onClick={onCopyCoupon}
-            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-[11px] font-extrabold transition cursor-pointer border border-[#E2E8F0] shadow-2xs"
+            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#081126] text-[11px] font-bold transition cursor-pointer border border-[#CBD5E1] shadow-2xs"
           >
             {copied ? (
               <Check className="w-3.5 h-3.5 text-[#10B981] stroke-[3]" />
@@ -153,12 +157,12 @@ export function OfferReviewStage({
         </div>
 
         {/* Checkout CTA */}
-        <div className="pt-3">
+        <div className="pt-2">
           <button
             type="button"
             onClick={onExecuteCheckout}
             disabled={checkoutSubmitting}
-            className="w-full py-3.5 px-6 rounded-xl text-white font-black text-[14px] flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer active:translate-y-0.5 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed shadow-md"
+            className="w-full h-[48px] rounded-xl text-white font-bold text-[14px] flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer active:translate-y-0 hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-not-allowed shadow-md"
             style={{
               background: theme.ctaGradient,
               boxShadow: theme.buttonShadow,
@@ -177,8 +181,8 @@ export function OfferReviewStage({
             )}
           </button>
 
-          <p className="text-[11px] text-[#64748B] text-center mt-2.5 font-medium">
-            You will enter <strong className="font-mono text-[#0F172A]">{couponCode}</strong> in the coupon field at checkout for 25% discount.
+          <p className="text-[12px] text-[#536176] text-center mt-2.5 font-medium">
+            Copy <strong className="font-mono text-[#081126] font-bold">{couponCode}</strong> and enter it in the coupon field at checkout to receive 25% off.
           </p>
         </div>
 
