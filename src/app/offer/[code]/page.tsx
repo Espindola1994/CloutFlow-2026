@@ -4,9 +4,10 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Copy, Check, ArrowRight, ShieldCheck, Zap, AlertCircle, Clock, Sparkles, Search, User, X, ChevronRight, ArrowLeft } from 'lucide-react';
+import { Copy, Check, ArrowRight, ShieldCheck, Zap, AlertCircle, Clock, Sparkles, Search, User, ChevronRight, LockKeyhole, Headphones } from 'lucide-react';
 import { InstagramPreview, TikTokPreview, TwitterPreview, YouTubePreview } from '@/components/social-preview';
-import { CloutFlowShell } from '@/components/cloutflow/shell';
+import { OfferCard } from '@/components/sales/OfferCard';
+import { PLATFORM_THEMES, Platform, SERVICE_COPY_MAP } from '@/config/service-sales.config';
 
 interface SanitizedPackage {
   id: string;
@@ -290,33 +291,33 @@ export default function OfferLandingPage() {
 
   if (loading) {
     return (
-      <CloutFlowShell>
-        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
-          <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs text-neutral-400 font-medium">Validating promotional offer...</p>
-        </div>
-      </CloutFlowShell>
+      <main className="min-h-screen bg-[#070b14] text-white flex flex-col items-center justify-center font-sans">
+        <div className="w-10 h-10 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin mb-4" />
+        <p className="text-xs text-neutral-400 font-bold uppercase tracking-widest">Validating promotional offer...</p>
+      </main>
     );
   }
 
   if (errorMsg || isExpiredLocally || !offerData) {
     return (
-      <CloutFlowShell>
-        <div className="flex items-center justify-center min-h-[60vh] px-4">
-          <div className="w-full max-w-md p-8 rounded-2xl bg-neutral-900/60 border border-neutral-800 text-center flex flex-col items-center shadow-xl backdrop-blur-md">
-            <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
-              <AlertCircle className="w-6 h-6" />
-            </div>
-            <h1 className="text-xl font-bold text-white mb-2">Offer Unavailable</h1>
-            <p className="text-sm text-neutral-400 mb-6">
-              This offer is no longer available or has already reached its expiration date.
-            </p>
-            <button type="button" onClick={() => router.push('/')} className="w-full py-3 px-4 rounded-xl bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition">
-              Explore CloutFlow Services
-            </button>
+      <main className="min-h-screen bg-[#070b14] text-white flex items-center justify-center px-4 font-sans">
+        <div className="w-full max-w-md p-8 rounded-3xl bg-[#0c101a]/90 border border-neutral-800 text-center flex flex-col items-center shadow-2xl backdrop-blur-md">
+          <div className="w-14 h-14 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-6">
+            <AlertCircle className="w-7 h-7" />
           </div>
+          <h1 className="text-2xl font-black text-white mb-2">Offer Unavailable</h1>
+          <p className="text-sm text-neutral-400 mb-8 font-medium">
+            This offer is no longer available or has already reached its expiration date.
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push('/')}
+            className="w-full py-4 px-4 rounded-xl bg-white text-black font-extrabold text-sm hover:bg-neutral-200 transition cursor-pointer shadow-lg shadow-white/10"
+          >
+            Explore CloutFlow Services
+          </button>
         </div>
-      </CloutFlowShell>
+      </main>
     );
   }
 
@@ -325,49 +326,88 @@ export default function OfferLandingPage() {
     ? offerData.packages.filter(p => p.platform.toLowerCase() === targetPlatform.toLowerCase())
     : [];
 
+  const platformKey = (targetPlatform || 'instagram').toLowerCase() as Platform;
+  const platformIsValid = ["instagram", "tiktok", "twitter", "youtube"].includes(platformKey);
+  const safePlatform = platformIsValid ? platformKey : 'instagram';
+  const theme = PLATFORM_THEMES[safePlatform];
+  
+  // Extract correct unitLabel based on the first package service, or default to Followers
+  const serviceKey = (eligiblePackages[0]?.service.toLowerCase() || 'followers') as 'followers' | 'likes' | 'views' | 'comments';
+  const serviceIsValid = ["followers", "likes", "views", "comments"].includes(serviceKey);
+  const safeService = serviceIsValid ? serviceKey : 'followers';
+  const copy = SERVICE_COPY_MAP[safeService]?.[safePlatform] || SERVICE_COPY_MAP.followers.instagram;
+
   return (
-    <CloutFlowShell showMotto={false}>
-      <div className="w-full max-w-lg mx-auto px-4 py-8 relative z-10">
+    <main className="min-h-screen bg-[#070b14] text-white selection:bg-pink-500 selection:text-white relative overflow-x-hidden font-sans pb-24">
+      {/* Dynamic Ambient Platform Glow in Background */}
+      <div
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[450px] pointer-events-none opacity-25 blur-[140px] rounded-full z-0 transition-colors duration-1000"
+        style={{ background: theme.ambientGlow }}
+        aria-hidden="true"
+      />
+
+      {/* Top Header / Navigation (Matching Public Site) */}
+      <header className="w-full max-w-6xl mx-auto px-4 h-16 md:h-20 flex items-center justify-between relative z-20 border-b border-neutral-800/60 mb-8 md:mb-12">
+        <button
+          type="button"
+          onClick={() => router.push('/')}
+          className="text-lg sm:text-xl font-black tracking-tight text-white cursor-pointer"
+        >
+          <span>Clout</span>
+          <span style={{ color: theme.primary }} className="transition-colors duration-500">Flow</span>
+          <sup className="text-[10px] ml-0.5 text-blue-400 font-bold">↗</sup>
+        </button>
+
+        <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-semibold">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span>Repeat Purchase</span>
+        </div>
+      </header>
+
+      <div className="w-full max-w-6xl mx-auto px-4 relative z-10">
         
         {/* Step 1: Prefill Prompt */}
         {flowStep === 'PREFILL' && offerData.previousTarget && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-lg mx-auto mt-12 md:mt-24">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>25% OFF Repeat Purchase Voucher</span>
-              </div>
-              <h1 className="text-3xl font-extrabold text-white mb-2">Welcome Back</h1>
-              <p className="text-neutral-400 text-sm">Boost the same profile again?</p>
+                <span>25% OFF REPEAT PURCHASE</span>
+              </span>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white mb-4 leading-[1.1]">
+                Welcome Back
+              </h1>
+              <p className="text-lg sm:text-xl text-neutral-400 font-medium">Boost the same profile again?</p>
               {timeLeft && (
-                <p className="text-xs text-amber-400/90 font-medium mt-2 flex items-center justify-center gap-1">
-                  <Clock size={12} /> Offer expires in {timeLeft}
+                <p className="text-sm text-emerald-400/90 font-bold mt-4 flex items-center justify-center gap-1">
+                  <Clock size={16} /> Offer expires in {timeLeft}
                 </p>
               )}
             </div>
-            <div className="bg-neutral-900/80 border border-neutral-800 p-6 rounded-2xl shadow-xl backdrop-blur-md">
-              <div className="flex items-center gap-4 p-4 bg-neutral-950 rounded-xl border border-neutral-800/80 mb-6">
-                <div className="w-12 h-12 bg-neutral-900 rounded-full flex items-center justify-center text-neutral-500">
-                  <User size={24} />
+            <div className="bg-[#0c101a]/90 border border-neutral-800/80 p-6 md:p-8 rounded-3xl shadow-2xl backdrop-blur-md">
+              <div className="flex flex-col items-center justify-center gap-4 mb-8">
+                <div className="w-20 h-20 bg-neutral-900 rounded-full flex items-center justify-center text-neutral-500 shadow-inner">
+                  <User size={32} />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-neutral-400 font-bold uppercase tracking-wider mb-1">{offerData.previousTarget.platform}</p>
-                  <p className="text-lg font-bold text-white truncate">@{offerData.previousTarget.username}</p>
+                <div className="text-center">
+                  <p className="text-sm text-neutral-400 font-bold uppercase tracking-widest mb-1">{offerData.previousTarget.platform}</p>
+                  <p className="text-2xl font-black text-white truncate">@{offerData.previousTarget.username}</p>
                 </div>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <button
                   type="button"
                   onClick={() => handleStartLookup(offerData.previousTarget!.username, offerData.previousTarget!.platform)}
-                  className="w-full py-3.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition"
+                  className="w-full py-4 px-4 rounded-xl text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition cursor-pointer shadow-lg hover:scale-[1.02]"
+                  style={{ background: theme.gradient }}
                 >
-                  <Search className="w-4 h-4" />
+                  <Search className="w-5 h-5" />
                   <span>Find / Confirm Profile</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setFlowStep('LOOKUP')}
-                  className="w-full py-3.5 px-4 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white font-bold text-sm transition"
+                  className="w-full py-4 px-4 rounded-xl bg-[#1a2233] hover:bg-neutral-800 text-white font-extrabold text-sm sm:text-base transition cursor-pointer"
                 >
                   Use another profile
                 </button>
@@ -378,54 +418,70 @@ export default function OfferLandingPage() {
 
         {/* Step 2: Lookup Input */}
         {flowStep === 'LOOKUP' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-lg mx-auto mt-8 md:mt-16">
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-4">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>25% OFF Repeat Purchase Voucher</span>
-              </div>
-              <h1 className="text-3xl font-extrabold text-white mb-2">Social Lookup</h1>
-              <p className="text-neutral-400 text-sm">Which profile do you want to boost?</p>
+                <span>25% OFF REPEAT PURCHASE</span>
+              </span>
+              <h1 className="text-4xl sm:text-5xl font-black tracking-tight text-white mb-4 leading-[1.1]">
+                Social Lookup
+              </h1>
+              <p className="text-base sm:text-lg text-neutral-400 font-medium">Which social profile would you like to boost?</p>
               {timeLeft && (
-                <p className="text-xs text-amber-400/90 font-medium mt-2 flex items-center justify-center gap-1">
-                  <Clock size={12} /> Offer expires in {timeLeft}
+                <p className="text-sm text-emerald-400/90 font-bold mt-4 flex items-center justify-center gap-1">
+                  <Clock size={16} /> Offer expires in {timeLeft}
                 </p>
               )}
             </div>
-            <div className="bg-neutral-900/80 border border-neutral-800 p-6 rounded-2xl shadow-xl backdrop-blur-md">
-              <div className="mb-5">
-                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block mb-2">Platform</label>
-                <div className="grid grid-cols-2 gap-2">
-                  {['instagram', 'tiktok', 'twitter', 'youtube'].map((p) => (
-                    <button
-                      key={p}
-                      onClick={() => setTargetPlatform(p)}
-                      className={`py-2.5 px-3 rounded-lg text-xs font-bold capitalize transition border ${targetPlatform === p ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300' : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:bg-neutral-800'}`}
-                    >
-                      {p === 'twitter' ? 'X / Twitter' : p}
-                    </button>
-                  ))}
+            <div className="bg-[#0c101a]/90 border border-neutral-800/80 p-6 md:p-8 rounded-3xl shadow-2xl backdrop-blur-md">
+              <div className="mb-6">
+                <label className="text-xs font-extrabold text-neutral-400 uppercase tracking-widest block mb-3">Platform</label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {(['instagram', 'tiktok', 'twitter', 'youtube'] as const).map((p) => {
+                    const isSelected = targetPlatform === p;
+                    const pTheme = PLATFORM_THEMES[p];
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setTargetPlatform(p)}
+                        className={`py-3 px-3 rounded-xl text-xs font-black capitalize transition-all border cursor-pointer ${
+                          isSelected 
+                            ? 'text-white shadow-lg' 
+                            : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:bg-neutral-900 hover:text-white'
+                        }`}
+                        style={{
+                          background: isSelected ? pTheme.gradient : undefined,
+                          borderColor: isSelected ? pTheme.primary : undefined,
+                        }}
+                      >
+                        {p === 'twitter' ? 'X / Twitter' : p}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
               <div className="mb-6">
-                <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block mb-2">Target Profile</label>
+                <label className="text-xs font-extrabold text-neutral-400 uppercase tracking-widest block mb-3">Target Profile</label>
                 <input
                   type="text"
                   placeholder="@username or profile link"
                   value={lookupInput}
                   onChange={(e) => setLookupInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleStartLookup(lookupInput, targetPlatform)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-4 py-3.5 text-sm text-white placeholder:text-neutral-600 focus:outline-none focus:border-indigo-500 transition"
+                  className="w-full bg-[#070b14] border border-neutral-800 rounded-xl px-4 py-4 text-base text-white placeholder:text-neutral-600 focus:outline-none focus:border-neutral-500 transition shadow-inner font-medium"
                 />
-                {lookupError && <p className="mt-2 text-xs text-red-400 flex items-center gap-1"><AlertCircle size={12} /> {lookupError}</p>}
+                {lookupError && <p className="mt-3 text-xs text-red-400 flex items-center gap-1.5 font-bold"><AlertCircle size={14} /> {lookupError}</p>}
               </div>
               <button
                 type="button"
                 onClick={() => handleStartLookup(lookupInput, targetPlatform)}
-                className="w-full py-3.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 transition"
+                className="w-full py-4 px-4 rounded-xl text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition cursor-pointer shadow-lg hover:scale-[1.02]"
+                style={{ background: theme.gradient }}
               >
-                <span>Search Profile</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Locate Profile</span>
+                <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </div>
@@ -433,23 +489,32 @@ export default function OfferLandingPage() {
 
         {/* Step 3: Loading */}
         {flowStep === 'LOADING' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 text-center py-12">
-            <div className="w-16 h-16 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-6" />
-            <h2 className="text-xl font-bold text-white mb-2">Locating Profile...</h2>
-            <p className="text-sm text-neutral-400 mb-8 max-w-[250px] mx-auto">We are securely verifying the target account details.</p>
-            <button onClick={cancelPolling} className="text-xs text-neutral-500 hover:text-white transition cursor-pointer">Cancel</button>
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 text-center py-24 max-w-lg mx-auto">
+            <div
+              className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-6"
+              style={{ borderColor: `${theme.primary} transparent ${theme.primary} ${theme.primary}` }}
+            />
+            <h2 className="text-2xl font-black text-white mb-2">Locating Profile...</h2>
+            <p className="text-sm text-neutral-400 mb-8 max-w-[280px] mx-auto font-medium">We are securely verifying the target account details on {theme.name}.</p>
+            <button onClick={cancelPolling} className="text-xs font-bold text-neutral-500 hover:text-white transition cursor-pointer">Cancel search</button>
           </div>
         )}
 
         {/* Step 4: Preview */}
         {flowStep === 'PREVIEW' && verifiedProfile && (
-          <div className="animate-in fade-in zoom-in-95 duration-500 max-w-[440px] mx-auto">
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-extrabold text-white mb-1">Confirm Profile</h1>
-              <p className="text-neutral-400 text-sm">Is this the correct account?</p>
+          <div className="animate-in fade-in zoom-in-95 duration-500 max-w-[480px] mx-auto mt-8 md:mt-16">
+            <div className="text-center mb-8">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-6">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>CONFIRM TARGET ACCOUNT</span>
+              </span>
+              <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white mb-2 leading-[1.1]">
+                Confirm Profile
+              </h1>
+              <p className="text-sm sm:text-base text-neutral-400 font-medium">Verify your public social profile details below.</p>
             </div>
             
-            <div className="mb-6 shadow-2xl">
+            <div className="mb-6 shadow-2xl rounded-3xl overflow-hidden border border-neutral-800">
               {targetPlatform === 'instagram' && <InstagramPreview profile={verifiedProfile} onClose={() => setFlowStep('LOOKUP')} />}
               {targetPlatform === 'tiktok' && <TikTokPreview profile={verifiedProfile} onClose={() => setFlowStep('LOOKUP')} />}
               {targetPlatform === 'twitter' && <TwitterPreview profile={verifiedProfile} onClose={() => setFlowStep('LOOKUP')} />}
@@ -461,15 +526,17 @@ export default function OfferLandingPage() {
                 type="button"
                 onClick={confirmProfile}
                 disabled={isProfileRestricted}
-                className={`w-full py-4 px-4 rounded-xl font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg cursor-pointer ${isProfileRestricted ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed' : 'bg-white text-black hover:bg-neutral-200 shadow-white/10'}`}
+                className={`w-full py-4 px-4 rounded-xl font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition shadow-lg cursor-pointer ${
+                  isProfileRestricted ? 'bg-neutral-800 text-neutral-500 cursor-not-allowed' : 'bg-white text-black hover:bg-neutral-200 shadow-white/10 hover:scale-[1.02]'
+                }`}
               >
-                <Check className="w-5 h-5" />
+                <Check className="w-5 h-5 stroke-[3]" />
                 <span>{isProfileRestricted ? `Make account public to continue` : `Use this profile`}</span>
               </button>
               <button
                 type="button"
                 onClick={() => setFlowStep('LOOKUP')}
-                className="w-full py-3.5 px-4 rounded-xl bg-transparent border border-neutral-800 hover:bg-neutral-900 text-neutral-300 font-bold text-sm transition cursor-pointer"
+                className="w-full py-4 px-4 rounded-xl bg-transparent border border-neutral-800 hover:bg-neutral-900 text-neutral-400 hover:text-white font-extrabold text-sm transition cursor-pointer"
               >
                 Search another profile
               </button>
@@ -479,129 +546,170 @@ export default function OfferLandingPage() {
 
         {/* Step 5: Package Selection & Coupon */}
         {flowStep === 'PACKAGE' && (
-          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-4">
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto">
+            
+            {/* Header Section */}
+            <div className="text-center mb-10 md:mb-14">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[10px] sm:text-xs font-extrabold uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 mb-4">
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>25% OFF Repeat Purchase Voucher</span>
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
-                Your 25% Off is Ready
+                <span>REPEAT PURCHASE BENEFIT: 25% OFF</span>
+              </span>
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tight text-white mb-4 leading-[1.1]">
+                Select Your Next Boost
               </h1>
+              <p className="text-base sm:text-lg text-neutral-400 max-w-xl mx-auto font-medium">
+                Choose the right growth tier for <span className="text-white font-bold">@{verifiedProfile?.username}</span> and apply coupon code <span className="text-white font-mono font-bold">{offerData.couponCode}</span> at checkout.
+              </p>
               {timeLeft && (
-                <p className="text-xs text-amber-400/90 font-medium flex items-center justify-center gap-1">
-                  <Clock size={12} /> Offer expires in {timeLeft}
+                <p className="text-sm text-emerald-400 font-bold mt-4 flex items-center justify-center gap-1.5">
+                  <Clock size={16} /> Offer expires in {timeLeft}
                 </p>
               )}
             </div>
 
-            <div className="bg-neutral-900/80 border border-neutral-800 p-6 rounded-2xl shadow-xl backdrop-blur-md mb-6">
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-neutral-950 border border-neutral-800/80 mb-6">
-                <div className="text-center sm:text-left">
-                  <span className="text-[10px] uppercase font-bold tracking-widest text-neutral-400 block mb-1">
-                    YOUR COUPON
+            {/* Target Account Summary Banner & Coupon Pill */}
+            <div className="bg-[#0c101a]/90 border border-neutral-800/80 p-4 sm:p-6 rounded-3xl mb-10 flex flex-col sm:flex-row items-center justify-between gap-6 backdrop-blur-md shadow-xl">
+              <div className="flex items-center gap-4">
+                <img
+                  src={verifiedProfile?.avatar_url || '/placeholder-avatar.png'}
+                  alt=""
+                  className="w-14 h-14 rounded-full object-cover bg-neutral-900 border-2 border-neutral-800"
+                />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-extrabold uppercase tracking-widest text-neutral-400">
+                      {targetPlatform} Target
+                    </span>
+                    <button
+                      onClick={() => setFlowStep('PREVIEW')}
+                      className="text-xs font-bold text-neutral-400 hover:text-white underline cursor-pointer"
+                    >
+                      Change
+                    </button>
+                  </div>
+                  <p className="text-lg sm:text-xl font-black text-white">@{verifiedProfile?.username}</p>
+                </div>
+              </div>
+
+              {/* Coupon Action Box */}
+              <div className="flex items-center gap-3 bg-[#070b14] border border-neutral-800 p-2 sm:p-3 rounded-2xl">
+                <div className="px-3">
+                  <span className="text-[10px] uppercase font-extrabold tracking-widest text-neutral-400 block">
+                    COUPON CODE
                   </span>
-                  <span className="text-2xl font-black tracking-widest text-indigo-400 font-mono">
+                  <span className="text-lg font-black tracking-wider text-white font-mono">
                     {offerData.couponCode}
                   </span>
                 </div>
                 <button
                   type="button"
                   onClick={handleCopyCouponOnly}
-                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-semibold transition border border-neutral-700 cursor-pointer"
+                  className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-white text-xs font-extrabold transition cursor-pointer"
                 >
-                  {copied ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-                  <span>{copied ? 'Copied!' : 'Copy Code'}</span>
+                  {copied ? <Check className="w-4 h-4 text-emerald-400 stroke-[3]" /> : <Copy className="w-4 h-4" />}
+                  <span>{copied ? 'COPIED!' : 'COPY'}</span>
                 </button>
               </div>
+            </div>
 
-              <div className="flex items-center gap-3 p-3 bg-neutral-950/50 rounded-lg border border-neutral-800 mb-6">
-                <img src={verifiedProfile?.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover bg-neutral-800" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs text-neutral-400 font-semibold mb-0.5 capitalize">{targetPlatform} Target</p>
-                  <p className="text-sm font-bold text-white truncate">@{verifiedProfile?.username}</p>
-                </div>
-                <button onClick={() => setFlowStep('PREVIEW')} className="text-xs text-indigo-400 font-semibold hover:text-indigo-300 cursor-pointer">Edit</button>
+            {/* Public Package Grid Reusing CloutFlow Public OfferCard */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-12">
+              {eligiblePackages.map((pkg) => (
+                <OfferCard
+                  key={pkg.id}
+                  offer={{
+                    id: pkg.id,
+                    name: pkg.name,
+                    slug: pkg.slug,
+                    description: null,
+                    quantity: pkg.quantity,
+                    bonusQuantity: pkg.bonusQuantity,
+                    priceCents: pkg.priceCents,
+                    oldPriceCents: null,
+                    currency: pkg.currency,
+                    badge: pkg.badge || null,
+                    isPopular: Boolean(pkg.isPopular),
+                    sortOrder: 0,
+                    ctaText: `Choose ${pkg.name}`,
+                  }}
+                  serviceUnit={copy.unitLabel}
+                  theme={theme}
+                  hasTarget={true}
+                  onCheckout={async (offerId) => {
+                    setSelectedPackageId(offerId);
+                    // trigger checkout
+                    setCheckoutSubmitting(true);
+                    setCheckoutError(null);
+
+                    const normalizedUsername = verifiedProfile.username.replace(/^@+/, '').trim();
+                    const isYouTube = targetPlatform === 'youtube';
+                    const targetType = isYouTube ? 'channel' : 'profile';
+
+                    try {
+                      const payload = {
+                        offerId,
+                        targetType,
+                        targetValue: normalizedUsername,
+                        targetUrl: verifiedProfile.profile_url || null,
+                        socialUsername: normalizedUsername,
+                        profileUrl: verifiedProfile.profile_url || null,
+                        email: null,
+                        offerCode: offerData.code,
+                      };
+
+                      const res = await fetch('/api/checkout/context', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                      });
+
+                      const json = await res.json();
+                      if (res.ok && json.success && json.data?.checkoutUrl) {
+                        window.location.href = json.data.checkoutUrl;
+                      } else {
+                        setCheckoutError(json.error?.message || 'Unable to prepare checkout. Please try again.');
+                        setCheckoutSubmitting(false);
+                      }
+                    } catch {
+                      setCheckoutError('Unable to prepare checkout. Please try again.');
+                      setCheckoutSubmitting(false);
+                    }
+                  }}
+                  onRequireTarget={() => setFlowStep('LOOKUP')}
+                />
+              ))}
+            </div>
+
+            {checkoutError && (
+              <div className="mb-8 p-4 rounded-2xl bg-red-500/10 border border-red-500/20 text-xs font-bold text-red-400 text-center max-w-md mx-auto">
+                {checkoutError}
               </div>
+            )}
 
-              <label className="text-xs font-bold text-neutral-400 uppercase tracking-wider block mb-3">
-                Choose Your Next Boost
-              </label>
-              
-              {eligiblePackages.length === 0 ? (
-                <div className="p-4 bg-neutral-950 rounded-xl border border-neutral-800 text-center text-sm text-neutral-400">
-                  No eligible packages found for this platform.
-                </div>
-              ) : (
-                <div className="space-y-2 max-h-[280px] overflow-y-auto pr-2 custom-scrollbar">
-                  {eligiblePackages.map((pkg) => {
-                    const isSelected = pkg.id === selectedPackageId;
-                    const priceUSD = (pkg.priceCents / 100).toFixed(2);
-                    return (
-                      <button
-                        key={pkg.id}
-                        type="button"
-                        onClick={() => setSelectedPackageId(pkg.id)}
-                        className={`w-full p-4 rounded-xl border text-left flex items-center justify-between transition cursor-pointer ${
-                          isSelected
-                            ? 'bg-indigo-600/10 border-indigo-500 text-white'
-                            : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-700'
-                        }`}
-                      >
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-bold">{pkg.name}</span>
-                            {pkg.badge && (
-                              <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 font-semibold">
-                                {pkg.badge}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[11px] text-neutral-400 capitalize">
-                            {pkg.platform} • {pkg.service}
-                          </span>
-                        </div>
-                        <div className="text-right flex flex-col items-end">
-                          <span className="text-sm font-bold text-white">${priceUSD}</span>
-                          <span className="text-[10px] text-emerald-400 font-semibold mt-0.5">-25% with coupon</span>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-
-              {checkoutError && (
-                <div className="mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-xs text-red-400">
-                  {checkoutError}
-                </div>
-              )}
+            {/* Native CloutFlow Trust Bar */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 py-8 border-t border-neutral-800/80 text-neutral-400 text-xs font-bold text-center">
+              <div className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-[#0c101a]/50 border border-neutral-800/60">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>100% Safe & Secure</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-[#0c101a]/50 border border-neutral-800/60">
+                <LockKeyhole className="w-4 h-4 text-emerald-400" />
+                <span>No Password Required</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-[#0c101a]/50 border border-neutral-800/60">
+                <Zap className="w-4 h-4 text-emerald-400" />
+                <span>Fast Delivery</span>
+              </div>
+              <div className="flex items-center justify-center gap-2 p-3 rounded-2xl bg-[#0c101a]/50 border border-neutral-800/60">
+                <Headphones className="w-4 h-4 text-emerald-400" />
+                <span>24/7 Support</span>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              <button
-                type="button"
-                onClick={handleCopyAndContinue}
-                disabled={checkoutSubmitting || eligiblePackages.length === 0}
-                className="w-full py-4 px-6 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/25 transition disabled:opacity-50 cursor-pointer"
-              >
-                <span>{checkoutSubmitting ? 'Preparing Checkout...' : `Copy ${offerData.couponCode} & Continue`}</span>
-                <ChevronRight className="w-5 h-5" />
-              </button>
-              <p className="text-xs text-center text-neutral-400">
-                Paste <strong className="text-white font-mono">{offerData.couponCode}</strong> in the coupon field at checkout to apply your 25% discount.
-              </p>
-            </div>
-            
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-[10px] text-neutral-500 font-medium">
-              <span className="flex items-center gap-1"><ShieldCheck size={12} /> Secure Checkout</span>
-              <span className="flex items-center gap-1"><Zap size={12} /> Instant Delivery</span>
-              <span className="flex items-center gap-1"><Check size={12} /> 25% Off Applied</span>
-            </div>
           </div>
         )}
 
       </div>
-    </CloutFlowShell>
+    </main>
   );
 }

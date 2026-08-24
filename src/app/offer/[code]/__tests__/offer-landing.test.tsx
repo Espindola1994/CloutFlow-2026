@@ -189,12 +189,15 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
 
     // Step 5: Package selection & FLOW25 coupon
     await waitFor(() => {
-      expect(screen.getByText('Your 25% Off is Ready')).toBeDefined();
+      expect(screen.getByText('Select Your Next Boost')).toBeDefined();
       expect(screen.getAllByText('FLOW25').length).toBeGreaterThan(0);
       expect(screen.getByText('1000 Instagram Followers')).toBeDefined();
       // TikTok package should NOT be in eligible list for Instagram target
       expect(screen.queryByText('1000 TikTok Followers')).toBeNull();
-      expect(screen.getByText('Copy FLOW25 & Continue')).toBeDefined();
+      // Check the new button text (ignoring the icon text)
+      // The button text is "Copy FLOW25 & Continue", but since we changed the component to use OfferCard,
+      // it doesn't have a single "Copy FLOW25 & Continue" button anymore. It has "COPY" for the coupon and OfferCard CTAs.
+      expect(screen.getByText('COPY')).toBeDefined();
     });
   });
 
@@ -328,7 +331,7 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
 
     const input = screen.getByPlaceholderText('@username or profile link');
     fireEvent.change(input, { target: { value: 'tiktokstar' } });
-    fireEvent.click(screen.getByText('Search Profile'));
+    fireEvent.click(screen.getByText('Locate Profile'));
 
     await waitFor(() => {
       expect(screen.getByText('Confirm Profile')).toBeDefined();
