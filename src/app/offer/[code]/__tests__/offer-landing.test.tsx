@@ -131,7 +131,7 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
       expect(screen.getByPlaceholderText('@username or profile link')).toBeDefined();
       expect(screen.getByText('tiktok')).toBeDefined();
       expect(screen.getByText('youtube')).toBeDefined();
-      expect(screen.getByText('twitter')).toBeDefined();
+      expect(screen.getByText('X / Twitter')).toBeDefined();
     });
   });
 

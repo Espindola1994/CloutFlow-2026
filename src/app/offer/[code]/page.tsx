@@ -4,8 +4,9 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { Copy, Check, ArrowRight, ShieldCheck, Zap, AlertCircle, Clock, Sparkles, Search, User, X, ChevronRight } from 'lucide-react';
+import { Copy, Check, ArrowRight, ShieldCheck, Zap, AlertCircle, Clock, Sparkles, Search, User, X, ChevronRight, ArrowLeft } from 'lucide-react';
 import { InstagramPreview, TikTokPreview, TwitterPreview, YouTubePreview } from '@/components/social-preview';
+import { CloutFlowShell } from '@/components/cloutflow/shell';
 
 interface SanitizedPackage {
   id: string;
@@ -32,7 +33,7 @@ interface OfferData {
   packages: SanitizedPackage[];
 }
 
-type FlowStep = 'PREFILL' | 'LOOKUP' | 'LOADING' | 'PREVIEW' | 'PACKAGE';
+type FlowStep = 'PREFILL' | 'LOOKUP' | 'LOADING' | 'PREVIEW' | 'PACKAGE' | 'FLOW25';
 
 export default function OfferLandingPage() {
   const params = useParams();
@@ -289,31 +290,33 @@ export default function OfferLandingPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-[#070b14] text-white flex items-center justify-center font-sans">
-        <div className="flex flex-col items-center gap-3">
+      <CloutFlowShell>
+        <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3">
           <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
           <p className="text-xs text-neutral-400 font-medium">Validating promotional offer...</p>
         </div>
-      </main>
+      </CloutFlowShell>
     );
   }
 
   if (errorMsg || isExpiredLocally || !offerData) {
     return (
-      <main className="min-h-screen bg-[#070b14] text-white flex items-center justify-center font-sans px-4">
-        <div className="w-full max-w-md p-8 rounded-2xl bg-neutral-900/60 border border-neutral-800 text-center flex flex-col items-center shadow-xl">
-          <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
-            <AlertCircle className="w-6 h-6" />
+      <CloutFlowShell>
+        <div className="flex items-center justify-center min-h-[60vh] px-4">
+          <div className="w-full max-w-md p-8 rounded-2xl bg-neutral-900/60 border border-neutral-800 text-center flex flex-col items-center shadow-xl backdrop-blur-md">
+            <div className="w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400 mb-4">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h1 className="text-xl font-bold text-white mb-2">Offer Unavailable</h1>
+            <p className="text-sm text-neutral-400 mb-6">
+              This offer is no longer available or has already reached its expiration date.
+            </p>
+            <button type="button" onClick={() => router.push('/')} className="w-full py-3 px-4 rounded-xl bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition">
+              Explore CloutFlow Services
+            </button>
           </div>
-          <h1 className="text-xl font-bold text-white mb-2">Offer Unavailable</h1>
-          <p className="text-sm text-neutral-400 mb-6">
-            This offer is no longer available or has already reached its expiration date.
-          </p>
-          <button type="button" onClick={() => router.push('/')} className="w-full py-3 px-4 rounded-xl bg-white text-black font-semibold text-sm hover:bg-neutral-200 transition">
-            Explore CloutFlow Services
-          </button>
         </div>
-      </main>
+      </CloutFlowShell>
     );
   }
 
@@ -323,32 +326,24 @@ export default function OfferLandingPage() {
     : [];
 
   return (
-    <main className="min-h-screen bg-[#070b14] text-white selection:bg-indigo-500 selection:text-white relative overflow-x-hidden font-sans pb-24">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] pointer-events-none opacity-20 blur-[130px] rounded-full z-0 bg-indigo-600" />
-
-      <header className="w-full max-w-5xl mx-auto px-4 h-16 flex items-center justify-between relative z-20 border-b border-neutral-800/60">
-        <div className="flex items-center gap-2">
-          <span className="text-xl font-black tracking-tight text-white">
-            Clout<span className="text-indigo-400">Flow</span>
-          </span>
-          <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hidden sm:inline-block">
-            Exclusive Reward
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs text-neutral-400 font-semibold">
-          <ShieldCheck className="w-4 h-4 text-emerald-400" />
-          <span>Verified Returning Client</span>
-        </div>
-      </header>
-
+    <CloutFlowShell showMotto={false}>
       <div className="w-full max-w-lg mx-auto px-4 py-8 relative z-10">
         
         {/* Step 1: Prefill Prompt */}
         {flowStep === 'PREFILL' && offerData.previousTarget && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-4">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>25% OFF Repeat Purchase Voucher</span>
+              </div>
               <h1 className="text-3xl font-extrabold text-white mb-2">Welcome Back</h1>
               <p className="text-neutral-400 text-sm">Boost the same profile again?</p>
+              {timeLeft && (
+                <p className="text-xs text-amber-400/90 font-medium mt-2 flex items-center justify-center gap-1">
+                  <Clock size={12} /> Offer expires in {timeLeft}
+                </p>
+              )}
             </div>
             <div className="bg-neutral-900/80 border border-neutral-800 p-6 rounded-2xl shadow-xl backdrop-blur-md">
               <div className="flex items-center gap-4 p-4 bg-neutral-950 rounded-xl border border-neutral-800/80 mb-6">
@@ -385,8 +380,17 @@ export default function OfferLandingPage() {
         {flowStep === 'LOOKUP' && (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-xs font-semibold mb-4">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>25% OFF Repeat Purchase Voucher</span>
+              </div>
               <h1 className="text-3xl font-extrabold text-white mb-2">Social Lookup</h1>
               <p className="text-neutral-400 text-sm">Which profile do you want to boost?</p>
+              {timeLeft && (
+                <p className="text-xs text-amber-400/90 font-medium mt-2 flex items-center justify-center gap-1">
+                  <Clock size={12} /> Offer expires in {timeLeft}
+                </p>
+              )}
             </div>
             <div className="bg-neutral-900/80 border border-neutral-800 p-6 rounded-2xl shadow-xl backdrop-blur-md">
               <div className="mb-5">
@@ -398,7 +402,7 @@ export default function OfferLandingPage() {
                       onClick={() => setTargetPlatform(p)}
                       className={`py-2.5 px-3 rounded-lg text-xs font-bold capitalize transition border ${targetPlatform === p ? 'bg-indigo-600/20 border-indigo-500 text-indigo-300' : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:bg-neutral-800'}`}
                     >
-                      {p}
+                      {p === 'twitter' ? 'X / Twitter' : p}
                     </button>
                   ))}
                 </div>
@@ -484,6 +488,11 @@ export default function OfferLandingPage() {
               <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-white mb-3">
                 Your 25% Off is Ready
               </h1>
+              {timeLeft && (
+                <p className="text-xs text-amber-400/90 font-medium flex items-center justify-center gap-1">
+                  <Clock size={12} /> Offer expires in {timeLeft}
+                </p>
+              )}
             </div>
 
             <div className="bg-neutral-900/80 border border-neutral-800 p-6 rounded-2xl shadow-xl backdrop-blur-md mb-6">
@@ -583,10 +592,16 @@ export default function OfferLandingPage() {
                 Paste <strong className="text-white font-mono">{offerData.couponCode}</strong> in the coupon field at checkout to apply your 25% discount.
               </p>
             </div>
+            
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-[10px] text-neutral-500 font-medium">
+              <span className="flex items-center gap-1"><ShieldCheck size={12} /> Secure Checkout</span>
+              <span className="flex items-center gap-1"><Zap size={12} /> Instant Delivery</span>
+              <span className="flex items-center gap-1"><Check size={12} /> 25% Off Applied</span>
+            </div>
           </div>
         )}
 
       </div>
-    </main>
+    </CloutFlowShell>
   );
 }
