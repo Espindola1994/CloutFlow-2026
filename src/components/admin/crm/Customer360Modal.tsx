@@ -496,7 +496,7 @@ export function Customer360Modal({
                                 ) : null}
                               </div>
                               <p className="text-[11px] text-[#65737A] mt-1">
-                                Campaign: {offer.campaignType.replace(/_/g, " ")}
+                                Campaign: {offer.campaignType.replace(/_/g, " ")} · Gateway Coupon: <strong className="text-[#142126] font-mono">FLOW25</strong> (PerfectPay)
                               </p>
                               <div className="text-[11px] text-[#8A979D] mt-1 space-x-2">
                                 <span>Created: {formatOfferDateTime(offer.createdAt)}</span>

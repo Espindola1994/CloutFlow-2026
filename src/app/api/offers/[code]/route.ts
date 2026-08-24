@@ -1,0 +1,116 @@
+import { NextResponse } from 'next/server';
+import { db } from '@/db';
+import { customerOffers, offers } from '@/db/schema';
+import { eq, and, asc } from 'drizzle-orm';
+import { getEffectiveOfferStatus, formatOfferDateTime } from '@/services/offers/offer-status';
+import { PERFECTPAY_POST_PURCHASE_COUPON } from '@/lib/coupons';
+
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ code: string }> | { code: string } }
+) {
+  try {
+    const resolvedParams = await Promise.resolve(params);
+    const code = resolvedParams?.code?.trim();
+
+    if (!code) {
+      return NextResponse.json(
+        { success: false, error: { message: 'Offer not found or no longer available.' } },
+        { status: 404 }
+      );
+    }
+
+    // 1. Fetch Customer Offer Server-Side
+    const [customerOffer] = await db.query.customerOffers.findMany({
+      where: eq(customerOffers.code, code),
+      limit: 1,
+    }).catch((err) => {
+      console.error('[PublicOfferAPI] customerOffers query error:', err);
+      return [];
+    });
+
+    if (!customerOffer) {
+      return NextResponse.json(
+        { success: false, error: { message: 'This offer is no longer available.' } },
+        { status: 404 }
+      );
+    }
+
+    // 2. Validate Campaign Type (POST_PURCHASE_25_OFF or ADMIN_TEST representations)
+    const isPostPurchase = customerOffer.campaignType === 'POST_PURCHASE_25_OFF';
+    if (!isPostPurchase) {
+      return NextResponse.json(
+        { success: false, error: { message: 'This offer is no longer available.' } },
+        { status: 404 }
+      );
+    }
+
+    // 3. Derive Authoritative Canonical Effective Status
+    const now = new Date();
+    const effectiveStatus = getEffectiveOfferStatus(customerOffer, now);
+
+    if (effectiveStatus !== 'ACTIVE') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: {
+            message: 'This offer is no longer available.',
+            reason: effectiveStatus === 'EXPIRED' ? 'EXPIRED' : (effectiveStatus === 'REDEEMED' ? 'REDEEMED' : 'UNAVAILABLE'),
+          },
+        },
+        { status: 410 }
+      );
+    }
+
+    // 4. Fetch Active Growth Offers for Package Selection
+    const activePackages = await db.query.offers.findMany({
+      where: eq(offers.active, true),
+      orderBy: [asc(offers.sortOrder), asc(offers.priceCents)],
+      limit: 24,
+    }).catch((err) => {
+      console.error('[PublicOfferAPI] offers query error:', err);
+      return [];
+    });
+
+    // Sanitize packages: strip sensitive backend fields, keep only public display & selection data
+    const sanitizedPackages = activePackages.map((p) => {
+      const meta = (p.metadata as Record<string, any>) || {};
+      return {
+        id: p.id,
+        platform: p.platform,
+        service: p.service,
+        name: p.name,
+        slug: p.slug,
+        quantity: p.quantity,
+        bonusQuantity: p.bonusQuantity || 0,
+        priceCents: Number(p.priceCents),
+        currency: p.currency || 'USD',
+        badge: p.badge || meta.badge || null,
+        isPopular: p.isPopular || Boolean(meta.isPopular || meta.featured),
+      };
+    });
+
+    // 5. Build Safe Public Response (NO PII, NO DB IDs, NO INTERNAL KEYS)
+    const expiresAt = customerOffer.expiresAt ? new Date(customerOffer.expiresAt).toISOString() : null;
+    const formattedExpiresAt = customerOffer.expiresAt ? formatOfferDateTime(customerOffer.expiresAt, { style: 'email' }) : null;
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        code: customerOffer.code,
+        discountPercent: customerOffer.discountValue || 25,
+        couponCode: PERFECTPAY_POST_PURCHASE_COUPON,
+        status: effectiveStatus,
+        expiresAt,
+        formattedExpiresAt,
+        packages: sanitizedPackages,
+      },
+    });
+  } catch (error: unknown) {
+    console.error('[PublicOfferAPI] Unhandled error:', error);
+    return NextResponse.json(
+      { success: false, error: { message: 'This offer is no longer available.' } },
+      { status: 500 }
+    );
+  }
+}

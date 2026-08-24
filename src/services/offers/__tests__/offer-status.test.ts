@@ -76,5 +76,6 @@ describe('Canonical Offer Expiration & Status Derivation', () => {
     }, { customerEmail: 'test@example.com' });
 
     expect(template.html).toContain('Offer expires: Aug 23, 8:31 PM (UTC-03)');
+    expect(template.html).toContain('/offer/TEST25');
   });
 });

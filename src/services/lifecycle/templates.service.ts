@@ -21,7 +21,7 @@ export function getPostPurchaseOfferTemplate(contextData: Record<string, unknown
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cloutflow.co';
-  const ctaUrl = `${baseUrl}?offer=${encodeURIComponent(offerCode)}`;
+  const ctaUrl = `${baseUrl.replace(/\/$/, '')}/offer/${encodeURIComponent(offerCode)}`;
 
   return {
     subject: "Thanks for your order — here’s 25% off your next one",
