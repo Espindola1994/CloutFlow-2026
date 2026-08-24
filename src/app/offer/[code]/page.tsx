@@ -20,7 +20,15 @@ interface OfferData {
   status: string;
   expiresAt: string | null;
   formattedExpiresAt: string | null;
-  previousTarget: { platform: string; username: string; targetType?: string; profileUrl?: string | null } | null;
+  previousTarget: {
+    platform: string;
+    username: string;
+    targetType?: string;
+    profileUrl?: string | null;
+    avatarUrl?: string | null;
+    maskedEmail?: string | null;
+    previousPackageName?: string | null;
+  } | null;
   packages: SanitizedPackage[];
 }
 
@@ -200,7 +208,12 @@ export default function OfferLandingPage() {
     if (profile.platform === 'youtube' && (profile.is_private || profile.is_hidden)) restricted = true;
 
     setIsProfileRestricted(restricted);
-    setVerifiedProfile(profile);
+    // Merge server-side masked email if available on offerData
+    const profileWithEmail = {
+      ...profile,
+      maskedEmail: offerData?.previousTarget?.maskedEmail || profile.maskedEmail || null,
+    };
+    setVerifiedProfile(profileWithEmail);
     const safePlat = (['instagram', 'tiktok', 'twitter', 'youtube'].includes(platform.toLowerCase()) ? platform.toLowerCase() : 'instagram') as PlatformKey;
     setTargetPlatform(safePlat);
     setFlowStep('PREVIEW');

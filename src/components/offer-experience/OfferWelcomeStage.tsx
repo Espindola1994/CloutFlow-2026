@@ -2,20 +2,9 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
-import { User, Search, Clock, ArrowRight, Sparkles } from 'lucide-react';
+import { Search, Clock, Sparkles, Package } from 'lucide-react';
 import { OfferPlatformTheme } from './theme';
-import instagramIcon from '@/assets/home-icons-vector/instagram.svg';
-import tiktokIcon from '@/assets/home-icons-vector/tiktok.svg';
-import twitterIcon from '@/assets/home-icons-vector/twitter.svg';
-import youtubeIcon from '@/assets/home-icons-vector/youtube.svg';
-
-const PLATFORM_ICONS = {
-  instagram: instagramIcon,
-  tiktok: tiktokIcon,
-  twitter: twitterIcon,
-  youtube: youtubeIcon,
-};
+import { RepeatProfilePresentation } from './RepeatProfilePresentation';
 
 interface OfferWelcomeStageProps {
   previousTarget: {
@@ -23,6 +12,9 @@ interface OfferWelcomeStageProps {
     username: string;
     targetType?: string;
     profileUrl?: string | null;
+    avatarUrl?: string | null;
+    maskedEmail?: string | null;
+    previousPackageName?: string | null;
   };
   timeLeft: string | null;
   theme: OfferPlatformTheme;
@@ -37,14 +29,6 @@ export function OfferWelcomeStage({
   onConfirm,
   onSwitchProfile,
 }: OfferWelcomeStageProps) {
-  const platKey = (
-    ['instagram', 'tiktok', 'twitter', 'youtube'].includes(
-      previousTarget.platform.toLowerCase()
-    )
-      ? previousTarget.platform.toLowerCase()
-      : 'instagram'
-  ) as 'instagram' | 'tiktok' | 'twitter' | 'youtube';
-
   return (
     <div className="w-full max-w-[680px] mx-auto animate-in fade-in slide-in-from-bottom-2 duration-200">
       {/* Top Header info */}
@@ -84,48 +68,50 @@ export function OfferWelcomeStage({
           style={{ background: theme.gradient }}
         />
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-[#F1F5F9]">
-          {/* Avatar + Handle */}
-          <div className="flex items-center gap-3.5">
-            <div className="relative">
-              <div
-                className="w-13 h-13 rounded-full bg-gradient-to-b from-[#F8FAFC] to-[#F1F5F9] border-2 flex items-center justify-center text-[#64748B] shadow-inner"
-                style={{ borderColor: theme.primary }}
-              >
-                <User className="w-6 h-6 text-[#64748B]" />
+        {/* Unified Identity Presentation Component */}
+        <div className="pb-4 border-b border-[#F1F5F9]">
+          <RepeatProfilePresentation
+            identity={{
+              platform: previousTarget.platform,
+              username: previousTarget.username,
+              avatarUrl: previousTarget.avatarUrl,
+              maskedEmail: previousTarget.maskedEmail,
+              isConfirmed: false,
+            }}
+            theme={theme}
+            size="lg"
+            showBadge={true}
+            badgeText="Last Used"
+            actionButton={
+              <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[12px] font-bold text-[#475569]">
+                <Sparkles className="w-3.5 h-3.5" style={{ color: theme.primary }} />
+                <span>25% Instant Savings</span>
               </div>
-              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white border border-[#E2E8F0] flex items-center justify-center p-0.5 shadow-2xs">
-                <Image
-                  src={PLATFORM_ICONS[platKey]}
-                  alt=""
-                  width={12}
-                  height={12}
-                  className="object-contain"
-                />
-              </div>
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold text-[#64748B] uppercase tracking-wider">
-                  {previousTarget.platform} Profile
-                </span>
-                <span className="text-[10px] bg-[#F1F5F9] text-[#475569] font-bold px-1.5 py-0.5 rounded-full border border-[#E2E8F0]">
-                  Last Used
-                </span>
-              </div>
-              <p className="text-[18px] sm:text-[20px] font-black text-[#081126] tracking-tight">
-                @{previousTarget.username}
-              </p>
-            </div>
-          </div>
-
-          {/* Quick Repeat Badge */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[12px] font-bold text-[#475569]">
-            <Sparkles className="w-3.5 h-3.5" style={{ color: theme.primary }} />
-            <span>25% Instant Savings</span>
-          </div>
+            }
+          />
         </div>
+
+        {/* Previous Purchase / Suggested Boost Context if Available */}
+        {previousTarget.previousPackageName && (
+          <div className="my-3.5 p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-between gap-3 text-left">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-lg bg-white border border-[#E2E8F0] flex items-center justify-center text-[#64748B]">
+                <Package className="w-3.5 h-3.5 text-[#1376FF]" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
+                  Last Purchase / Suggested Boost
+                </span>
+                <span className="text-[13px] font-bold text-[#081126]">
+                  {previousTarget.previousPackageName}
+                </span>
+              </div>
+            </div>
+            <span className="text-[11px] font-extrabold text-[#1D4ED8] bg-[#EFF6FF] px-2 py-0.5 rounded-md border border-[#BFDBFE] shrink-0">
+              FLOW25 Eligible
+            </span>
+          </div>
+        )}
 
         {/* Action Row */}
         <div className="pt-4 flex flex-col sm:flex-row items-center gap-3">
@@ -155,3 +141,4 @@ export function OfferWelcomeStage({
     </div>
   );
 }
+

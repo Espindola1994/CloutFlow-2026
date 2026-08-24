@@ -191,6 +191,9 @@ describe('Public Offer Landing API (/api/offers/[code])', () => {
       username: 'guilhermeterraaa',
       targetType: 'profile',
       profileUrl: null,
+      avatarUrl: null,
+      maskedEmail: 'ret*****@example.com',
+      previousPackageName: null,
     });
     // Ensure no sensitive fields
     expect(json.data.customerEmail).toBeUndefined();
@@ -231,6 +234,9 @@ describe('Public Offer Landing API (/api/offers/[code])', () => {
       username: 'tiktokcreator',
       targetType: 'profile',
       profileUrl: 'https://tiktok.com/@tiktokcreator',
+      avatarUrl: null,
+      maskedEmail: 'ret*****@example.com',
+      previousPackageName: null,
     });
   });
 });

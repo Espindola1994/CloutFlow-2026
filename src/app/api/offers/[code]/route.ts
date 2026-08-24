@@ -5,6 +5,7 @@ import { customerOffers, offers, orders } from '@/db/schema';
 import { eq, asc, desc } from 'drizzle-orm';
 import { getEffectiveOfferStatus, formatOfferDateTime } from '@/services/offers/offer-status';
 import { PERFECTPAY_POST_PURCHASE_COUPON } from '@/lib/coupons';
+import { maskEmail } from '@/lib/email/mask';
 
 export async function GET(
   request: Request,
@@ -63,15 +64,21 @@ export async function GET(
       );
     }
 
-    // 4. Fetch Active Growth Offers for Package Selection
+    // 4. Fetch Active Growth Offers for Package Selection & Previous Identity
     let previousTarget: {
       platform: string;
       username: string;
       targetType?: string;
       profileUrl?: string | null;
+      avatarUrl?: string | null;
+      maskedEmail?: string | null;
+      previousPackageName?: string | null;
     } | null = null;
 
     try {
+      const customerEmail = customerOffer.customerEmail;
+      const maskedEmail = customerEmail ? maskEmail(customerEmail) : null;
+
       if (customerOffer.metadata && typeof customerOffer.metadata === 'object') {
         const m = customerOffer.metadata as Record<string, any>;
         if (m.platform && (m.targetHandle || m.socialUsername || m.username)) {
@@ -80,6 +87,9 @@ export async function GET(
             username: String(m.targetHandle || m.socialUsername || m.username).replace(/^@+/, ''),
             targetType: m.targetType || 'profile',
             profileUrl: m.profileUrl || null,
+            avatarUrl: m.avatarUrl || m.profilePicUrl || m.profileImageUrl || m.avatar || null,
+            maskedEmail: m.maskedEmail || maskedEmail,
+            previousPackageName: m.previousPackageName || m.packageName || null,
           };
         }
       }
@@ -95,13 +105,16 @@ export async function GET(
             username: String(sourceOrder.socialUsername || sourceOrder.username).replace(/^@+/, ''),
             targetType: 'profile',
             profileUrl: sourceOrder.profileUrl || null,
+            avatarUrl: null,
+            maskedEmail,
+            previousPackageName: sourceOrder.service ? `${sourceOrder.quantity.toLocaleString()} ${sourceOrder.service}` : null,
           };
         }
       }
 
-      if (!previousTarget && customerOffer.customerEmail) {
+      if (!previousTarget && customerEmail) {
         const [lastOrder] = await db.query.orders.findMany({
-          where: eq(orders.customerEmail, customerOffer.customerEmail),
+          where: eq(orders.customerEmail, customerEmail),
           orderBy: [desc(orders.createdAt)],
           limit: 1,
         }).catch(() => []);
@@ -111,8 +124,16 @@ export async function GET(
             username: String(lastOrder.socialUsername || lastOrder.username).replace(/^@+/, ''),
             targetType: 'profile',
             profileUrl: lastOrder.profileUrl || null,
+            avatarUrl: null,
+            maskedEmail,
+            previousPackageName: lastOrder.service ? `${lastOrder.quantity.toLocaleString()} ${lastOrder.service}` : null,
           };
         }
+      }
+
+      // If we have a previousTarget but no maskedEmail attached, attach it
+      if (previousTarget && !previousTarget.maskedEmail && maskedEmail) {
+        previousTarget.maskedEmail = maskedEmail;
       }
     } catch (targetErr) {
       console.warn('[PublicOfferAPI] previousTarget evaluation warning:', targetErr);

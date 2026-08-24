@@ -5,17 +5,7 @@ import React from 'react';
 import Image from 'next/image';
 import { Check, Copy, ArrowRight, Sparkles } from 'lucide-react';
 import { OfferPlatformTheme } from './theme';
-import instagramIcon from '@/assets/home-icons-vector/instagram.svg';
-import tiktokIcon from '@/assets/home-icons-vector/tiktok.svg';
-import twitterIcon from '@/assets/home-icons-vector/twitter.svg';
-import youtubeIcon from '@/assets/home-icons-vector/youtube.svg';
-
-const PLATFORM_ICONS = {
-  instagram: instagramIcon,
-  tiktok: tiktokIcon,
-  twitter: twitterIcon,
-  youtube: youtubeIcon,
-};
+import { RepeatProfilePresentation } from './RepeatProfilePresentation';
 
 export interface SanitizedPackage {
   id: string;
@@ -82,46 +72,33 @@ export function OfferPackageStage({
         />
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          {/* Profile Strip */}
-          <div className="flex items-center gap-3">
-            <div className="relative shrink-0">
-              <img
-                src={verifiedProfile?.avatar_url || '/placeholder-avatar.png'}
-                alt=""
-                className="w-11 h-11 rounded-full object-cover bg-[#F1F5F9] border-2 shadow-2xs"
-                style={{ borderColor: theme.primary }}
-              />
-              <div className="absolute -bottom-1 -right-1 w-4.5 h-4.5 rounded-full bg-white border border-[#E2E8F0] flex items-center justify-center p-0.5 shadow-2xs">
-                <Image
-                  src={PLATFORM_ICONS[platform]}
-                  alt=""
-                  width={10}
-                  height={10}
-                  className="object-contain"
-                />
-              </div>
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
-                  {theme.name} Profile
-                </span>
+          {/* Profile Strip via Shared Component */}
+          <div className="min-w-0 flex-1">
+            <RepeatProfilePresentation
+              identity={{
+                platform,
+                username: verifiedProfile?.username || '',
+                avatarUrl: verifiedProfile?.avatar_url || verifiedProfile?.profile_pic_url,
+                maskedEmail: verifiedProfile?.maskedEmail || null,
+                isConfirmed: true,
+              }}
+              theme={theme}
+              size="md"
+              showBadge={true}
+              actionButton={
                 <button
                   type="button"
                   onClick={onChangeProfile}
-                  className="text-[11px] font-bold text-[#1376FF] hover:underline cursor-pointer"
+                  className="text-[11px] font-bold text-[#1376FF] hover:underline cursor-pointer ml-1 shrink-0"
                 >
                   Change
                 </button>
-              </div>
-              <p className="text-[15px] sm:text-[16px] font-[800] text-[#081126] tracking-tight">
-                @{verifiedProfile?.username}
-              </p>
-            </div>
+              }
+            />
           </div>
 
           {/* Coupon Strip */}
-          <div className="flex items-center gap-3 bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-1.5 rounded-xl shadow-2xs">
+          <div className="flex items-center gap-3 bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-1.5 rounded-xl shadow-2xs shrink-0 self-start md:self-auto">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#1D4ED8] bg-[#EFF6FF] px-2 py-0.5 rounded-full border border-[#BFDBFE]">
                 25% OFF

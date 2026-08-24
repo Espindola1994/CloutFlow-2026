@@ -38,6 +38,9 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
         username: 'guilhermeterraaa',
         targetType: 'profile',
         profileUrl: null,
+        avatarUrl: 'https://example.com/historical-avatar.jpg',
+        maskedEmail: 'gui*****@gmail.com',
+        previousPackageName: '2,000 Followers',
       },
       packages: [
         {
@@ -103,6 +106,8 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     await waitFor(() => {
       expect(screen.getByText('Welcome Back')).toBeDefined();
       expect(screen.getByText('@guilhermeterraaa')).toBeDefined();
+      expect(screen.getByText('gui*****@gmail.com')).toBeDefined();
+      expect(screen.getByText('2,000 Followers')).toBeDefined();
     });
   });
 

@@ -2,9 +2,10 @@
 'use client';
 
 import React from 'react';
-import { Check, Copy, ArrowRight, Loader2, User, Package as PackageIcon, Tag, AlertCircle } from 'lucide-react';
+import { Check, Copy, ArrowRight, Loader2, Package as PackageIcon, Tag, AlertCircle } from 'lucide-react';
 import { OfferPlatformTheme } from './theme';
 import { SanitizedPackage } from './OfferPackageStage';
+import { RepeatProfilePresentation } from './RepeatProfilePresentation';
 
 interface OfferReviewStageProps {
   platform: 'instagram' | 'tiktok' | 'twitter' | 'youtube';
@@ -73,31 +74,29 @@ export function OfferReviewStage({
           style={{ background: theme.gradient }}
         />
 
-        {/* Target Profile Row */}
-        <div className="flex items-center justify-between pb-3.5 border-b border-[#F1F5F9]">
-          <div className="flex items-start gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#64748B] shrink-0 mt-0.5">
-              <User className="w-4 h-4" />
-            </div>
-            <div>
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B] block">
-                Target Profile
-              </span>
-              <p className="text-[15px] font-[800] text-[#081126] mt-0.5">
-                @{verifiedProfile?.username}
-              </p>
-              <span className="text-[11px] text-[#64748B] capitalize font-medium">
-                {theme.name} Profile
-              </span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={onChangeProfile}
-            className="text-[12px] font-bold text-[#1376FF] hover:underline cursor-pointer"
-          >
-            Change
-          </button>
+        {/* Target Profile Row via Shared Component */}
+        <div className="pb-3.5 border-b border-[#F1F5F9]">
+          <RepeatProfilePresentation
+            identity={{
+              platform,
+              username: verifiedProfile?.username || '',
+              avatarUrl: verifiedProfile?.avatar_url || verifiedProfile?.profile_pic_url,
+              maskedEmail: verifiedProfile?.maskedEmail || null,
+              isConfirmed: true,
+            }}
+            theme={theme}
+            size="md"
+            showBadge={true}
+            actionButton={
+              <button
+                type="button"
+                onClick={onChangeProfile}
+                className="text-[12px] font-bold text-[#1376FF] hover:underline cursor-pointer ml-1 shrink-0"
+              >
+                Change
+              </button>
+            }
+          />
         </div>
 
         {/* Selected Package Row */}
