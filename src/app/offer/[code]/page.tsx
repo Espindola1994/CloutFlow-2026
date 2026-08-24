@@ -17,12 +17,15 @@ import {
   Sparkles,
   Search,
   User,
-  ChevronRight,
+  CheckCircle2,
   LockKeyhole,
   Headphones,
-  CheckCircle2,
-  ExternalLink,
   RotateCcw,
+  Tag,
+  ShoppingBag,
+  ExternalLink,
+  ChevronRight,
+  Loader2,
 } from 'lucide-react';
 
 import instagramIcon from '@/assets/home-icons-vector/instagram.svg';
@@ -31,8 +34,6 @@ import twitterIcon from '@/assets/home-icons-vector/twitter.svg';
 import youtubeIcon from '@/assets/home-icons-vector/youtube.svg';
 
 import { InstagramPreview, TikTokPreview, TwitterPreview, YouTubePreview } from '@/components/social-preview';
-import { OfferCard } from '@/components/sales/OfferCard';
-import { PLATFORM_THEMES, Platform, SERVICE_COPY_MAP } from '@/config/service-sales.config';
 
 interface SanitizedPackage {
   id: string;
@@ -59,7 +60,7 @@ interface OfferData {
   packages: SanitizedPackage[];
 }
 
-type FlowStep = 'PREFILL' | 'LOOKUP' | 'LOADING' | 'PREVIEW' | 'PACKAGE' | 'FLOW25';
+type FlowStep = 'PREFILL' | 'LOOKUP' | 'LOADING' | 'PREVIEW' | 'PACKAGE' | 'REVIEW';
 
 type PlatformKey = 'instagram' | 'tiktok' | 'twitter' | 'youtube';
 
@@ -69,10 +70,8 @@ interface PlatformMetaConfig {
   label: string;
   icon: any;
   accent: string;
-  accent2: string;
-  soft: string;
-  gradient: string;
-  bgGlow: string;
+  accentSubtle: string;
+  tagColor: string;
 }
 
 const PLATFORM_CONFIGS: Record<PlatformKey, PlatformMetaConfig> = {
@@ -82,21 +81,17 @@ const PLATFORM_CONFIGS: Record<PlatformKey, PlatformMetaConfig> = {
     label: 'Instagram',
     icon: instagramIcon,
     accent: '#E1306C',
-    accent2: '#F56040',
-    soft: '#FFF0F5',
-    gradient: 'linear-gradient(90deg, #833AB4 0%, #C13584 26%, #E1306C 50%, #F56040 74%, #FCAF45 100%)',
-    bgGlow: 'radial-gradient(circle at 50% 0%, rgba(225, 48, 108, 0.12) 0%, rgba(193, 53, 132, 0.06) 40%, transparent 70%)',
+    accentSubtle: '#FDF2F7',
+    tagColor: '#C13584',
   },
   tiktok: {
     key: 'tiktok',
     name: 'TikTok',
     label: 'TikTok',
     icon: tiktokIcon,
-    accent: '#000000',
-    accent2: '#FE2C55',
-    soft: '#FFF0F3',
-    gradient: 'linear-gradient(110deg, #080808 0%, #0a0d0e 30%, #155054 66%, #9b2948 100%)',
-    bgGlow: 'radial-gradient(circle at 50% 0%, rgba(37, 244, 238, 0.10) 0%, rgba(254, 44, 85, 0.08) 45%, transparent 70%)',
+    accent: '#FE2C55',
+    accentSubtle: '#F0FDFA',
+    tagColor: '#00F2FE',
   },
   twitter: {
     key: 'twitter',
@@ -104,10 +99,8 @@ const PLATFORM_CONFIGS: Record<PlatformKey, PlatformMetaConfig> = {
     label: 'X / Twitter',
     icon: twitterIcon,
     accent: '#0F1419',
-    accent2: '#536471',
-    soft: '#F7F9FA',
-    gradient: 'linear-gradient(110deg, #0F1419 0%, #272C30 50%, #0F1419 100%)',
-    bgGlow: 'radial-gradient(circle at 50% 0%, rgba(15, 20, 25, 0.07) 0%, rgba(83, 100, 113, 0.04) 45%, transparent 70%)',
+    accentSubtle: '#F8FAFC',
+    tagColor: '#334155',
   },
   youtube: {
     key: 'youtube',
@@ -115,10 +108,8 @@ const PLATFORM_CONFIGS: Record<PlatformKey, PlatformMetaConfig> = {
     label: 'YouTube',
     icon: youtubeIcon,
     accent: '#FF0000',
-    accent2: '#CC0000',
-    soft: '#FFF0F0',
-    gradient: 'linear-gradient(90deg, #FF0000 0%, #CC0000 100%)',
-    bgGlow: 'radial-gradient(circle at 50% 0%, rgba(255, 0, 0, 0.10) 0%, rgba(204, 0, 0, 0.05) 45%, transparent 70%)',
+    accentSubtle: '#FEF2F2',
+    tagColor: '#DC2626',
   },
 };
 
@@ -142,7 +133,7 @@ export default function OfferLandingPage() {
   const [lookupError, setLookupError] = useState<string | null>(null);
   const pollingRef = useRef({ active: false });
 
-  // Package State
+  // Package & Checkout State
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
   const [checkoutSubmitting, setCheckoutSubmitting] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
@@ -201,7 +192,7 @@ export default function OfferLandingPage() {
       if (hours > 24) {
         const days = Math.floor(hours / 24);
         const remHours = hours % 24;
-        setTimeLeft(`${days}d ${remHours}h remaining`);
+        setTimeLeft(`${days}d ${remHours}h`);
       } else if (hours > 0) {
         setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
       } else {
@@ -332,7 +323,7 @@ export default function OfferLandingPage() {
       }
     } catch {}
 
-    const normalizedUsername = verifiedProfile.username.replace(/^@+/, '').trim();
+    const normalizedUsername = (verifiedProfile.username || '').replace(/^@+/, '').trim();
     const isYouTube = targetPlatform === 'youtube';
     const targetType = isYouTube ? 'channel' : 'profile';
 
@@ -368,556 +359,784 @@ export default function OfferLandingPage() {
   };
 
   const platformMeta = PLATFORM_CONFIGS[targetPlatform] || PLATFORM_CONFIGS.instagram;
-  const salesTheme = PLATFORM_THEMES[targetPlatform as Platform] || PLATFORM_THEMES.instagram;
 
   // Filter packages based on targetPlatform
   const eligiblePackages = offerData
     ? offerData.packages.filter((p) => p.platform.toLowerCase() === targetPlatform.toLowerCase())
     : [];
 
-  const serviceKey = (eligiblePackages[0]?.service.toLowerCase() || 'followers') as 'followers' | 'likes' | 'views' | 'comments';
-  const serviceIsValid = ['followers', 'likes', 'views', 'comments'].includes(serviceKey);
-  const safeService = serviceIsValid ? serviceKey : 'followers';
-  const copy = SERVICE_COPY_MAP[safeService]?.[targetPlatform as Platform] || SERVICE_COPY_MAP.followers.instagram;
-
   const selectedPkg = eligiblePackages.find((p) => p.id === selectedPackageId) || eligiblePackages[0] || null;
 
-  // Global Shell Background & Decorative Assets
-  const publicDecoElements = (
-    <>
-      <div className="cf-v68-deco cf-v68-deco-top" aria-hidden="true">
-        <span className="cf-v68-chip">👥 +1K</span>
-        <span className="cf-v68-heart">♥</span>
-        <span className="cf-v68-growth-line" />
-        <span className="cf-v68-growth-bars">
-          <i />
-          <i />
-          <i />
-          <i />
-        </span>
-        <span className="cf-v68-dotgrid" />
-      </div>
+  // Stepper helper
+  const getStepNumber = (step: FlowStep): number => {
+    switch (step) {
+      case 'PREFILL':
+      case 'LOOKUP':
+      case 'LOADING':
+        return 1;
+      case 'PREVIEW':
+        return 2;
+      case 'PACKAGE':
+        return 3;
+      case 'REVIEW':
+        return 4;
+      default:
+        return 1;
+    }
+  };
 
-      <div className="cf-v68-deco cf-v68-deco-bottom" aria-hidden="true">
-        <span className="cf-v68-outline ig">◎</span>
-        <span className="cf-v68-outline tk">♪</span>
-        <span className="cf-v68-outline yt">▶</span>
-        <span className="cf-v68-outline x">X</span>
-        <span className="cf-v68-dashpath" />
-        <span className="cf-v68-chip cf-v68-chip-bottom">👥 +2.5K</span>
-        <span className="cf-v68-dotgrid cf-v68-dotgrid-bottom" />
-      </div>
-    </>
-  );
+  const currentStepNum = getStepNumber(flowStep);
 
-  // Global Header
-  const publicHeader = (
-    <header className="cf-v68-navbar relative z-30">
-      <Link href="/" className="cf-v68-logo" aria-label="CloutFlow home">
-        <span>Clout</span>
-        <b>Flow</b>
-        <ArrowUpRight />
-      </Link>
+  const stepsList = [
+    { num: 1, label: 'Profile' },
+    { num: 2, label: 'Confirm' },
+    { num: 3, label: 'Package' },
+    { num: 4, label: 'Checkout' },
+  ];
 
-      <div className="cf-v68-nav-actions">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-pink-50 border border-pink-200/80 text-[#E1306C] shadow-sm">
-          <span className="w-2 h-2 rounded-full bg-[#E1306C] animate-pulse" />
-          <span>Repeat Purchase · 25% Off</span>
+  // 2D Compact Header
+  const renderHeader = () => (
+    <div className="w-full bg-white border-b border-[#E2E8F0] sticky top-0 z-40">
+      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 h-[64px] flex items-center justify-between">
+        {/* Brand */}
+        <Link href="/" className="flex items-center gap-1.5 text-[#0F172A] font-extrabold text-[18px] tracking-tight hover:opacity-90 transition">
+          <span>Clout</span>
+          <span className="text-[#1376FF]">Flow</span>
+          <ArrowUpRight className="w-4 h-4 text-[#1376FF] -mt-2 -ml-0.5 stroke-[2.5]" />
+        </Link>
+
+        {/* Right Info Pill */}
+        <div className="flex items-center gap-3">
+          {timeLeft && !isExpiredLocally && (
+            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#F8FAFC] border border-[#E2E8F0] text-[12px] font-semibold text-[#475569]">
+              <Clock className="w-3.5 h-3.5 text-[#1376FF]" />
+              <span>Expires: <strong className="text-[#0F172A] font-mono">{timeLeft}</strong></span>
+            </div>
+          )}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-md bg-[#EFF6FF] border border-[#BFDBFE] text-[12px] font-bold text-[#1D4ED8]">
+            <Tag className="w-3.5 h-3.5" />
+            <span>Repeat Purchase · 25% Off</span>
+          </div>
         </div>
       </div>
 
-      <div className="cf-v71-mobile-mark" aria-hidden="true">
-        ✦
-      </div>
-    </header>
-  );
+      {/* Discrete 2D Stepper */}
+      <div className="border-t border-[#F1F5F9] bg-[#FAFAFA]">
+        <div className="max-w-[1120px] mx-auto px-4 sm:px-6 py-2.5 flex items-center justify-between sm:justify-center sm:gap-8 text-[12px]">
+          {stepsList.map((st, idx) => {
+            const isCompleted = currentStepNum > st.num;
+            const isCurrent = currentStepNum === st.num;
 
-  // Trust Bar
-  const publicTrustBar = (
-    <section className="cf-v68-trustbar mt-14" aria-label="Service benefits">
-      <div>
-        <ShieldCheck />
-        <span>100% Safe &amp; Secure</span>
+            return (
+              <React.Fragment key={st.num}>
+                <div className="flex items-center gap-2">
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold transition-colors ${
+                      isCompleted
+                        ? 'bg-[#10B981] text-white'
+                        : isCurrent
+                        ? 'text-white'
+                        : 'bg-[#E2E8F0] text-[#64748B]'
+                    }`}
+                    style={{
+                      backgroundColor: isCurrent ? platformMeta.accent : isCompleted ? '#10B981' : undefined,
+                    }}
+                  >
+                    {isCompleted ? <Check className="w-3 h-3 stroke-[3]" /> : st.num}
+                  </div>
+                  <span
+                    className={`font-semibold ${
+                      isCurrent
+                        ? 'text-[#0F172A]'
+                        : isCompleted
+                        ? 'text-[#475569]'
+                        : 'text-[#94A3B8]'
+                    }`}
+                  >
+                    <span className="hidden sm:inline">0{st.num} </span>
+                    {st.label}
+                  </span>
+                </div>
+                {idx < stepsList.length - 1 && (
+                  <div className="w-6 sm:w-12 h-[1px] bg-[#E2E8F0]" />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
       </div>
-      <div>
-        <LockKeyhole />
-        <span>No Password Required</span>
-      </div>
-      <div>
-        <Zap />
-        <span>Fast Delivery</span>
-      </div>
-      <div>
-        <Headphones />
-        <span>24/7 Support</span>
-      </div>
-    </section>
-  );
-
-  const publicSecurityNote = (
-    <div className="cf-v68-security-note mt-6">
-      <LockKeyhole />
-      <span>Your information is 100% secure and protected.</span>
     </div>
   );
 
+  // 2D Compact Trust Footer
+  const renderTrustBar = () => (
+    <div className="max-w-[1120px] mx-auto px-4 sm:px-6 mt-10 pt-6 border-t border-[#E2E8F0]">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[12px] text-[#64748B]">
+        <div className="flex items-center gap-2 p-2 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+          <ShieldCheck className="w-4 h-4 text-[#10B981] shrink-0" />
+          <span className="font-semibold text-[#334155]">100% Safe & Secure</span>
+        </div>
+        <div className="flex items-center gap-2 p-2 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+          <LockKeyhole className="w-4 h-4 text-[#10B981] shrink-0" />
+          <span className="font-semibold text-[#334155]">No Password Required</span>
+        </div>
+        <div className="flex items-center gap-2 p-2 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+          <Zap className="w-4 h-4 text-[#10B981] shrink-0" />
+          <span className="font-semibold text-[#334155]">Fast Order Delivery</span>
+        </div>
+        <div className="flex items-center gap-2 p-2 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0]">
+          <Headphones className="w-4 h-4 text-[#10B981] shrink-0" />
+          <span className="font-semibold text-[#334155]">24/7 Order Support</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  // LOADING STATE
   if (loading) {
     return (
-      <main className="cf-v68-home font-sans min-h-screen relative flex flex-col justify-between">
-        {publicDecoElements}
-        <div className="cf-v68-page">
-          {publicHeader}
-          <div className="cf-v68-main flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-12 h-12 border-3 border-[#1376ff] border-t-transparent rounded-full animate-spin mb-4" />
-            <h2 className="text-xl font-black text-[#0b1025] tracking-tight">Validating Promotional Offer...</h2>
-            <p className="text-sm text-[#647088] mt-1">Preparing your verified repeat-purchase discount.</p>
+      <main className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-between">
+        {renderHeader()}
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="w-full max-w-[480px] bg-white border border-[#E2E8F0] rounded-xl p-8 text-center shadow-xs">
+            <div className="w-8 h-8 border-2 border-[#1376FF] border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+            <h2 className="text-[18px] font-bold text-[#0F172A]">Validating Offer</h2>
+            <p className="text-[13px] text-[#64748B] mt-1">Retrieving your verified 25% repeat purchase discount...</p>
           </div>
         </div>
+        {renderTrustBar()}
       </main>
     );
   }
 
+  // EXPIRED OR INVALID STATE
   if (errorMsg || isExpiredLocally || !offerData) {
     return (
-      <main className="cf-v68-home font-sans min-h-screen relative flex flex-col justify-between">
-        {publicDecoElements}
-        <div className="cf-v68-page">
-          {publicHeader}
-          <div className="cf-v68-main flex flex-col items-center justify-center py-16 text-center">
-            <div className="w-16 h-16 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-5 shadow-sm">
-              <AlertCircle className="w-8 h-8" />
+      <main className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-between">
+        {renderHeader()}
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="w-full max-w-[520px] bg-white border border-[#E2E8F0] rounded-xl p-8 text-center shadow-xs">
+            <div className="w-12 h-12 rounded-full bg-[#FEF2F2] border border-[#FEE2E2] flex items-center justify-center text-[#DC2626] mx-auto mb-4">
+              <AlertCircle className="w-6 h-6" />
             </div>
-            <h1 className="text-3xl font-black text-[#0b1025] tracking-tight mb-2">Offer Unavailable</h1>
-            <p className="text-sm text-[#647088] max-w-md mx-auto mb-8 font-medium">
-              This promotional offer is no longer available or has already reached its expiration date.
+            <h1 className="text-[24px] font-bold text-[#0F172A] tracking-tight">Offer Unavailable</h1>
+            <p className="text-[14px] text-[#64748B] mt-2 mb-6">
+              This repeat-purchase offer is no longer active or has already reached its expiration date.
             </p>
             <button
               type="button"
               onClick={() => router.push('/')}
-              className="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-[#1376ff] hover:bg-[#0f64dc] text-white font-extrabold text-sm transition-all shadow-md cursor-pointer hover:shadow-lg"
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-lg bg-[#0F172A] hover:bg-[#1E293B] text-white font-semibold text-[13px] transition cursor-pointer"
             >
-              <span>Explore CloutFlow Services</span>
+              <span>Explore CloutFlow</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>
+        {renderTrustBar()}
       </main>
     );
   }
 
   return (
-    <main
-      className={`cf-v68-home font-sans min-h-screen relative flex flex-col justify-between overflow-x-hidden ${
-        targetPlatform === 'instagram' ? 'bg-[#FFFDFE]' : targetPlatform === 'tiktok' ? 'bg-[#FAFCFF]' : 'bg-[#FFFFFF]'
-      }`}
-      style={
-        {
-          '--accent': platformMeta.accent,
-          '--accent-2': platformMeta.accent2,
-          '--pale': platformMeta.soft,
-          '--gradient': platformMeta.gradient,
-        } as React.CSSProperties
-      }
-    >
-      {/* Ambient Platform Radial Background */}
-      <div
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-[1200px] h-[550px] pointer-events-none opacity-80 z-0 transition-all duration-700"
-        style={{ background: platformMeta.bgGlow }}
-        aria-hidden="true"
-      />
+    <main className="min-h-screen bg-[#F8FAFC] text-[#0F172A] flex flex-col justify-between">
+      {renderHeader()}
 
-      {publicDecoElements}
-
-      <div className="cf-v68-page relative z-10">
-        {publicHeader}
-
-        <div className="cf-v68-main pt-6 pb-12">
-          {/* =========================================================================
-              SCREEN 1: WELCOME BACK (PREFILL PROMPT)
-             ========================================================================= */}
-          {flowStep === 'PREFILL' && offerData.previousTarget && (
-            <div className="w-full max-w-2xl mx-auto text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {/* Eyebrow badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider text-[#E1306C] bg-pink-50 border border-pink-200 shadow-sm mb-5">
-                <Sparkles className="w-3.5 h-3.5 fill-current" />
-                <span>25% OFF REPEAT PURCHASE</span>
-              </div>
-
-              {/* Hero Headline */}
-              <div className="cf-v68-hero mb-6">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-black text-[#081126] tracking-tight leading-[1.08] mb-3">
-                  <span>Welcome Back</span>
-                </h1>
-                <p className="text-base sm:text-lg text-[#556480] max-w-lg mx-auto font-medium">
-                  Boost the same profile again and save 25%.
-                </p>
-                <p className="text-base text-[#556480] font-medium mt-1">Boost the same profile again?</p>
+      <div className="flex-1 max-w-[1120px] w-full mx-auto px-4 sm:px-6 py-8">
+        {/* =========================================================================
+            SCREEN 1: WELCOME BACK (COMPACT 2D COMPOSITION)
+           ========================================================================= */}
+        {flowStep === 'PREFILL' && offerData.previousTarget && (
+          <div className="w-full max-w-[760px] mx-auto">
+            {/* Header section */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between gap-2 flex-wrap mb-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#E1306C] bg-[#FFF0F5] px-2.5 py-0.5 rounded-md border border-[#FCE7F3]">
+                  25% OFF Repeat Purchase
+                </span>
                 {timeLeft && (
-                  <div className="inline-flex items-center gap-1.5 mt-4 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold shadow-xs">
-                    <Clock size={14} className="text-emerald-600" />
-                    <span>Offer expires in {timeLeft}</span>
-                  </div>
+                  <span className="text-[12px] font-medium text-[#64748B] flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-[#10B981]" />
+                    Expires in <strong className="text-[#0F172A] font-mono">{timeLeft}</strong>
+                  </span>
                 )}
               </div>
+              <h1 className="text-[28px] sm:text-[34px] font-extrabold text-[#0F172A] tracking-tight">
+                Welcome Back
+              </h1>
+              <p className="text-[14px] text-[#64748B] mt-1 font-medium">
+                Ready for another boost?
+              </p>
+              <p className="text-[13px] text-[#64748B] font-medium mt-0.5">
+                Boost the same profile again?
+              </p>
+            </div>
 
-              {/* Previous Profile Card - CloutFlow Public White Card Surface */}
-              <div className="bg-white/95 backdrop-blur-md border border-[#e3e8ef] rounded-3xl p-7 sm:p-9 shadow-[0_12px_35px_rgba(36,51,79,0.08)] max-w-lg mx-auto transition-all hover:shadow-[0_16px_42px_rgba(36,51,79,0.12)]">
-                <div className="flex flex-col items-center justify-center gap-4 mb-7">
+            {/* Horizontal 2D Profile Panel */}
+            <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 sm:p-6 shadow-xs">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-5 pb-5 border-b border-[#F1F5F9]">
+                {/* Left Profile Info */}
+                <div className="flex items-center gap-3.5">
                   <div className="relative">
-                    <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-pink-50 to-purple-50 border-2 border-[#e3e8ef] flex items-center justify-center text-[#35415a] shadow-inner overflow-hidden">
-                      <User size={38} className="text-[#647088]" />
+                    <div className="w-13 h-13 rounded-full bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#64748B]">
+                      <User className="w-6 h-6" />
                     </div>
-                    <div className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-white shadow-md border border-[#e3e8ef] flex items-center justify-center p-1">
-                      <Image src={platformMeta.icon} alt="" width={18} height={18} className="object-contain" />
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-[#647088] bg-neutral-100 px-2.5 py-0.5 rounded-full">
-                      {offerData.previousTarget.platform} TARGET
-                    </span>
-                    <p className="text-2xl sm:text-3xl font-black text-[#081126] mt-2 tracking-tight">
-                      @{offerData.previousTarget.username}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <button
-                    type="button"
-                    onClick={() => handleStartLookup(offerData.previousTarget!.username, offerData.previousTarget!.platform)}
-                    className="w-full py-4 px-6 rounded-xl text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-[0_6px_20px_rgba(225,48,108,0.25)] hover:shadow-[0_8px_25px_rgba(225,48,108,0.35)] hover:scale-[1.01]"
-                    style={{ background: platformMeta.gradient }}
-                  >
-                    <Search className="w-5 h-5" />
-                    <span>Find / Confirm Profile</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setFlowStep('LOOKUP')}
-                    className="w-full py-3.5 px-5 rounded-xl bg-white hover:bg-neutral-50 text-[#35415a] hover:text-[#081126] border border-[#e3e8ef] font-extrabold text-sm transition-all cursor-pointer shadow-xs"
-                  >
-                    Use another profile
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* =========================================================================
-              SCREEN 2: SOCIAL LOOKUP (PLATFORM SELECTOR & INPUT)
-             ========================================================================= */}
-          {flowStep === 'LOOKUP' && (
-            <div className="w-full max-w-2xl mx-auto text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider text-[#E1306C] bg-pink-50 border border-pink-200 shadow-sm mb-5">
-                <Sparkles className="w-3.5 h-3.5 fill-current" />
-                <span>25% OFF REPEAT PURCHASE</span>
-              </div>
-
-              <div className="cf-v68-hero mb-6">
-                <h1 className="text-4xl sm:text-5xl font-black text-[#081126] tracking-tight leading-[1.08] mb-3">
-                  <span>Social Lookup</span>
-                </h1>
-                <p className="text-base sm:text-lg text-[#556480] max-w-lg mx-auto font-medium">
-                  Which social profile would you like to boost?
-                </p>
-                {timeLeft && (
-                  <div className="inline-flex items-center gap-1.5 mt-4 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold shadow-xs">
-                    <Clock size={14} className="text-emerald-600" />
-                    <span>Offer expires in {timeLeft}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Lookup Card Surface */}
-              <div className="bg-white/95 backdrop-blur-md border border-[#e3e8ef] rounded-3xl p-6 sm:p-9 shadow-[0_12px_35px_rgba(36,51,79,0.08)] max-w-xl mx-auto text-left">
-                {/* Platform Selector Grid */}
-                <div className="mb-6">
-                  <label className="text-xs font-extrabold text-[#556480] uppercase tracking-wider block mb-3">
-                    Select Social Platform
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-                    {(['instagram', 'tiktok', 'twitter', 'youtube'] as const).map((p) => {
-                      const isSelected = targetPlatform === p;
-                      const pConfig = PLATFORM_CONFIGS[p];
-                      return (
-                        <button
-                          key={p}
-                          type="button"
-                          onClick={() => setTargetPlatform(p)}
-                          className={`py-3 px-3 rounded-2xl text-xs font-bold transition-all border flex flex-col items-center justify-center gap-2 cursor-pointer ${
-                            isSelected
-                              ? 'bg-white text-[#081126] shadow-[0_4px_16px_rgba(36,51,79,0.12)] border-[#1376ff]'
-                              : 'bg-[#fbfcfd] border-[#e3e8ef] text-[#556480] hover:bg-white hover:text-[#081126] hover:border-[#ccd6e2]'
-                          }`}
-                          style={{
-                            borderColor: isSelected ? pConfig.accent : undefined,
-                            boxShadow: isSelected ? `0 4px 14px ${pConfig.soft}` : undefined,
-                          }}
-                        >
-                          <Image src={pConfig.icon} alt="" width={24} height={24} className="object-contain" />
-                          <span className="capitalize">{p === 'twitter' ? 'X / Twitter' : p}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* Username Input Field */}
-                <div className="mb-6">
-                  <label className="text-xs font-extrabold text-[#556480] uppercase tracking-wider block mb-2">
-                    Target Profile
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="text"
-                      placeholder="@username or profile link"
-                      value={lookupInput}
-                      onChange={(e) => setLookupInput(e.target.value)}
-                      onKeyDown={(e) => e.key === 'Enter' && handleStartLookup(lookupInput, targetPlatform)}
-                      className="w-full bg-[#fbfcfd] border border-[#d9e1ec] rounded-xl px-4 py-3.5 text-base text-[#081126] placeholder:text-[#94a3b8] focus:outline-none focus:bg-white focus:border-[#1376ff] focus:ring-2 focus:ring-[#1376ff]/20 transition-all font-medium shadow-inner"
-                    />
-                  </div>
-                  {lookupError && (
-                    <p className="mt-2.5 text-xs text-red-600 flex items-center gap-1.5 font-bold">
-                      <AlertCircle size={14} /> {lookupError}
-                    </p>
-                  )}
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => handleStartLookup(lookupInput, targetPlatform)}
-                  className="w-full py-4 px-6 rounded-xl text-white font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-[0_6px_20px_rgba(19,118,255,0.22)] hover:scale-[1.01]"
-                  style={{ background: platformMeta.gradient }}
-                >
-                  <span>Locate Profile</span>
-                  <ArrowRight className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* =========================================================================
-              SCREEN 3: LOOKUP LOADING (PRESERVES FULL BRANDED SHELL)
-             ========================================================================= */}
-          {flowStep === 'LOADING' && (
-            <div className="w-full max-w-lg mx-auto text-center py-16 animate-in fade-in slide-in-from-bottom-4 duration-500">
-              <div className="bg-white/95 backdrop-blur-md border border-[#e3e8ef] rounded-3xl p-10 shadow-[0_12px_35px_rgba(36,51,79,0.08)]">
-                <div
-                  className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-6"
-                  style={{ borderColor: `${platformMeta.accent} transparent ${platformMeta.accent} ${platformMeta.accent}` }}
-                />
-                <h2 className="text-2xl font-black text-[#081126] tracking-tight mb-2">Locating Profile...</h2>
-                <p className="text-sm text-[#556480] mb-6 max-w-sm mx-auto font-medium">
-                  We are securely verifying the public account details on {platformMeta.name}.
-                </p>
-                <button
-                  type="button"
-                  onClick={cancelPolling}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#647088] hover:text-[#081126] underline transition cursor-pointer"
-                >
-                  <RotateCcw size={13} />
-                  <span>Cancel search</span>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* =========================================================================
-              SCREEN 4: PROFILE CONFIRMATION (REUSES REAL PREVIEWS & ACCENTS)
-             ========================================================================= */}
-          {flowStep === 'PREVIEW' && verifiedProfile && (
-            <div className="w-full max-w-lg mx-auto animate-in fade-in zoom-in-95 duration-500">
-              <div className="text-center mb-6">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 shadow-sm mb-3">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>CONFIRM TARGET ACCOUNT</span>
-                </div>
-                <h1 className="text-3xl sm:text-4xl font-black text-[#081126] tracking-tight mb-2">
-                  Confirm Profile
-                </h1>
-                <p className="text-sm sm:text-base text-[#556480] font-medium">
-                  Verify your public social profile details below.
-                </p>
-              </div>
-
-              {/* Real Profile Preview Component */}
-              <div className="mb-6 shadow-[0_16px_40px_rgba(36,51,79,0.12)] rounded-[24px] overflow-hidden border border-[#e3e8ef]">
-                {targetPlatform === 'instagram' && (
-                  <InstagramPreview profile={verifiedProfile} onClose={() => setFlowStep('LOOKUP')} />
-                )}
-                {targetPlatform === 'tiktok' && (
-                  <TikTokPreview profile={verifiedProfile} onClose={() => setFlowStep('LOOKUP')} />
-                )}
-                {targetPlatform === 'twitter' && (
-                  <TwitterPreview profile={verifiedProfile} onClose={() => setFlowStep('LOOKUP')} />
-                )}
-                {targetPlatform === 'youtube' && (
-                  <YouTubePreview profile={verifiedProfile} onClose={() => setFlowStep('LOOKUP')} />
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <button
-                  type="button"
-                  onClick={confirmProfile}
-                  disabled={isProfileRestricted}
-                  className={`w-full py-4 px-6 rounded-xl font-extrabold text-sm sm:text-base flex items-center justify-center gap-2 transition-all duration-200 shadow-md cursor-pointer ${
-                    isProfileRestricted
-                      ? 'bg-neutral-200 text-neutral-500 cursor-not-allowed'
-                      : 'text-white hover:scale-[1.01] hover:shadow-lg'
-                  }`}
-                  style={{
-                    background: isProfileRestricted ? undefined : platformMeta.gradient,
-                  }}
-                >
-                  <Check className="w-5 h-5 stroke-[3]" />
-                  <span>{isProfileRestricted ? 'Make account public to continue' : 'Use this profile'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setFlowStep('LOOKUP')}
-                  className="w-full py-3.5 px-5 rounded-xl bg-white hover:bg-neutral-50 border border-[#e3e8ef] text-[#556480] hover:text-[#081126] font-extrabold text-sm transition-all cursor-pointer shadow-xs"
-                >
-                  Search another profile
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* =========================================================================
-              SCREEN 5 & 6: PACKAGE SELECTION & FLOW25 FINAL CHECKOUT
-             ========================================================================= */}
-          {flowStep === 'PACKAGE' && (
-            <div className="w-full max-w-6xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
-              {/* Header Section */}
-              <div className="text-center mb-10 md:mb-12">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider text-[#E1306C] bg-pink-50 border border-pink-200 shadow-sm mb-4">
-                  <Sparkles className="w-3.5 h-3.5 fill-current" />
-                  <span>REPEAT PURCHASE BENEFIT: 25% OFF</span>
-                </div>
-                <h1 className="text-3xl sm:text-5xl md:text-6xl font-black text-[#081126] tracking-tight leading-[1.08] mb-3">
-                  <span>Select Your Next Boost</span>
-                </h1>
-                <p className="text-base sm:text-lg text-[#556480] max-w-xl mx-auto font-medium">
-                  Choose the right growth tier for <strong className="text-[#081126]">@{verifiedProfile?.username}</strong> and apply coupon code <strong className="text-[#E1306C] font-mono">{offerData.couponCode}</strong> at checkout.
-                </p>
-                {timeLeft && (
-                  <div className="inline-flex items-center gap-1.5 mt-4 px-3.5 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-bold shadow-xs">
-                    <Clock size={14} className="text-emerald-600" />
-                    <span>Offer expires in {timeLeft}</span>
-                  </div>
-                )}
-              </div>
-
-              {/* Target Profile Horizontal Strip & Branded FLOW25 Coupon Card */}
-              <div className="bg-white/95 backdrop-blur-md border border-[#e3e8ef] p-5 sm:p-7 rounded-3xl mb-10 flex flex-col md:flex-row items-center justify-between gap-6 shadow-[0_10px_30px_rgba(36,51,79,0.06)]">
-                {/* Profile Strip */}
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                  <div className="relative">
-                    <img
-                      src={verifiedProfile?.avatar_url || '/placeholder-avatar.png'}
-                      alt=""
-                      className="w-14 h-14 rounded-full object-cover bg-neutral-100 border-2 border-[#e3e8ef]"
-                    />
-                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white shadow-xs border border-[#e3e8ef] flex items-center justify-center p-0.5">
+                    <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-white border border-[#E2E8F0] flex items-center justify-center p-0.5 shadow-xs">
                       <Image src={platformMeta.icon} alt="" width={12} height={12} className="object-contain" />
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-extrabold uppercase tracking-wider text-[#647088]">
-                        Confirmed {platformMeta.name} Profile
+                      <span className="text-[11px] font-bold text-[#64748B] uppercase tracking-wide">
+                        {offerData.previousTarget.platform} Profile
+                      </span>
+                      <span className="text-[10px] bg-[#F1F5F9] text-[#475569] font-semibold px-1.5 py-0.5 rounded">
+                        Last Used
+                      </span>
+                    </div>
+                    <p className="text-[18px] sm:text-[20px] font-bold text-[#0F172A]">
+                      @{offerData.previousTarget.username}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Confirm Profile Action */}
+                <button
+                  type="button"
+                  onClick={() => handleStartLookup(offerData.previousTarget!.username, offerData.previousTarget!.platform)}
+                  className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg text-white font-bold text-[13px] transition cursor-pointer hover:opacity-95 shadow-xs shrink-0"
+                  style={{ backgroundColor: platformMeta.accent }}
+                >
+                  <Search className="w-4 h-4 stroke-[2.5]" />
+                  <span>Find / Confirm Profile</span>
+                </button>
+              </div>
+
+              {/* Bottom secondary action */}
+              <div className="pt-4 flex items-center justify-between">
+                <span className="text-[12px] text-[#64748B]">Want to boost a different account?</span>
+                <button
+                  type="button"
+                  onClick={() => setFlowStep('LOOKUP')}
+                  className="text-[12px] font-bold text-[#0F172A] hover:text-[#1376FF] transition cursor-pointer underline"
+                >
+                  Use another profile
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            SCREEN 2: SOCIAL LOOKUP (COMPACT 2D PANEL)
+           ========================================================================= */}
+        {flowStep === 'LOOKUP' && (
+          <div className="w-full max-w-[660px] mx-auto">
+            <div className="mb-6">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#E1306C] bg-[#FFF0F5] px-2.5 py-0.5 rounded-md border border-[#FCE7F3]">
+                Step 01
+              </span>
+              <h1 className="text-[26px] sm:text-[32px] font-extrabold text-[#0F172A] tracking-tight mt-1">
+                Social Lookup
+              </h1>
+              <p className="text-[14px] text-[#64748B] mt-0.5">
+                Choose your platform and enter your username or public link.
+              </p>
+            </div>
+
+            <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 sm:p-6 shadow-xs">
+              {/* Segmented Platform Selector */}
+              <div className="mb-5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[#475569] block mb-2">
+                  Social Network
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {(['instagram', 'tiktok', 'twitter', 'youtube'] as const).map((p) => {
+                    const isSelected = targetPlatform === p;
+                    const pConfig = PLATFORM_CONFIGS[p];
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setTargetPlatform(p)}
+                        className={`py-2 px-3 rounded-lg text-[12px] font-bold transition flex items-center justify-center gap-2 cursor-pointer border ${
+                          isSelected
+                            ? 'bg-white text-[#0F172A] border-2 shadow-xs'
+                            : 'bg-[#F8FAFC] border-[#E2E8F0] text-[#64748B] hover:bg-white hover:text-[#0F172A]'
+                        }`}
+                        style={{
+                          borderColor: isSelected ? pConfig.accent : undefined,
+                        }}
+                      >
+                        <Image src={pConfig.icon} alt="" width={16} height={16} className="object-contain" />
+                        <span className="capitalize">{p === 'twitter' ? 'X / Twitter' : p}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Username Input Field */}
+              <div className="mb-5">
+                <label className="text-[11px] font-bold uppercase tracking-wider text-[#475569] block mb-2">
+                  Profile username or URL
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="@username or profile link"
+                    value={lookupInput}
+                    onChange={(e) => setLookupInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleStartLookup(lookupInput, targetPlatform)}
+                    className="w-full bg-[#FAFAFA] border border-[#CBD5E1] rounded-lg px-3.5 py-2.5 text-[14px] text-[#0F172A] placeholder:text-[#94A3B8] focus:outline-none focus:bg-white focus:border-[#1376FF] focus:ring-1 focus:ring-[#1376FF] transition font-medium"
+                  />
+                </div>
+                {lookupError && (
+                  <p className="mt-2 text-[12px] text-[#DC2626] flex items-center gap-1.5 font-semibold">
+                    <AlertCircle size={14} /> {lookupError}
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleStartLookup(lookupInput, targetPlatform)}
+                  className="w-full sm:w-auto flex-1 py-2.5 px-5 rounded-lg text-white font-bold text-[13px] flex items-center justify-center gap-2 transition cursor-pointer hover:opacity-95 shadow-xs"
+                  style={{ backgroundColor: platformMeta.accent }}
+                >
+                  <Search className="w-4 h-4 stroke-[2.5]" />
+                  <span>Locate Profile</span>
+                </button>
+                {offerData.previousTarget && (
+                  <button
+                    type="button"
+                    onClick={() => setFlowStep('PREFILL')}
+                    className="w-full sm:w-auto py-2.5 px-4 rounded-lg bg-[#F8FAFC] border border-[#E2E8F0] text-[#475569] font-bold text-[13px] hover:bg-white hover:text-[#0F172A] transition cursor-pointer"
+                  >
+                    Back to previous
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            SCREEN 3: COMPACT 2D LOADING
+           ========================================================================= */}
+        {flowStep === 'LOADING' && (
+          <div className="w-full max-w-[560px] mx-auto py-8">
+            <div className="bg-white border border-[#E2E8F0] rounded-xl p-7 text-center shadow-xs">
+              <div
+                className="w-10 h-10 border-3 border-t-transparent rounded-full animate-spin mx-auto mb-4"
+                style={{ borderColor: `${platformMeta.accent} transparent ${platformMeta.accent} ${platformMeta.accent}` }}
+              />
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] bg-[#F1F5F9] px-2.5 py-0.5 rounded">
+                {platformMeta.name}
+              </span>
+              <h2 className="text-[20px] font-bold text-[#0F172A] tracking-tight mt-2 mb-1">
+                Locating Profile...
+              </h2>
+              <p className="text-[13px] text-[#64748B] mb-5 max-w-sm mx-auto">
+                Checking public account information. Please wait a moment...
+              </p>
+              <button
+                type="button"
+                onClick={cancelPolling}
+                className="inline-flex items-center gap-1.5 text-[12px] font-bold text-[#64748B] hover:text-[#0F172A] transition cursor-pointer"
+              >
+                <RotateCcw size={13} />
+                <span>Cancel search</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            SCREEN 4: CONFIRM PROFILE (REAL PREVIEWS INSIDE WIZARD)
+           ========================================================================= */}
+        {flowStep === 'PREVIEW' && verifiedProfile && (
+          <div className="w-full max-w-[620px] mx-auto">
+            <div className="mb-5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#10B981] bg-[#ECFDF5] px-2.5 py-0.5 rounded-md border border-[#A7F3D0]">
+                Step 02 · Confirm Profile
+              </span>
+              <h1 className="text-[26px] sm:text-[30px] font-extrabold text-[#0F172A] tracking-tight mt-1">
+                Confirm Profile
+              </h1>
+              <p className="text-[13px] text-[#64748B] mt-0.5">
+                Ensure this is the correct public account you want to boost.
+              </p>
+            </div>
+
+            {/* Real Social Preview Component Container */}
+            <div className="mb-5 rounded-xl overflow-hidden border border-[#E2E8F0] shadow-xs">
+              {targetPlatform === 'instagram' && (
+                <InstagramPreview profile={verifiedProfile} onClose={() => setFlowStep('LOOKUP')} />
+              )}
+              {targetPlatform === 'tiktok' && (
+                <TikTokPreview profile={verifiedProfile} onClose={() => setFlowStep('LOOKUP')} />
+              )}
+              {targetPlatform === 'twitter' && (
+                <TwitterPreview profile={verifiedProfile} onClose={() => setFlowStep('LOOKUP')} />
+              )}
+              {targetPlatform === 'youtube' && (
+                <YouTubePreview profile={verifiedProfile} onClose={() => setFlowStep('LOOKUP')} />
+              )}
+            </div>
+
+            {/* Action Bar */}
+            <div className="flex flex-col sm:flex-row items-center gap-3">
+              <button
+                type="button"
+                onClick={confirmProfile}
+                disabled={isProfileRestricted}
+                className={`w-full sm:w-auto flex-1 py-2.5 px-5 rounded-lg font-bold text-[13px] flex items-center justify-center gap-2 transition cursor-pointer shadow-xs ${
+                  isProfileRestricted
+                    ? 'bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed'
+                    : 'text-white hover:opacity-95'
+                }`}
+                style={{
+                  backgroundColor: isProfileRestricted ? undefined : platformMeta.accent,
+                }}
+              >
+                <Check className="w-4 h-4 stroke-[3]" />
+                <span>{isProfileRestricted ? 'Make account public to continue' : 'Use this profile'}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setFlowStep('LOOKUP')}
+                className="w-full sm:w-auto py-2.5 px-4 rounded-lg bg-white border border-[#CBD5E1] text-[#475569] hover:text-[#0F172A] hover:bg-[#F8FAFC] font-bold text-[13px] transition cursor-pointer"
+              >
+                Search another profile
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            SCREEN 5: PACKAGE SELECTION (2D COMPACT CARDS & BAR)
+           ========================================================================= */}
+        {flowStep === 'PACKAGE' && (
+          <div className="w-full max-w-[1080px] mx-auto">
+            {/* Top Bar: Step + Compact Profile + Coupon */}
+            <div className="bg-white border border-[#E2E8F0] rounded-xl p-4 sm:p-5 mb-6 shadow-xs">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                {/* Left Profile Info */}
+                <div className="flex items-center gap-3">
+                  <div className="relative shrink-0">
+                    <img
+                      src={verifiedProfile?.avatar_url || '/placeholder-avatar.png'}
+                      alt=""
+                      className="w-11 h-11 rounded-full object-cover bg-[#F1F5F9] border border-[#E2E8F0]"
+                    />
+                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-white border border-[#E2E8F0] flex items-center justify-center p-0.5">
+                      <Image src={platformMeta.icon} alt="" width={10} height={10} className="object-contain" />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#64748B]">
+                        {platformMeta.name}
                       </span>
                       <button
                         type="button"
                         onClick={() => setFlowStep('PREVIEW')}
-                        className="text-xs font-bold text-[#1376ff] hover:underline cursor-pointer"
+                        className="text-[11px] font-semibold text-[#1376FF] hover:underline cursor-pointer"
                       >
                         Change
                       </button>
                     </div>
-                    <p className="text-xl font-black text-[#081126]">@{verifiedProfile?.username}</p>
+                    <p className="text-[15px] font-bold text-[#0F172A]">@{verifiedProfile?.username}</p>
                   </div>
                 </div>
 
-                {/* Branded Coupon Chip */}
-                <div className="flex items-center gap-3 bg-[#f8fafc] border border-[#e2e8f0] p-2 sm:p-3 rounded-2xl w-full md:w-auto justify-between md:justify-start">
-                  <div className="px-3">
-                    <span className="text-[10px] uppercase font-extrabold tracking-wider text-[#647088] block">
-                      PROMO COUPON
+                {/* Right Compact Coupon Banner */}
+                <div className="flex items-center gap-3 bg-[#F8FAFC] border border-[#E2E8F0] px-3.5 py-2 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-[#10B981] bg-[#ECFDF5] px-2 py-0.5 rounded border border-[#A7F3D0]">
+                      25% OFF
                     </span>
-                    <span className="text-lg font-black tracking-wider text-[#081126] font-mono">
+                    <span className="font-mono text-[14px] font-extrabold text-[#0F172A] tracking-wide">
                       {offerData.couponCode}
                     </span>
+                    {timeLeft && (
+                      <span className="text-[11px] text-[#64748B] hidden sm:inline">
+                        · expires in <strong className="font-mono text-[#0F172A]">{timeLeft}</strong>
+                      </span>
+                    )}
                   </div>
                   <button
                     type="button"
                     onClick={handleCopyCouponOnly}
-                    className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#081126] hover:bg-[#15233d] text-white text-xs font-extrabold transition-all cursor-pointer shadow-sm"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#0F172A] hover:bg-[#1E293B] text-white text-[11px] font-bold transition cursor-pointer"
                   >
-                    {copied ? <Check className="w-4 h-4 text-emerald-400 stroke-[3]" /> : <Copy className="w-4 h-4" />}
-                    <span>{copied ? 'COPIED!' : 'COPY'}</span>
+                    {copied ? <Check className="w-3.5 h-3.5 text-[#10B981] stroke-[3]" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copied ? 'COPIED' : 'COPY'}</span>
                   </button>
                 </div>
               </div>
+            </div>
 
-              {/* Package Grid Reusing Real CloutFlow Public OfferCard Component */}
-              <div
-                className={`mb-12 ${
-                  eligiblePackages.length === 1
-                    ? 'flex justify-center max-w-md mx-auto'
-                    : eligiblePackages.length === 2
-                    ? 'grid grid-cols-1 md:grid-cols-2 max-w-3xl mx-auto gap-6'
-                    : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8'
-                }`}
-              >
-                {eligiblePackages.map((pkg) => (
-                  <div key={pkg.id} className={eligiblePackages.length === 1 ? 'w-full' : ''}>
-                    <OfferCard
-                      offer={{
-                        id: pkg.id,
-                        name: pkg.name,
-                        slug: pkg.slug,
-                        description: null,
-                        quantity: pkg.quantity,
-                        bonusQuantity: pkg.bonusQuantity,
-                        priceCents: pkg.priceCents,
-                        oldPriceCents: null,
-                        currency: pkg.currency,
-                        badge: pkg.badge || null,
-                        isPopular: Boolean(pkg.isPopular),
-                        sortOrder: 0,
-                        ctaText: `Choose ${pkg.name}`,
+            {/* Section Title */}
+            <div className="mb-5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1376FF] bg-[#EFF6FF] px-2.5 py-0.5 rounded-md border border-[#BFDBFE]">
+                Step 03 · Available Packages
+              </span>
+              <h1 className="text-[24px] sm:text-[28px] font-extrabold text-[#0F172A] tracking-tight mt-1">
+                Select Your Next Boost
+              </h1>
+              <p className="text-[13px] text-[#64748B] mt-0.5">
+                Choose your package tier. The 25% discount coupon ({offerData.couponCode}) will be ready for checkout.
+              </p>
+            </div>
+
+            {/* 2D Package Grid (3 per row or 2 per row) */}
+            <div
+              className={`grid gap-4 mb-6 ${
+                eligiblePackages.length === 1
+                  ? 'grid-cols-1 max-w-[420px] mx-auto'
+                  : eligiblePackages.length === 2
+                  ? 'grid-cols-1 sm:grid-cols-2 max-w-[760px] mx-auto'
+                  : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3'
+              }`}
+            >
+              {eligiblePackages.map((pkg) => {
+                const isSelected = selectedPackageId === pkg.id;
+                const price = (pkg.priceCents / 100).toFixed(2);
+                const isPopular = Boolean(pkg.isPopular || pkg.badge);
+
+                return (
+                  <div
+                    key={pkg.id}
+                    className={`bg-white rounded-xl border transition-all flex flex-col justify-between p-5 relative ${
+                      isSelected
+                        ? 'border-2 shadow-sm'
+                        : isPopular
+                        ? 'border-[#CBD5E1] shadow-xs'
+                        : 'border-[#E2E8F0] hover:border-[#CBD5E1]'
+                    }`}
+                    style={{
+                      borderColor: isSelected ? platformMeta.accent : undefined,
+                    }}
+                  >
+                    {/* Badge */}
+                    {isPopular && (
+                      <div className="absolute -top-2.5 right-4">
+                        <span
+                          className="px-2.5 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wider text-white"
+                          style={{ backgroundColor: platformMeta.accent }}
+                        >
+                          {pkg.badge || 'POPULAR'}
+                        </span>
+                      </div>
+                    )}
+
+                    <div>
+                      {/* Title & Service */}
+                      <div className="mb-3">
+                        <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
+                          {pkg.name}
+                        </span>
+                        <div className="flex items-baseline gap-1.5 mt-0.5">
+                          <span className="text-[28px] font-extrabold text-[#0F172A] tracking-tight">
+                            {pkg.quantity.toLocaleString()}
+                          </span>
+                          <span className="text-[13px] font-semibold text-[#64748B] uppercase">
+                            {pkg.service}
+                          </span>
+                        </div>
+                        {pkg.bonusQuantity > 0 && (
+                          <span className="inline-block text-[11px] font-bold text-[#10B981] mt-0.5">
+                            +{pkg.bonusQuantity.toLocaleString()} Extra Bonus
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Price 2D */}
+                      <div className="py-2.5 px-3 rounded-lg bg-[#F8FAFC] border border-[#F1F5F9] mb-4 flex items-baseline justify-between">
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-[22px] font-extrabold text-[#0F172A] tracking-tight">
+                            ${price}
+                          </span>
+                          <span className="text-[11px] text-[#64748B] font-medium">USD</span>
+                        </div>
+                        <span className="text-[10px] font-bold uppercase text-[#10B981] bg-[#ECFDF5] px-1.5 py-0.5 rounded border border-[#A7F3D0]">
+                          25% OFF COUPON
+                        </span>
+                      </div>
+
+                      {/* Benefits list */}
+                      <ul className="space-y-2 text-[12px] text-[#475569] mb-5">
+                        <li className="flex items-center gap-2">
+                          <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0 stroke-[3]" />
+                          <span>No password required</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0 stroke-[3]" />
+                          <span>Fast delivery & high retention</span>
+                        </li>
+                        <li className="flex items-center gap-2">
+                          <Check className="w-3.5 h-3.5 text-[#10B981] shrink-0 stroke-[3]" />
+                          <span>24/7 dedicated support</span>
+                        </li>
+                      </ul>
+                    </div>
+
+                    {/* Select / Review CTA */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedPackageId(pkg.id);
+                        setFlowStep('REVIEW');
                       }}
-                      serviceUnit={copy.unitLabel}
-                      theme={salesTheme}
-                      hasTarget={true}
-                      onCheckout={async (offerId) => {
-                        await executeCheckout(offerId);
+                      className={`w-full py-2.5 px-4 rounded-lg font-bold text-[13px] flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                        isSelected
+                          ? 'text-white'
+                          : 'bg-[#0F172A] hover:bg-[#1E293B] text-white'
+                      }`}
+                      style={{
+                        backgroundColor: isSelected ? platformMeta.accent : undefined,
                       }}
-                      onRequireTarget={() => setFlowStep('LOOKUP')}
-                    />
+                    >
+                      <span>Select Package</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
                   </div>
-                ))}
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* =========================================================================
+            SCREEN 6: FINAL REVIEW (2D COMPACT ORDER SUMMARY)
+           ========================================================================= */}
+        {flowStep === 'REVIEW' && selectedPkg && (
+          <div className="w-full max-w-[620px] mx-auto">
+            <div className="mb-5">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#1376FF] bg-[#EFF6FF] px-2.5 py-0.5 rounded-md border border-[#BFDBFE]">
+                Step 04 · Review & Checkout
+              </span>
+              <h1 className="text-[26px] sm:text-[30px] font-extrabold text-[#0F172A] tracking-tight mt-1">
+                Review your order
+              </h1>
+              <p className="text-[13px] text-[#64748B] mt-0.5">
+                Confirm your target profile and package details before continuing to secure checkout.
+              </p>
+            </div>
+
+            <div className="bg-white border border-[#E2E8F0] rounded-xl p-5 sm:p-6 mb-5 shadow-xs space-y-4">
+              {/* Profile Row */}
+              <div className="flex items-center justify-between pb-3.5 border-b border-[#F1F5F9]">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
+                    Target Account
+                  </span>
+                  <p className="text-[15px] font-bold text-[#0F172A] mt-0.5">
+                    @{verifiedProfile?.username}
+                  </p>
+                  <span className="text-[11px] text-[#64748B] capitalize">
+                    {platformMeta.name}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFlowStep('PREVIEW')}
+                  className="text-[12px] font-semibold text-[#1376FF] hover:underline cursor-pointer"
+                >
+                  Change
+                </button>
+              </div>
+
+              {/* Package Row */}
+              <div className="flex items-center justify-between pb-3.5 border-b border-[#F1F5F9]">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
+                    Selected Package
+                  </span>
+                  <p className="text-[15px] font-bold text-[#0F172A] mt-0.5">
+                    {selectedPkg.name}
+                  </p>
+                  <span className="text-[12px] font-semibold text-[#0F172A]">
+                    ${(selectedPkg.priceCents / 100).toFixed(2)} USD
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFlowStep('PACKAGE')}
+                  className="text-[12px] font-semibold text-[#1376FF] hover:underline cursor-pointer"
+                >
+                  Change
+                </button>
+              </div>
+
+              {/* Discount Row */}
+              <div className="flex items-center justify-between pb-1">
+                <div>
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block">
+                    Repeat Purchase Discount
+                  </span>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="font-mono text-[14px] font-extrabold text-[#0F172A]">
+                      {offerData.couponCode}
+                    </span>
+                    <span className="text-[11px] font-bold text-[#10B981] bg-[#ECFDF5] px-1.5 py-0.5 rounded border border-[#A7F3D0]">
+                      25% OFF
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCopyCouponOnly}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] text-[11px] font-bold transition cursor-pointer"
+                >
+                  {copied ? <Check className="w-3.5 h-3.5 text-[#10B981] stroke-[3]" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copied ? 'COPIED' : 'COPY'}</span>
+                </button>
+              </div>
+
+              {/* Checkout CTA */}
+              <div className="pt-3">
+                <button
+                  type="button"
+                  onClick={() => executeCheckout(selectedPkg.id)}
+                  disabled={checkoutSubmitting}
+                  className="w-full py-3.5 px-6 rounded-lg text-white font-extrabold text-[14px] flex items-center justify-center gap-2 transition cursor-pointer hover:opacity-95 shadow-sm disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: platformMeta.accent }}
+                >
+                  {checkoutSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Preparing Secure Checkout...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Continue to Secure Checkout</span>
+                      <ArrowRight className="w-4 h-4 stroke-[2.5]" />
+                    </>
+                  )}
+                </button>
+
+                <p className="text-[11px] text-[#64748B] text-center mt-2.5">
+                  You will enter <strong className="font-mono text-[#0F172A]">{offerData.couponCode}</strong> in the coupon field at checkout for 25% discount.
+                </p>
               </div>
 
               {checkoutError && (
-                <div className="mb-8 p-4 rounded-2xl bg-red-50 border border-red-200 text-xs font-bold text-red-600 text-center max-w-md mx-auto shadow-xs">
+                <div className="p-3 rounded-lg bg-[#FEF2F2] border border-[#FEE2E2] text-[12px] font-bold text-[#DC2626] text-center">
                   {checkoutError}
                 </div>
               )}
             </div>
-          )}
-
-          {/* Real CloutFlow Public Trust Bar & Security Note */}
-          {publicTrustBar}
-          {publicSecurityNote}
-        </div>
+          </div>
+        )}
       </div>
+
+      {renderTrustBar()}
     </main>
   );
 }
