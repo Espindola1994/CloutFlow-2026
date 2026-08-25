@@ -1,6 +1,6 @@
 "use client";
 
-import Image, { type StaticImageData } from "next/image";
+import Image from "next/image";
 import { useState } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
@@ -8,11 +8,15 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowUpRight,
+  Eye,
   Headphones,
+  Heart,
   Lock,
   LockKeyhole,
+  MessageCircleMore,
   ShieldCheck,
   Star,
+  UserRoundPlus,
   Zap,
 } from "lucide-react";
 
@@ -31,11 +35,7 @@ type PlatformTheme = {
   accent2: string;
   pale: string;
   gradient: string;
-  btnGradient: string;
-  badgeGradient: string;
-  icon: StaticImageData;
-  iconBg: string;
-  iconBorder: string;
+  icon: any;
 };
 
 const THEMES: Record<PlatformId, PlatformTheme> = {
@@ -45,12 +45,8 @@ const THEMES: Record<PlatformId, PlatformTheme> = {
     accent: "#E1306C",
     accent2: "#F56040",
     pale: "#FFF0F5",
-    gradient: "linear-gradient(90deg, #833AB4 0%, #C13584 25%, #E1306C 50%, #F56040 75%, #FCAF45 100%)",
-    btnGradient: "linear-gradient(90deg, #9b30c4 0%, #d82b7d 50%, #f7623b 100%)",
-    badgeGradient: "linear-gradient(90deg, #833AB4 0%, #d82b7d 50%, #f7623b 100%)",
+    gradient: "linear-gradient(90deg, #833AB4 0%, #C13584 26%, #E1306C 50%, #F56040 74%, #FCAF45 100%)",
     icon: instagramIcon,
-    iconBg: "linear-gradient(145deg, #ffffff 0%, #fcf3f8 100%)",
-    iconBorder: "rgba(225, 48, 108, 0.15)",
   },
   tiktok: {
     name: "TikTok",
@@ -58,12 +54,8 @@ const THEMES: Record<PlatformId, PlatformTheme> = {
     accent: "#000000",
     accent2: "#FE2C55",
     pale: "#FFF0F3",
-    gradient: "linear-gradient(90deg, #00f2fe 0%, #000000 50%, #fe2c55 100%)",
-    btnGradient: "linear-gradient(90deg, #050505 0%, #1a1a1a 45%, #fe2c55 100%)",
-    badgeGradient: "linear-gradient(90deg, #000000 0%, #fe2c55 100%)",
+    gradient: "linear-gradient(135deg, #25F4EE 0%, #FE2C55 100%)",
     icon: tiktokIcon,
-    iconBg: "linear-gradient(145deg, #ffffff 0%, #f0fbfc 100%)",
-    iconBorder: "rgba(37, 244, 238, 0.2)",
   },
   twitter: {
     name: "X / Twitter",
@@ -71,12 +63,8 @@ const THEMES: Record<PlatformId, PlatformTheme> = {
     accent: "#0F1419",
     accent2: "#536471",
     pale: "#f7f9fa",
-    gradient: "linear-gradient(90deg, #0F1419 0%, #333d4b 50%, #0F1419 100%)",
-    btnGradient: "linear-gradient(90deg, #0F1419 0%, #1f2833 60%, #0F1419 100%)",
-    badgeGradient: "linear-gradient(90deg, #0F1419 0%, #3a4756 100%)",
+    gradient: "linear-gradient(135deg, #0F1419 0%, #272C30 100%)",
     icon: twitterIcon,
-    iconBg: "linear-gradient(145deg, #ffffff 0%, #f4f6f8 100%)",
-    iconBorder: "rgba(15, 20, 25, 0.15)",
   },
   youtube: {
     name: "YouTube",
@@ -84,12 +72,8 @@ const THEMES: Record<PlatformId, PlatformTheme> = {
     accent: "#ff0000",
     accent2: "#cc0000",
     pale: "#fff0f0",
-    gradient: "linear-gradient(90deg, #ff0000 0%, #e60000 50%, #cc0000 100%)",
-    btnGradient: "linear-gradient(90deg, #ff1a1a 0%, #e60000 50%, #cc0000 100%)",
-    badgeGradient: "linear-gradient(90deg, #ff1a1a 0%, #cc0000 100%)",
+    gradient: "linear-gradient(90deg,#ff0000 0%,#cc0000 100%)",
     icon: youtubeIcon,
-    iconBg: "linear-gradient(145deg, #ffffff 0%, #fff2f2 100%)",
-    iconBorder: "rgba(255, 0, 0, 0.15)",
   },
 };
 
@@ -100,209 +84,32 @@ const NAV = [
   { id: "youtube" as const, label: "YouTube", icon: youtubeIcon },
 ];
 
-/* 2.5D Isometric SVG Icons Matching Master Reference */
-function Followers3DIcon({ platform }: { platform: PlatformId }) {
-  const isIg = platform === "instagram";
-  const primaryGrad = isIg ? "url(#igGradIcon)" : "url(#platGradIcon)";
-
-  return (
-    <svg width="68" height="68" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" className="cf-25d-icon">
-      <defs>
-        <linearGradient id="igGradIcon" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#833AB4" />
-          <stop offset="50%" stopColor="#E1306C" />
-          <stop offset="100%" stopColor="#F56040" />
-        </linearGradient>
-        <linearGradient id="platGradIcon" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--accent)" />
-          <stop offset="100%" stopColor="var(--accent-2)" />
-        </linearGradient>
-        <filter id="shadowFollowers" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#E1306C" floodOpacity="0.28" />
-        </filter>
-        <linearGradient id="basePlate" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="100%" stopColor="#f3f4f8" />
-        </linearGradient>
-      </defs>
-      
-      {/* 2.5D Base Plate */}
-      <ellipse cx="36" cy="58" rx="26" ry="8" fill="rgba(225, 48, 108, 0.12)" />
-      
-      {/* Main Avatar 2.5D Node */}
-      <g filter="url(#shadowFollowers)">
-        {/* Head */}
-        <circle cx="36" cy="23" r="11" fill={primaryGrad} />
-        <ellipse cx="33" cy="18" rx="4" ry="2" fill="rgba(255,255,255,0.4)" />
-        
-        {/* Body Base */}
-        <path
-          d="M20 48 C20 38 27 36 36 36 C45 36 52 38 52 48 C52 52 48 54 36 54 C24 54 20 52 20 48 Z"
-          fill={primaryGrad}
-        />
-        <path
-          d="M24 45 C27 39 33 38 36 38 C39 38 45 39 48 45"
-          stroke="rgba(255,255,255,0.3)"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-      </g>
-
-      {/* Mini Companion Avatar / Plus Badge */}
-      <circle cx="51" cy="27" r="7.5" fill="#ffffff" stroke="rgba(225, 48, 108, 0.2)" strokeWidth="1.5" />
-      <path d="M51 23.5 V30.5 M47.5 27 H54.5" stroke={primaryGrad} strokeWidth="2.2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function Likes3DIcon({ platform }: { platform: PlatformId }) {
-  const isIg = platform === "instagram";
-  const primaryGrad = isIg ? "url(#igHeartGrad)" : "url(#platHeartGrad)";
-
-  return (
-    <svg width="68" height="68" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" className="cf-25d-icon">
-      <defs>
-        <linearGradient id="igHeartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#FF416C" />
-          <stop offset="50%" stopColor="#E1306C" />
-          <stop offset="100%" stopColor="#FF4B2B" />
-        </linearGradient>
-        <linearGradient id="platHeartGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--accent)" />
-          <stop offset="100%" stopColor="var(--accent-2)" />
-        </linearGradient>
-        <filter id="shadowLikes" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="7" stdDeviation="7" floodColor="#FF416C" floodOpacity="0.32" />
-        </filter>
-      </defs>
-
-      <ellipse cx="36" cy="58" rx="24" ry="7" fill="rgba(255, 65, 108, 0.14)" />
-
-      {/* 2.5D Heart Volume with Isometric Perspective */}
-      <g filter="url(#shadowLikes)">
-        {/* Heart 3D Back/Extrusion */}
-        <path
-          d="M36 53.5 C36 53.5 15 39 15 25.5 C15 17.5 21.5 12 28.5 12 C32.5 12 35.5 14.5 36 16 C36.5 14.5 39.5 12 43.5 12 C50.5 12 57 17.5 57 25.5 C57 39 36 53.5 36 53.5 Z"
-          fill={primaryGrad}
-        />
-        {/* Glass Sheen Top Arc */}
-        <path
-          d="M20 22 C20 16.5 24 14 28 14 C31 14 33.5 16 35 18"
-          stroke="rgba(255,255,255,0.6)"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-        />
-        <circle cx="48" cy="18" r="2" fill="rgba(255,255,255,0.7)" />
-      </g>
-    </svg>
-  );
-}
-
-function Views3DIcon({ platform }: { platform: PlatformId }) {
-  const isIg = platform === "instagram";
-  const primaryGrad = isIg ? "url(#igEyeGrad)" : "url(#platEyeGrad)";
-
-  return (
-    <svg width="68" height="68" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" className="cf-25d-icon">
-      <defs>
-        <linearGradient id="igEyeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#833AB4" />
-          <stop offset="50%" stopColor="#C13584" />
-          <stop offset="100%" stopColor="#5B51D8" />
-        </linearGradient>
-        <linearGradient id="platEyeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--accent)" />
-          <stop offset="100%" stopColor="var(--accent-2)" />
-        </linearGradient>
-        <filter id="shadowViews" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#833AB4" floodOpacity="0.26" />
-        </filter>
-      </defs>
-
-      <ellipse cx="36" cy="58" rx="25" ry="7" fill="rgba(131, 58, 180, 0.12)" />
-
-      <g filter="url(#shadowViews)">
-        {/* Outer Eye 3D Contour */}
-        <path
-          d="M12 36 C18 22 54 22 60 36 C54 50 18 50 12 36 Z"
-          fill="#ffffff"
-          stroke={primaryGrad}
-          strokeWidth="4"
-          strokeLinejoin="round"
-        />
-        {/* Iris */}
-        <circle cx="36" cy="36" r="10" fill={primaryGrad} />
-        {/* Pupil & Reflection */}
-        <circle cx="36" cy="36" r="5" fill="#260438" />
-        <circle cx="33" cy="33" r="2.5" fill="#ffffff" />
-      </g>
-    </svg>
-  );
-}
-
-function Comments3DIcon({ platform }: { platform: PlatformId }) {
-  const isIg = platform === "instagram";
-  const primaryGrad = isIg ? "url(#igCommentGrad)" : "url(#platCommentGrad)";
-
-  return (
-    <svg width="68" height="68" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" className="cf-25d-icon">
-      <defs>
-        <linearGradient id="igCommentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#405DE6" />
-          <stop offset="45%" stopColor="#833AB4" />
-          <stop offset="100%" stopColor="#E1306C" />
-        </linearGradient>
-        <linearGradient id="platCommentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="var(--accent)" />
-          <stop offset="100%" stopColor="var(--accent-2)" />
-        </linearGradient>
-        <filter id="shadowComments" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="6" stdDeviation="6" floodColor="#405DE6" floodOpacity="0.25" />
-        </filter>
-      </defs>
-
-      <ellipse cx="36" cy="58" rx="24" ry="7" fill="rgba(64, 93, 230, 0.12)" />
-
-      <g filter="url(#shadowComments)">
-        {/* Chat Bubble Isometric Bubble */}
-        <path
-          d="M15 32 C15 20.5 24.5 13 36 13 C47.5 13 57 20.5 57 32 C57 43.5 47.5 50 36 50 C31.5 50 27.5 48.8 24 47 L15 51 L17.5 42.5 C16 39.5 15 36 15 32 Z"
-          fill={primaryGrad}
-        />
-        {/* 3 Dialog Dots */}
-        <circle cx="28" cy="31.5" r="2.8" fill="#ffffff" />
-        <circle cx="36" cy="31.5" r="2.8" fill="#ffffff" />
-        <circle cx="44" cy="31.5" r="2.8" fill="#ffffff" />
-      </g>
-    </svg>
-  );
-}
 
 const SERVICES = [
   {
     id: "followers",
     title: "Followers",
     description: "High quality real followers.",
-    iconComponent: Followers3DIcon,
+    Icon: UserRoundPlus,
     bestSeller: true,
   },
   {
     id: "likes",
     title: "Likes",
     description: "Instant post likes from real users.",
-    iconComponent: Likes3DIcon,
+    Icon: Heart,
   },
   {
     id: "views",
     title: "Views",
     description: "Boost video views and reach.",
-    iconComponent: Views3DIcon,
+    Icon: Eye,
   },
   {
     id: "comments",
     title: "Comments",
     description: "Custom relevant comments.",
-    iconComponent: Comments3DIcon,
+    Icon: MessageCircleMore,
   },
 ];
 
@@ -317,220 +124,135 @@ export default function PlatformPage() {
 
   return (
     <main
-      className={`cf-page cf-platform-${platform}`}
+      className={`cf-service-page cf-platform-${platform}`}
       style={
         {
           "--accent": theme.accent,
           "--accent-2": theme.accent2,
           "--pale": theme.pale,
           "--gradient": theme.gradient,
-          "--btn-gradient": theme.btnGradient,
-          "--badge-gradient": theme.badgeGradient,
-          "--icon-bg": theme.iconBg,
-          "--icon-border": theme.iconBorder,
         } as React.CSSProperties
       }
     >
-      {/* Decorative background and ambiance elements */}
-      <div className="cf-ambiance" aria-hidden="true">
-        <div className="cf-orb cf-orb-top-left" />
-        <div className="cf-orb cf-orb-top-right" />
-        <div className="cf-orb cf-orb-bottom-center" />
-        <div className="cf-bg-graphic cf-bg-graphic-1" />
-        <div className="cf-bg-graphic cf-bg-graphic-2" />
-        <div className="cf-bg-line-1" />
-        <div className="cf-bg-line-2" />
-        <div className="cf-floating-badge cf-float-1">
-          <span className="cf-floating-badge-icon">👥</span>
-          <span>+1.5K followers</span>
-        </div>
-        <div className="cf-floating-badge cf-float-2">
-          <span className="cf-floating-badge-icon">❤️</span>
-          <span>+850 likes</span>
-        </div>
-        <div className="cf-floating-badge cf-float-3">
-          <span className="cf-floating-badge-icon">🔥</span>
-          <span>Trending now</span>
-        </div>
-        <div className="cf-floating-badge cf-float-4">
-          <span className="cf-floating-badge-icon">⚡</span>
-          <span>Instant boost</span>
-        </div>
+      <div className="cf-service-bg cf-service-bg-top" aria-hidden="true">
+        <span className="cf-bg-chip">👥 +1K</span>
+        <span className="cf-bg-heart">♥</span>
+        <span className="cf-bg-arrow" />
+        <span className="cf-bg-bars"><i /><i /><i /><i /></span>
+        <span className="cf-bg-circle c1" />
+        <span className="cf-bg-circle c2" />
+        <span className="cf-bg-dots" />
       </div>
 
-      <div className="cf-layout-container">
-        {/* Header: Back Button, Brand Logo, Support / Menu */}
-        <header className="cf-top-bar">
-          <button
-            className="cf-back-button"
-            type="button"
-            onClick={() => router.push("/")}
-            aria-label="Back to Home"
+      <div className="cf-service-bg cf-service-bg-bottom" aria-hidden="true">
+        <span className="cf-bg-social ig">◎</span>
+        <span className="cf-bg-social yt">▶</span>
+        <span className="cf-bg-social x">X</span>
+        <span className="cf-bg-path" />
+        <span className="cf-bg-chip lower">👥 +2.5K</span>
+        <span className="cf-bg-dots lower-dots" />
+      </div>
+
+      <header className="cf-service-header">
+        <button className="cf-service-back cf-back-link" type="button" onClick={() => router.push("/")}>
+          <ArrowLeft className="cf-back-link-icon" />
+          <span>Back to Home</span>
+        </button>
+
+        <Link href="/" className="cf-service-logo">
+          <span>Clout</span><b>Flow</b><ArrowUpRight />
+        </Link>
+
+        <span className="cf-service-brandmark" aria-hidden="true">✦</span>
+      </header>
+
+      <nav className="cf-service-tabs" aria-label="Choose social platform">
+        {NAV.map((item) => (
+          <Link
+            key={item.id}
+            href={`/${item.id}`}
+            className={`cf-service-tab cf-tab-${item.id} ${item.id === platform ? "active" : ""}`}
           >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-
-          <Link href="/" className="cf-brand-logo">
-            <span className="cf-brand-text">
-              Clout<span className="cf-brand-bold">Flow</span>
-            </span>
-            <div className="cf-brand-arrow-pill">
-              <ArrowUpRight className="w-3 h-3 text-white" />
-            </div>
+            <Image src={item.icon} alt="" width={34} height={34} priority />
+            <span>{item.label}</span>
           </Link>
+        ))}
+      </nav>
 
-          <div className="cf-header-right-action" onClick={() => router.push("/")}>
-            <Headphones className="w-5 h-5" />
-          </div>
-        </header>
+      <section className="cf-service-shell">
+        
 
-        {/* Platform Selector */}
-        <nav className="cf-tabs-wrapper" aria-label="Social Platforms">
-          <div className="cf-tabs-pill">
-            {NAV.map((item) => {
-              const isActive = item.id === platform;
-              return (
-                <Link
-                  key={item.id}
-                  href={`/${item.id}`}
-                  className={`cf-tab-item ${isActive ? "active" : ""}`}
-                >
-                  <div className="cf-tab-icon-box">
-                    <Image
-                      src={item.icon}
-                      alt=""
-                      width={18}
-                      height={18}
-                      className="cf-tab-icon"
-                      priority
-                    />
-                  </div>
-                  <span className="cf-tab-label">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-
-        {/* Hero Section */}
-        <section className="cf-hero">
-          <h1 className="cf-hero-title">
+        <section className="cf-service-hero">
+          <h1>
             Grow Your{" "}
-            <span className="cf-hero-gradient-text">
-              {theme.name}
-            </span>
+            <span style={{ backgroundImage: theme.gradient }}>{theme.name}</span>
           </h1>
-          <p className="cf-hero-subtitle">
-            Choose a service below to boost your Instagram presence with real, high-quality results.
-          </p>
+          <p>Choose a service and start growing today.</p>
         </section>
 
-        {/* 4 Master Service Cards */}
-        <section className="cf-cards-grid" aria-label={`${theme.name} services`}>
-          {SERVICES.map(({ id, title, description, iconComponent: IconComp, bestSeller }) => {
-            const ctaText =
+        <section className="cf-service-grid" aria-label={`${theme.name} services`}>
+          {SERVICES.map(({ id, title, description, Icon, bestSeller }) => {
+            const serviceCtaLabel =
               platform === "youtube" && id === "followers"
                 ? "Get Subscribers"
                 : `Get ${title}`;
 
             return (
-              <div
-                key={id}
-                role="button"
-                tabIndex={0}
-                onClick={() => setLookupService(id)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    setLookupService(id);
-                  }
-                }}
-                className={`cf-card-wrap ${bestSeller ? "has-best-seller" : ""}`}
-              >
-                <div className="cf-card-bg-pattern" />
-                <div className="cf-card-inner">
-                  {/* Floating Best Seller Badge */}
+              <button key={id} type="button" onClick={() => setLookupService(id)} className="cf-service-card-link cf-service-card-button">
+                <article className="cf-service-card">
                   {bestSeller && (
-                    <div className="cf-best-seller-badge">
-                      <Star className="w-3.5 h-3.5 fill-current" />
+                    <div className="cf-service-best">
+                      <Star fill="currentColor" />
                       <span>BEST SELLER</span>
                     </div>
                   )}
 
-                  {/* 2.5D Master Icon Platform Box */}
-                  <div className="cf-icon-container">
-                    <div className="cf-icon-glow" />
-                    <IconComp platform={platform} />
+                  <div className="cf-service-icon">
+                    <Icon />
                   </div>
 
-                  {/* Service Title & Description */}
-                  <h2 className="cf-card-title">{title}</h2>
-                  <p className="cf-card-desc">{description}</p>
+                  <h2>{title}</h2>
+                  <p>{description}</p>
 
-                  {/* Master CTA Button with full width */}
-                  <div className="cf-card-cta">
-                    <span className="cf-cta-label">{ctaText}</span>
-                    <ArrowRight className="w-4 h-4 cf-cta-arrow" />
+                  <div className={`cf-service-cta cf-service-cta-${platform}`}>
+                    <span className="cf-service-cta-text">{serviceCtaLabel}</span>
+                    <span className="cf-service-cta-circle-wrap">
+                      <span className="cf-service-cta-circle">
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </span>
+                    </span>
                   </div>
-                </div>
-              </div>
+                </article>
+              </button>
             );
           })}
         </section>
 
-        {/* Trust Bar (4 items with detailed subtitles) */}
-        <section className="cf-trust-bar" aria-label="Security and Guarantee Features">
-          <div className="cf-trust-item">
-            <div className="cf-trust-icon-wrap">
-              <ShieldCheck className="w-5 h-5 text-emerald-500" />
-            </div>
-            <div className="cf-trust-text-block">
-              <span className="cf-trust-title">100% Safe &amp; Secure</span>
-              <span className="cf-trust-desc">No risk to your account</span>
-            </div>
+        <section className="cf-service-benefits" aria-label="CloutFlow benefits">
+          <div>
+            <span className="cf-benefit-icon"><ShieldCheck /></span>
+            <div><strong>100% Safe &amp; Secure</strong></div>
           </div>
-
-          <div className="cf-trust-item">
-            <div className="cf-trust-icon-wrap">
-              <LockKeyhole className="w-5 h-5 text-blue-500" />
-            </div>
-            <div className="cf-trust-text-block">
-              <span className="cf-trust-title">No Password</span>
-              <span className="cf-trust-desc">Only username needed</span>
-            </div>
+          <div>
+            <span className="cf-benefit-icon"><LockKeyhole /></span>
+            <div><strong>No Password Required</strong></div>
           </div>
-
-          <div className="cf-trust-item">
-            <div className="cf-trust-icon-wrap">
-              <Zap className="w-5 h-5 text-amber-500" />
-            </div>
-            <div className="cf-trust-text-block">
-              <span className="cf-trust-title">Fast Delivery</span>
-              <span className="cf-trust-desc">Starts within minutes</span>
-            </div>
+          <div>
+            <span className="cf-benefit-icon"><Zap /></span>
+            <div><strong>Fast Delivery</strong></div>
           </div>
-
-          <div className="cf-trust-item">
-            <div className="cf-trust-icon-wrap">
-              <Headphones className="w-5 h-5 text-purple-500" />
-            </div>
-            <div className="cf-trust-text-block">
-              <span className="cf-trust-title">24/7 Support</span>
-              <span className="cf-trust-desc">Always here to help</span>
-            </div>
+          <div>
+            <span className="cf-benefit-icon"><Headphones /></span>
+            <div><strong>24/7 Support</strong></div>
           </div>
         </section>
 
-        {/* Security Statement Footer */}
-        <footer className="cf-security-footer">
-          <Lock className="w-4 h-4 text-emerald-500" />
-          <span className="cf-security-text">
-            Guaranteed safe &amp; secure delivery • 256-bit encryption
-          </span>
-        </footer>
-      </div>
+        <div className="cf-service-security">
+          <Lock />
+          <span>Your information is 100% secure and protected.</span>
+        </div>
+      </section>
 
-      {/* Preserved Modal Functionality */}
       <ProfileLookupModal
         platform={platform}
         service={lookupService || "followers"}
@@ -542,680 +264,1479 @@ export default function PlatformPage() {
           router.push(`/${platform}/${service}`);
         }}
       />
-      {/* 2.5D Isometric SVG Icons Matching Master Reference */}
+
       <style jsx global>{`
-        /* ========================================================
-           CLOUTFLOW V70 REDESIGN STYLES
-           ======================================================== */
-        .cf-page {
-          min-height: 100vh;
-          background-color: #fafbfe;
-          background-image: 
-            radial-gradient(at 0% 0%, rgba(225, 48, 108, 0.05) 0px, transparent 40%),
-            radial-gradient(at 100% 0%, rgba(131, 58, 180, 0.06) 0px, transparent 40%),
-            radial-gradient(at 100% 100%, rgba(245, 96, 64, 0.04) 0px, transparent 50%),
-            radial-gradient(at 0% 100%, rgba(131, 58, 180, 0.04) 0px, transparent 50%);
-          color: #0b132b;
-          position: relative;
-          overflow-x: hidden;
-          padding: 0 16px 40px;
-          font-family: var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-          -webkit-font-smoothing: antialiased;
+        .cf-service-page{
+          min-height:100vh;
+          background:
+            radial-gradient(circle at 9% 31%, rgba(120,170,255,.055), transparent 15%),
+            radial-gradient(circle at 90% 33%, color-mix(in srgb,var(--accent) 6%,transparent), transparent 17%),
+            #fff;
+          color:#081126;
+          position:relative;
+          overflow:hidden;
+          padding:0 24px 28px;
+          font-family:var(--font-inter), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          isolation:isolate;
+        }
+        .cf-service-page *{box-sizing:border-box}
+        .cf-service-card-button{
+          appearance:none;
+          -webkit-appearance:none;
+          border:0;
+          background:transparent;
+          padding:0;
+          margin:0;
+          width:100%;
+          font:inherit;
+          color:inherit;
+          text-align:inherit;
+          cursor:pointer;
         }
 
-        .cf-layout-container {
-          max-width: 1200px;
-          margin: 0 auto;
-          position: relative;
-          z-index: 2;
+        .cf-service-header{
+          width:min(100%,1000px);
+          height:86px;
+          margin:0 auto;
+          display:grid;
+          grid-template-columns:1fr auto 1fr;
+          align-items:center;
+          position:relative;
+          z-index:4;
+        }
+        .cf-service-back{
+          justify-self:start;
+          display:inline-flex;
+          align-items:center;
+          gap:9px;
+          border:0;
+          background:transparent;
+          color:#0b1326;
+          font-size:14px;
+          font-weight:700;
+          padding:8px 4px;
+          cursor:pointer;
+        }
+        .cf-service-back svg{width:20px;height:20px}
+        .cf-service-logo{
+          justify-self:center;
+          display:inline-flex;
+          align-items:center;
+          text-decoration:none;
+          color:#081126;
+          font-size:29px;
+          font-weight:900;
+          letter-spacing:-1.5px;
+        }
+        .cf-service-logo b{color:#1376ff}
+        .cf-service-logo svg{width:17px;height:17px;color:#1376ff;margin-left:-2px;margin-top:-15px;stroke-width:2.7}
+        .cf-service-brandmark{
+          justify-self:end;
+          color:#1376ff;
+          font-size:22px;
         }
 
-        /* Ambient elements matching image */
-        .cf-ambiance {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          z-index: 1;
-          overflow: hidden;
+        .cf-service-tabs{
+          width:min(100%,720px);
+          min-height:56px;
+          margin:0 auto;
+          padding:6px 8px;
+          display:grid;
+          grid-template-columns:repeat(4,1fr);
+          align-items:center;
+          border:1px solid #e3e8ef;
+          border-radius:13px;
+          background:#fffffff0;
+          box-shadow:0 8px 25px rgba(36,51,79,.10);
+          position:relative;
+          z-index:4;
         }
-        
-        .cf-orb {
-          position: absolute;
-          border-radius: 50%;
-          filter: blur(100px);
-          opacity: 0.8;
+        .cf-service-tab{
+          min-width:0;
+          min-height:43px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:10px;
+          text-decoration:none;
+          color:#35415a;
+          font-size:14px;
+          font-weight:700;
+          border-radius:13px;
+          transition:.2s ease;
         }
-        
-        .cf-orb-top-left {
-          width: 500px;
-          height: 500px;
-          top: -200px;
-          left: -150px;
-          background: rgba(131, 58, 180, 0.15);
-        }
-        
-        .cf-orb-top-right {
-          width: 450px;
-          height: 450px;
-          top: -150px;
-          right: -100px;
-          background: rgba(225, 48, 108, 0.12);
-        }
-        
-        .cf-orb-bottom-center {
-          width: 600px;
-          height: 400px;
-          bottom: -200px;
-          left: 50%;
-          transform: translateX(-50%);
-          background: rgba(245, 96, 64, 0.1);
+        .cf-service-tab img{width:27px!important;height:27px!important;object-fit:contain}
+        .cf-service-tab.active{
+          color:var(--accent);
+          background:var(--pale);
+          box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 36%,transparent);
         }
 
-        /* Abstract UI elements mimicking the background graphics */
-        .cf-bg-graphic {
-          position: absolute;
-          z-index: 1;
-          opacity: 0.8;
-        }
-        
-        .cf-bg-graphic-1 {
-          top: 180px;
-          left: 4%;
-          width: 280px;
-          height: 180px;
-          background-image: 
-            radial-gradient(#d1d5db 1.5px, transparent 1.5px);
-          background-size: 16px 16px;
-          mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
-          -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
-        }
-        
-        .cf-bg-graphic-2 {
-          top: 250px;
-          right: 3%;
-          width: 320px;
-          height: 200px;
-          background-image: 
-            radial-gradient(#d1d5db 1.5px, transparent 1.5px);
-          background-size: 16px 16px;
-          mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
-          -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+        /* TikTok Active Platform Tab */
+        .cf-service-tab.cf-tab-tiktok.active{
+          color:#000000!important;
+          border:1.5px solid transparent!important;
+          background:
+            linear-gradient(#fff,#fff) padding-box,
+            linear-gradient(
+              135deg,
+              rgba(37, 244, 238, 0.72) 0%,
+              rgba(254, 44, 85, 0.72) 100%
+            ) border-box!important;
+          box-shadow:-2px 3px 10px rgba(37,244,238,0.07), 2px 3px 10px rgba(254,44,85,0.07)!important;
         }
 
-        .cf-bg-line-1 {
-          position: absolute;
-          top: 300px;
-          left: -10%;
-          width: 120%;
-          height: 400px;
-          border: 1px dashed rgba(225, 48, 108, 0.15);
-          border-radius: 50%;
-          transform: rotate(-15deg);
+        .cf-service-tab.cf-tab-tiktok:hover:not(.active){
+          color:#000000;
+          background:rgba(255,240,243,.6);
+          box-shadow:-1px 2px 8px rgba(37,244,238,0.05), 1px 2px 8px rgba(254,44,85,0.05);
         }
 
-        .cf-bg-line-2 {
-          position: absolute;
-          top: 200px;
-          left: -10%;
-          width: 120%;
-          height: 600px;
-          border: 1px dashed rgba(131, 58, 180, 0.15);
-          border-radius: 50%;
-          transform: rotate(5deg);
+        /* YouTube Active Platform Tab: Red accent border, soft background and clean depth */
+        .cf-service-tab.cf-tab-youtube{
+          transition:background-color .18s ease, border-color .18s ease, box-shadow .18s ease, color .18s ease!important;
         }
 
-        /* Floating badges matching the image exactly */
-        .cf-floating-badge {
-          position: absolute;
+        .cf-service-tab.cf-tab-youtube.active{
+          color:#FF0000!important;
+          border:1.5px solid rgba(255, 0, 0, 0.58)!important;
+          background:rgba(255, 0, 0, 0.035)!important;
+          box-shadow:0 3px 10px rgba(255, 0, 0, 0.045)!important;
+        }
+
+        .cf-service-tab.cf-tab-youtube.active:hover{
+          background:rgba(255, 0, 0, 0.05)!important;
+          border-color:rgba(255, 0, 0, 0.72)!important;
+          box-shadow:0 4px 12px rgba(255, 0, 0, 0.065)!important;
+        }
+
+        .cf-service-tab.cf-tab-youtube:hover:not(.active){
+          color:#FF0000!important;
+          background:rgba(255, 0, 0, 0.018)!important;
+          border-color:rgba(255, 0, 0, 0.24)!important;
+          box-shadow:0 2px 6px rgba(255, 0, 0, 0.03)!important;
+        }
+
+        /* X / Twitter Active Platform Tab: Monochrome premium border, soft background and subtle depth */
+        .cf-service-tab.cf-tab-twitter{
+          transition:background-color .18s ease, border-color .18s ease, box-shadow .18s ease, color .18s ease!important;
+        }
+
+        .cf-service-tab.cf-tab-twitter.active{
+          color:#0F1419!important;
+          border:1.5px solid rgba(15, 20, 25, 0.70)!important;
+          background:rgba(15, 20, 25, 0.035)!important;
+          box-shadow:0 3px 10px rgba(15, 20, 25, 0.055)!important;
+        }
+
+        .cf-service-tab.cf-tab-twitter.active:hover{
+          background:rgba(15, 20, 25, 0.055)!important;
+          border-color:rgba(15, 20, 25, 0.82)!important;
+          box-shadow:0 4px 12px rgba(15, 20, 25, 0.075)!important;
+        }
+
+        .cf-service-tab.cf-tab-twitter:hover:not(.active){
+          color:#0F1419!important;
+          background:rgba(15, 20, 25, 0.025)!important;
+          border-color:rgba(15, 20, 25, 0.30)!important;
+          box-shadow:0 2px 6px rgba(15, 20, 25, 0.03)!important;
+        }
+
+        /* Instagram Active Platform Tab: High fidelity gradient border & soft background */
+        .cf-service-tab.cf-tab-instagram.active{
+          color:#E1306C!important;
+          border:1.5px solid transparent!important;
+          background:
+            linear-gradient(#fff,#fff) padding-box,
+            linear-gradient(
+              135deg,
+              #833AB4 0%,
+              #C13584 28%,
+              #E1306C 52%,
+              #F56040 76%,
+              #FCAF45 100%
+            ) border-box!important;
+          box-shadow:0 4px 14px rgba(225,48,108,.10)!important;
+        }
+
+        .cf-service-tab.cf-tab-instagram:hover:not(.active){
+          color:#E1306C;
+          background:rgba(255,240,245,.6);
+          box-shadow:0 2px 8px rgba(225,48,108,.06);
+        }
+
+        .cf-service-shell{
+          width:min(100%,1000px);
+          margin:0 auto;
+          padding:72px 0 8px;
+          position:relative;
+          z-index:3;
+        }
+        .cf-service-trusted{
+          width:max-content;
+          max-width:100%;
+          margin:0 auto 26px;
+          padding:9px 16px;
+          border-radius:999px;
+          display:flex;
+          align-items:center;
+          gap:8px;
+          color:#0b67e8;
+          background:linear-gradient(90deg,#eff6ff,#f5f1ff);
+          font-size:13px;
+          font-weight:700;
+        }
+        .cf-service-trusted svg{width:16px;height:16px;fill:#1376ff;color:#1376ff}
+
+        .cf-service-hero{text-align:center}
+        .cf-service-hero h1{
+          margin:0;
+          font-size:56px;
+          line-height:1;
+          letter-spacing:-3.2px;
+          font-weight:900;
+          color:#091127;
+        }
+        .cf-service-hero h1 span{
+          background-clip:text;
+          -webkit-background-clip:text;
+          color:transparent;
+        }
+        .cf-service-hero p{
+          margin:18px auto 0;
+          color:#637088;
+          font-size:18px;
+          line-height:1.35;
+        }
+
+        .cf-service-grid{
+          margin:54px auto 0;
+          display:grid;
+          grid-template-columns:repeat(4,1fr);
+          gap:24px;
+        }
+        .cf-service-card-link{text-decoration:none;color:inherit;min-width:0}
+        .cf-service-card{
+          min-height:334px;
+          position:relative;
+          padding:42px 24px 23px;
+          display:flex;
+          flex-direction:column;
+          align-items:center;
+          text-align:center;
+          border:1.5px solid color-mix(in srgb,var(--accent) 34%,#e7e9ee);
+          border-radius:22px;
+          background:
+            linear-gradient(180deg,rgba(255,255,255,.96),rgba(255,255,255,.99));
+          box-shadow:
+            0 13px 30px color-mix(in srgb,var(--accent) 8%,transparent),
+            inset 0 1px 0 rgba(255,255,255,.8);
+          transition:transform .2s ease,box-shadow .2s ease;
+        }
+        .cf-service-card:hover{
+          transform:translateY(-3px);
+          box-shadow:
+            0 18px 34px color-mix(in srgb,var(--accent) 12%,transparent),
+            inset 0 1px 0 rgba(255,255,255,.9);
+        }
+
+        /* Instagram Card: Reusing the exact Home Instagram card border, background and shadow system */
+        .cf-platform-instagram .cf-service-card{
+          border:1.5px solid transparent!important;
+          background:
+            linear-gradient(#fff,#fff) padding-box,
+            linear-gradient(
+              135deg,
+              #833AB4 0%,
+              #C13584 28%,
+              #E1306C 52%,
+              #F56040 76%,
+              #FCAF45 100%
+            ) border-box!important;
+          box-shadow:0 8px 20px rgba(225,48,108,.08)!important;
+        }
+        .cf-platform-instagram .cf-service-card:hover{
+          transform:translateY(-3px);
+          box-shadow:0 12px 28px rgba(225,48,108,.14)!important;
+        }
+
+        /* TikTok Card: Elegant dual-accent border & subtle black shadow */
+        .cf-platform-tiktok .cf-service-card{
+          border:1.5px solid transparent!important;
+          background:
+            linear-gradient(#fff,#fff) padding-box,
+            linear-gradient(
+              135deg,
+              rgba(37, 244, 238, 0.72) 0%,
+              rgba(254, 44, 85, 0.72) 100%
+            ) border-box!important;
+          box-shadow:-2px 3px 10px rgba(37,244,238,0.07), 2px 3px 10px rgba(254,44,85,0.07)!important;
+        }
+        .cf-platform-tiktok .cf-service-card:hover{
+          transform:translateY(-3px);
+          box-shadow:-3px 5px 14px rgba(37,244,238,0.10), 3px 5px 14px rgba(254,44,85,0.10)!important;
+        }
+
+        /* X / Twitter Card: Monochrome premium graphite border & subtle shadow */
+        .cf-platform-twitter .cf-service-card{
+          border:1.5px solid rgba(15, 20, 25, 0.55)!important;
+          background:#ffffff!important;
+          box-shadow:0 4px 12px rgba(15, 20, 25, 0.06)!important;
+          transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease!important;
+        }
+        .cf-platform-twitter .cf-service-card:hover{
+          border-color:rgba(15, 20, 25, 0.82)!important;
+          transform:translateY(-3px);
+          box-shadow:0 6px 16px rgba(15, 20, 25, 0.10)!important;
+        }
+
+        /* YouTube Card: Clean red accent border & soft depth */
+        .cf-platform-youtube .cf-service-card{
+          border:1.5px solid rgba(255, 0, 0, 0.52)!important;
+          background:#ffffff!important;
+          box-shadow:0 4px 12px rgba(255, 0, 0, 0.045)!important;
+          transition:border-color .18s ease, box-shadow .18s ease, transform .18s ease!important;
+        }
+        .cf-platform-youtube .cf-service-card:hover{
+          border-color:rgba(255, 0, 0, 0.76)!important;
+          transform:translateY(-3px);
+          box-shadow:0 6px 16px rgba(255, 0, 0, 0.055)!important;
+        }
+
+        .cf-service-best{
+          position:absolute;
+          left:42px;
+          top:-18px;
+          min-height:38px;
+          padding:0 15px;
+          display:flex;
+          align-items:center;
+          gap:7px;
+          color:#fff;
+          background:var(--gradient);
+          border-radius:7px 7px 2px 2px;
+          box-shadow:0 8px 18px color-mix(in srgb,var(--accent) 18%,transparent);
+          font-size:12px;
+          font-weight:900;
+          letter-spacing:.2px;
+        }
+        .cf-platform-instagram .cf-service-best{
+          background:linear-gradient(
+            90deg,
+            #833AB4 0%,
+            #C13584 26%,
+            #E1306C 50%,
+            #F56040 74%,
+            #FCAF45 100%
+          )!important;
+          box-shadow:0 5px 12px rgba(225,48,108,.13)!important;
+        }
+        .cf-platform-tiktok .cf-service-best{
+          background:#000000!important;
+          color:#ffffff!important;
+          box-shadow:-2px 3px 8px rgba(37,244,238,0.12), 2px 3px 8px rgba(254,44,85,0.12)!important;
+        }
+        .cf-platform-twitter .cf-service-best{
+          background:#0F1419!important;
+          color:#ffffff!important;
+          box-shadow:0 4px 12px rgba(15,20,25,0.14)!important;
+        }
+        .cf-platform-youtube .cf-service-best{
+          background:#FF0000!important;
+          color:#ffffff!important;
+          box-shadow:0 4px 12px rgba(255,0,0,0.14)!important;
+        }
+        .cf-service-best svg{width:14px;height:14px}
+        .cf-service-icon{
+          width:72px;
+          height:72px;
+          display:grid;
+          place-items:center;
+          clip-path:none;
+          border-radius:18px;
+          background:var(--pale);
+          color:var(--accent);
+          border:1px solid color-mix(in srgb,var(--accent) 10%,transparent);
+          box-shadow:0 5px 14px color-mix(in srgb,var(--accent) 6%,transparent);
+        }
+        .cf-service-icon svg{
+          width:39px;
+          height:39px;
+          fill:none;
+          stroke:currentColor;
+          stroke-width:2.25;
+          stroke-linecap:round;
+          stroke-linejoin:round;
+          overflow:visible;
+        }
+        .cf-service-card h2{
+          margin:24px 0 0;
+          color:#081126;
+          font-size:22px;
+          line-height:1.1;
+          font-weight:900;
+        }
+        .cf-service-card p{
+          margin:15px auto 0;
+          min-height:45px;
+          max-width:180px;
+          color:#66738c;
+          font-size:14px;
+          line-height:1.55;
+        }
+        .cf-service-cta{
+          width: 100%;
+          min-height: 44px;
+          margin-top: auto;
+          border: 0;
+          border-radius: 10px;
           display: flex;
           align-items: center;
+          justify-content: center;
           gap: 8px;
-          background: rgba(255, 255, 255, 0.85);
-          backdrop-filter: blur(8px);
-          -webkit-backdrop-filter: blur(8px);
-          padding: 8px 16px;
-          border-radius: 100px;
-          box-shadow: 
-            0 10px 25px -5px rgba(0, 0, 0, 0.05),
-            0 8px 10px -6px rgba(0, 0, 0, 0.01),
-            inset 0 1px 0 rgba(255, 255, 255, 1);
-          border: 1px solid rgba(226, 232, 240, 0.7);
-          font-size: 13px;
+          padding: 0 12px;
+          color: #ffffff;
+          font-size: 13.5px;
           font-weight: 700;
-          color: #1e293b;
-          animation: floatFloaty 7s ease-in-out infinite alternate;
-        }
-        
-        .cf-floating-badge-icon {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 24px;
-          height: 24px;
-          border-radius: 50%;
-          background: var(--pale);
-          font-size: 11px;
-        }
-
-        .cf-float-1 {
-          top: 130px;
-          left: 12%;
-          animation-delay: 0s;
-        }
-        
-        .cf-float-2 {
-          top: 220px;
-          right: 15%;
-          animation-delay: 1.5s;
-        }
-        
-        .cf-float-3 {
-          top: 450px;
-          left: 5%;
-          animation-delay: 3s;
-        }
-        
-        .cf-float-4 {
-          top: 500px;
-          right: 5%;
-          animation-delay: 4.5s;
-        }
-
-        @keyframes floatFloaty {
-          0% { transform: translateY(0px) rotate(0deg); }
-          50% { transform: translateY(-12px) rotate(2deg); }
-          100% { transform: translateY(5px) rotate(-1deg); }
-        }
-
-        /* Header matching home page style */
-        .cf-top-bar {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 24px 0 32px;
-        }
-        
-        .cf-back-button {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 44px;
-          height: 44px;
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          color: #64748b;
           cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
-        }
-        
-        .cf-back-button:hover {
-          color: #0f172a;
-          border-color: #cbd5e1;
-          background: #f8fafc;
-          transform: translateY(-1px);
-          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.04);
-        }
-        
-        .cf-back-button span {
-          display: none;
-        }
-
-        .cf-brand-logo {
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
+          box-sizing: border-box;
           text-decoration: none;
-          padding: 6px 12px;
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 100px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-          transition: transform 0.2s;
-        }
-        
-        .cf-brand-logo:hover {
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-        }
-        
-        .cf-brand-text {
-          font-size: 17px;
-          font-weight: 500;
-          letter-spacing: -0.02em;
-          color: #0f172a;
-        }
-        
-        .cf-brand-bold {
-          font-weight: 800;
-        }
-        
-        .cf-brand-arrow-pill {
-          width: 20px;
-          height: 20px;
-          border-radius: 50%;
-          background: #0f172a;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .cf-header-right-action {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 44px;
-          height: 44px;
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 12px;
-          color: #64748b;
-          cursor: pointer;
-          transition: all 0.2s ease;
-          box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
-        }
-        
-        .cf-header-right-action:hover {
-          color: #0f172a;
-          background: #f8fafc;
-        }
-
-        /* Platform Selector Tabs */
-        .cf-tabs-wrapper {
-          display: flex;
-          justify-content: center;
-          margin-bottom: 32px;
-        }
-        
-        .cf-tabs-pill {
-          display: inline-flex;
-          align-items: center;
-          background: #ffffff;
-          padding: 4px;
-          border-radius: 100px;
-          border: 1px solid #e2e8f0;
-          box-shadow: 
-            0 4px 15px rgba(0, 0, 0, 0.03),
-            0 1px 3px rgba(0, 0, 0, 0.02);
-          gap: 4px;
-          max-width: 100%;
-          overflow-x: auto;
-          scrollbar-width: none;
-        }
-        
-        .cf-tabs-pill::-webkit-scrollbar {
-          display: none;
-        }
-        
-        .cf-tab-item {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 16px 8px 12px;
-          border-radius: 100px;
-          text-decoration: none;
-          color: #64748b;
-          font-size: 14px;
-          font-weight: 600;
-          transition: all 0.2s ease;
           white-space: nowrap;
+          flex-wrap: nowrap;
+          transition: transform 200ms ease, box-shadow 200ms ease, filter 200ms ease, background 200ms ease;
         }
-        
-        .cf-tab-item:hover:not(.active) {
-          color: #334155;
-          background: #f8fafc;
+
+        .cf-service-cta-text{
+          color: #ffffff;
+          font-size: 11.5px;
+          line-height: 1;
+          font-weight: 700;
+          letter-spacing: -0.2px;
+          white-space: nowrap;
+          word-break: keep-all;
+          overflow-wrap: normal;
+          flex: 0 1 auto;
+          min-width: 0;
         }
-        
-        .cf-tab-item.active {
-          color: #0f172a;
-          background: #f1f5f9;
+
+        .cf-service-cta-circle-wrap{
+          flex: 0 0 auto;
         }
-        
-        .cf-tab-icon-box {
-          display: flex;
-          align-items: center;
-          justify-content: center;
+
+        .cf-service-cta-circle{
           width: 24px;
           height: 24px;
-          border-radius: 50%;
-          background: #ffffff;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+          border-radius: 999px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: transform 200ms ease;
         }
-        
-        .cf-tab-icon {
+
+        .cf-service-cta-circle svg{
           width: 14px;
           height: 14px;
-          object-fit: contain;
-        }
-
-        /* Hero */
-        .cf-hero {
-          text-align: center;
-          margin-bottom: 56px;
-          position: relative;
-        }
-        
-        .cf-hero-title {
-          font-size: clamp(36px, 5vw, 48px);
-          font-weight: 850;
-          letter-spacing: -0.03em;
-          color: #0f172a;
-          margin: 0 0 16px;
-          line-height: 1.1;
-        }
-        
-        .cf-hero-gradient-text {
-          background-image: var(--gradient);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          display: inline-block;
-          padding-right: 2px;
-        }
-        
-        .cf-hero-subtitle {
-          font-size: clamp(16px, 2.5vw, 18px);
-          color: #64748b;
-          margin: 0 auto;
-          font-weight: 500;
-          max-width: 500px;
-          line-height: 1.5;
-        }
-
-        /* Redesigned Service Cards exactly matching image */
-        .cf-cards-grid {
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 20px;
-          margin-bottom: 56px;
-        }
-        
-        @media (max-width: 1024px) {
-          .cf-cards-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-          }
-        }
-        
-        @media (max-width: 640px) {
-          .cf-cards-grid {
-            grid-template-columns: 1fr;
-          }
-        }
-
-        .cf-card-wrap {
-          position: relative;
-          background: #ffffff;
-          border-radius: 28px;
-          cursor: pointer;
-          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-          border: 1px solid #e2e8f0;
-          box-shadow: 
-            0 1px 3px rgba(0, 0, 0, 0.02),
-            0 10px 30px -10px rgba(0, 0, 0, 0.05);
-          display: flex;
-          flex-direction: column;
-          overflow: hidden;
-        }
-        
-        .cf-card-wrap:hover {
-          transform: translateY(-8px);
-          border-color: rgba(225, 48, 108, 0.2);
-          box-shadow: 
-            0 4px 6px rgba(0, 0, 0, 0.02),
-            0 20px 40px -12px rgba(225, 48, 108, 0.15);
-        }
-        
-        .cf-card-wrap.has-best-seller {
-          border: 2px solid rgba(225, 48, 108, 0.2);
-          box-shadow: 
-            0 1px 3px rgba(0, 0, 0, 0.02),
-            0 15px 35px -10px rgba(225, 48, 108, 0.1);
-        }
-        
-        .cf-card-wrap.has-best-seller:hover {
-          border-color: rgba(225, 48, 108, 0.4);
-          box-shadow: 
-            0 4px 6px rgba(0, 0, 0, 0.02),
-            0 25px 45px -12px rgba(225, 48, 108, 0.25);
-        }
-
-        .cf-card-inner {
-          position: relative;
-          padding: 32px 24px 28px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          text-align: center;
-          height: 100%;
-          z-index: 2;
-        }
-
-        /* Abstract card background pattern */
-        .cf-card-bg-pattern {
-          position: absolute;
-          top: 0;
-          right: 0;
-          width: 150px;
-          height: 150px;
-          background: radial-gradient(circle at top right, var(--pale) 0%, transparent 70%);
-          z-index: 1;
-          opacity: 0.6;
-          border-radius: 0 28px 0 0;
-        }
-
-        .cf-best-seller-badge {
-          position: absolute;
-          top: 16px;
-          background: var(--badge-gradient);
           color: #ffffff;
-          font-size: 11px;
-          font-weight: 800;
-          letter-spacing: 0.05em;
-          padding: 6px 14px;
-          border-radius: 100px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          box-shadow: 0 4px 12px rgba(225, 48, 108, 0.3);
-          z-index: 5;
-        }
-        
-        .cf-best-seller-badge svg {
-          filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+          transition: transform 200ms ease;
         }
 
-        .cf-icon-container {
-          position: relative;
-          width: 110px;
-          height: 110px;
-          margin-top: 16px;
-          margin-bottom: 24px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-          z-index: 2;
+        /* Platform specific styles */
+        .cf-service-cta-instagram{
+          background: var(--instagram-gradient, linear-gradient(90deg, #833AB4 0%, #C13584 26%, #E1306C 50%, #F56040 74%, #FCAF45 100%));
+          box-shadow: var(--instagram-shadow, 0 4px 10px rgba(225, 48, 108, 0.10));
         }
-        
-        .cf-card-wrap:hover .cf-icon-container {
-          transform: scale(1.1) rotate(2deg) translateY(-5px);
+        .cf-service-cta-instagram .cf-service-cta-circle{
+          background: rgba(255, 255, 255, 0.16);
         }
-        
-        .cf-25d-icon {
-          position: relative;
-          z-index: 2;
-          width: 100%;
-          height: 100%;
-          filter: drop-shadow(0 15px 15px rgba(0,0,0,0.05));
-        }
-        
-        .cf-icon-glow {
-          position: absolute;
-          width: 60%;
-          height: 60%;
-          border-radius: 50%;
-          background: var(--accent);
-          filter: blur(25px);
-          opacity: 0.15;
-          z-index: 1;
-          top: 20%;
-          left: 20%;
+        .cf-service-card-button:hover .cf-service-cta-instagram{
+          background: var(--instagram-gradient-hover, linear-gradient(90deg, #7734A4 0%, #B83279 26%, #D82D66 50%, #EA593C 74%, #F2A63F 100%));
+          transform: translateY(-1px);
+          filter: none;
+          box-shadow: var(--instagram-shadow-hover, 0 5px 12px rgba(225, 48, 108, 0.14));
         }
 
-        .cf-card-title {
-          font-size: 22px;
-          font-weight: 800;
-          color: #0f172a;
-          margin: 0 0 10px;
-          letter-spacing: -0.02em;
+        .cf-service-cta-tiktok{
+          background: linear-gradient(
+            110deg,
+            #080808 0%,
+            #0a0d0e 30%,
+            #155054 66%,
+            #9b2948 100%
+          );
+          box-shadow: none;
+          filter: none;
+          transition: transform 180ms ease;
         }
-        
-        .cf-card-desc {
-          font-size: 15px;
-          color: #64748b;
-          margin: 0 0 28px;
-          line-height: 1.5;
-          font-weight: 500;
-          min-height: 45px;
+        .cf-service-cta-tiktok .cf-service-cta-circle{
+          background: rgba(255, 255, 255, 0.12);
         }
-
-        /* Full width CTA Button */
-        .cf-card-cta {
-          width: 100%;
-          margin-top: auto;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          border-radius: 16px;
-          padding: 14px 20px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: all 0.3s ease;
-          position: relative;
-          overflow: hidden;
-          z-index: 1;
+        .cf-service-card-button:hover .cf-service-cta-tiktok{
+          background: linear-gradient(
+            110deg,
+            #080808 0%,
+            #0a0d0e 30%,
+            #155054 66%,
+            #9b2948 100%
+          );
+          filter: none;
+          transform: translateY(-1px);
+          box-shadow: none;
         }
-        
-        .cf-card-wrap:hover .cf-card-cta {
-          background: var(--btn-gradient);
-          border-color: transparent;
-          box-shadow: 0 8px 20px -5px rgba(225, 48, 108, 0.4);
-        }
-        
-        .cf-cta-label {
-          color: #0f172a;
-          font-size: 15px;
-          font-weight: 700;
-          letter-spacing: -0.01em;
-          transition: color 0.3s ease;
-        }
-        
-        .cf-card-wrap:hover .cf-cta-label {
-          color: #ffffff;
-        }
-        
-        .cf-cta-arrow {
-          color: #64748b;
-          transition: all 0.3s ease;
-        }
-        
-        .cf-card-wrap:hover .cf-cta-arrow {
-          color: #ffffff;
-          transform: translateX(4px) scale(1.1);
+        .cf-service-card-button:active .cf-service-cta-tiktok{
+          filter: none;
+          transform: translateY(1px);
         }
 
-        /* Trust Bar */
-        .cf-trust-bar {
-          background: #ffffff;
-          border: 1px solid #e2e8f0;
-          border-radius: 20px;
-          padding: 24px;
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 20px;
-          margin-bottom: 32px;
-          box-shadow: 
-            0 4px 15px rgba(0, 0, 0, 0.02),
-            0 1px 3px rgba(0, 0, 0, 0.01);
+        .cf-service-cta-twitter{
+          background: linear-gradient(
+            110deg,
+            #050505 0%,
+            #101010 28%,
+            #242424 58%,
+            #151515 78%,
+            #050505 100%
+          );
+          box-shadow: none;
+          filter: none;
+          transition: transform 180ms ease;
         }
-        
-        @media (max-width: 860px) {
-          .cf-trust-bar {
-            grid-template-columns: repeat(2, 1fr);
+        .cf-service-cta-twitter .cf-service-cta-circle{
+          background: rgba(255, 255, 255, 0.12);
+        }
+        .cf-service-card-button:hover .cf-service-cta-twitter{
+          background: linear-gradient(
+            110deg,
+            #050505 0%,
+            #101010 28%,
+            #242424 58%,
+            #151515 78%,
+            #050505 100%
+          );
+          filter: none;
+          transform: translateY(-1px);
+          box-shadow: none;
+        }
+
+        .cf-service-cta-youtube{
+          background: linear-gradient(
+            110deg,
+            #C9000B 0%,
+            #E6000C 28%,
+            #FF0000 55%,
+            #F21822 76%,
+            #D5000C 100%
+          );
+          box-shadow: none;
+          filter: none;
+          transition: transform 180ms ease;
+        }
+        .cf-service-cta-youtube .cf-service-cta-circle{
+          background: rgba(255, 255, 255, 0.14);
+        }
+        .cf-service-card-button:hover .cf-service-cta-youtube{
+          background: linear-gradient(
+            110deg,
+            #C9000B 0%,
+            #E6000C 28%,
+            #FF0000 55%,
+            #F21822 76%,
+            #D5000C 100%
+          );
+          filter: none;
+          transform: translateY(-1px);
+          box-shadow: none;
+        }
+
+        .cf-service-card-button:hover .cf-service-cta .cf-service-cta-circle-wrap svg{
+          transform: translateX(2px);
+        }
+        .cf-service-card-button:active .cf-service-cta{
+          transform: scale(0.985);
+        }
+
+        .cf-service-benefits{
+          width:min(100%,1000px);
+          min-height:108px;
+          margin:48px auto 0;
+          padding:18px 22px;
+          display:grid;
+          grid-template-columns:repeat(4,1fr);
+          align-items:center;
+          border:1px solid #e5e9ef;
+          border-radius:22px;
+          background:#fff;
+          box-shadow:0 10px 30px rgba(35,50,85,.06);
+        }
+        .cf-service-benefits>div{
+          min-height:64px;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:14px;
+          padding:0 19px;
+        }
+        .cf-service-benefits>div+div{border-left:1px solid #e1e6ee}
+        .cf-benefit-icon{
+          width:48px;
+          height:48px;
+          border-radius:50%;
+          display:grid;
+          place-items:center;
+          flex:0 0 auto;
+        }
+        .cf-benefit-icon svg{width:25px;height:25px}
+        .cf-benefit-icon.blue{color:#1476ff;background:#eaf4ff}
+        .cf-benefit-icon.mint{color:#12c69b;background:#e7fbf5}
+        .cf-benefit-icon.purple{color:#9732ef;background:#f5eaff}
+        .cf-benefit-icon.pink{color:#fa3b82;background:#fff0f5}
+        .cf-service-benefits strong{
+          display:block;
+          color:#111827;
+          font-size:13px;
+          line-height:1.25;
+        }
+        .cf-service-benefits small{
+          display:block;
+          margin-top:7px;
+          color:#6a768e;
+          font-size:12px;
+          line-height:1.25;
+        }
+        .cf-service-security{
+          margin:28px auto 0;
+          display:flex;
+          align-items:center;
+          justify-content:center;
+          gap:9px;
+          color:#69768d;
+          font-size:12px;
+        }
+        .cf-service-security svg{width:17px;height:17px}
+
+        .cf-service-bg{
+          position:absolute;
+          pointer-events:none;
+          z-index:1;
+          opacity:.085;
+        }
+        .cf-service-bg-top{right:-5px;top:132px;width:310px;height:350px}
+        .cf-bg-chip{
+          position:absolute;
+          top:0;
+          left:54px;
+          padding:7px 14px;
+          border:2px solid #8f6cf3;
+          color:#7b54eb;
+          border-radius:999px;
+          font-size:13px;
+          font-weight:900;
+        }
+        .cf-bg-heart{
+          position:absolute;
+          left:177px;
+          top:46px;
+          width:48px;height:48px;
+          display:grid;place-items:center;
+          border:2px solid #ff5795;
+          border-radius:50%;
+          color:#ff5795;
+          font-size:20px;
+        }
+        .cf-bg-arrow{
+          position:absolute;
+          right:22px;
+          top:76px;
+          width:150px;
+          height:130px;
+          border-right:4px solid #3a77ff;
+          border-top:4px solid #3a77ff;
+          border-radius:0 80px 0 0;
+          transform:skewY(-28deg) rotate(-6deg);
+        }
+        .cf-bg-arrow:after{
+          content:"";
+          position:absolute;
+          top:-10px;right:-7px;
+          width:18px;height:18px;
+          border-top:4px solid #3a77ff;
+          border-right:4px solid #3a77ff;
+          transform:rotate(39deg);
+        }
+        .cf-bg-bars{
+          position:absolute;
+          right:14px;
+          top:205px;
+          display:flex;
+          align-items:flex-end;
+          gap:7px;
+        }
+        .cf-bg-bars i{width:15px;background:#3a77ff;border-radius:4px 4px 0 0}
+        .cf-bg-bars i:nth-child(1){height:29px}
+        .cf-bg-bars i:nth-child(2){height:43px}
+        .cf-bg-bars i:nth-child(3){height:62px}
+        .cf-bg-bars i:nth-child(4){height:82px}
+        .cf-bg-circle{position:absolute;border:2px solid #6d8dff;border-radius:50%}
+        .cf-bg-circle.c1{width:21px;height:21px;left:20px;top:58px}
+        .cf-bg-circle.c2{width:12px;height:12px;left:122px;top:236px}
+        .cf-bg-dots{
+          position:absolute;
+          right:18px;
+          bottom:15px;
+          width:84px;height:64px;
+          background-image:radial-gradient(#5d88ff 1.8px,transparent 1.8px);
+          background-size:12px 12px;
+        }
+
+        .cf-service-bg-bottom{left:-4px;bottom:25px;width:250px;height:340px}
+        .cf-bg-social{position:absolute;font-weight:900;color:#6865ff}
+        .cf-bg-social.ig{left:20px;top:36px;font-size:38px;color:#ff4d9b}
+        .cf-bg-social.yt{
+          left:38px;top:148px;width:40px;height:40px;
+          display:grid;place-items:center;
+          border:2px solid #ff0000;border-radius:50%;
+          font-size:24px;color:#ff0000;padding-left:2px;
+        }
+        .cf-bg-social.x{left:112px;top:190px;font-size:31px;color:#fd55ae}
+        .cf-bg-path{
+          position:absolute;
+          left:-25px;top:40px;
+          width:190px;height:220px;
+          border:2px dashed #557cff;
+          border-right-color:transparent;
+          border-radius:55% 40%;
+          transform:rotate(-16deg);
+        }
+        .cf-bg-chip.lower{top:auto;left:124px;bottom:16px;color:#1376ff;border-color:#1376ff}
+        .cf-bg-dots.lower-dots{right:auto;left:35px;bottom:0}
+
+
+        /* V75 — Desktop: cards + benefits reduced by 15% */
+        @media (min-width: 761px){
+          .cf-service-grid{
+            width:85%;
+            gap:20px;
+            margin-top:46px;
+          }
+          .cf-service-card{
+            min-height:284px;
+            padding:36px 20px 20px;
+            border-radius:19px;
+          }
+          .cf-service-best{
+            left:36px;
+            top:-15px;
+            min-height:32px;
+            padding:0 13px;
+            font-size:10px;
+          }
+          .cf-service-best svg{width:12px;height:12px}
+          .cf-service-card h2{
+            margin-top:20px;
+            font-size:19px;
+          }
+          .cf-service-card p{
+            margin-top:13px;
+            min-height:38px;
+            max-width:153px;
+            font-size:12px;
+            line-height:1.5;
+          }
+
+          .cf-service-benefits{
+            width:85%;
+            min-height:92px;
+            margin-top:41px;
+            padding:15px 19px;
+            border-radius:19px;
+          }
+          .cf-service-benefits>div{
+            min-height:54px;
+            gap:12px;
+            padding:0 16px;
+          }
+          .cf-benefit-icon{
+            width:41px;
+            height:41px;
+          }
+          .cf-benefit-icon svg{width:21px;height:21px}
+          .cf-service-benefits strong{font-size:11px}
+          .cf-service-benefits small{
+            margin-top:6px;
+            font-size:10px;
           }
         }
-        
-        @media (max-width: 500px) {
-          .cf-trust-bar {
-            grid-template-columns: 1fr;
+
+        @media (max-width: 760px){
+          .cf-service-page{
+            padding:0 12px 24px;
+            overflow:hidden;
+          }
+          .cf-service-header{
+            height:82px;
+            grid-template-columns:auto 1fr auto;
+          }
+          .cf-service-back{
+            font-size:11px;
+            gap:7px;
+            padding:6px 2px;
+          }
+          .cf-service-back svg{width:18px;height:18px}
+          .cf-service-logo{
+            font-size:25px;
+            letter-spacing:-1.2px;
+          }
+          .cf-service-logo svg{width:15px;height:15px;margin-top:-13px}
+          .cf-service-brandmark{font-size:20px}
+
+          .cf-service-tabs{
+            min-height:52px;
+            width:100%;
+            padding:5px;
+            border-radius:13px;
+            overflow:hidden;
+          }
+          .cf-service-tab{
+            min-height:40px;
+            gap:5px;
+            font-size:10px;
+            border-radius:13px;
+          }
+          .cf-service-tab img{width:22px!important;height:22px!important}
+          .cf-service-tab span{white-space:nowrap}
+
+          .cf-service-shell{
+            padding:54px 0 6px;
+          }
+          .cf-service-trusted{
+            margin-bottom:30px;
+            padding:8px 12px;
+            font-size:9.5px;
+          }
+          .cf-service-trusted svg{width:14px;height:14px}
+
+          .cf-service-hero h1{
+            font-size:clamp(34px,10.6vw,45px);
+            letter-spacing:-2px;
+            white-space:nowrap;
+          }
+          .cf-service-hero p{
+            margin-top:14px;
+            font-size:14px;
+          }
+
+          .cf-service-grid{
+            margin-top:45px;
+            grid-template-columns:repeat(2,minmax(0,1fr));
+            gap:16px 12px;
+          }
+          .cf-service-card{
+            min-height:300px;
+            padding:38px 12px 16px;
+            border-radius:18px;
+          }
+          .cf-service-best{
+            left:14px;
+            top:-15px;
+            min-height:32px;
+            padding:0 10px;
+            font-size:9px;
+          }
+          .cf-service-best svg{width:12px;height:12px}
+          .cf-service-card h2{
+            margin-top:22px;
+            font-size:18px;
+          }
+          .cf-service-card p{
+            margin-top:13px;
+            max-width:125px;
+            min-height:52px;
+            font-size:11px;
+            line-height:1.45;
+          }
+          .cf-service-cta{
+            min-height:42px;
+            padding:0 11px 0 14px;
+            font-size:10px;
+          }
+          .cf-service-cta svg{width:15px;height:15px}
+
+          .cf-service-benefits{
+            min-height:150px;
+            margin-top:30px;
+            padding:12px 4px;
+            grid-template-columns:repeat(4,minmax(0,1fr));
+            border-radius:18px;
+          }
+          .cf-service-benefits>div{
+            min-height:118px;
+            padding:6px 5px;
+            flex-direction:column;
+            text-align:center;
+            gap:8px;
+          }
+          .cf-benefit-icon{
+            width:40px;height:40px;
+          }
+          .cf-benefit-icon svg{width:21px;height:21px}
+          .cf-service-benefits strong{
+            font-size:8.5px;
+            line-height:1.25;
+          }
+          .cf-service-benefits small{
+            margin-top:7px;
+            font-size:8px;
+            line-height:1.45;
+          }
+          .cf-service-security{
+            margin-top:20px;
+            font-size:10px;
+          }
+          .cf-service-security svg{width:16px;height:16px}
+
+          .cf-service-bg{opacity:.045}
+          .cf-service-bg-top{
+            right:-110px;
+            top:122px;
+            transform:scale(.68);
+            transform-origin:top right;
+          }
+          .cf-service-bg-bottom{
+            left:-78px;
+            bottom:-10px;
+            transform:scale(.65);
+            transform-origin:bottom left;
           }
         }
 
-        .cf-trust-item {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          padding: 0 10px;
-        }
-        
-        .cf-trust-icon-wrap {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 42px;
-          height: 42px;
-          border-radius: 12px;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
-          flex-shrink: 0;
-          transition: transform 0.2s;
-        }
-        
-        .cf-trust-item:hover .cf-trust-icon-wrap {
-          transform: scale(1.05);
-          background: #ffffff;
-          box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        }
-        
-        .cf-trust-text-block {
-          display: flex;
-          flex-direction: column;
-        }
-        
-        .cf-trust-title {
-          font-size: 14px;
-          font-weight: 700;
-          color: #0f172a;
-          margin-bottom: 2px;
-        }
-        
-        .cf-trust-desc {
-          font-size: 12.5px;
-          font-weight: 500;
-          color: #64748b;
+        @media (max-width: 390px){
+          .cf-service-tab{font-size:9px}
+          .cf-service-tab img{width:20px!important;height:20px!important}
+          .cf-service-hero h1{font-size:33px}
+          .cf-service-grid{gap:14px 10px}
+          .cf-service-card{min-height:290px}
         }
 
-        /* Security Footer */
-        .cf-security-footer {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          text-align: center;
-          padding-top: 16px;
-          border-top: 1px solid #e2e8f0;
-          max-width: 400px;
-          margin: 0 auto;
+        /* V76 — Mobile alignment matching approved reference */
+        @media (max-width: 760px){
+          .cf-service-page{
+            padding:0 16px 24px !important;
+          }
+
+          .cf-service-header{
+            width:100% !important;
+            height:76px !important;
+            grid-template-columns:1fr auto 1fr !important;
+            gap:8px !important;
+          }
+          .cf-service-back{
+            justify-self:start !important;
+            font-size:10px !important;
+            gap:5px !important;
+            white-space:nowrap !important;
+          }
+          .cf-service-back svg{
+            width:16px !important;
+            height:16px !important;
+          }
+          .cf-service-logo{
+            justify-self:center !important;
+            font-size:22px !important;
+            white-space:nowrap !important;
+          }
+          .cf-service-logo svg{
+            width:13px !important;
+            height:13px !important;
+            margin-top:-11px !important;
+          }
+          .cf-service-brandmark{
+            justify-self:end !important;
+            font-size:17px !important;
+          }
+
+          .cf-service-tabs{
+            width:100% !important;
+            min-height:50px !important;
+            padding:5px !important;
+            grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+          }
+          .cf-service-tab{
+            min-width:0 !important;
+            min-height:39px !important;
+            padding:0 4px !important;
+            gap:4px !important;
+            font-size:8.5px !important;
+          }
+          .cf-service-tab img{
+            width:19px !important;
+            height:19px !important;
+            flex:0 0 auto !important;
+          }
+          .cf-service-tab span{
+            overflow:hidden !important;
+            text-overflow:ellipsis !important;
+          }
+
+          .cf-service-shell{
+            width:100% !important;
+            padding:50px 0 6px !important;
+          }
+          .cf-service-trusted{
+            margin:0 auto 30px !important;
+            font-size:9px !important;
+            padding:8px 11px !important;
+            white-space:nowrap !important;
+          }
+
+          .cf-service-hero{
+            width:100% !important;
+            overflow:visible !important;
+          }
+          .cf-service-hero h1{
+            font-size:clamp(28px,8.6vw,36px) !important;
+            line-height:1.08 !important;
+            letter-spacing:-1.6px !important;
+            white-space:normal !important;
+            text-align:center !important;
+            overflow-wrap:normal !important;
+          }
+          .cf-service-hero h1 span{
+            white-space:nowrap !important;
+          }
+          .cf-service-hero p{
+            margin-top:13px !important;
+            font-size:12px !important;
+            white-space:normal !important;
+          }
+
+          .cf-service-grid{
+            width:100% !important;
+            margin-top:42px !important;
+            grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+            gap:14px 12px !important;
+          }
+          .cf-service-card-link{
+            width:100% !important;
+            min-width:0 !important;
+          }
+          .cf-service-card{
+            width:100% !important;
+            min-width:0 !important;
+            min-height:282px !important;
+            padding:34px 10px 14px !important;
+            border-radius:17px !important;
+          }
+          .cf-service-best{
+            left:12px !important;
+            top:-15px !important;
+            min-height:31px !important;
+            padding:0 9px !important;
+            font-size:8.5px !important;
+          }
+          .cf-service-card h2{
+            margin-top:20px !important;
+            font-size:17px !important;
+          }
+          .cf-service-card p{
+            max-width:125px !important;
+            min-height:50px !important;
+            margin-top:12px !important;
+            font-size:10px !important;
+            line-height:1.45 !important;
+          }
+          .cf-service-cta{
+            width:100% !important;
+            min-height:40px !important;
+            padding:0 10px 0 12px !important;
+            font-size:9.5px !important;
+          }
+          .cf-service-cta svg{
+            width:14px !important;
+            height:14px !important;
+          }
+
+          .cf-service-benefits{
+            width:100% !important;
+            min-height:136px !important;
+            margin-top:26px !important;
+            padding:10px 3px !important;
+            grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+            border-radius:17px !important;
+          }
+          .cf-service-benefits>div{
+            min-width:0 !important;
+            min-height:108px !important;
+            padding:5px 3px !important;
+            gap:7px !important;
+          }
+          .cf-benefit-icon{
+            width:36px !important;
+            height:36px !important;
+          }
+          .cf-benefit-icon svg{
+            width:19px !important;
+            height:19px !important;
+          }
+          .cf-service-benefits strong{
+            font-size:7.5px !important;
+          }
+          .cf-service-benefits small{
+            font-size:7px !important;
+            line-height:1.4 !important;
+          }
+          .cf-service-security{
+            margin-top:18px !important;
+            padding-bottom:2px !important;
+            font-size:9px !important;
+          }
+
+          .cf-service-bg{
+            opacity:.04 !important;
+          }
+          .cf-service-bg-top{
+            right:-115px !important;
+            top:120px !important;
+            transform:scale(.65) !important;
+          }
+          .cf-service-bg-bottom{
+            left:-82px !important;
+            bottom:-15px !important;
+            transform:scale(.60) !important;
+          }
         }
-        
-        .cf-security-text {
-          font-size: 13.5px;
-          font-weight: 500;
-          color: #64748b;
+
+        @media (max-width: 390px){
+          .cf-service-page{
+            padding-left:12px !important;
+            padding-right:12px !important;
+          }
+          .cf-service-logo{
+            font-size:20px !important;
+          }
+          .cf-service-back{
+            font-size:9px !important;
+          }
+          .cf-service-tab{
+            font-size:7.5px !important;
+          }
+          .cf-service-tab img{
+            width:17px !important;
+            height:17px !important;
+          }
+          .cf-service-hero h1{
+            font-size:28px !important;
+          }
+          .cf-service-grid{
+            gap:12px 10px !important;
+          }
+          .cf-service-card{
+            min-height:270px !important;
+            padding-left:8px !important;
+            padding-right:8px !important;
+          }
         }
-      `}</style>
+
+
+        /* V110 — exact compact Home-style trust bar on Grow Your Service */
+        .cf-service-benefits{
+          width:min(100%,1000px)!important;
+          min-height:64px!important;
+          margin:34px auto 0!important;
+          padding:10px 20px!important;
+          grid-template-columns:repeat(4,1fr)!important;
+          border:1px solid #e2e8f0!important;
+          border-radius:14px!important;
+          background:#fff!important;
+          box-shadow:0 8px 24px rgba(15,23,42,.04)!important;
+        }
+        .cf-service-benefits>div{
+          min-height:42px!important;
+          justify-content:center!important;
+          gap:10px!important;
+          padding:0 18px!important;
+        }
+        .cf-service-benefits>div+div{
+          border-left:1px solid #dfe5ed!important;
+        }
+        .cf-benefit-icon{
+          width:18px!important;
+          height:18px!important;
+          border-radius:0!important;
+          background:transparent!important;
+          color:#0f172a!important;
+        }
+        .cf-benefit-icon svg{
+          width:17px!important;
+          height:17px!important;
+          stroke-width:2!important;
+        }
+        .cf-service-benefits strong{
+          color:#020617!important;
+          font-size:11px!important;
+          line-height:1.2!important;
+          font-weight:700!important;
+          white-space:nowrap!important;
+        }
+        .cf-service-benefits small{display:none!important;}
+
+
+        /* V111 — compact professional desktop trust bar */
+        @media(min-width:761px){
+          .cf-service-benefits{
+            width:min(100%,860px)!important;
+            min-height:54px!important;
+            margin:28px auto 0!important;
+            padding:7px 14px!important;
+            border-radius:12px!important;
+          }
+
+          .cf-service-benefits>div{
+            min-height:38px!important;
+            gap:8px!important;
+            padding:0 14px!important;
+          }
+
+          .cf-benefit-icon{
+            width:16px!important;
+            height:16px!important;
+          }
+
+          .cf-benefit-icon svg{
+            width:15px!important;
+            height:15px!important;
+          }
+
+          .cf-service-benefits strong{
+            font-size:10px!important;
+            line-height:1.15!important;
+          }
+        }
+
+
+        /* V112 — Grow Your Service icons standardized to Home */
+        .cf-service-benefits .cf-benefit-icon{
+          width:17px!important;
+          height:17px!important;
+          min-width:17px!important;
+          display:inline-flex!important;
+          align-items:center!important;
+          justify-content:center!important;
+          padding:0!important;
+          border:0!important;
+          border-radius:0!important;
+          background:transparent!important;
+          color:#0f172a!important;
+          box-shadow:none!important;
+        }
+        .cf-service-benefits .cf-benefit-icon svg{
+          width:17px!important;
+          height:17px!important;
+          stroke:currentColor!important;
+          stroke-width:2!important;
+          fill:none!important;
+        }
+        @media(min-width:761px){
+          .cf-service-benefits .cf-benefit-icon,
+          .cf-service-benefits .cf-benefit-icon svg{
+            width:16px!important;
+            height:16px!important;
+            min-width:16px!important;
+          }
+        }
+
+      
+/* V114 — remove residual trusted badge icon and its reserved space */
+.cf-trusted-badge:empty,
+.cf-trust-badge:empty,
+.cf-hero-trust:empty,
+.cf-service-trust:empty{
+  display:none!important;
+  width:0!important;
+  height:0!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+
+
+
+        /* V115 — Grow Your Service trust bar = exact Home standard */
+        .cf-service-benefits{
+          width:min(100%,760px)!important;
+          min-height:64px!important;
+          margin:30px auto 0!important;
+          padding:12px 16px!important;
+          display:grid!important;
+          grid-template-columns:repeat(4,1fr)!important;
+          align-items:center!important;
+          border:1px solid #eef1f5!important;
+          border-radius:13px!important;
+          background:#fff!important;
+          box-shadow:0 9px 26px rgba(35,50,85,.06)!important;
+        }
+        .cf-service-benefits>div{
+          min-height:36px!important;
+          display:flex!important;
+          align-items:center!important;
+          justify-content:center!important;
+          gap:9px!important;
+          color:#111827!important;
+          font-size:11px!important;
+          font-weight:700!important;
+          padding:0 10px!important;
+        }
+        .cf-service-benefits>div+div{
+          border-left:1px solid #e0e5ec!important;
+        }
+        .cf-service-benefits .cf-benefit-icon{
+          width:17px!important;
+          height:17px!important;
+          min-width:17px!important;
+          display:inline-flex!important;
+          align-items:center!important;
+          justify-content:center!important;
+          padding:0!important;
+          margin:0!important;
+          border:0!important;
+          border-radius:0!important;
+          background:transparent!important;
+          color:#111827!important;
+          box-shadow:none!important;
+        }
+        .cf-service-benefits .cf-benefit-icon svg{
+          width:17px!important;
+          height:17px!important;
+          min-width:17px!important;
+          flex:0 0 auto!important;
+          stroke:currentColor!important;
+          stroke-width:2!important;
+          fill:none!important;
+        }
+        .cf-service-benefits strong{
+          color:#111827!important;
+          font-size:11px!important;
+          line-height:1!important;
+          font-weight:700!important;
+          white-space:nowrap!important;
+        }
+        .cf-service-benefits small{
+          display:none!important;
+        }
+
+
+
+        /* V119 — Grow Your Service cards static like Home */
+        .cf-service-card,
+        .cf-service-card:hover,
+        .cf-service-card:focus,
+        .cf-service-card:focus-within,
+        .cf-service-card:active{
+          transform:none!important;
+          translate:none!important;
+          scale:1!important;
+          animation:none!important;
+          transition:none!important;
+        }
+
+        .cf-service-card:hover,
+        .cf-service-card:focus,
+        .cf-service-card:focus-within{
+          box-shadow:var(--cf-service-card-shadow, 0 8px 24px rgba(15,23,42,.045))!important;
+        }
+
+        /* Keep inner artwork/icons static as well */
+        .cf-service-card:hover .cf-service-icon,
+        .cf-service-card:hover svg,
+        .cf-service-card:hover img{
+          transform:none!important;
+          scale:1!important;
+          animation:none!important;
+        }
+
+
+
+        /* Unified Service Icon: 56px soft squircle, 15px radius, 1px subtle themed border */
+        .cf-service-icon{
+          width:56px!important;
+          height:56px!important;
+          display:flex!important;
+          align-items:center!important;
+          justify-content:center!important;
+          border-radius:15px!important;
+          background:rgba(15,23,42,.025)!important;
+          color:var(--accent)!important;
+          border:1px solid rgba(15,23,42,.08)!important;
+          box-shadow:0 3px 8px rgba(15,23,42,.035)!important;
+          transition:transform 180ms ease, border-color 180ms ease, background-color 180ms ease!important;
+        }
+
+        .cf-service-icon svg{
+          width:26px!important;
+          height:26px!important;
+          stroke-width:2!important;
+          stroke-linecap:round!important;
+          stroke-linejoin:round!important;
+        }
+
+        /* Instagram: Ultra-soft background + themed accent border */
+        .cf-platform-instagram .cf-service-icon{
+          color:#E1306C!important;
+          background:rgba(225,48,108,.035)!important;
+          border:1px solid rgba(225,48,108,.16)!important;
+          box-shadow:0 3px 8px rgba(15,23,42,.035)!important;
+        }
+        .cf-service-card-button:hover .cf-platform-instagram .cf-service-icon,
+        .cf-platform-instagram .cf-service-card:hover .cf-service-icon{
+          border-color:rgba(225,48,108,.28)!important;
+          background:rgba(225,48,108,.055)!important;
+        }
+
+        /* TikTok: Dark icon + micro dual-accent effect */
+        .cf-platform-tiktok .cf-service-icon{
+          color:#0F0F0F!important;
+          background:rgba(0,0,0,.025)!important;
+          border:1px solid rgba(0,0,0,.08)!important;
+          box-shadow:-1px 1px 3px rgba(37,244,238,.12), 1px 1px 3px rgba(254,44,85,.12)!important;
+        }
+        .cf-service-card-button:hover .cf-platform-tiktok .cf-service-icon,
+        .cf-platform-tiktok .cf-service-card:hover .cf-service-icon{
+          border-color:rgba(0,0,0,.15)!important;
+          background:rgba(0,0,0,.045)!important;
+          box-shadow:-1px 2px 5px rgba(37,244,238,.18), 1px 2px 5px rgba(254,44,85,.18)!important;
+        }
+
+        /* X / Twitter: Monochrome premium graphite */
+        .cf-platform-twitter .cf-service-icon{
+          color:#0F1419!important;
+          background:rgba(15,20,25,.025)!important;
+          border:1px solid rgba(15,20,25,.16)!important;
+          box-shadow:0 2px 5px rgba(15,20,25,.05)!important;
+        }
+        .cf-service-card-button:hover .cf-platform-twitter .cf-service-icon,
+        .cf-platform-twitter .cf-service-card:hover .cf-service-icon{
+          border-color:rgba(15,20,25,.28)!important;
+          background:rgba(15,20,25,.045)!important;
+        }
+
+        /* YouTube: Clean pure red icon + subtle border */
+        .cf-platform-youtube .cf-service-icon{
+          color:#FF0000!important;
+          background:rgba(255,0,0,.025)!important;
+          border:1px solid rgba(255,0,0,.16)!important;
+          box-shadow:0 2px 5px rgba(255,0,0,.04)!important;
+        }
+        .cf-service-card-button:hover .cf-platform-youtube .cf-service-icon,
+        .cf-platform-youtube .cf-service-card:hover .cf-service-icon{
+          border-color:rgba(255,0,0,.28)!important;
+          background:rgba(255,0,0,.045)!important;
+        }
+
+        /* Universal card hover subtle lift for icon */
+        .cf-service-card:hover .cf-service-icon{
+          transform:translateY(-1px)!important;
+        }
+
+`}</style>
     </main>
   );
 }
