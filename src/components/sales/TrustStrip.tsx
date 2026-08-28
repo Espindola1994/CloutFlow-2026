@@ -12,13 +12,13 @@ export function TrustStrip() {
   ];
 
   return (
-    <section className="w-full max-w-5xl mx-auto px-4 py-4 md:py-6">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 p-3 md:p-4 rounded-2xl bg-[#0e131f]/70 border border-neutral-800/80 backdrop-blur-md shadow-lg">
+    <section className="cf-sales-trust w-full max-w-[1000px] mx-auto px-4 py-2">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 p-2 rounded-2xl bg-[#0e131f]/70 border border-neutral-800/80 backdrop-blur-md shadow-lg">
         {items.map((item, i) => {
           const Icon = item.icon;
           return (
-            <div key={i} className="flex items-center gap-3 p-2 rounded-xl">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-neutral-800/90 border border-neutral-700/60 flex items-center justify-center text-neutral-200 shrink-0">
+            <div key={i} className="flex items-center gap-2 p-1.5 rounded-xl">
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-neutral-800/90 border border-neutral-700/60 flex items-center justify-center text-neutral-200 shrink-0">
                 <Icon className="w-4 h-4 sm:w-5 sm:h-5 text-neutral-300" />
               </div>
               <div className="min-w-0">

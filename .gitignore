@@ -53,3 +53,11 @@ next-env.d.ts
 *.tmp
 
 .env*.local
+.env.prod.raw
+.env.vercel*
+srcfix/
+v25build/
+work/
+src/src/
+README_LOCAL_VISUAL_TEST.txt
+

@@ -3,14 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
+  ArrowRight,
   ArrowUpRight,
+  BadgeCheck,
   Headphones,
   LockKeyhole,
-  Menu,
   ShieldCheck,
   Star,
-  CircleCheckBig,
-  UserRoundCheck,
+  UserRound,
   Zap,
 } from "lucide-react";
 
@@ -19,11 +19,13 @@ import tiktokIcon from "@/assets/home-icons-vector/tiktok.svg";
 import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
 import youtubeIcon from "@/assets/home-icons-vector/youtube.svg";
 
+import type { StaticImageData } from "next/image";
+
 type PlatformItem = {
   key: "instagram" | "tiktok" | "twitter" | "youtube";
   href: string;
   name: string;
-  icon: any;
+  icon: StaticImageData | string;
   description: string;
   accent: string;
   soft: string;
@@ -47,8 +49,8 @@ const platforms: PlatformItem[] = [
     name: "TikTok",
     icon: tiktokIcon,
     description: "Boost followers, likes and video views.",
-    accent: "#000000",
-    soft: "#fff0f3",
+    accent: "#00d6d9",
+    soft: "#effdff",
   },
   {
     key: "twitter",
@@ -56,8 +58,8 @@ const platforms: PlatformItem[] = [
     name: "Twitter / X",
     icon: twitterIcon,
     description: "Grow your followers and increase engagement.",
-    accent: "#0F1419",
-    soft: "#f7f9fa",
+    accent: "#1c2944",
+    soft: "#f4f7fb",
   },
   {
     key: "youtube",
@@ -65,52 +67,39 @@ const platforms: PlatformItem[] = [
     name: "YouTube",
     icon: youtubeIcon,
     description: "Get real subscribers and boost your channel.",
-    accent: "#ff0000",
-    soft: "#fff0f0",
+    accent: "#ff3848",
+    soft: "#fff3f4",
   },
 ];
 
+// V83: precision-matched glossy 1200px Home composition
 export default function Home() {
   return (
-    <main className="cf-v68-home font-sans">
-      <div className="cf-v68-deco cf-v68-deco-top" aria-hidden="true">
-        <span className="cf-v68-chip">👥 +1K</span>
-        <span className="cf-v68-heart">♥</span>
-        <span className="cf-v68-growth-line" />
-        <span className="cf-v68-growth-bars"><i /><i /><i /><i /></span>
-        <span className="cf-v68-dotgrid" />
+    <main className="cf-v80-home font-sans">
+      <div className="cf-v80-background" aria-hidden="true">
+        <div className="cf-v80-blob cf-v80-blob-top-right" />
+        <div className="cf-v80-blob cf-v80-blob-bottom-left" />
+        <div className="cf-v80-dot-field cf-v80-dot-field-left" />
+        <div className="cf-v80-dot-field cf-v80-dot-field-right" />
+        <span className="cf-v80-orb cf-v80-orb-a" />
+        <span className="cf-v80-orb cf-v80-orb-b" />
+        <span className="cf-v80-orb cf-v80-orb-c" />
+        <span className="cf-v80-orb cf-v80-orb-d" />
       </div>
 
-      <div className="cf-v68-deco cf-v68-deco-bottom" aria-hidden="true">
-        <span className="cf-v68-outline ig">◎</span>
-        <span className="cf-v68-outline tk">♪</span>
-        <span className="cf-v68-outline yt">▶</span>
-        <span className="cf-v68-outline x">X</span>
-        <span className="cf-v68-dashpath" />
-        <span className="cf-v68-chip cf-v68-chip-bottom">👥 +2.5K</span>
-        <span className="cf-v68-dotgrid cf-v68-dotgrid-bottom" />
-      </div>
-
-      <div className="cf-v68-page">
-        <header className="cf-v68-navbar">
-          <Link href="/" className="cf-v68-logo" aria-label="CloutFlow home">
+      <div className="cf-v80-shell">
+        <header className="cf-v80-header">
+          <Link href="/" className="cf-v80-logo" aria-label="CloutFlow home">
             <span>Clout</span><b>Flow</b><ArrowUpRight />
           </Link>
-
-          <div className="cf-v68-nav-actions">
-            <div className="cf-v70-brand-message" aria-label="CloutFlow brand message">
-              <span className="cf-v70-brand-star">✦</span>
-              <span>Grow. Engage. Get Noticed.</span>
-            </div>
+          <div className="cf-v80-brand-line">
+            <span className="cf-v80-brand-star">✦</span>
+            <span>Grow. Engage. Get Noticed.</span>
           </div>
-
-          <div className="cf-v71-mobile-mark" aria-hidden="true">✦</div>
         </header>
 
-        <section className="cf-v68-main">
-          
-
-          <div className="cf-v68-hero">
+        <section className="cf-v80-content">
+          <div className="cf-v80-hero">
             <h1>
               <span>Grow your audience.</span>
               <span>Get noticed <b>faster.</b></span>
@@ -118,61 +107,52 @@ export default function Home() {
             <p>Followers, likes and views for the platforms that matter to you.</p>
           </div>
 
-          <section className="cf-v68-top-stats" aria-label="CloutFlow results">
-            <div>
-              <span className="cf-v68-stat-icon blue"><UserRoundCheck /></span>
-              <p><small>Happy Customers</small><strong>98,754+</strong></p>
+          <section className="cf-v80-stats" aria-label="CloutFlow highlights">
+            <div className="cf-v80-stat">
+              <span className="cf-v80-stat-icon cf-v80-stat-icon-blue"><UserRound /></span>
+              <div><small>Happy Customers</small><strong>98,754+</strong></div>
             </div>
-            <div>
-              <span className="cf-v68-stat-icon green"><CircleCheckBig /></span>
-              <p><small>Orders Completed</small><strong>1,245,678+</strong></p>
+            <div className="cf-v80-stat">
+              <span className="cf-v80-stat-icon cf-v80-stat-icon-green"><BadgeCheck /></span>
+              <div><small>Orders Completed</small><strong>1,245,678+</strong></div>
             </div>
-            <div>
-              <span className="cf-v68-stat-icon purple"><Star fill="currentColor" /></span>
-              <p><small>Great Reviews</small><strong>4.9/5</strong></p>
+            <div className="cf-v80-stat">
+              <span className="cf-v80-stat-icon cf-v80-stat-icon-gold"><Star /></span>
+              <div><small>Great Reviews</small><strong>4.9/5</strong></div>
             </div>
           </section>
 
-          <section id="platforms" className="cf-v68-platform-grid" aria-label="Choose a platform">
+          <section id="platforms" className="cf-v80-platform-grid" aria-label="Choose a platform">
             {platforms.map((platform) => (
               <article
-                className={`cf-v68-card cf-v68-card-${platform.key}`}
+                className={`cf-v80-card cf-v80-card-${platform.key}`}
                 key={platform.key}
                 style={{ "--accent": platform.accent, "--soft": platform.soft } as React.CSSProperties}
               >
-                {platform.popular && <span className="cf-v68-popular">Popular</span>}
-
-                <Link href={platform.href} className="cf-v68-card-icon" aria-label={`${platform.name} services`}>
-                  <Image
-                    src={platform.icon}
-                    alt={`${platform.name} icon`}
-                    width={96}
-                    height={96}
-                    priority
-                  />
+                {platform.popular && <span className="cf-v80-popular"><Star />Popular</span>}
+                <Link href={platform.href} className="cf-v80-card-icon" aria-label={`${platform.name} services`}>
+                  <span className="cf-v80-icon-halo" />
+                  <Image src={platform.icon} alt={`${platform.name} icon`} width={112} height={112} priority />
                 </Link>
-
                 <h2>{platform.name}</h2>
                 <p>{platform.description}</p>
-
-                <Link href={platform.href} className="cf-v68-card-primary">
-                  Start Growing <ArrowUpRight />
+                <Link href={platform.href} className="cf-v80-card-primary group">
+                  <span>Start Growing</span>
+                  <span className="cf-v80-card-primary-arrow">
+                    <ArrowRight />
+                  </span>
                 </Link>
               </article>
             ))}
           </section>
 
-          <section id="how-it-works" className="cf-v68-trustbar" aria-label="Service benefits">
-            <div><ShieldCheck /><span>100% Safe &amp; Secure</span></div>
-            <div><LockKeyhole /><span>No Password Required</span></div>
-            <div><Zap /><span>Fast Delivery</span></div>
-            <div id="support"><Headphones /><span>24/7 Support</span></div>
+          <section className="cf-v80-trustbar" aria-label="Service benefits">
+            <div><span className="cf-v80-benefit-icon cf-v80-benefit-purple"><ShieldCheck /></span><span>100% Safe &amp; Secure</span></div>
+            <div><span className="cf-v80-benefit-icon cf-v80-benefit-blue"><LockKeyhole /></span><span>No Password Required</span></div>
+            <div><span className="cf-v80-benefit-icon cf-v80-benefit-green"><Zap /></span><span>Fast Delivery</span></div>
+            <div><span className="cf-v80-benefit-icon cf-v80-benefit-orange"><Headphones /></span><span>24/7 Support</span></div>
           </section>
 
-          <div className="cf-v68-security-note">
-            <LockKeyhole />
-            <span>Your information is 100% secure and protected.</span>
-          </div>
         </section>
       </div>
     </main>

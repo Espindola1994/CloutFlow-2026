@@ -41,7 +41,7 @@ export function ServiceHero({
   );
 
   return (
-    <section className="w-full max-w-5xl mx-auto px-4 pt-8 pb-6 md:pt-14 md:pb-10 text-center space-y-6 md:space-y-8">
+    <section className="cf-sales-hero w-full max-w-[1000px] mx-auto px-4 pt-3 pb-2 text-center space-y-3">
       {/* Eyebrow badge */}
       <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider text-white shadow-md border border-neutral-800 bg-[#0e131f]/90 backdrop-blur-md">
         <span className="w-2 h-2 rounded-full animate-pulse" style={{ background: theme.primary }} />
@@ -49,8 +49,8 @@ export function ServiceHero({
       </div>
 
       {/* Main Headline */}
-      <div className="space-y-4 max-w-4xl mx-auto">
-        <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white tracking-tight leading-[1.08]">
+      <div className="space-y-2 max-w-4xl mx-auto">
+        <h1 className="cf-sales-hero-title text-3xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-[1.02]">
           {copy.heroHeadline}{" "}
           <span
             className="bg-clip-text text-transparent"
@@ -59,13 +59,13 @@ export function ServiceHero({
             {copy.heroHighlight}
           </span>
         </h1>
-        <p className="text-sm sm:text-base md:text-lg text-neutral-300 max-w-2xl mx-auto leading-relaxed font-normal">
+        <p className="cf-sales-hero-sub text-xs sm:text-sm md:text-base text-neutral-300 max-w-2xl mx-auto leading-snug font-normal">
           {copy.heroSubheadline}
         </p>
       </div>
 
       {/* Target Card Surface */}
-      <div className="pt-2">
+      <div className="cf-sales-target pt-0">
         <SelectedTargetCard
           platform={platform}
           service={service}
@@ -81,11 +81,11 @@ export function ServiceHero({
       </div>
 
       {/* Hero CTAs */}
-      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+      <div className="cf-sales-hero-actions flex flex-col sm:flex-row items-center justify-center gap-2 pt-0">
         <button
           type="button"
           onClick={onScrollToPlans}
-          className="w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-extrabold text-white transition-all cursor-pointer shadow-xl hover:scale-105 flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-6 py-2.5 rounded-xl text-xs md:text-sm font-extrabold text-white transition-all cursor-pointer shadow-xl hover:scale-105 flex items-center justify-center gap-2"
           style={{ background: theme.gradient }}
         >
           <span>View Growth Packages</span>
@@ -96,7 +96,7 @@ export function ServiceHero({
           <button
             type="button"
             onClick={onSelectTarget}
-            className="w-full sm:w-auto px-6 py-3.5 rounded-xl text-xs sm:text-sm font-bold text-neutral-300 hover:text-white bg-neutral-900/60 hover:bg-neutral-800/80 border border-neutral-800 transition-all cursor-pointer"
+            className="w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-bold text-neutral-300 hover:text-white bg-neutral-900/60 hover:bg-neutral-800/80 border border-neutral-800 transition-all cursor-pointer"
           >
             <span>Change {isFollowers ? "Profile" : "Content"}</span>
           </button>

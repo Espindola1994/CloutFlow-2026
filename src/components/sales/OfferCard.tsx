@@ -79,10 +79,10 @@ export function OfferCard({
   return (
     <div
       onMouseEnter={onHover}
-      className={`group relative flex flex-col justify-between rounded-3xl transition-all duration-300 ${
+      className={`cf-sales-offer-card group relative flex flex-col justify-between rounded-2xl transition-all duration-300 ${
         isFeatured
-          ? "bg-[#0e131f] border-2 p-6 md:p-7 shadow-2xl scale-[1.02] z-10"
-          : "bg-[#0c101a]/90 border border-neutral-800/80 p-5 md:p-6 hover:border-neutral-700 shadow-xl"
+          ? "bg-[#0e131f] border-2 p-4 shadow-2xl scale-[1.02] z-10"
+          : "bg-[#0c101a]/90 border border-neutral-800/80 p-4 hover:border-neutral-700 shadow-xl"
       }`}
       style={{
         borderColor: isFeatured ? theme.primary : undefined,
@@ -103,7 +103,7 @@ export function OfferCard({
       )}
 
       {/* Card Content Top */}
-      <div className="space-y-4 pt-1">
+      <div className="space-y-2 pt-0">
         {/* Tier Name & Discount Badge */}
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs font-extrabold text-neutral-400 uppercase tracking-widest">
@@ -117,9 +117,9 @@ export function OfferCard({
         </div>
 
         {/* Quantity Headline Dominant */}
-        <div className="pb-4 border-b border-neutral-800/80">
+        <div className="pb-2 border-b border-neutral-800/80">
           <div className="flex items-baseline gap-2">
-            <span className="text-4xl sm:text-5xl font-black text-white tracking-tight">
+            <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">
               {offer.quantity.toLocaleString()}
             </span>
             <span className="text-xs sm:text-sm font-extrabold text-neutral-400 uppercase tracking-wider">
@@ -138,7 +138,7 @@ export function OfferCard({
 
         {/* Price Presentation */}
         <div className="py-1 flex items-baseline gap-2.5">
-          <span className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+          <span className="text-2xl sm:text-3xl font-black text-white tracking-tight">
             ${price}
           </span>
           {oldPrice && (
@@ -152,7 +152,7 @@ export function OfferCard({
         </div>
 
         {/* Bullets List */}
-        <ul className="space-y-2.5 py-3 border-t border-neutral-800/80">
+        <ul className="space-y-1.5 py-2 border-t border-neutral-800/80">
           {benefitsList.map((benefit, i) => (
             <li key={i} className="flex items-start gap-2 text-xs text-neutral-300">
               <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5 stroke-[2.5]" />
@@ -163,12 +163,12 @@ export function OfferCard({
       </div>
 
       {/* Card Bottom CTA & Microcopy */}
-      <div className="pt-4 mt-auto space-y-2.5 text-center">
+      <div className="pt-2 mt-auto space-y-1.5 text-center">
         <button
           type="button"
           onClick={handleClick}
           disabled={loading}
-          className={`w-full py-3.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold text-white flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-lg disabled:opacity-60 disabled:cursor-not-allowed ${
+          className={`w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-extrabold text-white flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer shadow-lg disabled:opacity-60 disabled:cursor-not-allowed ${
             isFeatured ? "hover:scale-[1.02]" : "hover:bg-neutral-800"
           }`}
           style={{

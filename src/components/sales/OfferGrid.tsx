@@ -62,14 +62,14 @@ export function OfferGrid({
   const displayHandle = (targetHandle || "").replace(/^@+/, "");
 
   return (
-    <section id="plans" className="w-full max-w-6xl mx-auto px-4 py-10 md:py-14 space-y-8 scroll-mt-20">
-      <div className="text-center space-y-3">
+    <section id="plans" className="cf-sales-offers w-full max-w-[1000px] mx-auto px-4 py-2 space-y-3">
+      <div className="text-center space-y-1.5">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold uppercase tracking-wider text-neutral-300 bg-[#0e131f] border border-neutral-800">
           <Sparkles className="w-3.5 h-3.5" style={{ color: theme.primary }} />
           <span>CHOOSE YOUR PACKAGE</span>
         </div>
         
-        <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight">
           Pick the Growth Level That Fits Your Goal.
         </h2>
 

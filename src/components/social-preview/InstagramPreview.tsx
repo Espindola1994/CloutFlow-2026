@@ -32,9 +32,9 @@ export function InstagramPreview({ profile, onClose }: { profile: InstagramVerif
   const hasStory = Boolean(profile.has_active_story || profileRecord.has_story || profileRecord.has_stories || profileRecord.story_available);
 
   return (
-    <div className="w-full bg-[#ffffff] text-[#262626] rounded-[24px] overflow-hidden border border-neutral-200/90 shadow-sm select-none font-sans">
+    <div className="ig-preview-ref w-full bg-[#ffffff] text-[#262626] rounded-[24px] overflow-hidden border border-neutral-200/90 shadow-sm select-none font-sans">
       {/* Top Bar: Back | Centered Username | Bell & Menu */}
-      <div className="grid grid-cols-[40px_minmax(0,1fr)_auto] items-center px-[14px] h-[52px] w-full border-b border-[#EFEFEF] bg-[#ffffff]">
+      <div className="ig-topbar grid grid-cols-[40px_minmax(0,1fr)_auto] items-center px-[14px] h-[52px] w-full border-b border-[#EFEFEF] bg-[#ffffff]">
         {/* Left: Back Arrow */}
         <button
           type="button"
@@ -66,7 +66,7 @@ export function InstagramPreview({ profile, onClose }: { profile: InstagramVerif
 
       {/* Main Profile Block: Avatar (Left) + Display Name & Stats (Right) */}
       <div
-        className="w-full grid px-[16px] pt-[18px] pb-[8px]"
+        className="ig-profile-main w-full grid px-[16px] pt-[18px] pb-[8px]"
         style={{
           gridTemplateColumns: "104px minmax(0, 1fr)",
           columnGap: "18px",
@@ -74,10 +74,10 @@ export function InstagramPreview({ profile, onClose }: { profile: InstagramVerif
         }}
       >
         {/* Left Column: Avatar (96px desktop) with Conditional Story Ring */}
-        <div className="relative flex-shrink-0 flex items-center justify-center">
+        <div className="ig-avatar-wrap relative flex-shrink-0 flex items-center justify-center">
           {hasStory ? (
             <div
-              className="rounded-full flex items-center justify-center p-[3px] w-[86px] h-[86px] min-[390px]:w-[90px] min-[390px]:h-[90px] min-[430px]:w-[94px] min-[430px]:h-[94px] min-[440px]:w-[96px] min-[440px]:w-[96px]"
+              className="ig-avatar-ring rounded-full flex items-center justify-center p-[3px] w-[86px] h-[86px] min-[390px]:w-[90px] min-[390px]:h-[90px] min-[430px]:w-[94px] min-[430px]:h-[94px] min-[440px]:w-[96px] min-[440px]:w-[96px]"
               style={{
                 background: "conic-gradient(from 0deg, #FEDA75, #FA7E1E, #D62976, #962FBF, #4F5BD5, #FEDA75)",
               }}
@@ -102,14 +102,14 @@ export function InstagramPreview({ profile, onClose }: { profile: InstagramVerif
         </div>
 
         {/* Right Column: Display Name + 3-Column Metrics */}
-        <div className="min-w-0 flex flex-col justify-start">
+        <div className="ig-profile-info min-w-0 flex flex-col justify-start">
           {/* Display Name */}
-          <h2 className="text-[16px] min-[390px]:text-[16.5px] min-[430px]:text-[17px] font-[600] leading-[1.15] text-[#111111] mt-[4px] truncate">
+          <h2 className="ig-display-name text-[16px] min-[390px]:text-[16.5px] min-[430px]:text-[17px] font-[600] leading-[1.15] text-[#111111] mt-[4px] truncate">
             {profile.full_name || profile.username}
           </h2>
 
           {/* Metrics */}
-          <div className="grid grid-cols-3 w-full mt-[14px] text-center whitespace-nowrap">
+          <div className="ig-metrics grid grid-cols-3 w-full mt-[14px] text-center whitespace-nowrap">
             <div>
               <b className="text-[16.5px] min-[390px]:text-[17px] min-[430px]:text-[18px] font-[600] leading-none text-[#111111] block">
                 {formatCount(profile.posts_count)}
@@ -159,7 +159,7 @@ export function InstagramPreview({ profile, onClose }: { profile: InstagramVerif
       )}
 
       {/* Action Buttons: Following | Message | User+ */}
-      <div className="px-[16px] mb-[14px] grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_40px] min-[430px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_42px] gap-[6px] min-[390px]:gap-[7px] min-[430px]:gap-[8px] w-full">
+      <div className="ig-actions px-[16px] mb-[14px] grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_40px] min-[430px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_42px] gap-[6px] min-[390px]:gap-[7px] min-[430px]:gap-[8px] w-full">
         <button
           type="button"
           className="flex items-center justify-center gap-[5px] h-[40px] min-[430px]:h-[42px] rounded-[10px] bg-[#EFEFEF] text-[#111111] text-[14px] font-[600] leading-none hover:bg-[#E5E5E5] transition-colors duration-[160ms] ease-out border-0 cursor-pointer"
@@ -183,7 +183,7 @@ export function InstagramPreview({ profile, onClose }: { profile: InstagramVerif
       </div>
 
       {/* Visual Navigation Tabs: 4 Uniform Tabs (Posts, Reels, Reposts, Tagged) */}
-      <div className="grid grid-cols-4 w-full h-[44px] border-b border-[#EFEFEF]">
+      <div className="ig-tabs grid grid-cols-4 w-full h-[44px] border-b border-[#EFEFEF]">
         {/* 1. Posts / Grid (Active) */}
         <div className="relative flex items-center justify-center h-full text-[#111111]">
           <svg
@@ -262,7 +262,7 @@ export function InstagramPreview({ profile, onClose }: { profile: InstagramVerif
           />
         </div>
       ) : posts.length > 0 ? (
-        <div className="grid grid-cols-3 gap-[1px] w-full mt-[1px] bg-white">
+        <div className="ig-media-grid grid grid-cols-3 gap-[1px] w-full mt-[1px] bg-white">
           {posts.map((post, i) => (
             <div className="relative aspect-square w-full bg-neutral-100 overflow-hidden rounded-[0px]" key={post.id || i}>
               <img src={post.thumbnail_url} alt="" className="w-full h-full object-cover" />

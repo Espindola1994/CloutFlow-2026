@@ -61,7 +61,7 @@ export async function resolveInstagramProfileByUsername(
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "Não foi possível consultar este perfil agora. Tente novamente.",
+      message: "We couldn't check this profile right now. Please try again.",
     };
   }
 
@@ -240,7 +240,7 @@ export async function resolveInstagramContentToProfile(
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "Não foi possível consultar este perfil agora. Tente novamente.",
+      message: "We couldn't check this profile right now. Please try again.",
     };
   }
 
