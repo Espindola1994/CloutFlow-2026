@@ -697,7 +697,7 @@ export function OfferOption10Experience(props: Props) {
               const regular = (pkg.priceCents / 100).toFixed(2);
               const serviceLabel = pkg.service.charAt(0).toUpperCase() + pkg.service.slice(1);
               const isBestValue = index === 3 || index === 5;
-              const planNames = ['Starter', 'Growth', 'Pro', 'Boost', 'Power', 'Scale'];
+              const planNames = ['Starter', 'Boost', 'Growth', 'Pro', 'Elite', 'Max'];
                 const currentPlanPrices = [14.90, 29.90, 39.90, 69.90, 119.90, 199.90];
                 const planFollowerQuantities = [2000, 6000, 10000, 20000, 40000, 100000];
                 const planFollowerQuantity = planFollowerQuantities[index] ?? pkg.quantity;

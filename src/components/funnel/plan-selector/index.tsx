@@ -71,7 +71,7 @@ const packageQuantities: Record<string, number[]> = {
   comments: [100, 250, 500, 1000, 2500, 5000, 10000, 25000],
 };
 
-const offerStep2PlanNames = ["Starter", "Growth", "Pro", "Boost", "Power", "Scale"] as const;
+const offerStep2PlanNames = ["Starter", "Boost", "Growth", "Pro", "Elite", "Max"] as const;
 const offerStep2IconKeys = ["starter", "growth", "pro", "authority", "influencer", "scale"] as const;
 const offerStep2Prices = [14.90, 29.90, 39.90, 69.90, 119.90, 199.90];
 const offerStep2ComparePrices = [19.90, 44.90, 54.90, 99.90, 179.90, 319.90];
