@@ -5,6 +5,31 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA || "",
     NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV || "",
   },
+  async redirects() {
+    const legacyPlatforms = "instagram|tiktok|youtube|twitter|x";
+    const legacyServices = "follower|followers|like|likes|view|views|comments";
+
+    return [
+      // Legacy platform + service + plans: /:platform/:service/plans -> /
+      {
+        source: `/:platform(${legacyPlatforms})/:service(${legacyServices})/plans`,
+        destination: "/",
+        permanent: true,
+      },
+      // Legacy platform + service: /:platform/:service -> /
+      {
+        source: `/:platform(${legacyPlatforms})/:service(${legacyServices})`,
+        destination: "/",
+        permanent: true,
+      },
+      // Legacy platform: /:platform -> /
+      {
+        source: `/:platform(${legacyPlatforms})`,
+        destination: "/",
+        permanent: true,
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {
