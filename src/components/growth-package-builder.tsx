@@ -88,7 +88,7 @@ function makePreviewProfile(platform: PlatformId): VerifiedSocialProfile {
   if (platform === "instagram") return {
     platform: "instagram", username: "cloutflow.preview", full_name: "CloutFlow Creator",
     avatar_url: previewSvg("CF", "#833AB4", "#FD1D1D"), posts_count: 248, followers_count: 78600, following_count: 932,
-    bio: "Creator • lifestyle • growth\nBuilding something people notice ✨", link: "cloutflow.com", is_private: false, is_verified: true, has_active_story: true,
+    bio: "Creator • lifestyle • growth\nBuilding something people notice ✨", link: "cloutflow.co", is_private: false, is_verified: true, has_active_story: true,
     posts: [
       { id: "ig-1", thumbnail_url: previewSvg("POST", "#ff9966", "#ff5e62") },
       { id: "ig-2", thumbnail_url: previewSvg("REEL", "#667eea", "#764ba2"), is_video: true },
@@ -97,7 +97,7 @@ function makePreviewProfile(platform: PlatformId): VerifiedSocialProfile {
   };
   if (platform === "tiktok") return {
     platform: "tiktok", username: "cloutflow.preview", full_name: "CloutFlow Creator", avatar_url: previewSvg("CF", "#25F4EE", "#FE2C55"),
-    following_count: 67, followers_count: 55800, likes_count: 2400000, bio: "Daily creator tips • growth • trends", link: "cloutflow.com", is_private: false, is_verified: true,
+    following_count: 67, followers_count: 55800, likes_count: 2400000, bio: "Daily creator tips • growth • trends", link: "cloutflow.co", is_private: false, is_verified: true,
     videos: [
       { id: "tt-1", thumbnail_url: previewSvg("3.1K", "#141e30", "#243b55"), views_count: 3100 },
       { id: "tt-2", thumbnail_url: previewSvg("12K", "#FE2C55", "#5b247a"), views_count: 12300 },
@@ -112,7 +112,7 @@ function makePreviewProfile(platform: PlatformId): VerifiedSocialProfile {
   };
   return {
     platform: "twitter", username: "CloutFlowPreview", full_name: "CloutFlow Creator", avatar_url: previewSvg("CF", "#111111", "#65707D"), cover_url: previewSvg("CLOUTFLOW", "#111827", "#374151"),
-    followers_count: 2100000, following_count: 1000, bio: "Ideas, growth and creator tools.", location: "New York, NY", link: "cloutflow.com", is_verified: true, is_private: false,
+    followers_count: 2100000, following_count: 1000, bio: "Ideas, growth and creator tools.", location: "New York, NY", link: "cloutflow.co", is_verified: true, is_private: false,
     pinned_tweet: { id: "x-1", text: "Build, analyze and grow with clarity.", like_count: 18400, retweet_count: 3200, reply_count: 640 },
   };
 }

@@ -23,7 +23,7 @@ export function verifyUnsubscribeToken(email: string, token: string): boolean {
 export function buildUnsubscribeUrl(email: string): string {
   const normalized = email.toLowerCase().trim();
   const token = generateUnsubscribeToken(normalized);
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cloutflow.com';
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cloutflow.co';
   return `${baseUrl.replace(/\/$/, '')}/unsubscribe?email=${encodeURIComponent(normalized)}&token=${token}`;
 }
 

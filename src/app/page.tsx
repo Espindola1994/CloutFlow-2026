@@ -1,160 +1,187 @@
 "use client";
 
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  BadgeCheck,
-  Headphones,
-  LockKeyhole,
-  ShieldCheck,
-  Star,
-  UserRound,
-  Zap,
-} from "lucide-react";
-
+import { Loader2 } from "lucide-react";
+import { useFunnelStore } from "@/stores/funnel.store";
+import GrowthPackageBuilder from "@/components/growth-package-builder";
+import { Platform, Service } from "@/config/service-sales.config";
+import { PublicOfferItem } from "@/components/sales/OfferCard";
+import { PlanSelector } from "@/components/funnel/plan-selector";
 import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
 import tiktokIcon from "@/assets/home-icons-vector/tiktok.svg";
 import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
 import youtubeIcon from "@/assets/home-icons-vector/youtube.svg";
 
-import type { StaticImageData } from "next/image";
-
-type PlatformItem = {
-  key: "instagram" | "tiktok" | "twitter" | "youtube";
-  href: string;
-  name: string;
-  icon: StaticImageData | string;
-  description: string;
-  accent: string;
-  soft: string;
-  popular?: boolean;
+type PlatformId = "instagram" | "tiktok" | "twitter" | "youtube";
+const PLATFORM_META: Record<PlatformId, { label: string; icon: any; accent: string; accent2: string }> = {
+  instagram: { label: "Instagram", icon: instagramIcon, accent: "#E1306C", accent2: "#FCAF45" },
+  youtube: { label: "YouTube", icon: youtubeIcon, accent: "#FF0000", accent2: "#FF5A5F" },
+  tiktok: { label: "TikTok", icon: tiktokIcon, accent: "#FE2C55", accent2: "#25F4EE" },
+  twitter: { label: "X (Twitter)", icon: twitterIcon, accent: "#111111", accent2: "#5F6B7A" },
 };
 
-const platforms: PlatformItem[] = [
-  {
-    key: "instagram",
-    href: "/instagram",
-    name: "Instagram",
-    icon: instagramIcon,
-    description: "Real followers, likes and views for your growth.",
-    accent: "#E1306C",
-    soft: "#FFF0F5",
-    popular: true,
-  },
-  {
-    key: "tiktok",
-    href: "/tiktok",
-    name: "TikTok",
-    icon: tiktokIcon,
-    description: "Boost followers, likes and video views.",
-    accent: "#00d6d9",
-    soft: "#effdff",
-  },
-  {
-    key: "twitter",
-    href: "/twitter",
-    name: "Twitter / X",
-    icon: twitterIcon,
-    description: "Grow your followers and increase engagement.",
-    accent: "#1c2944",
-    soft: "#f4f7fb",
-  },
-  {
-    key: "youtube",
-    href: "/youtube",
-    name: "YouTube",
-    icon: youtubeIcon,
-    description: "Get real subscribers and boost your channel.",
-    accent: "#ff3848",
-    soft: "#fff3f4",
-  },
-];
+export default function HomePage() {
+  const [platform, setPlatformState] = useState<PlatformId>("instagram");
+  const [service, setSelectedService] = useState<Service>("followers");
+  const meta = PLATFORM_META[platform] || PLATFORM_META.instagram;
 
-// V83: precision-matched glossy 1200px Home composition
-export default function Home() {
+  const { targetType, targetValue, targetUrl, socialUsername, profileUrl, email, setPlatform, setService } = useFunnelStore();
+  const [offers, setOffers] = useState<PublicOfferItem[]>([]);
+  const [loadingOffers, setLoadingOffers] = useState(true);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [plansConfirmed, setPlansConfirmed] = useState(false);
+
+  useEffect(() => {
+    setPlatform(platform);
+    setService(service);
+  }, [platform, service, setPlatform, setService]);
+
+  const fetchOffers = useCallback(async () => {
+    try {
+      setLoadingOffers(true);
+      const res = await fetch(`/api/offers?platform=${encodeURIComponent(platform)}&service=${encodeURIComponent(service)}`);
+      const json = await res.json();
+      setOffers(res.ok && json.success && Array.isArray(json.data?.items) ? json.data.items : []);
+    } catch {
+      setOffers([]);
+    } finally {
+      setLoadingOffers(false);
+    }
+  }, [platform, service]);
+
+  useEffect(() => {
+    fetchOffers();
+  }, [fetchOffers]);
+
+  const isFollowers = service === "followers";
+  const username = (socialUsername || targetValue || "your profile").replace(/^@+/, "");
+
+  const isContentTarget = targetType === "post" || targetType === "video";
+  const targetCompatibleWithService = service === "followers"
+    ? Boolean((targetType === "profile" || targetType === "channel") && socialUsername)
+    : Boolean(isContentTarget && targetUrl);
+  const hasTarget = targetCompatibleWithService;
+
+  const changeProduct = (next: Service) => {
+    if (next === service) return;
+    setSelectedService(next);
+    setService(next);
+    setCheckoutError(null);
+    setPlansConfirmed(false);
+  };
+
+  const changePlatform = (next: PlatformId) => {
+    if (next === platform) return;
+    setPlatformState(next);
+    setPlatform(next);
+    setCheckoutError(null);
+    setPlansConfirmed(false);
+  };
+
+  const handleCheckout = async (offerId: string) => {
+    setCheckoutError(null);
+    if (!hasTarget) {
+      document.querySelector(".cf-premium-builder")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
+    try {
+      const resolvedTargetType = targetType || (isFollowers ? (platform === "youtube" ? "channel" : "profile") : "post");
+      const normalizedUsername = socialUsername ? socialUsername.replace(/^@+/, "").trim() : null;
+      const res = await fetch("/api/checkout/context", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          offerId,
+          targetType: resolvedTargetType,
+          targetValue: targetValue || normalizedUsername,
+          targetUrl: targetUrl || null,
+          socialUsername: normalizedUsername,
+          profileUrl: profileUrl || null,
+          email: email ? email.trim().toLowerCase() : null,
+        }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success && json.data?.checkoutUrl) {
+        window.location.href = json.data.checkoutUrl;
+      } else {
+        setCheckoutError(json.error?.message || "Não foi possível finalizar a compra. Tente novamente.");
+      }
+    } catch {
+      setCheckoutError("Não foi possível finalizar a compra. Tente novamente.");
+    }
+  };
+
   return (
-    <main className="cf-v80-home font-sans">
-      <div className="cf-v80-background" aria-hidden="true">
+    <main className="cf-plans-v1" style={{ "--plans-accent": meta.accent, "--plans-accent-2": meta.accent2 } as any}>
+      <div className="cf-v80-background cf-plans-v1-bg" aria-hidden="true">
         <div className="cf-v80-blob cf-v80-blob-top-right" />
         <div className="cf-v80-blob cf-v80-blob-bottom-left" />
         <div className="cf-v80-dot-field cf-v80-dot-field-left" />
         <div className="cf-v80-dot-field cf-v80-dot-field-right" />
-        <span className="cf-v80-orb cf-v80-orb-a" />
-        <span className="cf-v80-orb cf-v80-orb-b" />
-        <span className="cf-v80-orb cf-v80-orb-c" />
-        <span className="cf-v80-orb cf-v80-orb-d" />
       </div>
-
-      <div className="cf-v80-shell">
-        <header className="cf-v80-header">
-          <Link href="/" className="cf-v80-logo" aria-label="CloutFlow home">
-            <span>Clout</span><b>Flow</b><ArrowUpRight />
-          </Link>
-          <div className="cf-v80-brand-line">
-            <span className="cf-v80-brand-star">✦</span>
-            <span>Grow. Engage. Get Noticed.</span>
-          </div>
-        </header>
-
-        <section className="cf-v80-content">
-          <div className="cf-v80-hero">
-            <h1>
-              <span>Grow your audience.</span>
-              <span>Get noticed <b>faster.</b></span>
-            </h1>
-            <p>Followers, likes and views for the platforms that matter to you.</p>
-          </div>
-
-          <section className="cf-v80-stats" aria-label="CloutFlow highlights">
-            <div className="cf-v80-stat">
-              <span className="cf-v80-stat-icon cf-v80-stat-icon-blue"><UserRound /></span>
-              <div><small>Happy Customers</small><strong>98,754+</strong></div>
-            </div>
-            <div className="cf-v80-stat">
-              <span className="cf-v80-stat-icon cf-v80-stat-icon-green"><BadgeCheck /></span>
-              <div><small>Orders Completed</small><strong>1,245,678+</strong></div>
-            </div>
-            <div className="cf-v80-stat">
-              <span className="cf-v80-stat-icon cf-v80-stat-icon-gold"><Star /></span>
-              <div><small>Great Reviews</small><strong>4.9/5</strong></div>
-            </div>
-          </section>
-
-          <section id="platforms" className="cf-v80-platform-grid" aria-label="Choose a platform">
-            {platforms.map((platform) => (
-              <article
-                className={`cf-v80-card cf-v80-card-${platform.key}`}
-                key={platform.key}
-                style={{ "--accent": platform.accent, "--soft": platform.soft } as React.CSSProperties}
-              >
-                {platform.popular && <span className="cf-v80-popular"><Star />Popular</span>}
-                <Link href={platform.href} className="cf-v80-card-icon" aria-label={`${platform.name} services`}>
-                  <span className="cf-v80-icon-halo" />
-                  <Image src={platform.icon} alt={`${platform.name} icon`} width={112} height={112} priority />
-                </Link>
-                <h2>{platform.name}</h2>
-                <p>{platform.description}</p>
-                <Link href={platform.href} className="cf-v80-card-primary group">
-                  <span>Start Growing</span>
-                  <span className="cf-v80-card-primary-arrow">
-                    <ArrowRight />
-                  </span>
-                </Link>
-              </article>
-            ))}
-          </section>
-
-          <section className="cf-v80-trustbar" aria-label="Service benefits">
-            <div><span className="cf-v80-benefit-icon cf-v80-benefit-purple"><ShieldCheck /></span><span>100% Safe &amp; Secure</span></div>
-            <div><span className="cf-v80-benefit-icon cf-v80-benefit-blue"><LockKeyhole /></span><span>No Password Required</span></div>
-            <div><span className="cf-v80-benefit-icon cf-v80-benefit-green"><Zap /></span><span>Fast Delivery</span></div>
-            <div><span className="cf-v80-benefit-icon cf-v80-benefit-orange"><Headphones /></span><span>24/7 Support</span></div>
-          </section>
-
-        </section>
+      <div className="cf-plans-floaters" aria-hidden="true">
+        <span className="cf-plans-floater cf-plans-floater-ig"><Image src={instagramIcon} alt="" /></span>
+        <span className="cf-plans-floater cf-plans-floater-ig-soft"><Image src={instagramIcon} alt="" /></span>
+        <span className="cf-plans-floater cf-plans-floater-x"><Image src={twitterIcon} alt="" /></span>
+        <span className="cf-plans-floater cf-plans-floater-tt"><Image src={tiktokIcon} alt="" /></span>
+        <span className="cf-plans-floater cf-plans-floater-x-soft"><Image src={twitterIcon} alt="" /></span>
+        <span className="cf-plans-floater cf-plans-floater-yt"><Image src={youtubeIcon} alt="" /></span>
+        <span className="cf-plans-bg-orbit cf-plans-bg-orbit-left" />
+        <span className="cf-plans-bg-orbit cf-plans-bg-orbit-right" />
       </div>
+      <header className="cf-plans-header cf-plans-header-clean">
+        <Link href="/" className="cf-plans-logo cf-plans-logo-image" aria-label="CloutFlow home">
+          <Image src="/cloutflow-header-logo.png" alt="CloutFlow" width={160} height={53} priority />
+        </Link>
+        <div className="cf-plans-header-tagline" aria-label="Grow. Engage. Get Noticed.">
+          <span aria-hidden="true">✦</span>
+          <b>Grow. Engage. Get Noticed.</b>
+        </div>
+      </header>
+      <section className="cf-plans-shell">
+        <div className="cf-plans-hero">
+          <h1>
+            <span>Choose the Perfect Plan</span>
+            <b>to Accelerate Your Growth</b>
+          </h1>
+          <p>Real people. Real results. Growth made simple.</p>
+        </div>
+        {checkoutError && (
+          <div className="cf-plans-error">
+            {checkoutError}
+            <button onClick={() => setCheckoutError(null)}>Dismiss</button>
+          </div>
+        )}
+        <GrowthPackageBuilder
+          initialPlatform={platform}
+          initialGoal={service === "followers" || service === "likes" || service === "views" ? service : "followers"}
+          onPlatformChange={changePlatform}
+          onGoalChange={(goal) => changeProduct(goal)}
+          onContinue={() => {
+            setPlansConfirmed(true);
+            void fetchOffers();
+            window.setTimeout(() => {
+              document.querySelector(".cf-plans-pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 180);
+          }}
+        />
+        {loadingOffers && (
+          <div className="cf-plans-loading cf-plans-loading-inline">
+            <Loader2 />
+            <span>Loading current live packages...</span>
+          </div>
+        )}
+        <PlanSelector
+          plans={offers}
+          username={username}
+          platform={platform}
+          service={service}
+          hasTarget={plansConfirmed}
+          onSelectPlan={handleCheckout}
+        />
+      </section>
     </main>
   );
 }
