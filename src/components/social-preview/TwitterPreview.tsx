@@ -150,23 +150,15 @@ export function TwitterPreview({ profile, onClose }: { profile: TwitterVerifiedP
           </div>
         </div>
 
-        {/* Pinned Tweet ou Aviso Protected */}
-        {Boolean(profile.is_private || (profile as any).is_protected || (profile as any).protected) ? (
+        {/* Protected-account notice only.
+            Public Step 3 preview intentionally ends at the tabs. */}
+        {Boolean(profile.is_private || (profile as any).is_protected || (profile as any).protected) && (
           <div className="mt-3">
             <RestrictedProfileNotice
               title="This account is protected"
               description="Make your account public to continue."
             />
           </div>
-        ) : (
-          profile.pinned_tweet && hasValue(profile.pinned_tweet.text) && (
-            <div className="mt-2.5 p-3 rounded-[12px] bg-neutral-50 border border-neutral-200/80 text-xs">
-              <div className="font-bold text-neutral-500 mb-1 text-[11px] flex items-center gap-1">
-                <span>📌</span> Pinned Tweet
-              </div>
-              <p className="text-neutral-800 text-[13px] leading-snug line-clamp-2">{profile.pinned_tweet.text}</p>
-            </div>
-          )
         )}
       </div>
     </div>

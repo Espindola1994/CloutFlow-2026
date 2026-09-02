@@ -72,7 +72,9 @@ export async function GET(
       profileUrl?: string | null;
       avatarUrl?: string | null;
       maskedEmail?: string | null;
+      email?: string | null;
       previousPackageName?: string | null;
+      service?: string | null;
     } | null = null;
 
     try {
@@ -89,7 +91,9 @@ export async function GET(
             profileUrl: m.profileUrl || null,
             avatarUrl: m.avatarUrl || m.profilePicUrl || m.profileImageUrl || m.avatar || m.avatar_url || m.profile_pic_url || m.profile_image_url || m.picture || null,
             maskedEmail: m.maskedEmail || maskedEmail,
+            email: customerEmail || null,
             previousPackageName: m.previousPackageName || m.packageName || null,
+            service: m.service ? String(m.service).toLowerCase() : null,
           };
         }
       }
@@ -107,7 +111,9 @@ export async function GET(
             profileUrl: sourceOrder.profileUrl || null,
             avatarUrl: null,
             maskedEmail,
+            email: customerEmail || null,
             previousPackageName: sourceOrder.service ? `${sourceOrder.quantity.toLocaleString()} ${sourceOrder.service}` : null,
+            service: sourceOrder.service ? String(sourceOrder.service).toLowerCase() : null,
           };
         }
       }
@@ -126,7 +132,9 @@ export async function GET(
             profileUrl: lastOrder.profileUrl || null,
             avatarUrl: null,
             maskedEmail,
+            email: customerEmail || null,
             previousPackageName: lastOrder.service ? `${lastOrder.quantity.toLocaleString()} ${lastOrder.service}` : null,
+            service: lastOrder.service ? String(lastOrder.service).toLowerCase() : null,
           };
         }
       }
@@ -134,6 +142,9 @@ export async function GET(
       // If we have a previousTarget but no maskedEmail attached, attach it
       if (previousTarget && !previousTarget.maskedEmail && maskedEmail) {
         previousTarget.maskedEmail = maskedEmail;
+      }
+      if (previousTarget && !previousTarget.email && customerEmail) {
+        previousTarget.email = customerEmail;
       }
     } catch (targetErr) {
       console.warn('[PublicOfferAPI] previousTarget evaluation warning:', targetErr);

@@ -131,7 +131,7 @@ export default function PlansPage() {
           })}
         </div>
 
-        <PlanSelector plans={plans} username={username} platform={platform} service={params.service} hasTarget={true} />
+        <PlanSelector plans={plans} username={username} platform={platform} service={params.service} hasTarget={Boolean(username)} />
       </section>
     </main>
   );

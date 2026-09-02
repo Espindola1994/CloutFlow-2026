@@ -3,7 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Clock, Tag, Check, ArrowUpRight } from 'lucide-react';
+
 import { OfferPlatformTheme } from './theme';
 import instagramIcon from '@/assets/home-icons-vector/instagram.svg';
 import tiktokIcon from '@/assets/home-icons-vector/tiktok.svg';
@@ -18,146 +18,93 @@ interface OfferHeaderProps {
   theme: OfferPlatformTheme;
 }
 
-const PLATFORM_ICONS = {
-  instagram: instagramIcon,
-  tiktok: tiktokIcon,
-  twitter: twitterIcon,
-  youtube: youtubeIcon,
-};
 
-const STEPS = [
-  { num: 1, label: 'Profile' },
-  { num: 2, label: 'Confirm' },
-  { num: 3, label: 'Package' },
-  { num: 4, label: 'Checkout' },
-];
-
-export function OfferHeader({
-  timeLeft,
-  isExpiredLocally,
-  currentStepNum,
-  platform,
-  theme,
-}: OfferHeaderProps) {
+export function OfferHeader({ timeLeft, isExpiredLocally }: OfferHeaderProps) {
   return (
-    <header className="w-full bg-white/95 backdrop-blur-md border-b border-[#E2E8F0] sticky top-0 z-40 transition-colors duration-300 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)]">
-      {/* Top Navbar Row: 56px */}
-      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 h-[56px] flex items-center justify-between">
-        {/* Brand: canonical CloutFlow brand */}
-        <Link
-          href="/"
-          className="flex items-center text-[#081126] font-[800] text-[22px] tracking-tight hover:opacity-90 transition-opacity"
-        >
-          <span>Clout</span>
-          <span className="text-[#1376FF]">Flow</span>
-          <ArrowUpRight className="w-4 h-4 text-[#1376FF] -mt-2 -ml-0.5 stroke-[2.7]" />
+    <header className="cf-offer-header-new cf-offer-header-clean">
+      <div className="cf-offer-nav">
+        <Link href="/" className="cf-offer-brand" aria-label="CloutFlow">
+          <img className="cf-offer-brand-logo" src="/offer/cloutflow-header-logo.png" alt="CloutFlow" />
         </Link>
 
-        {/* Right Status Badges */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
+        <div className="cf-offer-header-timer-slot">
           {timeLeft && !isExpiredLocally && (
-            <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white border border-[#E2E8F0] text-[12px] font-semibold text-[#475569] shadow-[0_2px_6px_rgba(0,0,0,0.02)]">
-              <Clock className="w-3.5 h-3.5 text-[#1376FF]" />
-              <span>
-                Expires: <strong className="text-[#081126] font-mono">{timeLeft}</strong>
-              </span>
-            </div>
-          )}
-          <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-[11px] sm:text-[12px] font-bold text-[#1D4ED8] shadow-[0_2px_6px_rgba(29,78,216,0.04)]">
-            <Tag className="w-3.5 h-3.5 text-[#2563EB]" />
-            <span>25% Off Repeat Offer</span>
-          </div>
-        </div>
-      </div>
+            <div className="cf-timer578" aria-label={`Offer expires in ${timeLeft}`}>
+              <span className="cf-timer578-particles cf-timer578-particles-left" aria-hidden="true" />
 
-      {/* Lightweight Stepper: 48px */}
-      <div className="border-t border-[#F1F5F9] bg-[#FAFAFC]/90">
-        <div className="max-w-[1120px] mx-auto px-4 sm:px-6 h-[48px] flex items-center justify-between sm:justify-center sm:gap-8 text-[12px]">
-          {STEPS.map((st, idx) => {
-            const isCompleted = currentStepNum > st.num;
-            const isCurrent = currentStepNum === st.num;
+              <div className="cf-timer578-card">
+                <div className="cf-timer579-hourglass cf-hourglass-live" aria-hidden="true">
+                  <svg viewBox="0 0 96 96" role="img" focusable="false">
+                    <defs>
+                      <linearGradient id="cf579Cap" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#9A38F4" />
+                        <stop offset="55%" stopColor="#6817B8" />
+                        <stop offset="100%" stopColor="#421077" />
+                      </linearGradient>
+                      <linearGradient id="cf579Glass" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.98" />
+                        <stop offset="45%" stopColor="#EEE6FF" stopOpacity="0.68" />
+                        <stop offset="72%" stopColor="#FFFFFF" stopOpacity="0.92" />
+                        <stop offset="100%" stopColor="#D8C9F3" stopOpacity="0.42" />
+                      </linearGradient>
+                      <linearGradient id="cf579Sand" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FF62C7" />
+                        <stop offset="55%" stopColor="#F02C9A" />
+                        <stop offset="100%" stopColor="#C319C7" />
+                      </linearGradient>
+                      <radialGradient id="cf579Glow" cx="50%" cy="50%" r="50%">
+                        <stop offset="0%" stopColor="#FF4EB3" stopOpacity="0.55" />
+                        <stop offset="100%" stopColor="#8F29DE" stopOpacity="0" />
+                      </radialGradient>
+                      <filter id="cf579Shadow" x="-40%" y="-40%" width="180%" height="180%">
+                        <feDropShadow dx="0" dy="8" stdDeviation="5" floodColor="#63229E" floodOpacity="0.26" />
+                      </filter>
+                    </defs>
 
-            return (
-              <React.Fragment key={st.num}>
-                <div
-                  className={`flex items-center gap-2 transition-all duration-200 ${
-                    isCurrent ? 'scale-[1.02]' : ''
-                  }`}
-                >
-                  {/* Step Bubble with platform-aware completed / current / future state */}
-                  <div
-                    className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-extrabold transition-all duration-300 ${
-                      isCompleted
-                        ? 'border shadow-2xs'
-                        : isCurrent
-                        ? 'text-white shadow-[0_3px_10px_rgba(0,0,0,0.16)] ring-2 ring-white'
-                        : 'bg-[#F1F5F9] text-[#94A3B8] border border-[#E2E8F0]'
-                    }`}
-                    style={{
-                      background: isCurrent
-                        ? theme.stepActiveBg
-                        : isCompleted
-                        ? theme.stepCompletedBg
-                        : undefined,
-                      borderColor: isCompleted
-                        ? theme.stepCompletedBorder
-                        : undefined,
-                      color: isCompleted
-                        ? theme.stepCompletedText
-                        : undefined,
-                    }}
-                  >
-                    {isCompleted ? (
-                      <Check className="w-3.5 h-3.5 stroke-[3]" />
-                    ) : isCurrent ? (
-                      <div className="flex items-center justify-center">
-                        <Image
-                          src={PLATFORM_ICONS[platform]}
-                          alt=""
-                          width={11}
-                          height={11}
-                          className="object-contain brightness-0 invert"
-                        />
-                      </div>
-                    ) : (
-                      st.num
-                    )}
-                  </div>
+                    <ellipse cx="48" cy="51" rx="31" ry="36" fill="url(#cf579Glow)" opacity="0.55" />
+                    <g filter="url(#cf579Shadow)">
+                      <rect x="16" y="8" width="64" height="11" rx="6" fill="url(#cf579Cap)" />
+                      <rect x="21" y="10" width="54" height="3" rx="1.5" fill="#FFFFFF" opacity="0.30" />
 
-                  {/* Step Label */}
-                  <span
-                    className={`font-bold tracking-tight text-[12px] sm:text-[13px] ${
-                      isCurrent
-                        ? 'text-[#081126]'
-                        : isCompleted
-                        ? 'text-[#475569]'
-                        : 'text-[#94A3B8]'
-                    }`}
-                  >
-                    <span className="hidden sm:inline text-[#94A3B8] font-normal mr-1">
-                      0{st.num}
-                    </span>
-                    {st.label}
-                  </span>
+                      <path d="M27 19 H69 C68 31 61 38 53 44 C50 46 48 48 48 50 C48 52 50 54 53 56 C61 62 68 69 69 81 H27 C28 69 35 62 43 56 C46 54 48 52 48 50 C48 48 46 46 43 44 C35 38 28 31 27 19 Z"
+                            fill="url(#cf579Glass)" stroke="#FFFFFF" strokeOpacity="0.9" strokeWidth="1.6" />
+
+                      <path d="M34 26 H62 C60 33 56 37 50 41 C49 42 48 43 48 44 C48 43 47 42 46 41 C40 37 36 33 34 26 Z"
+                            fill="url(#cf579Sand)" />
+                      <rect x="46.6" y="41" width="2.8" height="15" rx="1.4" fill="url(#cf579Sand)" />
+                      <path d="M33 75 C38 65 43 59 48 59 C53 59 58 65 63 75 Z" fill="url(#cf579Sand)" />
+
+                      <path d="M31 22 C32 34 38 39 44 44" fill="none" stroke="#FFFFFF" strokeOpacity="0.86" strokeWidth="2.2" strokeLinecap="round" />
+                      <path d="M65 22 C64 34 58 39 52 44" fill="none" stroke="#D9CBF3" strokeOpacity="0.62" strokeWidth="1.4" strokeLinecap="round" />
+
+                      <rect x="16" y="77" width="64" height="11" rx="6" fill="url(#cf579Cap)" />
+                      <rect x="21" y="79" width="54" height="3" rx="1.5" fill="#FFFFFF" opacity="0.26" />
+                    </g>
+                  </svg>
                 </div>
 
-                {/* Stepper Divider */}
-                {idx < STEPS.length - 1 && (
-                  <div
-                    className={`w-4 sm:w-10 h-[1.5px] rounded transition-colors duration-300 ${
-                      currentStepNum > idx + 1
-                        ? 'opacity-60'
-                        : 'bg-[#E2E8F0]'
-                    }`}
-                    style={{
-                      backgroundColor:
-                        currentStepNum > idx + 1 ? theme.primary : undefined,
-                    }}
-                  />
-                )}
-              </React.Fragment>
-            );
-          })}
+                <div className="cf-timer578-copy">
+                  <small>TIME REMAINING</small>
+                  <strong key={timeLeft} className="cf-offer-countdown-value">{timeLeft}</strong>
+                </div>
+
+                <span className="cf-timer578-divider" aria-hidden="true" />
+
+                <div className="cf-timer578-bars" aria-hidden="true">
+                  <i /><i /><i /><i />
+                </div>
+              </div>
+
+              <span className="cf-timer578-particles cf-timer578-particles-right" aria-hidden="true" />
+            </div>
+          )}
+        </div>
+
+        <div className="cf-offer-nav-meta">
+          <div className="cf-header-tagline589" aria-label="Grow. Engage. Get Noticed.">
+            <span className="cf-header-tagline589-spark" aria-hidden="true">✦</span>
+            <strong>Grow. Engage. Get Noticed.</strong>
+          </div>
         </div>
       </div>
     </header>
@@ -165,37 +112,5 @@ export function OfferHeader({
 }
 
 export function OfferTrustBar() {
-  return (
-    <footer className="w-full max-w-[1120px] mx-auto px-4 sm:px-6 py-3 border-t border-[#E2E8F0]/80">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 text-[12px]">
-        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 backdrop-blur-xs border border-[#E2E8F0] shadow-2xs hover:border-[#CBD5E1] transition-colors">
-          <div className="w-5 h-5 rounded-md bg-[#EFF6FF] flex items-center justify-center text-[#1376FF] shrink-0">
-            <Check className="w-3.5 h-3.5 stroke-[3]" />
-          </div>
-          <span className="font-bold text-[#334155] text-[11px] sm:text-[12px]">100% Safe & Secure</span>
-        </div>
-
-        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 backdrop-blur-xs border border-[#E2E8F0] shadow-2xs hover:border-[#CBD5E1] transition-colors">
-          <div className="w-5 h-5 rounded-md bg-[#EFF6FF] flex items-center justify-center text-[#1376FF] shrink-0">
-            <Check className="w-3.5 h-3.5 stroke-[3]" />
-          </div>
-          <span className="font-bold text-[#334155] text-[11px] sm:text-[12px]">No Password Required</span>
-        </div>
-
-        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 backdrop-blur-xs border border-[#E2E8F0] shadow-2xs hover:border-[#CBD5E1] transition-colors">
-          <div className="w-5 h-5 rounded-md bg-[#EFF6FF] flex items-center justify-center text-[#1376FF] shrink-0">
-            <Check className="w-3.5 h-3.5 stroke-[3]" />
-          </div>
-          <span className="font-bold text-[#334155] text-[11px] sm:text-[12px]">Fast Order Delivery</span>
-        </div>
-
-        <div className="flex items-center gap-2 p-2 rounded-xl bg-white/70 backdrop-blur-xs border border-[#E2E8F0] shadow-2xs hover:border-[#CBD5E1] transition-colors">
-          <div className="w-5 h-5 rounded-md bg-[#EFF6FF] flex items-center justify-center text-[#1376FF] shrink-0">
-            <Check className="w-3.5 h-3.5 stroke-[3]" />
-          </div>
-          <span className="font-bold text-[#334155] text-[11px] sm:text-[12px]">24/7 Order Support</span>
-        </div>
-      </div>
-    </footer>
-  );
+  return null;
 }

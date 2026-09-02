@@ -55,7 +55,7 @@ export function YouTubePreview({ profile, onClose }: { profile: YouTubeVerifiedP
   const firstVideo = hasValue(profile.videos) && profile.videos!.length > 0 ? profile.videos![0] : null;
 
   return (
-    <div className="w-full bg-[#ffffff] text-[#0f0f0f] rounded-[24px] overflow-hidden border border-neutral-200/90 shadow-sm select-none font-sans">
+    <div className="cf-youtube-preview w-full bg-[#ffffff] text-[#0f0f0f] rounded-[24px] overflow-hidden border border-neutral-200/90 shadow-sm select-none font-sans">
       {/* 1. TOP NAVIGATION (04 Reference): Back Arrow on left | Search & MoreVertical on right */}
       <div className="flex items-center justify-between px-4 py-2.5 bg-white">
         <button
@@ -64,11 +64,11 @@ export function YouTubePreview({ profile, onClose }: { profile: YouTubeVerifiedP
           aria-label="Back"
           className="p-1 -ml-1 text-[#0f0f0f] active:opacity-60 transition-opacity"
         >
-          <ArrowLeft className="w-5 h-5 stroke-[2.2]" />
+          <ArrowLeft size={20} className="cf-youtube-top-icon w-5 h-5 stroke-[2.2]" />
         </button>
         <div className="flex items-center gap-5 text-[#0f0f0f]">
-          <Search className="w-5 h-5 stroke-[2.2]" />
-          <MoreVertical className="w-5 h-5 stroke-[2.2]" />
+          <Search size={20} className="cf-youtube-top-icon w-5 h-5 stroke-[2.2]" />
+          <MoreVertical size={20} className="cf-youtube-top-icon w-5 h-5 stroke-[2.2]" />
         </div>
       </div>
 
@@ -109,7 +109,7 @@ export function YouTubePreview({ profile, onClose }: { profile: YouTubeVerifiedP
                 {profile.full_name || profile.username}
               </h2>
               {Boolean(profile.is_verified || (profile as any).verified) && (
-                <VerifiedBadge platform="youtube" size={16} />
+                <VerifiedBadge platform="youtube" size={16} className="cf-youtube-verified-badge" />
               )}
             </div>
 
@@ -120,9 +120,22 @@ export function YouTubePreview({ profile, onClose }: { profile: YouTubeVerifiedP
 
             {/* Subscribers · Videos count line (04 Reference format) */}
             <div className="text-[13px] text-[#606060] font-normal leading-normal mt-0.5 truncate">
-              <span>{formatSubscribers(profile.followers_count)} de inscritos</span>
+              <span>{formatSubscribers(profile.followers_count)
+      .replace(/(\d+),(\d+)\s*mil/i, "$1.$2K")
+      .replace(/(\d+)\s*mil/i, "$1K")
+      .replace(/(\d+),(\d+)\s*mi/i, "$1.$2M")
+      .replace(/(\d+)\s*mi/i, "$1M")} subscribers</span>
               {profile.video_count !== undefined && profile.video_count > 0 && (
-                <span> · {formatVideos(profile.video_count)} vídeos</span>
+                <>
+  <span className="cf-youtube-video-count-desktop"> · {formatVideos(profile.video_count)
+    .replace(/(\d+),(\d+)\s*mil/i, "$1.$2k")
+    .replace(/(\d+)\s*mil/i, "$1k")} vídeos</span>
+  <span className="cf-youtube-video-count-mobile"> · {formatVideos(profile.video_count)
+    .replace(/(\d+),(\d+)\s*mil/i, "$1.$2K")
+    .replace(/(\d+)\s*mil/i, "$1K")
+    .replace(/(\d+),(\d+)\s*mi/i, "$1.$2M")
+    .replace(/(\d+)\s*mi/i, "$1M")} videos</span>
+</>
               )}
             </div>
           </div>
@@ -146,36 +159,36 @@ export function YouTubePreview({ profile, onClose }: { profile: YouTubeVerifiedP
           </div>
         )}
 
-        {/* 5. ACTION BUTTONS (04 Reference: Two pill buttons side by side - Inscrever-se / Seja membro) */}
+        {/* 5. ACTION BUTTONS (04 Reference: Two pill buttons side by side - Inscrever-se / Join) */}
         <div className="mt-3.5 flex items-center gap-2">
           <button
             type="button"
             className="flex-1 h-[38px] rounded-full bg-[#f2f2f2] text-[#0f0f0f] text-[14px] font-semibold flex items-center justify-center gap-2 hover:bg-[#e5e5e5] active:opacity-80 transition-colors"
           >
             <Bell className="w-4 h-4 text-[#0f0f0f] fill-[#0f0f0f]/15" />
-            <span>Inscrito</span>
+            <span>Subscribed</span>
           </button>
           <button
             type="button"
             className="flex-1 h-[38px] rounded-full bg-[#f2f2f2] text-[#0f0f0f] text-[14px] font-semibold flex items-center justify-center hover:bg-[#e5e5e5] active:opacity-80 transition-colors"
           >
-            <span>Seja membro</span>
+            <span>Join</span>
           </button>
         </div>
 
-        {/* 6. TABS (04 Reference: Início | Vídeos | Shorts | Ao vivo | Playlists) */}
+        {/* 6. TABS (04 Reference: Home | Videos | Shorts | Live | Playlists) */}
         <div className="flex items-center justify-between border-b border-neutral-200 mt-4 text-[14px] px-1">
           <div className="pb-2.5 text-[#0f0f0f] font-bold border-b-[2.5px] border-[#0f0f0f]">
-            Início
+            Home
           </div>
           <div className="pb-2.5 text-[#606060] font-medium hover:text-[#0f0f0f] transition-colors">
-            Vídeos
+            Videos
           </div>
           <div className="pb-2.5 text-[#606060] font-medium hover:text-[#0f0f0f] transition-colors">
             Shorts
           </div>
           <div className="pb-2.5 text-[#606060] font-medium hover:text-[#0f0f0f] transition-colors">
-            Ao vivo
+            Live
           </div>
           <div className="pb-2.5 text-[#606060] font-medium hover:text-[#0f0f0f] transition-colors">
             Playlists

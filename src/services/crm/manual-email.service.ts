@@ -169,7 +169,7 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
       }
 
       if (threadId) {
-        const fromEmail = process.env.GMAIL_USER || process.env.RESEND_FROM_EMAIL || 'support@cloutflow.co';
+        const fromEmail = process.env.GMAIL_USER || process.env.RESEND_FROM_EMAIL || 'support@cloutflow.com';
         const [outboundMsg] = await db.insert(emailMessages).values({
           threadId,
           direction: 'OUTBOUND',

@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OFFER_PLATFORM_THEMES, OfferPlatformTheme } from '@/components/offer-experience/theme';
-import { OfferHeader, OfferTrustBar } from '@/components/offer-experience/OfferHeader';
+import { OfferHeader } from '@/components/offer-experience/OfferHeader';
 import { OfferWelcomeStage } from '@/components/offer-experience/OfferWelcomeStage';
 import { OfferLookupStage } from '@/components/offer-experience/OfferLookupStage';
 import { OfferLoadingStage } from '@/components/offer-experience/OfferLoadingStage';
@@ -12,6 +12,7 @@ import { OfferPreviewStage } from '@/components/offer-experience/OfferPreviewSta
 import { OfferPackageStage, SanitizedPackage } from '@/components/offer-experience/OfferPackageStage';
 import { OfferReviewStage } from '@/components/offer-experience/OfferReviewStage';
 import { OfferStatusCard, OfferValidatingCard } from '@/components/offer-experience/OfferStatusCards';
+import { OfferOption10Experience } from '@/components/offer-experience/OfferOption10Experience';
 
 interface OfferData {
   code: string;
@@ -27,7 +28,9 @@ interface OfferData {
     profileUrl?: string | null;
     avatarUrl?: string | null;
     maskedEmail?: string | null;
+    email?: string | null;
     previousPackageName?: string | null;
+    service?: string | null;
   } | null;
   packages: SanitizedPackage[];
 }
@@ -35,6 +38,143 @@ interface OfferData {
 type FlowStep = 'PREFILL' | 'LOOKUP' | 'LOADING' | 'PREVIEW' | 'PACKAGE' | 'REVIEW';
 
 type PlatformKey = 'instagram' | 'tiktok' | 'twitter' | 'youtube';
+type ServiceKey = 'followers' | 'likes' | 'views';
+
+type LocalPreviewStage = 'profile' | 'package' | 'review';
+
+const LOCAL_PREVIEW_PROFILE = {
+  platform: 'instagram',
+  username: 'cloutflow.preview',
+  full_name: 'CloutFlow Creator',
+  biography: 'Creator focused on social growth, content and community.',
+  followers_count: 55800,
+  following_count: 67,
+  posts_count: 248,
+  is_private: false,
+  profile_url: 'https://instagram.com/cloutflow.preview',
+  avatar_url: null,
+  maskedEmail: 'lo*****@gmail.com',
+};
+
+const LOCAL_PREVIEW_PACKAGES: SanitizedPackage[] = [
+  {
+    id: 'preview-instagram-followers-1000',
+    platform: 'instagram',
+    service: 'followers',
+    name: '1,000 Followers',
+    slug: 'preview-instagram-followers-1000',
+    quantity: 1000,
+    bonusQuantity: 0,
+    priceCents: 1999,
+    currency: 'USD',
+    badge: null,
+    isPopular: false,
+  },
+  {
+    id: 'preview-instagram-followers-2000',
+    platform: 'instagram',
+    service: 'followers',
+    name: '2,000 Followers',
+    slug: 'preview-instagram-followers-2000',
+    quantity: 2000,
+    bonusQuantity: 200,
+    priceCents: 2999,
+    currency: 'USD',
+    badge: 'BEST VALUE',
+    isPopular: true,
+  },
+  {
+    id: 'preview-instagram-followers-5000',
+    platform: 'instagram',
+    service: 'followers',
+    name: '5,000 Followers',
+    slug: 'preview-instagram-followers-5000',
+    quantity: 5000,
+    bonusQuantity: 500,
+    priceCents: 4999,
+    currency: 'USD',
+    badge: null,
+    isPopular: false,
+  },
+  {
+    id: 'preview-instagram-followers-10000',
+    platform: 'instagram',
+    service: 'followers',
+    name: '10,000 Followers',
+    slug: 'preview-instagram-followers-10000',
+    quantity: 10000,
+    bonusQuantity: 1000,
+    priceCents: 7999,
+    currency: 'USD',
+    badge: null,
+    isPopular: false,
+  },
+  {
+    id: 'preview-instagram-followers-20000',
+    platform: 'instagram',
+    service: 'followers',
+    name: '20,000 Followers',
+    slug: 'preview-instagram-followers-20000',
+    quantity: 20000,
+    bonusQuantity: 2000,
+    priceCents: 12999,
+    currency: 'USD',
+    badge: null,
+    isPopular: false,
+  },
+  {
+    id: 'preview-instagram-followers-50000',
+    platform: 'instagram',
+    service: 'followers',
+    name: '50,000 Followers',
+    slug: 'preview-instagram-followers-50000',
+    quantity: 50000,
+    bonusQuantity: 5000,
+    priceCents: 24999,
+    currency: 'USD',
+    badge: null,
+    isPopular: false,
+  },
+];
+
+function isLocalOfferPreview(): boolean {
+  if (process.env.NODE_ENV === 'production') return false;
+  if (typeof window === 'undefined') return false;
+  const hostname = window.location.hostname;
+  const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
+  const params = new URLSearchParams(window.location.search);
+  return isLocalhost && params.get('preview') === '1';
+}
+
+function getLocalPreviewStage(): LocalPreviewStage {
+  if (typeof window === 'undefined') return 'profile';
+  const raw = new URLSearchParams(window.location.search).get('stage')?.toLowerCase();
+  if (raw === 'package' || raw === 'review') return raw;
+  return 'profile';
+}
+
+function createLocalPreviewOffer(code: string): OfferData {
+  return {
+    code: code || 'CF25-PREVIEW',
+    discountPercent: 25,
+    couponCode: 'FLOW25',
+    status: 'LOCAL_PREVIEW',
+    expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString(),
+    formattedExpiresAt: null,
+    previousTarget: {
+      platform: 'instagram',
+      username: 'cloutflow.preview',
+      targetType: 'profile',
+      profileUrl: 'https://instagram.com/cloutflow.preview',
+      avatarUrl: null,
+      maskedEmail: 'lo*****@gmail.com',
+      email: 'loyal.customer@gmail.com',
+      previousPackageName: '2,000 followers',
+      service: 'followers',
+    },
+    packages: LOCAL_PREVIEW_PACKAGES,
+  };
+}
 
 export default function OfferLandingPage() {
   const params = useParams();
@@ -56,6 +196,8 @@ export default function OfferLandingPage() {
 
   // Lookup State
   const [targetPlatform, setTargetPlatform] = useState<PlatformKey>('instagram');
+  const [targetService, setTargetService] = useState<ServiceKey>('followers');
+  const [customerEmail, setCustomerEmail] = useState('');
   const [lookupInput, setLookupInput] = useState('');
   const [verifiedProfile, setVerifiedProfile] = useState<any | null>(null);
   const [isProfileRestricted, setIsProfileRestricted] = useState(false);
@@ -71,10 +213,52 @@ export default function OfferLandingPage() {
   // Timer
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [isExpiredLocally, setIsExpiredLocally] = useState(false);
+  const [isLocalPreview, setIsLocalPreview] = useState(false);
+  const [isValidationTransition, setIsValidationTransition] = useState(false);
+  const [validationTransitionProgress, setValidationTransitionProgress] = useState(0);
+  const validationTransitionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const validationTransitionDoneRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const fetchOffer = useCallback(async () => {
     if (!code) return;
+
+    // LOCALHOST-ONLY visual preview. Never bypasses production offer validation.
+    if (isLocalOfferPreview()) {
+      const previewOffer = createLocalPreviewOffer(code);
+      const previewStage = getLocalPreviewStage();
+
+      setIsLocalPreview(true);
+      setLoading(false);
+      setErrorMsg(null);
+      setIsExpiredLocally(false);
+      setOfferData(previewOffer);
+      setTargetPlatform('instagram');
+      setTargetService('followers');
+      setCustomerEmail(previewOffer.previousTarget?.email || '');
+      setLiveAvatarUrl(previewOffer.previousTarget?.avatarUrl || null);
+      setIsLoadingLiveAvatar(false);
+      setIsProfileRestricted(false);
+      setLookupError(null);
+      setCheckoutError(null);
+
+      if (previewStage === 'profile') {
+        setVerifiedProfile(LOCAL_PREVIEW_PROFILE);
+        setSelectedPackageId(LOCAL_PREVIEW_PACKAGES[1].id);
+        setFlowStep('PREFILL');
+      } else if (previewStage === 'package') {
+        setVerifiedProfile(LOCAL_PREVIEW_PROFILE);
+        setSelectedPackageId(LOCAL_PREVIEW_PACKAGES[1].id);
+        setFlowStep('PACKAGE');
+      } else {
+        setVerifiedProfile(LOCAL_PREVIEW_PROFILE);
+        setSelectedPackageId(LOCAL_PREVIEW_PACKAGES[1].id);
+        setFlowStep('PACKAGE');
+      }
+      return;
+    }
+
     try {
+      setIsLocalPreview(false);
       setLoading(true);
       setErrorMsg(null);
       const res = await fetch(`/api/offers/${encodeURIComponent(code)}`);
@@ -86,7 +270,20 @@ export default function OfferLandingPage() {
           setFlowStep('PREFILL');
           const rawPlat = (json.data.previousTarget.platform || 'instagram').toLowerCase();
           const safePlat = (['instagram', 'tiktok', 'twitter', 'youtube'].includes(rawPlat) ? rawPlat : 'instagram') as PlatformKey;
+          const rawService = String(
+            json.data.previousTarget.service ||
+            json.data.previousTarget.previousPackageName ||
+            'followers'
+          ).toLowerCase();
+          const safeService = (
+            rawService.includes('view') ? 'views' :
+            rawService.includes('like') ? 'likes' :
+            'followers'
+          ) as ServiceKey;
           setTargetPlatform(safePlat);
+          setTargetService(safeService);
+          setCustomerEmail(String(json.data.previousTarget.email || ''));
+          setLookupInput(json.data.previousTarget.username ? `@${String(json.data.previousTarget.username).replace(/^@+/, '')}` : '');
         } else {
           setFlowStep('LOOKUP');
         }
@@ -103,6 +300,18 @@ export default function OfferLandingPage() {
   useEffect(() => {
     fetchOffer();
   }, [fetchOffer]);
+
+  useEffect(() => {
+    return () => {
+      if (validationTransitionTimerRef.current) {
+        clearInterval(validationTransitionTimerRef.current);
+      }
+      if (validationTransitionDoneRef.current) {
+        clearTimeout(validationTransitionDoneRef.current);
+      }
+    };
+  }, []);
+
 
   useEffect(() => {
     if (!offerData?.expiresAt) return;
@@ -128,9 +337,9 @@ export default function OfferLandingPage() {
         setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
       }
     };
+    // V622 — countdown temporarily frozen at the initial rendered value.
     updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
+    return () => {};
   }, [offerData?.expiresAt]);
 
   const extractAvatarUrl = (profileData: any): string | null => {
@@ -266,6 +475,24 @@ export default function OfferLandingPage() {
 
   const handleConfirmWelcome = async () => {
     if (!offerData?.previousTarget) return;
+
+    if (isLocalPreview) {
+      const previewPlatform = (
+        ['instagram', 'tiktok', 'twitter', 'youtube'].includes(targetPlatform)
+          ? targetPlatform
+          : 'instagram'
+      ) as PlatformKey;
+
+      setVerifiedProfile({
+        ...LOCAL_PREVIEW_PROFILE,
+        platform: previewPlatform,
+      });
+      setTargetPlatform(previewPlatform);
+      setIsProfileRestricted(false);
+      startValidationTransitionToPackages();
+      return;
+    }
+
     const { username, platform } = offerData.previousTarget;
 
     // If already auto-resolved and identity matches, reuse result directly!
@@ -280,6 +507,22 @@ export default function OfferLandingPage() {
   };
 
   const handleStartLookup = async (inputStr: string, platform: string) => {
+    if (isLocalPreview) {
+      setLookupError(null);
+      setFlowStep('LOADING');
+      window.setTimeout(() => {
+        setVerifiedProfile({
+          ...LOCAL_PREVIEW_PROFILE,
+          username: inputStr.trim().replace(/^@+/, '') || LOCAL_PREVIEW_PROFILE.username,
+          platform,
+        });
+        setTargetPlatform((['instagram', 'tiktok', 'twitter', 'youtube'].includes(platform.toLowerCase()) ? platform.toLowerCase() : 'instagram') as PlatformKey);
+        setIsProfileRestricted(false);
+        setFlowStep('PREVIEW');
+      }, 650);
+      return;
+    }
+
     if (!inputStr.trim()) {
       setLookupError('Please enter your @username or profile link.');
       return;
@@ -367,18 +610,56 @@ export default function OfferLandingPage() {
     setFlowStep('LOOKUP');
   };
 
+  const startValidationTransitionToPackages = () => {
+    // V660 — frozen at 41%, while remaining directly accessible in Local Preview.
+    if (validationTransitionTimerRef.current) {
+      window.clearTimeout(validationTransitionTimerRef.current);
+      validationTransitionTimerRef.current = null;
+    }
+    setValidationTransitionProgress(41);
+    setIsValidationTransition(true);
+  };
+
   const confirmProfile = () => {
     if (isProfileRestricted || !offerData) return;
-    const eligible = offerData.packages.filter((p) => p.platform.toLowerCase() === targetPlatform.toLowerCase());
-    const match = eligible.find((p) => p.id === selectedPackageId) || eligible.find((p) => p.isPopular) || eligible[0];
+
+    const exact = offerData.packages.filter(
+      (p) =>
+        p.platform.toLowerCase() === targetPlatform.toLowerCase() &&
+        String(p.service || '').toLowerCase() === targetService
+    );
+
+    const eligible =
+      exact.length > 0
+        ? exact
+        : offerData.packages.filter(
+            (p) =>
+              p.platform.toLowerCase() === 'instagram' &&
+              String(p.service || '').toLowerCase() === targetService
+          );
+
+    const match =
+      eligible.find((p) => p.id === selectedPackageId) ||
+      eligible.find((p) => p.isPopular) ||
+      eligible[0];
+
     if (match) {
       setSelectedPackageId(match.id);
     }
-    setFlowStep('PACKAGE');
+
+    startValidationTransitionToPackages();
   };
 
   const executeCheckout = async (offerId: string) => {
     if (!offerData || isExpiredLocally || !verifiedProfile) return;
+
+    if (isLocalPreview) {
+      setSelectedPackageId(offerId);
+      setCheckoutSubmitting(false);
+      setCheckoutError('Local preview only — checkout is intentionally disabled.');
+      return;
+    }
+
     setSelectedPackageId(offerId);
     setCheckoutSubmitting(true);
     setCheckoutError(null);
@@ -406,7 +687,7 @@ export default function OfferLandingPage() {
         targetUrl: verifiedProfile.profile_url || null,
         socialUsername: normalizedUsername,
         profileUrl: verifiedProfile.profile_url || null,
-        email: null,
+        email: customerEmail.trim() || null,
         offerCode: offerData.code,
       };
 
@@ -431,10 +712,39 @@ export default function OfferLandingPage() {
 
   const currentTheme: OfferPlatformTheme = OFFER_PLATFORM_THEMES[targetPlatform] || OFFER_PLATFORM_THEMES.instagram;
 
-  // Filter packages based on targetPlatform
-  const eligiblePackages = offerData
-    ? offerData.packages.filter((p) => p.platform.toLowerCase() === targetPlatform.toLowerCase())
-    : [];
+  // Step 2 always uses the same six Instagram card/package templates.
+  // If the API does not return platform-specific packages for TikTok/X/YouTube,
+  // reuse the Instagram follower packages as visual/package templates so the
+  // grid never disappears when switching networks.
+  const getPackagesForPlatform = (
+    platform: PlatformKey,
+    service: ServiceKey
+  ): SanitizedPackage[] => {
+    if (!offerData) return [];
+
+    const exact = offerData.packages.filter(
+      (p) =>
+        p.platform.toLowerCase() === platform &&
+        String(p.service || '').toLowerCase() === service
+    );
+
+    if (exact.length > 0) return exact;
+
+    const instagramTemplates = offerData.packages.filter(
+      (p) =>
+        p.platform.toLowerCase() === 'instagram' &&
+        String(p.service || '').toLowerCase() === service
+    );
+
+    // Preserve the real package IDs so the existing selection/checkout flow
+    // remains wired exactly as before; only the visual network theme changes.
+    return instagramTemplates.map((p) => ({
+      ...p,
+      platform,
+    }));
+  };
+
+  const eligiblePackages = getPackagesForPlatform(targetPlatform, targetService);
 
   const selectedPkg = eligiblePackages.find((p) => p.id === selectedPackageId) || eligiblePackages[0] || null;
 
@@ -444,13 +754,12 @@ export default function OfferLandingPage() {
       case 'PREFILL':
       case 'LOOKUP':
       case 'LOADING':
-        return 1;
       case 'PREVIEW':
-        return 2;
+        return 1;
       case 'PACKAGE':
-        return 3;
+        return 2;
       case 'REVIEW':
-        return 4;
+        return 3;
       default:
         return 1;
     }
@@ -472,8 +781,7 @@ export default function OfferLandingPage() {
         <div className="flex-1 flex items-center justify-center p-4">
           <OfferValidatingCard />
         </div>
-        <OfferTrustBar />
-      </main>
+</main>
     );
   }
 
@@ -494,13 +802,50 @@ export default function OfferLandingPage() {
             description="This repeat-purchase offer is no longer active or has already reached its expiration date."
           />
         </div>
-        <OfferTrustBar />
+</main>
+    );
+  }
+
+  if (isValidationTransition) {
+    return (
+      <main className="min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-hidden font-sans">
+        <OfferHeader
+          timeLeft={timeLeft}
+          isExpiredLocally={isExpiredLocally}
+          currentStepNum={1}
+          platform={targetPlatform}
+          theme={currentTheme}
+        />
+
+        <div className="flex-1 flex items-center justify-center p-4">
+          <OfferValidatingCard progress={validationTransitionProgress} />
+        </div>
+
+        {isLocalPreview && (
+          <div className="cf-local-preview-panel fixed right-2 xl:right-4 top-1/2 -translate-y-1/2 z-[100] opacity-70 hover:opacity-100 transition-opacity">
+            <div className="cf-local-preview-card flex flex-col items-stretch gap-1.5 rounded-2xl border border-[#D8E1EF] bg-white/95 backdrop-blur-md px-2 py-2 shadow-[0_14px_40px_rgba(15,23,42,.14)] whitespace-nowrap">
+              <span className="px-2 py-1 text-center text-[10px] font-black tracking-[.08em] text-[#1376FF]">LOCAL PREVIEW</span>
+
+              <button type="button" className="w-full rounded-xl bg-[#F8FAFC] px-2.5 py-1.5 text-[10px] font-bold text-[#53617A]" onClick={() => { setIsValidationTransition(false); setFlowStep(offerData?.previousTarget ? 'PREFILL' : 'LOOKUP'); }}>
+                01 Profile
+              </button>
+
+              <button type="button" className="w-full rounded-xl bg-[#081126] px-2.5 py-1.5 text-[10px] font-bold text-white" onClick={() => { startValidationTransitionToPackages(); }}>
+                02 Validating
+              </button>
+
+              <button type="button" className="w-full rounded-xl bg-[#F8FAFC] px-2.5 py-1.5 text-[10px] font-bold text-[#53617A]" onClick={() => { setIsValidationTransition(false); setFlowStep('PACKAGE'); }}>
+                03 Package
+              </button>
+            </div>
+          </div>
+        )}
       </main>
     );
   }
 
   return (
-    <main className="min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-x-hidden selection:bg-[#1376FF]/20 font-sans">
+    <main className="cf-offer-page min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-x-hidden selection:bg-[#1376FF]/20 font-sans">
       {/* Background Decorative Ambience Matching Public Pages */}
       <div
         className="pointer-events-none fixed inset-0 z-0 transition-opacity duration-700 ease-out"
@@ -516,7 +861,7 @@ export default function OfferLandingPage() {
 
       {/* Decorative Brand Dots / Outline Ambience */}
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-30 select-none" aria-hidden="true">
-        <span className="absolute top-[80px] right-[5%] text-[11px] font-bold text-[#1376FF]/25 border border-[#1376FF]/20 rounded-full px-2 py-0.5">✦ CloutFlow Direct</span>
+        
       </div>
 
       {/* 2.5D Sticky Header & Stepper */}
@@ -528,115 +873,109 @@ export default function OfferLandingPage() {
         theme={currentTheme}
       />
 
-      {/* Main Content Area (adapts to viewport) */}
-      <div className="flex-1 max-w-[1120px] w-full mx-auto px-4 sm:px-6 py-4 sm:py-6 z-10 flex flex-col justify-center">
-        {/* =========================================================================
-            SCREEN 1: WELCOME BACK (PREFILL STAGE)
-           ========================================================================= */}
-        {flowStep === 'PREFILL' && offerData.previousTarget && (
-          <OfferWelcomeStage
-            previousTarget={offerData.previousTarget}
-            liveAvatarUrl={liveAvatarUrl}
-            isLoadingLiveAvatar={isLoadingLiveAvatar}
-            timeLeft={timeLeft}
-            theme={currentTheme}
-            onConfirm={handleConfirmWelcome}
-            onSwitchProfile={() => setFlowStep('LOOKUP')}
-          />
-        )}
+      {isLocalPreview && flowStep !== 'REVIEW' && (
+        <div className="cf-local-preview-panel fixed right-2 xl:right-4 top-1/2 -translate-y-1/2 z-[100] max-h-[calc(100vh-24px)] opacity-70 hover:opacity-100 transition-opacity">
+          <div className="cf-local-preview-card flex flex-col items-stretch gap-1.5 rounded-2xl border border-[#D8E1EF] bg-white/95 backdrop-blur-md px-2 py-2 shadow-[0_14px_40px_rgba(15,23,42,.14)] whitespace-nowrap">
+            <span className="px-2 py-1 text-center text-[10px] font-black tracking-[.08em] text-[#1376FF]">LOCAL PREVIEW</span>
+            {([
+              ['profile', '01 Profile'],
+              ['validating', '02 Validating'],
+              ['package', '03 Package'],
+            ] as const).map(([stage, label]) => {
+              const activeStage =
+                (stage === 'profile' && !isValidationTransition && ['PREFILL','LOOKUP','LOADING','PREVIEW'].includes(flowStep)) ||
+                (stage === 'validating' && isValidationTransition) ||
+                (stage === 'package' && !isValidationTransition && flowStep === 'PACKAGE');
 
-        {/* =========================================================================
-            SCREEN 2: SOCIAL LOOKUP STAGE
-           ========================================================================= */}
-        {flowStep === 'LOOKUP' && (
-          <OfferLookupStage
-            targetPlatform={targetPlatform}
-            setTargetPlatform={(p) => {
-              setTargetPlatform(p);
-              setLookupError(null);
-            }}
-            lookupInput={lookupInput}
-            setLookupInput={setLookupInput}
-            lookupError={lookupError}
-            onSearch={handleStartLookup}
-            hasPreviousTarget={Boolean(offerData.previousTarget)}
-            onBackToPrevious={() => setFlowStep('PREFILL')}
-            theme={currentTheme}
-          />
-        )}
+              return (
+                <button
+                  key={stage}
+                  type="button"
+                  onClick={() => {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('preview', '1');
+                    url.searchParams.set('stage', stage);
+                    window.history.replaceState({}, '', url.toString());
 
-        {/* =========================================================================
-            SCREEN 3: LOADING STAGE
-           ========================================================================= */}
-        {flowStep === 'LOADING' && (
-          <OfferLoadingStage
-            platform={targetPlatform}
-            theme={currentTheme}
-            onCancel={cancelPolling}
-          />
-        )}
+                    if (stage === 'profile') {
+                      setIsValidationTransition(false);
+                      setVerifiedProfile(LOCAL_PREVIEW_PROFILE);
+                      setSelectedPackageId(LOCAL_PREVIEW_PACKAGES[1].id);
+                      setTargetPlatform('instagram');
+                      setTargetService('followers');
+                      setFlowStep(offerData?.previousTarget ? 'PREFILL' : 'LOOKUP');
+                    } else if (stage === 'validating') {
+                      startValidationTransitionToPackages();
+                    } else if (stage === 'package') {
+                      setIsValidationTransition(false);
+                      setVerifiedProfile(LOCAL_PREVIEW_PROFILE);
+                      setSelectedPackageId(LOCAL_PREVIEW_PACKAGES[1].id);
+                      setTargetPlatform(targetPlatform);
+                      setTargetService('followers');
+                      setFlowStep('PACKAGE');
+                    }
+                  }}
+                  className={`w-full rounded-xl px-2.5 py-1.5 text-[10px] font-bold transition ${
+                    activeStage
+                      ? 'bg-[#081126] text-white'
+                      : 'bg-[#F8FAFC] text-[#536176] hover:bg-[#EEF3F8] hover:text-[#081126]'
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
-        {/* =========================================================================
-            SCREEN 4: CONFIRM PROFILE STAGE
-           ========================================================================= */}
-        {flowStep === 'PREVIEW' && verifiedProfile && (
-          <OfferPreviewStage
-            platform={targetPlatform}
-            verifiedProfile={verifiedProfile}
-            isProfileRestricted={isProfileRestricted}
-            theme={currentTheme}
-            onConfirm={confirmProfile}
-            onBack={() => setFlowStep('LOOKUP')}
-          />
-        )}
-
-        {/* =========================================================================
-            SCREEN 5: PACKAGE SELECTION STAGE
-           ========================================================================= */}
-        {flowStep === 'PACKAGE' && (
-          <OfferPackageStage
-            platform={targetPlatform}
-            theme={currentTheme}
-            verifiedProfile={verifiedProfile}
-            couponCode={offerData.couponCode}
-            timeLeft={timeLeft}
-            eligiblePackages={eligiblePackages}
-            selectedPackageId={selectedPackageId}
-            copied={copied}
-            onCopyCoupon={handleCopyCouponOnly}
-            onChangeProfile={() => setFlowStep('PREVIEW')}
-            onSelectPackage={(pkgId) => {
-              setSelectedPackageId(pkgId);
-              setFlowStep('REVIEW');
-            }}
-          />
-        )}
-
-        {/* =========================================================================
-            SCREEN 6: FINAL REVIEW STAGE
-           ========================================================================= */}
-        {flowStep === 'REVIEW' && selectedPkg && (
-          <OfferReviewStage
-            platform={targetPlatform}
-            theme={currentTheme}
-            verifiedProfile={verifiedProfile}
-            selectedPkg={selectedPkg}
-            couponCode={offerData.couponCode}
-            copied={copied}
-            checkoutSubmitting={checkoutSubmitting}
-            checkoutError={checkoutError}
-            onCopyCoupon={handleCopyCouponOnly}
-            onChangeProfile={() => setFlowStep('PREVIEW')}
-            onChangePackage={() => setFlowStep('PACKAGE')}
-            onExecuteCheckout={() => executeCheckout(selectedPkg.id)}
-          />
-        )}
+      {/* Approved Option 10 — unified 3-column desktop experience */}
+      <div className="cf-offer-main flex-1 max-w-[1440px] w-full mx-auto z-10">
+        <OfferOption10Experience
+          flowStep={flowStep}
+          previousTarget={offerData.previousTarget}
+          liveAvatarUrl={liveAvatarUrl}
+          isLoadingLiveAvatar={isLoadingLiveAvatar}
+          targetPlatform={targetPlatform}
+          setTargetPlatform={(p) => { setTargetPlatform(p); setLookupError(null); }}
+          targetService={targetService}
+          setTargetService={(s) => { setTargetService(s); setLookupError(null); }}
+          emailValue={customerEmail}
+          setEmailValue={setCustomerEmail}
+          lookupInput={lookupInput}
+          setLookupInput={setLookupInput}
+          lookupError={lookupError}
+          verifiedProfile={verifiedProfile}
+          isProfileRestricted={isProfileRestricted}
+          theme={currentTheme}
+          eligiblePackages={eligiblePackages}
+          selectedPackageId={selectedPackageId}
+          couponCode={offerData.couponCode}
+          timeLeft={timeLeft}
+          copied={copied}
+          checkoutSubmitting={checkoutSubmitting}
+          checkoutError={checkoutError}
+          onUseSavedProfile={handleConfirmWelcome}
+          onChooseAnother={() => {
+            setLookupError(null);
+            setVerifiedProfile(null);
+            setLookupInput('');
+            setFlowStep('PREFILL');
+          }}
+          onSearch={handleStartLookup}
+          onCancelSearch={cancelPolling}
+          onConfirmFound={confirmProfile}
+          onBackToSaved={() => setFlowStep('PREFILL')}
+          onSelectPackage={(pkgId) => { setSelectedPackageId(pkgId); setFlowStep('PACKAGE'); }}
+          onChangeProfile={() => setFlowStep('PREFILL')}
+          onCopyCoupon={handleCopyCouponOnly}
+          onExecuteCheckout={(pkgId) => { setFlowStep('PACKAGE'); executeCheckout(pkgId); }}
+        />
       </div>
 
       {/* 2.5D Trust Footer Bar */}
       <div className="z-10">
-        <OfferTrustBar />
-      </div>
+</div>
     </main>
   );
 }

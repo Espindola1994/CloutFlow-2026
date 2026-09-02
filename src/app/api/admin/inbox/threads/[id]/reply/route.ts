@@ -55,7 +55,7 @@ export async function POST(
       ? `${latestInbound.references} ${latestInbound.messageId || ''}`.trim()
       : latestInbound?.messageId || undefined;
 
-    const fromEmail = process.env.GMAIL_USER || process.env.RESEND_FROM_EMAIL || 'support@cloutflow.co';
+    const fromEmail = process.env.GMAIL_USER || process.env.RESEND_FROM_EMAIL || 'support@cloutflow.com';
     const recipientEmail = thread.customerEmail.trim().toLowerCase();
 
     const plainContent = textBody || (htmlBody ? htmlBody.replace(/<[^>]+>/g, ' ') : '');

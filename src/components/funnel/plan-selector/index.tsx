@@ -1,10 +1,9 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import {
-  ArrowLeft, ArrowRight, BadgeCheck, Check,
-  Star, TimerReset, TrendingUp, Zap, ChevronRight, UserRound,
+  ArrowLeft, ArrowRight, BadgeCheck, Check, Star, TimerReset, TrendingUp, Zap, ChevronRight, UserRound, Plus, Minus, CircleHelp, ShieldCheck, RefreshCw, LockKeyhole, CircleDollarSign, UsersRound, Tag, Flame, Gem, Sparkles,
 } from "lucide-react";
 import { useFunnelStore } from "@/stores/funnel.store";
 import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
@@ -17,14 +16,6 @@ import avatar3 from "@/assets/plans-v124/avatar-3.png";
 import avatar4 from "@/assets/plans-v124/avatar-4.png";
 import avatar5 from "@/assets/plans-v124/avatar-5.png";
 import rocket25dPremium from "@/assets/plans-v124/rocket-25d-premium.png";
-import starterPlanIcon from "@/assets/plan-icons-reference-v207/starter.png";
-import growthPlanIcon from "@/assets/plan-icons-reference-v207/growth.png";
-import proPlanIcon from "@/assets/plan-icons-reference-v207/pro.png";
-import authorityPlanIcon from "@/assets/plan-icons-reference-v207/authority.png";
-import influencerPlanIcon from "@/assets/plan-icons-reference-v207/influencer.png";
-import scalePlanIcon from "@/assets/plan-icons-reference-v207/scale.png";
-import dominancePlanIcon from "@/assets/plan-icons-reference-v207/dominance.png";
-import ultimatePlanIcon from "@/assets/plan-icons-reference-v207/ultimate.png";
 
 const reviews = [
   { name:"Sarah J.", handle:"@sarah.journey", avatar:avatar1, text:"CloutFlow took my Instagram to the next level. Gained 25K+ real followers in just 2 weeks!", tag:"Instagram" },
@@ -35,6 +26,44 @@ const reviews = [
 ];
 
 
+
+const faqs = [
+  {
+    question: "Will my followers really be delivered?",
+    answer: "Yes. Once your order is confirmed, delivery starts automatically to the public profile you selected. You can follow the progress without sharing your password."
+  },
+  {
+    question: "Are the followers real or just bots?",
+    answer: "CloutFlow is designed around quality social growth and reliable delivery. Package quality can vary by service, so the exact offer details shown before checkout are the source of truth for your order."
+  },
+  {
+    question: "Is my Instagram account safe?",
+    answer: "We never ask for your Instagram password. Your order is connected only to the public username or content link you confirm in the Growth Package Builder."
+  },
+  {
+    question: "What if my follower count drops after delivery?",
+    answer: "Eligible packages include refill protection. When refill is included, the package card shows it clearly before you purchase."
+  },
+  {
+    question: "Do I need to share my password?",
+    answer: "No. Your password is never required. We only use the public profile, post, video, or channel information that you choose for the order."
+  },
+  {
+    question: "Is this a subscription or a one-time payment?",
+    answer: "The packages shown on this page are one-time purchases unless a product is explicitly labeled otherwise. You will always see the price and package details before checkout."
+  },
+];
+
+const faqIcons = [
+  UsersRound,
+  BadgeCheck,
+  ShieldCheck,
+  RefreshCw,
+  LockKeyhole,
+  CircleDollarSign,
+];
+
+
 const packageQuantities: Record<string, number[]> = {
   followers: [2000, 6000, 10000, 20000, 40000, 100000, 200000, 400000],
   likes: [1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000],
@@ -42,31 +71,11 @@ const packageQuantities: Record<string, number[]> = {
   comments: [100, 250, 500, 1000, 2500, 5000, 10000, 25000],
 };
 
-const fallbackPlans = [
-  {title:"Starter", kicker:"Kickstart your growth", regularPrice:"US$ 24,90", discount:"-40%", price:"US$ 14,90", audience:"Perfect for beginners", qty:"2,000 Followers", feat2:"Verified profile delivery", feat3:"Public target only", delivery:"Standard Delivery", support:"24/7 Support", tint:"violet"},
-  {title:"Growth", kicker:"Accelerate your results", regularPrice:"US$ 49,90", discount:"-40%", price:"US$ 29,90", audience:"Best for growing creators", qty:"6,000 Followers", feat2:"Verified profile delivery", feat3:"Public target only", delivery:"Priority Delivery", support:"24/7 Support", tint:"coral"},
-  {title:"Pro", kicker:"Fastest & Most Popular", regularPrice:"US$ 69,90", discount:"-43%", price:"US$ 39,90", audience:"For serious growth", qty:"20,000 Followers", feat2:"Verified profile delivery", feat3:"Public target only", delivery:"Ultra Fast Delivery", support:"24/7 VIP Support", tint:"purple"},
-  {title:"Authority", kicker:"Build your authority", regularPrice:"US$ 119,90", discount:"-42%", price:"US$ 69,90", audience:"For established creators", qty:"20,000 Followers", feat2:"Verified profile delivery", feat3:"Public target only", delivery:"Priority Delivery", support:"24/7 VIP Support", tint:"blue"},
-  {title:"Influencer", kicker:"Boost your influence", regularPrice:"US$ 199,90", discount:"-40%", price:"US$ 119,90", audience:"For influencers & brands", qty:"40,000 Followers", feat2:"Verified profile delivery", feat3:"Public target only", delivery:"Instant Delivery", support:"24/7 VIP Support", tint:"orange", badge:"MOST POPULAR", featured:true},
-  {title:"Scale", kicker:"Scale your audience", regularPrice:"US$ 329,90", discount:"-39%", price:"US$ 199,90", audience:"For growing businesses", qty:"200,000 Followers", feat2:"Verified profile delivery", feat3:"Public target only", delivery:"Priority Instant Delivery", support:"Dedicated VIP Support", tint:"mint"},
-  {title:"Dominance", kicker:"Dominate your niche", regularPrice:"US$ 499,90", discount:"-40%", price:"US$ 299,90", audience:"For top creators & agencies", qty:"200,000 Followers", feat2:"Verified profile delivery", feat3:"Public target only", delivery:"Highest Priority Delivery", support:"Priority Concierge Support", tint:"purple2", badge:"BEST DEAL", featured:true},
-  {title:"Ultimate", kicker:"The ultimate growth", regularPrice:"US$ 799,90", discount:"-38%", price:"US$ 499,90", audience:"For maximum results", qty:"400,000 Followers", feat2:"Verified profile delivery", feat3:"Public target only", delivery:"Highest Priority Delivery", support:"Priority Concierge Support", tint:"gold"},
-];
-
-const planIconMap: Record<string, any> = {
-  Starter: starterPlanIcon,
-  Growth: growthPlanIcon,
-  Pro: proPlanIcon,
-  Authority: authorityPlanIcon,
-  Influencer: influencerPlanIcon,
-  Scale: scalePlanIcon,
-  Dominance: dominancePlanIcon,
-  Ultimate: ultimatePlanIcon,
-};
-
-function PlanIcon({title}:{title:string}){
-  return <Image className={`cf-plan-icon-art cf-plan-icon-art-${title.toLowerCase()}`} src={planIconMap[title] || starterPlanIcon} alt="" priority={title === "Pro"}/>;
-}
+const offerStep2PlanNames = ["Starter", "Growth", "Pro", "Boost", "Power", "Scale"] as const;
+const offerStep2IconKeys = ["starter", "growth", "pro", "authority", "influencer", "scale"] as const;
+const offerStep2Prices = [14.90, 29.90, 39.90, 69.90, 119.90, 199.90];
+const offerStep2ComparePrices = [19.90, 44.90, 54.90, 99.90, 179.90, 319.90];
+const offerStep2DefaultBonuses = [0, 200, 500, 1000, 2000, 5000];
 
 function serviceLabel(service:string){
   if(service==="subscribers") return "Subscribers";
@@ -80,36 +89,152 @@ function serviceLabel(service:string){
 export function PlanSelector({ plans, username, platform, service, hasTarget, onSelectPlan }:{plans:any[];username:string;platform:string;service:string;hasTarget:boolean;onSelectPlan?:(planId:string)=>void|Promise<void>}){
   const trackRef=useRef<HTMLDivElement>(null);
   const { setPlan }=useFunnelStore();
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
   const metric=useMemo(()=>serviceLabel(service),[service]);
-  const ctaMetric=useMemo(()=>service === "followers" ? "Followers" : service === "likes" ? "Likes" : service === "views" ? "Views" : service === "comments" ? "Comments" : "Growth",[service]);
-  const slots=useMemo(()=>fallbackPlans.map((fallback,index)=>{
+  const slots=useMemo(()=>offerStep2PlanNames.map((title,index)=>{
     const live=plans[index];
-    const fallbackQty = packageQuantities[service]?.[index] ?? packageQuantities.followers[index];
-    const serviceSpecific = {
-      ...fallback,
-      qty: index === 7 && service === "followers" ? `400,000 ${metric}` : `${fallbackQty.toLocaleString()} ${metric}`,
-      feat2: "100% real followers",
-      feat3: "Instant delivery",
-      delivery: "Refill guaranteed",
-      support: "No password required",
-    };
-    if(!live) return {...serviceSpecific, id:null};
+    const quantity = Number(live?.quantity || packageQuantities[service]?.[index] || packageQuantities.followers[index]);
+    const bonusQuantity = Number(live?.bonusQuantity ?? offerStep2DefaultBonuses[index] ?? 0);
     return {
-      ...serviceSpecific,
-      id:live.id,
-      price: fallback.price,
-      qty:index === 7 && service === "followers" ? `400,000 ${metric}` : `${Number(live.quantity||fallbackQty).toLocaleString()} ${metric}`,
-      delivery: "Refill guaranteed",
-      support: "No password required",
-      featured:Boolean(fallback.featured),
-      badge:fallback.badge,
+      id: live?.id || null,
+      title,
+      iconKey: offerStep2IconKeys[index],
+      quantity,
+      bonusQuantity,
+      currentPrice: offerStep2Prices[index],
+      comparePrice: offerStep2ComparePrices[index],
+      discountPercent: Math.round(((offerStep2ComparePrices[index] - offerStep2Prices[index]) / offerStep2ComparePrices[index]) * 100),
+      isBestValue: index === 3 || index === 5,
     };
-  }),[plans,metric,service]);
+  }),[plans,service]);
   const select=(id:string|null)=>{ if(!id) return; setPlan(id); void onSelectPlan?.(id); };
 
   return <>
+    {hasTarget && <section className="cf-plans-pricing cf-home-offer-pricing">
+        <div className="cf-plans-section-title cf-pricing-title">
+          <h2>Choose Your <span className="cf-growth-plan-accent">Growth Plan</span> <span aria-hidden="true">♥</span></h2>
+          <p>Pick a plan for your goals and start growing today.</p>
+        </div>
+
+        <div
+          className={`cf-o10-master cf-home-offer-card-host cf-o10-platform-${platform}`}
+          data-stage="package"
+          data-platform={platform}
+        >
+          <div className="cf-o10-package-ref-grid">
+            {slots.map((p:any,index:number)=>{
+              const serviceUnit = metric;
+              const planIconKey = p.iconKey;
+              return (
+                <article
+                  key={p.title}
+                  className={`cf-o10-package-ref-card ${p.isBestValue ? "is-best-value" : ""}`}
+                  onClick={()=>select(p.id)}
+                >
+                  {index === 3 && (
+                    <span className="cf-o10-package-ref-best cf-o10-package-ref-best--popular">
+                      <Star /> MOST POPULAR
+                    </span>
+                  )}
+                  {index === 5 && (
+                    <span className="cf-o10-package-ref-best cf-o10-package-ref-best--deal">
+BEST DEAL
+                    </span>
+                  )}
+
+                  <div className="cf-o10-package-ref-topline">
+                    <div className="cf-o10-package-ref-plan">
+                      <div className="cf-o10-package-ref-plan-name">
+                        <span className={`cf-plan-premium-icon cf-plan-premium-icon--${planIconKey}`} aria-hidden="true">
+                          <img
+                            src={
+                              planIconKey === "growth"
+                                ? "/offer/package-plan-icons/growth-exact.png"
+                                : planIconKey === "influencer"
+                                  ? "/offer/package-plan-icons/influencer-exact.png"
+                                  : `/offer/package-plan-icons/${planIconKey}.png`
+                            }
+                            alt=""
+                            draggable={false}
+                          />
+                        </span>
+                        <strong>{p.title}</strong>
+                      </div>
+                    </div>
+                    <b className={`cf-o10-discount-badge cf-o10-discount-badge--${planIconKey}`}>
+                      {index === 0 && <Tag />}
+                      {index === 1 && <Flame />}
+                      {index === 2 && <ShieldCheck />}
+                      {index === 3 && <Zap />}
+                      {index === 4 && <Gem />}
+                      {index === 5 && <Star />}
+                      <span>{p.discountPercent}% OFF</span>
+                    </b>
+                  </div>
+
+                  <h3 className="cf-o10-package-ref-qty">
+                    {p.quantity.toLocaleString("en-US")} {serviceUnit}
+                  </h3>
+
+                  <div className="cf-o10-package-ref-bonus-slot">
+                    {index === 0 ? (
+                      <div className="cf-o10-package-ref-no-bonus">
+                        <span aria-hidden="true">×</span> No bonus included
+                      </div>
+                    ) : (
+                      <div className="cf-o10-package-ref-bonus">
++{p.bonusQuantity.toLocaleString("en-US")} Bonus Included
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="cf-o10-package-ref-price">
+                    <strong>${p.currentPrice.toFixed(2)}</strong>
+                    <del>${p.comparePrice.toFixed(2)}</del>
+                  </div>
+
+                  <p className={`cf-o10-package-ref-coupon ${index === 0 ? "cf-o10-package-ref-coupon--starter" : ""}`}>
+                    With coupon FLOW25
+                  </p>
+
+                  <div className="cf-o10-package-ref-divider" />
+
+                  <ul className="cf-o10-package-ref-benefits">
+                    <li><span><Check /></span>No password required</li>
+                    <li><span><Check /></span>Fast delivery start</li>
+                    <li><span><Check /></span>24/7 priority support</li>
+                  </ul>
+
+                  <div className="cf-o10-package-assurance">
+                    <div><ShieldCheck /><span>100% real followers</span></div>
+                    <div><RefreshCw /><span>Refill guaranteed</span></div>
+                  </div>
+
+                  <button
+                    className="cf-o10-package-ref-cta"
+                    type="button"
+                    onClick={(e)=>{
+                      e.stopPropagation();
+                      select(p.id);
+                    }}
+                  >
+                    <span className="cf-o10-cta-default">
+                      Get {(p.quantity + p.bonusQuantity).toLocaleString("en-US")} {serviceUnit} <ArrowRight />
+                    </span>
+                    <span className="cf-o10-cta-hover">
+                      Selected <Check />
+                    </span>
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        </div>
+    </section>}
+
+
     <section id="reviews" className="cf-plans-reviews">
-      <div className="cf-plans-section-title"><h2>Loved by Creators, Chosen by Brand Builders <span>♥</span></h2></div>
+      <div className="cf-plans-section-title"><h2>Real People. <span className="cf-review-growth-gradient">Real Growth.</span> <span>♥</span></h2><p>See why creators trust CloutFlow to grow.</p></div>
       <button className="cf-plans-carousel-arrow left" type="button" aria-label="Previous reviews" aria-disabled="true"><ArrowLeft/></button>
       <div ref={trackRef} className="cf-plans-review-track">
         {reviews.map((r,i)=><article className="cf-plans-review-card" key={r.name}>
@@ -119,30 +244,68 @@ export function PlanSelector({ plans, username, platform, service, hasTarget, on
         </article>)}
       </div>
       <button className="cf-plans-carousel-arrow right" type="button" aria-label="Next reviews" aria-disabled="true"><ArrowRight/></button>
-      <div className="cf-plans-review-summary"><b>Excellent</b><span className="cf-plans-summary-stars"><i>★</i><i>★</i><i>★</i><i>★</i><i>★</i></span><span>4.9 out of 5 based on 2,500+ reviews</span><strong>★ Trustpilot</strong></div>
+      <div className="cf-plans-review-summary">
+        <div className="cf-trust-pill">
+          <span className="cf-trust-excellent">Excellent</span>
+          <span className="cf-trust-stars" aria-label="5 out of 5 stars">
+            <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+          </span>
+          <span className="cf-trust-score">4.9/5</span>
+          <span className="cf-trust-divider" aria-hidden="true"/>
+          <span className="cf-trust-reviews">2,500+ reviews</span>
+          <span className="cf-trust-divider" aria-hidden="true"/>
+          <span className="cf-trustpilot"><span aria-hidden="true">★</span> Trustpilot</span>
+        </div>
+      </div>
     </section>
 
-    {hasTarget && <section className="cf-plans-pricing">
-        <div className="cf-plans-section-title cf-pricing-title"><h2>Choose Your Growth Plan</h2><p>Pick the package that fits your goals and start growing today.</p></div>
-        <div className="cf-plans-card-grid">
-          {slots.map((p:any)=><article key={p.title} className={`cf-plans-price-card tint-${p.tint} ${p.featured?"is-featured":""}`}>
-            {p.badge && <span className={`cf-plans-popular-badge ${p.badge === "BEST DEAL" ? "is-best-deal" : ""}`}><span className={`cf-plans-badge-icon ${p.badge === "BEST DEAL" ? "is-fire" : "is-star"}`} aria-hidden="true">{p.badge === "BEST DEAL" ? "🔥" : "★"}</span><span>{p.badge}</span></span>}
-            <div className="cf-plans-price-head"><span className="cf-plan-icon"><PlanIcon title={p.title}/></span><div><h3>{p.title}</h3><p>{p.kicker}</p></div></div>
-            <div className="cf-plans-promo-row"><span className="cf-plans-old-price">{p.regularPrice}</span><span className="cf-plans-discount-badge">{p.discount}</span></div>
-            <div className="cf-plans-price-row"><strong>{p.price}</strong></div>
-            <div className="cf-plans-followers-pill"><UserRound/><strong>{p.qty}</strong></div>
-            <ul><li><Check/>{p.feat2}</li><li><Check/>{p.feat3}</li><li><Check/>{p.delivery}</li><li><Check/>{p.support}</li><li><Check/>100% safe &amp; secure</li></ul>
-            <button className="cf-plans-card-cta" type="button" onClick={()=>select(p.id)}>Get My {ctaMetric} <span aria-hidden="true">→</span></button>
-            <small className="cf-plans-delivery-note"><span aria-hidden="true">⚡</span> Delivered within 24 hours</small>
-          </article>)}
-        </div>
-    </section>}
+
+    <section className="cf-home-faq cf-home-faq-compact" id="faq" aria-labelledby="cf-home-faq-title">
+      <div className="cf-home-faq-head">
+        <span className="cf-home-faq-eyebrow"><CircleHelp/> COMMON QUESTIONS</span>
+        <h2 id="cf-home-faq-title">Questions? <em>We’ve got answers.</em></h2>
+        <p>Everything you need to know before growing your profile.</p>
+      </div>
+
+      <div className="cf-home-faq-list">
+        {faqs.map((item, index) => {
+          const isOpen = openFaq === index;
+          return (
+            <article className={`cf-home-faq-item ${isOpen ? "is-open" : ""}`} key={item.question}>
+              <button
+                className="cf-home-faq-question"
+                type="button"
+                aria-expanded={isOpen}
+                aria-controls={`cf-home-faq-answer-${index}`}
+                onClick={() => setOpenFaq(isOpen ? null : index)}
+              >
+                <span className="cf-home-faq-icon" aria-hidden="true">
+              {(() => {
+                const Icon = faqIcons[index] ?? CircleHelp;
+                return <Icon />;
+              })()}
+            </span>
+                <span className="cf-home-faq-question-copy">{item.question}</span>
+                <span className="cf-home-faq-toggle" aria-hidden="true">{isOpen ? <Minus/> : <Plus/>}</span>
+              </button>
+              <div
+                id={`cf-home-faq-answer-${index}`}
+                className="cf-home-faq-answer"
+                aria-hidden={!isOpen}
+              >
+                <div><p>{item.answer}</p></div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
 
     <section className="cf-plans-final-cta" id="contact">
       <div className="cf-plans-rocket-art" aria-hidden="true"><Image className="cf-plans-rocket-premium" src={rocket25dPremium} alt="" priority/></div>
-      <div className="cf-plans-final-copy"><h2>Ready to Take Your Social Media<br/>to the <span>Next Level?</span></h2><p>Join thousands of creators and businesses growing their online presence with CloutFlow.</p></div>
-      <div className="cf-plans-final-action"><button type="button" onClick={()=>document.querySelector(".cf-plans-card-grid")?.scrollIntoView({behavior:"smooth",block:"center"})}>Get Started Now <ArrowRight/></button><small><span className="cf-customer-faces"><Image src={avatar1} alt=""/><Image src={avatar2} alt=""/><Image src={avatar3} alt=""/></span><span className="cf-happy-customer-text">100K+ Happy Customers</span></small></div>
+      <div className="cf-plans-final-copy"><h2>Ready to Take Your <span>Growth Further?</span></h2><p><span className="cf-final-copy-desktop">Grow your reach and stand out with CloutFlow.</span><span className="cf-final-copy-mobile">Grow your reach with CloutFlow.</span></p></div>
+      <div className="cf-plans-final-action"><button type="button" onClick={()=>document.getElementById("growth-package-builder")?.scrollIntoView({behavior:"smooth",block:"start"})}>Get Started Now <ArrowRight/></button><small><span className="cf-customer-faces"><Image src={avatar1} alt=""/><Image src={avatar2} alt=""/><Image src={avatar3} alt=""/></span><span className="cf-happy-customer-text"><span className="cf-social-proof-count">2.700k+</span><span className="cf-social-proof-label"> Happy Customers</span><span className="cf-social-proof-verified" aria-label="Verified customers"><BadgeCheck aria-hidden="true"/></span></span></small></div>
     </section>
-    <section className="cf-plans-value-row" id="faq"><div><TrendingUp/><span><b>Real Growth</b><small>Build a genuine audience that engages with your content.</small></span></div><div><Zap/><span><b>Boost Visibility</b><small>Higher reach, more views, more opportunities.</small></span></div><div><TimerReset/><span><b>Save Time</b><small>Focus on creating content, we handle the growth.</small></span></div><div><ChevronRight/><span><b>Scale Faster</b><small>Grow your brand and business effortlessly.</small></span></div></section>
+    <section className="cf-plans-value-row"><div><TrendingUp/><span><b>Real Growth</b><small>Build an audience that engages.</small></span></div><div><Zap/><span><b>Boost Visibility</b><small>Get more reach, views and opportunities.</small></span></div><div><TimerReset/><span><b>Save Time</b><small>Focus on content, we handle growth.</small></span></div><div><ChevronRight/><span><b>Scale Faster</b><small>Grow your brand with less effort.</small></span></div></section>
   </>;
 }

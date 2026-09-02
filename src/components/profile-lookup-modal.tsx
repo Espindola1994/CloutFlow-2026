@@ -184,6 +184,10 @@ export default function ProfileLookupModal({ platform, service, open, onClose, o
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    if (process.env.NODE_ENV === "production") {
+      setShowLocalStepPreview(false);
+      return;
+    }
     const host = window.location.hostname;
     setShowLocalStepPreview(host === "localhost" || host === "127.0.0.1" || host === "::1");
   }, []);

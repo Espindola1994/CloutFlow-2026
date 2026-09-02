@@ -125,7 +125,7 @@ export const SERVICE_COPY_MAP: Record<Service, Record<Platform, ServiceCopy>> = 
       planGuide: [
         { tier: 'Starting Small', idealFor: 'Initial Momentum', description: 'Start smaller if you are testing the experience and establishing an initial follower baseline.' },
         { tier: 'Balanced Growth', idealFor: 'Active Creators', description: 'Choose a mid-range package for a more noticeable jump in your profile presentation.' },
-        { tier: 'High-Impact Packages', idealFor: 'Brands & Influencers', description: 'Larger packages designed for users looking for a more substantial visible change.' },
+        { tier: 'High-Impact Packages', idealFor: 'Brands & Powers', description: 'Larger packages designed for users looking for a more substantial visible change.' },
       ],
       faqs: [
         { question: 'Do I need to provide my password?', answer: 'No. CloutFlow never needs your social account password to prepare or fulfill an order. Only your public @username is used.' },
@@ -143,7 +143,7 @@ export const SERVICE_COPY_MAP: Record<Service, Record<Platform, ServiceCopy>> = 
       heroHighlight: 'Stronger Profile.',
       heroSubheadline: 'Choose the right growth package for the TikTok profile you just selected and build lasting social credibility with CloutFlow.',
       targetContextPrefix: 'Growing TikTok',
-      projectionHeadline: 'Visualizing Your TikTok Authority',
+      projectionHeadline: 'Visualizing Your TikTok Boost',
       projectionDescription: 'A stronger follower foundation gives new viewers and brand partners greater confidence in your account.',
       benefits: [
         { title: 'Stronger First Impression', description: 'Capture immediate attention when viewers check your profile from the discover or search feeds.', iconName: 'shield' },

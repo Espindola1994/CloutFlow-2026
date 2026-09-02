@@ -80,7 +80,7 @@ export async function runLifecycleWorker(limit = 10) {
         }
 
         // Generate Return URL (fallback to base URL if context lacks detailed offer/platform)
-        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cloutflow.co';
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://cloutflow.com';
         const contextData = automation.contextData as Record<string, unknown>;
         
         let returnUrl = baseUrl;

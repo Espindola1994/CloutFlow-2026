@@ -42,7 +42,7 @@ export function InstagramPreview({ profile, onClose }: { profile: InstagramVerif
           aria-label="Back"
           className="flex items-center justify-start text-[#111111] active:opacity-70"
         >
-          <ArrowLeft size={25} strokeWidth={2.2} color="#111111" />
+          <ArrowLeft className="cf-instagram-top-icon cf-instagram-top-icon-back" size={25} strokeWidth={2.2} color="#111111" />
         </button>
 
         {/* Center: Username + Verified Badge */}
@@ -56,10 +56,10 @@ export function InstagramPreview({ profile, onClose }: { profile: InstagramVerif
         {/* Right: Bell + MoreVertical */}
         <div className="flex items-center justify-end gap-[15px] text-[#111111]">
           <button type="button" aria-label="Notifications" className="flex items-center active:opacity-70">
-            <Bell size={25} strokeWidth={2.1} color="#111111" />
+            <Bell className="cf-instagram-top-icon cf-instagram-top-icon-bell" size={25} strokeWidth={2.1} color="#111111" />
           </button>
           <button type="button" aria-label="More options" className="flex items-center active:opacity-70">
-            <MoreVertical size={25} strokeWidth={2.3} color="#111111" />
+            <MoreVertical className="cf-instagram-top-icon cf-instagram-top-icon-menu" size={25} strokeWidth={2.3} color="#111111" />
           </button>
         </div>
       </div>

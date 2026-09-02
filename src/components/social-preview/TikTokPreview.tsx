@@ -40,11 +40,11 @@ export function TikTokPreview({ profile, onClose }: { profile: TikTokVerifiedPro
           aria-label="Back"
           className="active:opacity-70"
         >
-          <ArrowLeft size={26} strokeWidth={2.1} color="#111111" />
+          <ArrowLeft className="cf-tiktok-top-icon cf-tiktok-top-icon-back" size={26} strokeWidth={2.1} color="#111111" />
         </button>
         <div className="flex items-center gap-[18px]">
-          <Bell size={26} strokeWidth={2.1} color="#111111" />
-          <Share2 size={27} strokeWidth={2.1} color="#111111" />
+          <Bell className="cf-tiktok-top-icon cf-tiktok-top-icon-bell" size={26} strokeWidth={2.1} color="#111111" />
+          <Share2 className="cf-tiktok-top-icon cf-tiktok-top-icon-share" size={27} strokeWidth={2.1} color="#111111" />
         </div>
       </div>
 
@@ -216,7 +216,7 @@ export function TikTokPreview({ profile, onClose }: { profile: TikTokVerifiedPro
           />
         </div>
       ) : (
-        <div className="grid grid-cols-3 gap-[1px] w-full mt-[1px] bg-white">
+        <div className="cf-tt-media-grid grid grid-cols-3 gap-[1px] w-full mt-[1px] bg-white">
           {videos.length > 0 ? (
             videos.map((vid: any, idx) => (
               <div key={vid.id || idx} className="relative w-full aspect-[3/4] overflow-hidden rounded-[0px] bg-neutral-900">
