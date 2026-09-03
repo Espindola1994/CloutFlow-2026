@@ -92,13 +92,16 @@ describe('66 Checkouts Commercial Resolution & Cross-Identity Isolation Tests', 
     expect(resolved?.status).toBe('READY');
   });
 
-  it('should confirm exact resolution for YouTube Likes Starter', () => {
-    const resolved = resolveCheckoutForIdentity('youtube', 'likes', 'starter', mockDbOffers);
-    expect(resolved).not.toBeNull();
-    expect(resolved?.checkoutUrl).toBe('https://go.centerpag.com/PPU38CQFRFH');
-    expect(resolved?.productCode).toBe('PPPBF6TP');
-    expect(resolved?.planCode).toBe('PPLQQQD2V');
-    expect(resolved?.status).toBe('READY');
+  it('should verify all 66 identities resolve valid product code, plan code, and go.centerpag.com URL', () => {
+    for (const item of OFFICIAL_PERFECTPAY_66_DATASET) {
+      const resolved = resolveCommercialOffer(item.platform, item.service, item.plan, mockDbOffers, 'admin');
+      expect(resolved).not.toBeNull();
+      expect(resolved?.productCode).toBe('PPPBF6TP');
+      expect(resolved?.planCode).toBe(item.planCode);
+      expect(resolved?.checkoutUrl).toBe(item.checkoutUrl);
+      expect(resolved?.checkoutUrl?.startsWith('https://go.centerpag.com/')).toBe(true);
+      expect(resolved?.hasCheckoutConfigured).toBe(true);
+    }
   });
 
   it('should confirm strict cross-identity isolation (no shared URLs across different identities)', () => {

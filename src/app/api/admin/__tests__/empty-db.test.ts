@@ -90,11 +90,11 @@ describe('Admin APIs - Empty Database State Validation', () => {
     expect(json.data.campaigns).toEqual([]);
   });
 
-  it('Offers API responds cleanly with 0 records', async () => {
+  it('Offers API responds cleanly with 66 canonical cards materialized when database is empty', async () => {
     const res = await getOffers();
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.success).toBe(true);
-    expect(json.data.items).toEqual([]);
+    expect(json.data.items).toHaveLength(66);
   });
 });

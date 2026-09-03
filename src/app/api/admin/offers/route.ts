@@ -13,6 +13,7 @@ import {
   normalizeService, 
   normalizePlan,
   getCanonicalCatalogPackage,
+  resolveCommercialOffer,
   validateCheckoutUrl 
 } from '@/services/commercial-offer.resolver';
 import { CLOUTFLOW_CATALOG_PACKAGES } from '@/config/financial-protection.config';
@@ -50,53 +51,120 @@ export async function GET() {
   try {
     const user = await requireAdmin();
 
-    const items = await db.query.offers.findMany({
-      orderBy: [desc(offers.createdAt)],
-    });
+    let items: any[] = [];
+    try {
+      items = await db.query.offers.findMany({
+        orderBy: [desc(offers.createdAt)],
+      });
+    } catch (dbErr) {
+      console.warn('[AdminOffersAPI] Database query offers fallback:', dbErr);
+      items = [];
+    }
 
-    const formatted = items.map((o) => {
-      const meta = (o.metadata as Record<string, any>) || {};
-      const normPlat = normalizePlatform(o.platform) || o.platform;
-      const normServ = normalizeService(o.service) || o.service;
-      const normPlan = normalizePlan(o.name || o.slug) || 'starter';
+    // Materialize all 66 canonical cards with DB overrides where present
+    const overrideMap = new Map<string, typeof items[0]>();
+    for (const item of items) {
+      const key = `${normalizePlatform(item.platform)}:${normalizeService(item.service)}:${normalizePlan(item.name || item.slug)}`;
+      if (!overrideMap.has(key)) {
+        overrideMap.set(key, item);
+      }
+    }
 
-      return {
-        id: o.id,
-        platform: normPlat as any,
-        service: normServ,
-        plan: normPlan,
-        name: o.name,
-        slug: o.slug,
-        description: o.description || undefined,
-        quantity: o.quantity,
-        bonus: o.bonusQuantity || 0,
-        price: Number(o.priceCents) / 100,
-        priceCents: Number(o.priceCents),
-        oldPrice: o.oldPriceCents ? Number(o.oldPriceCents) / 100 : undefined,
-        oldPriceCents: o.oldPriceCents ? Number(o.oldPriceCents) : undefined,
-        currency: o.currency,
-        tag: o.badge || meta.badge || undefined,
-        badge: o.badge || meta.badge || undefined,
-        title: meta.title || undefined,
-        subtitle: meta.subtitle || undefined,
-        deliveryText: meta.deliveryText || undefined,
-        refillText: meta.refillText || undefined,
-        qualityText: meta.qualityText || undefined,
-        popular: o.isPopular || Boolean(meta.isPopular || meta.featured),
-        checkoutUrl: o.externalCheckoutUrl || undefined,
-        perfectpayProductId: o.perfectpayProductId || undefined,
-        perfectpayPlanId: o.perfectpayPlanId || undefined,
-        syncHome: o.syncHome ?? true,
-        syncOfferStep3: o.syncOfferStep3 ?? true,
-        active: o.active,
-        sortOrder: o.sortOrder,
-        benefits: Array.isArray(meta.benefits) ? meta.benefits : undefined,
-        ctaText: typeof meta.ctaText === 'string' ? meta.ctaText : undefined,
-        updatedAt: o.updatedAt,
-      };
-    });
+    const all66Cards: any[] = [];
+    for (const plat of VALID_PLATFORMS) {
+      const services = PLATFORM_SERVICES[plat];
+      for (const serv of services) {
+        for (const planObj of CANONICAL_PLANS) {
+          const key = `${plat}:${serv}:${planObj.key}`;
+          const o = overrideMap.get(key);
+          const canonical = getCanonicalCatalogPackage(plat, serv, planObj.key);
+          if (!canonical) continue;
 
-    return NextResponse.json({ success: true, data: { items: formatted } });
+          if (o) {
+            const meta = (o.metadata as Record<string, any>) || {};
+            const normPlat = normalizePlatform(o.platform) || o.platform;
+            const normServ = normalizeService(o.service) || o.service;
+            const normPlan = normalizePlan(o.name || o.slug) || 'starter';
+
+            all66Cards.push({
+              id: o.id,
+              platform: normPlat as any,
+              service: normServ,
+              plan: normPlan,
+              name: o.name,
+              slug: o.slug,
+              description: o.description || undefined,
+              quantity: o.quantity,
+              bonus: o.bonusQuantity || 0,
+              price: Number(o.priceCents) / 100,
+              priceCents: Number(o.priceCents),
+              oldPrice: o.oldPriceCents ? Number(o.oldPriceCents) / 100 : undefined,
+              oldPriceCents: o.oldPriceCents ? Number(o.oldPriceCents) : undefined,
+              currency: o.currency,
+              tag: o.badge || meta.badge || undefined,
+              badge: o.badge || meta.badge || undefined,
+              title: meta.title || undefined,
+              subtitle: meta.subtitle || undefined,
+              deliveryText: meta.deliveryText || undefined,
+              refillText: meta.refillText || undefined,
+              qualityText: meta.qualityText || undefined,
+              popular: o.isPopular || Boolean(meta.isPopular || meta.featured),
+              checkoutUrl: o.externalCheckoutUrl || undefined,
+              perfectpayProductId: o.perfectpayProductId || undefined,
+              perfectpayPlanId: o.perfectpayPlanId || undefined,
+              syncHome: o.syncHome ?? true,
+              syncOfferStep3: o.syncOfferStep3 ?? true,
+              active: o.active,
+              sortOrder: o.sortOrder,
+              benefits: Array.isArray(meta.benefits) ? meta.benefits : undefined,
+              ctaText: typeof meta.ctaText === 'string' ? meta.ctaText : undefined,
+              updatedAt: o.updatedAt,
+              isOverride: true,
+            });
+          } else {
+            // Materialize canonical identity
+            const resolved = resolveCommercialOffer(plat, serv, planObj.key, [], 'admin');
+            all66Cards.push({
+              id: `canonical-${plat}-${serv}-${planObj.key}`,
+              platform: plat,
+              service: serv,
+              plan: planObj.key,
+              name: canonical.planDisplayName,
+              slug: `${plat}-${serv}-${planObj.key}`,
+              description: undefined,
+              quantity: canonical.quantity,
+              bonus: 0,
+              price: canonical.priceCents / 100,
+              priceCents: canonical.priceCents,
+              oldPrice: canonical.compareAtPriceCents / 100,
+              oldPriceCents: canonical.compareAtPriceCents,
+              currency: 'USD',
+              tag: undefined,
+              badge: undefined,
+              title: undefined,
+              subtitle: undefined,
+              deliveryText: canonical.deliveryText,
+              refillText: canonical.refillText,
+              qualityText: canonical.qualityText,
+              popular: false,
+              checkoutUrl: resolved?.checkoutUrl || undefined,
+              perfectpayProductId: resolved?.productCode || undefined,
+              perfectpayPlanId: resolved?.planCode || undefined,
+              syncHome: true,
+              syncOfferStep3: true,
+              active: true,
+              sortOrder: 0,
+              benefits: canonical.features,
+              ctaText: 'Get Started Now',
+              updatedAt: undefined,
+              isOverride: false,
+            });
+          }
+        }
+      }
+    }
+
+    return NextResponse.json({ success: true, data: { items: all66Cards } });
   } catch (error: unknown) {
     const err = error as Error;
     if (err.message === 'Unauthorized' || err.message === 'Forbidden') {

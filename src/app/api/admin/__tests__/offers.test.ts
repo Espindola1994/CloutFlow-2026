@@ -104,8 +104,8 @@ describe('Admin Offers API - Phase 2.3 Unit & Security Tests', () => {
       id: 'off_test_1',
       platform: 'twitter',
       service: 'followers',
-      name: '500 X Followers',
-      slug: 'tw-followers-500',
+      name: 'Starter',
+      slug: 'twitter-followers-starter',
       quantity: 500,
       bonusQuantity: 0,
       priceCents: 1499,
@@ -124,9 +124,11 @@ describe('Admin Offers API - Phase 2.3 Unit & Security Tests', () => {
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.success).toBe(true);
-    expect(json.data.items[0].perfectpayProductId).toBe('PROD_X');
-    expect(json.data.items[0].perfectpayPlanId).toBe('PLAN_X');
-    expect(json.data.items[0].price).toBe(14.99);
+    const twitterStarter = json.data.items.find((i: any) => i.platform === 'twitter' && i.service === 'followers' && i.plan === 'starter');
+    expect(twitterStarter).toBeDefined();
+    expect(twitterStarter.perfectpayProductId).toBe('PROD_X');
+    expect(twitterStarter.perfectpayPlanId).toBe('PLAN_X');
+    expect(twitterStarter.price).toBe(14.99);
   });
 
   it('E & F) Edit Offer (PATCH) and Deactivate', async () => {

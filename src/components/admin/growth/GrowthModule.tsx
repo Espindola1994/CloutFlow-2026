@@ -252,7 +252,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
   };
 
   const openEditModal = (offer: OfferAdminItem) => {
-    setEditingOfferId(offer.id);
+    setEditingOfferId(offer.id.startsWith("canonical-") ? null : offer.id);
     setFormPlatform(offer.platform);
     setFormService(offer.service);
     setFormPlan(offer.plan || "starter");
@@ -351,6 +351,40 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
         prev.map((item) => (item.id === offer.id ? { ...item, active: !item.active } : item))
       );
 
+      if (offer.id.startsWith("canonical-")) {
+        // Create override in database if toggling a canonical card without existing DB row
+        const canonical = getCanonicalCatalogPackage(offer.platform, offer.service, offer.plan);
+        if (canonical) {
+          const res = await fetch("/api/admin/offers", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              platform: offer.platform,
+              service: offer.service,
+              name: offer.name,
+              slug: `${offer.platform}-${offer.service}-${offer.plan}`,
+              quantity: offer.quantity,
+              bonusQuantity: offer.bonus || 0,
+              priceCents: Math.round(offer.price * 100),
+              oldPriceCents: offer.oldPrice ? Math.round(offer.oldPrice * 100) : null,
+              currency: "USD",
+              badge: offer.badge || null,
+              active: !offer.active,
+              syncHome: offer.syncHome,
+              syncOfferStep3: offer.syncOfferStep3,
+              externalCheckoutUrl: offer.checkoutUrl || null,
+              perfectpayProductId: offer.perfectpayProductId || null,
+              perfectpayPlanId: offer.perfectpayPlanId || null,
+            }),
+          });
+          if (res.ok) {
+            fetchOffers(false);
+            triggerRevalidate("offers", true);
+          }
+        }
+        return;
+      }
+
       const res = await fetch(`/api/admin/offers/${offer.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -369,6 +403,10 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
   };
 
   const confirmDeleteOffer = (offer: OfferAdminItem) => {
+    if (offer.id.startsWith("canonical-")) {
+      // Nothing to delete from DB for pure canonical card
+      return;
+    }
     setItemToDelete(offer);
     setDeleteConfirmOpen(true);
   };
@@ -839,7 +877,8 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
                                   variant="danger"
                                   size="sm"
                                   onClick={() => confirmDeleteOffer(p)}
-                                  title="Delete Override (Card falls back to Catalog Default)"
+                                  disabled={p.id.startsWith("canonical-")}
+                                  title={p.id.startsWith("canonical-") ? "Default catalog card (no database override to delete)" : "Delete Override (Card falls back to Catalog Default)"}
                                 >
                                   <Trash2 className="w-3.5 h-3.5" />
                                 </AdminIconButton>
@@ -901,6 +940,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
                             variant="danger"
                             size="sm"
                             onClick={() => confirmDeleteOffer(p)}
+                            disabled={p.id.startsWith("canonical-")}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </AdminButton>

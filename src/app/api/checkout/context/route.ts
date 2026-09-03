@@ -13,7 +13,8 @@ import {
   CommercialService,
   normalizePlatform,
   normalizeService,
-  normalizePlan
+  normalizePlan,
+  resolveCommercialOffer
 } from '@/services/commercial-offer.resolver';
 
 const ALLOWED_TARGET_HOSTS: Record<string, string[]> = {
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
     const data = checkoutContextCreateSchema.parse(body);
 
     // 1. Fetch & Validate Active Offer Server-Side
-    let offer = null;
+    let offer: any = null;
 
     if (data.offerId.startsWith('canonical-') || data.offerId.startsWith('step3-')) {
       // Resolve canonical/synthetic ID format: canonical-{platform}-{service}-{plan}
@@ -73,14 +74,38 @@ export async function POST(request: Request) {
               eq(sql`LOWER(${offers.service})`, serv),
               eq(offers.active, true)
             ),
-          });
-          offer = matching.find((o) => normalizePlan(o.name || o.slug) === pl && o.active);
+          }).catch(() => []);
+          const found = matching.find((o) => normalizePlan(o.name || o.slug) === pl && o.active);
+          if (found) {
+            offer = found;
+          } else {
+            // Materialize canonical offer with official PerfectPay dataset
+            const resolved = resolveCommercialOffer(plat, serv, pl, [], 'home');
+            if (resolved) {
+              offer = {
+                id: `canonical-${plat}-${serv}-${pl}`,
+                platform: plat,
+                service: serv,
+                name: resolved.planDisplayName,
+                slug: `${plat}-${serv}-${pl}`,
+                quantity: resolved.quantity,
+                bonusQuantity: resolved.bonusQuantity,
+                priceCents: resolved.priceCents,
+                perfectpayProductId: resolved.productCode,
+                perfectpayPlanId: resolved.planCode,
+                externalCheckoutUrl: resolved.checkoutUrl,
+                active: true,
+                syncHome: true,
+                syncOfferStep3: true,
+              };
+            }
+          }
         }
       }
     } else {
       const foundOffers = await db.query.offers.findMany({
         where: and(eq(offers.id, data.offerId), eq(offers.active, true)),
-      });
+      }).catch(() => []);
       offer = foundOffers.find((o) => o.id === data.offerId && o.active);
     }
 

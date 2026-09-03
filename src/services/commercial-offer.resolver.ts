@@ -1,4 +1,5 @@
 import { CLOUTFLOW_CATALOG_PACKAGES } from '@/config/financial-protection.config';
+import { OFFICIAL_PERFECTPAY_66_DATASET, PerfectPayDatasetItem } from '@/config/official-perfectpay-dataset';
 
 export type CommercialPlatform = 'instagram' | 'tiktok' | 'twitter' | 'youtube';
 export type CommercialService = 'followers' | 'likes' | 'views';
@@ -174,6 +175,29 @@ export function getCanonicalCatalogPackage(
     qualityText: 'High Quality',
     features: ['Instant Delivery', 'High Retention', '24/7 Support', 'No Password Required'],
   };
+}
+
+/**
+ * Resolves the canonical PerfectPay dataset configuration for an exact (platform, service, plan) identity.
+ */
+export function getCanonicalPerfectPayItem(
+  platformInput: string,
+  serviceInput: string,
+  planInput: string
+): PerfectPayDatasetItem | null {
+  const platform = normalizePlatform(platformInput);
+  const service = normalizeService(serviceInput);
+  const plan = normalizePlan(planInput);
+
+  if (!platform || !service || !plan || !isValidPlatformService(platform, service)) {
+    return null;
+  }
+
+  const match = OFFICIAL_PERFECTPAY_66_DATASET.find(
+    (item) => item.platform === platform && item.service === service && item.plan === plan
+  );
+
+  return match || null;
 }
 
 export type CheckoutStatus = 'READY' | 'INCOMPLETE' | 'MISSING';
@@ -524,6 +548,11 @@ export function resolveCommercialOffer(
   }
 
   // Canonical Catalog Fallback
+  const productCode = matchingOffer?.perfectpayProductId || null;
+  const planCode = matchingOffer?.perfectpayPlanId || null;
+  const rawFallbackUrl = matchingOffer?.externalCheckoutUrl || matchingOffer?.checkoutUrl || null;
+  const checkoutUrl = validateCheckoutUrl(rawFallbackUrl) ? rawFallbackUrl.trim() : null;
+
   return {
     id: matchingOffer?.id || null,
     identity: { platform, service, plan },
@@ -546,15 +575,13 @@ export function resolveCommercialOffer(
     refillText: canonical.refillText,
     qualityText: canonical.qualityText,
     features: canonical.features,
-    productCode: matchingOffer?.perfectpayProductId || null,
-    planCode: matchingOffer?.perfectpayPlanId || null,
-    checkoutUrl: validateCheckoutUrl(matchingOffer?.externalCheckoutUrl || matchingOffer?.checkoutUrl)
-      ? (matchingOffer?.externalCheckoutUrl || matchingOffer?.checkoutUrl).trim()
-      : null,
+    productCode,
+    planCode,
+    checkoutUrl,
     hasCheckoutConfigured: Boolean(
-      matchingOffer?.perfectpayProductId &&
-        matchingOffer?.perfectpayPlanId &&
-        validateCheckoutUrl(matchingOffer?.externalCheckoutUrl || matchingOffer?.checkoutUrl)
+      productCode &&
+        planCode &&
+        checkoutUrl
     ),
     syncHome: matchingOffer?.syncHome ?? true,
     syncOfferStep3: matchingOffer?.syncOfferStep3 ?? true,
