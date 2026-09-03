@@ -10,6 +10,8 @@ import { Platform, Service } from "@/config/service-sales.config";
 import { PLATFORM_SERVICES, CommercialPlatform, CommercialService } from "@/services/commercial-offer.resolver";
 import { PublicOfferItem } from "@/components/sales/OfferCard";
 import { PlanSelector } from "@/components/funnel/plan-selector";
+import { buildCanonicalProfileUrl } from "@/lib/social/normalize";
+import { validateSafeUrl } from "@/lib/social/security";
 import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
 import tiktokIcon from "@/assets/home-icons-vector/tiktok.svg";
 import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
@@ -105,11 +107,19 @@ export default function HomePage({
       ? currentSocialUsername.replace(/^@+/, "").trim()
       : (currentTargetValue ? currentTargetValue.replace(/^@+/, "").trim() : null);
 
-    const targetUrlCandidate = currentTargetUrl || currentProfileUrl || (normalizedUsername ? `https://${platform === "twitter" ? "x.com/" : platform === "youtube" ? "youtube.com/@" : `${platform}.com/`}${normalizedUsername}` : null);
+    const canonicalProfileUrl = normalizedUsername ? buildCanonicalProfileUrl(platform, normalizedUsername) : null;
+    let validatedProfileUrl: string | null = null;
+    if (currentProfileUrl) {
+      const validation = validateSafeUrl(currentProfileUrl, platform as any);
+      if (validation.isSafe) {
+        validatedProfileUrl = currentProfileUrl;
+      }
+    }
+    const finalProfileUrl = isFollowers ? (canonicalProfileUrl || validatedProfileUrl) : null;
 
     const isContentTarget = resolvedTargetType === "post" || resolvedTargetType === "video";
-    const targetValue = currentTargetValue || normalizedUsername;
-    const targetUrl = isFollowers ? (currentProfileUrl || targetUrlCandidate) : (currentTargetUrl || targetUrlCandidate);
+    const targetValue = isFollowers ? (normalizedUsername || currentTargetValue) : (currentTargetValue || normalizedUsername);
+    const targetUrl = isFollowers ? finalProfileUrl : (currentTargetUrl || null);
     
     // Validate target existence before proceeding
     if (isFollowers && !targetValue) {
@@ -135,8 +145,8 @@ export default function HomePage({
           targetType: resolvedTargetType,
           targetValue,
           targetUrl,
-          socialUsername: normalizedUsername || (currentTargetValue ? currentTargetValue.replace(/^@+/, "").trim() : null),
-          profileUrl: currentProfileUrl || targetUrlCandidate,
+          socialUsername: isFollowers ? normalizedUsername : null,
+          profileUrl: finalProfileUrl,
           email: currentEmail ? currentEmail.trim().toLowerCase() : null,
         }),
       });

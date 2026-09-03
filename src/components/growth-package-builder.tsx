@@ -9,7 +9,7 @@ import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
 import youtubeIcon from "@/assets/home-icons-vector/youtube.svg";
 import { Platform, Service } from "@/config/service-sales.config";
 import { PLATFORM_SERVICES, CommercialPlatform, CommercialService } from "@/services/commercial-offer.resolver";
-import { validateEmailFormat } from "@/lib/social/normalize";
+import { validateEmailFormat, buildCanonicalProfileUrl } from "@/lib/social/normalize";
 import type { VerifiedSocialProfile } from "@/lib/social/types";
 import { useFunnelStore } from "@/stores/funnel.store";
 import { InstagramPreview, TikTokPreview, TwitterPreview, YouTubePreview } from "./social-preview";
@@ -225,17 +225,17 @@ export default function GrowthPackageBuilder({
   const persistTarget = (found: VerifiedSocialProfile) => {
     const cleanEmail = email.trim().toLowerCase();
     const normalizedUsername = found.username.replace(/^@+/, "").trim();
-    const record = found as unknown as Record<string, unknown>;
-    const profileCandidate = (record.profile_url as string | undefined) || (record.link as string | undefined) || null;
-    const profileUrl = profileCandidate || (isContent ? identifier.trim() : `https://${platform === "twitter" ? "x.com" : platform === "youtube" ? "youtube.com/@" : `${platform}.com/`}${normalizedUsername}`);
+    const canonicalProfileUrl = buildCanonicalProfileUrl(platform, normalizedUsername);
+    const profileUrl = isContent ? null : canonicalProfileUrl;
+    const targetUrl = isContent ? identifier.trim() : canonicalProfileUrl;
     const targetType = isContent ? ((platform === "youtube" || platform === "tiktok") ? "video" : "post") : (platform === "youtube" ? "channel" : "profile");
     useFunnelStore.getState().setEmail(cleanEmail);
     useFunnelStore.getState().setTarget({
       targetType,
       targetValue: isContent ? identifier.trim() : normalizedUsername,
-      targetUrl: isContent ? identifier.trim() : profileUrl,
+      targetUrl,
       socialUsername: isContent ? null : normalizedUsername,
-      profileUrl: isContent ? null : profileUrl,
+      profileUrl,
       email: cleanEmail,
       verifiedTargetData: found as unknown as Record<string, unknown>,
     });

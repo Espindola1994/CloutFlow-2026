@@ -104,6 +104,32 @@ export function validateHandleFormat(handle: string, platform?: PlatformId): { i
   return { isValid: true, normalized: raw };
 }
 
+/**
+ * Builds canonical profile URL for supported platforms given a raw or cleaned username.
+ * Rules:
+ * - Instagram: https://www.instagram.com/{username}
+ * - TikTok: https://www.tiktok.com/@{username}
+ * - Twitter/X: https://x.com/{username}
+ * - YouTube: unsupported for followers, returns null
+ */
+export function buildCanonicalProfileUrl(platform: PlatformId | string, username: string | null | undefined): string | null {
+  if (!username) return null;
+  const cleanUsername = username.trim().replace(/^@+/, "").replace(/\/+$/, "").trim();
+  if (!cleanUsername) return null;
+
+  switch (platform) {
+    case "instagram":
+      return `https://www.instagram.com/${cleanUsername}`;
+    case "tiktok":
+      return `https://www.tiktok.com/@${cleanUsername}`;
+    case "twitter":
+      return `https://x.com/${cleanUsername}`;
+    case "youtube":
+    default:
+      return null;
+  }
+}
+
 // Detector central
 export function detectSearchInput(
   input: string,
