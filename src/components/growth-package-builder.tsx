@@ -7,13 +7,15 @@ import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
 import tiktokIcon from "@/assets/home-icons-vector/tiktok.svg";
 import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
 import youtubeIcon from "@/assets/home-icons-vector/youtube.svg";
+import { Platform, Service } from "@/config/service-sales.config";
+import { PLATFORM_SERVICES, CommercialPlatform, CommercialService } from "@/services/commercial-offer.resolver";
 import { validateEmailFormat } from "@/lib/social/normalize";
 import type { VerifiedSocialProfile } from "@/lib/social/types";
 import { useFunnelStore } from "@/stores/funnel.store";
 import { InstagramPreview, TikTokPreview, TwitterPreview, YouTubePreview } from "./social-preview";
 
-type PlatformId = "instagram" | "tiktok" | "twitter" | "youtube";
-type Goal = "followers" | "likes" | "views";
+type PlatformId = CommercialPlatform;
+type Goal = CommercialService;
 type Stage = "idle" | "analyzing" | "result";
 
 const META = {
@@ -196,10 +198,20 @@ export default function GrowthPackageBuilder({
 
   const choosePlatform = (next: PlatformId) => {
     if (stage === "analyzing") return;
-    setPlatformLocal(next); setProfile(null); setStage("idle"); setError(null); onPlatformChange(next);
+    setPlatformLocal(next); setProfile(null); setStage("idle"); setError(null);
+    const validServices = PLATFORM_SERVICES[next] || ['followers'];
+    let safeGoal = goal;
+    if (!validServices.includes(goal)) {
+      safeGoal = validServices[0] as Goal;
+      setGoalLocal(safeGoal);
+      onGoalChange(safeGoal);
+    }
+    onPlatformChange(next);
   };
   const chooseGoal = (next: Goal) => {
     if (stage === "analyzing") return;
+    const validServices = PLATFORM_SERVICES[platform] || ['followers'];
+    if (!validServices.includes(next)) return;
     setGoalLocal(next); setProfile(null); setStage("idle"); setError(null); onGoalChange(next);
   };
 
@@ -288,7 +300,7 @@ export default function GrowthPackageBuilder({
       <div className="cf-premium-builder-head"><small>✦ &nbsp; START HERE &nbsp; ✦</small><h2>Build Your <em>Growth</em> Package</h2><p>Three quick steps. Analyze. Choose. Grow.</p></div>
       <div className="cf-premium-builder-grid">
         <div className="cf-premium-builder-controls">
-          <div className="cf-pb-step"><div className="cf-pb-label"><i>1</i><div><b>Choose your goal</b><small>What do you want to achieve?</small></div></div><div className="cf-pb-goals">{(["followers","likes","views"] as Goal[]).map(g => <button key={g} className={goal===g?"active":""} onClick={()=>chooseGoal(g)}><GoalIcon goal={g} premium/><b>{g[0].toUpperCase()+g.slice(1)}</b>{goal===g&&<Check/>}</button>)}</div></div>
+          <div className="cf-pb-step"><div className="cf-pb-label"><i>1</i><div><b>Choose your goal</b><small>What do you want to achieve?</small></div></div><div className="cf-pb-goals">{((PLATFORM_SERVICES[platform] || ["followers", "likes", "views"]) as Goal[]).map(g => <button key={g} className={goal===g?"active":""} onClick={()=>chooseGoal(g)}><GoalIcon goal={g} premium/><b>{g[0].toUpperCase()+g.slice(1)}</b>{goal===g&&<Check/>}</button>)}</div></div>
           <div className="cf-pb-step"><div className="cf-pb-label"><i>2</i><div><b>Choose the network</b><small>We support all 4 platforms below</small></div></div><div className="cf-pb-platforms">{(Object.entries(META) as [PlatformId, typeof META[PlatformId]][]).map(([id,item]) => <button key={id} className={platform===id?"active":""} style={{"--pb-accent":item.accent} as React.CSSProperties} onClick={()=>choosePlatform(id)}><PlatformIcon src={item.icon}/><b>{item.label}</b>{platform===id&&<Check/>}</button>)}</div>
             <label className="cf-pb-field-label">{isContent ? "Public video / reel / post link" : "Username or profile link"}</label><div className="cf-pb-input"><ScanSearch/><input value={identifier} onChange={e=>setIdentifier(e.target.value)} placeholder={isContent ? "Paste the exact content link..." : "@username or profile/channel link..."}/></div>
             <label className="cf-pb-field-label">Email <strong>(required)</strong></label><div className="cf-pb-input"><Mail/><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Enter your email address"/></div><p className="cf-pb-privacy"><ShieldCheck/> We use this email to save your search, orders and updates.</p>

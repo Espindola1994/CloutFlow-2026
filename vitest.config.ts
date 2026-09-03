@@ -17,5 +17,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./vitest.setup.ts'],
     globals: true,
+    include: ['src/**/*.test.{ts,tsx}'],
+    exclude: ['src/src/**', 'node_modules/**', 'dist/**', '.next/**', 'work/**', 'v25build/**', 'srcfix/**'],
   },
 })

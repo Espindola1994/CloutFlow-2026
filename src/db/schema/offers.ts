@@ -17,8 +17,21 @@ export const offers = pgTable('offers', {
   externalCheckoutUrl: varchar('external_checkout_url', { length: 2048 }),
   perfectpayProductId: varchar('perfectpay_product_id', { length: 255 }),
   perfectpayPlanId: varchar('perfectpay_plan_id', { length: 255 }),
+  syncHome: boolean('sync_home').default(true).notNull(),
+  syncOfferStep3: boolean('sync_offer_step3').default(true).notNull(),
   active: boolean('active').default(true).notNull(),
   sortOrder: integer('sort_order').default(0).notNull(),
+
+  // Supplier Routing & Cost Ceiling
+  priorityServiceId: varchar('priority_service_id', { length: 255 }),
+  fallback1ServiceId: varchar('fallback1_service_id', { length: 255 }),
+  fallback2ServiceId: varchar('fallback2_service_id', { length: 255 }),
+  minimumGrossMarginPercent: integer('minimum_gross_margin_percent').default(40),
+  minimumGrossProfitCents: bigint('minimum_gross_profit_cents', { mode: 'number' }).default(500),
+  maxSupplierCostAbsoluteCents: bigint('max_supplier_cost_absolute_cents', { mode: 'number' }),
+  costCeilingEnabled: boolean('cost_ceiling_enabled').default(true).notNull(),
+  manualReviewEnabled: boolean('manual_review_enabled').default(false).notNull(),
+
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

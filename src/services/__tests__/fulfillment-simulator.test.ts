@@ -42,9 +42,9 @@ describe('Phase 3.1 — Peakerr Manual Fulfillment Simulator & Shared Resolver T
     };
 
     const mockServices = [
-      { providerServiceId: '31249', priority: 1, minQuantity: 10, maxQuantity: 1000000, active: true },
-      { providerServiceId: '22042', priority: 2, minQuantity: 10, maxQuantity: 1000000, active: true },
-      { providerServiceId: '30428', priority: 3, minQuantity: 10, maxQuantity: 1000000, active: true },
+      { providerServiceId: '31714', priority: 1, minQuantity: 10, maxQuantity: 1000000, active: true },
+      { providerServiceId: '31849', priority: 2, minQuantity: 10, maxQuantity: 1000000, active: true },
+      { providerServiceId: '31850', priority: 3, minQuantity: 10, maxQuantity: 1000000, active: true },
     ];
 
     (db.query.fulfillmentChains.findMany as any).mockResolvedValue([mockChain]);
@@ -62,11 +62,11 @@ describe('Phase 3.1 — Peakerr Manual Fulfillment Simulator & Shared Resolver T
     expect(simulation.success).toBe(true);
     if (simulation.success) {
       expect(simulation.quantity).toBe(2000);
-      expect(simulation.primaryServiceId).toBe('31249');
-      expect(simulation.fallbacks).toEqual(['22042', '30428']);
+      expect(simulation.primaryServiceId).toBe('31714');
+      expect(simulation.fallbacks).toEqual(['31849', '31850']);
       expect(simulation.peakerrRequestPayload).toEqual({
         provider: 'peakerr',
-        service: '31249',
+        service: '31714',
         link: 'https://instagram.com/anaclaramaderite',
         quantity: 2000,
       });
@@ -251,7 +251,7 @@ describe('Phase 3.1 — Peakerr Manual Fulfillment Simulator & Shared Resolver T
 
   it('N, O) Simulator execution performs ZERO live HTTP calls to Peakerr and mutates ZERO database records', async () => {
     const dryRunRes = await peakerrClient.createOrderDryRun({
-      service: '31249',
+      service: '31714',
       link: 'https://instagram.com/anaclaramaderite',
       quantity: 2000,
     });

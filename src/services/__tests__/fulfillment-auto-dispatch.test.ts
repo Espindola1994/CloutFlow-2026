@@ -44,7 +44,7 @@ vi.mock('@/db', () => ({
                   id: 'cs_1',
                   chainId: 'chain_ig_followers',
                   provider: 'peakerr',
-                  providerServiceId: '31249',
+                  providerServiceId: '31714',
                   priority: 1,
                   active: true,
                   minQuantity: 10,
@@ -66,7 +66,7 @@ vi.mock('@/db', () => ({
                   id: 'cs_2',
                   chainId: 'chain_ig_likes',
                   provider: 'peakerr',
-                  providerServiceId: '21054',
+                  providerServiceId: '31783',
                   priority: 1,
                   active: true,
                   minQuantity: 10,
@@ -85,7 +85,7 @@ vi.mock('@/db', () => ({
               id: 'cs_1',
               chainId: 'chain_ig_followers',
               provider: 'peakerr',
-              providerServiceId: '31249',
+              providerServiceId: '31714',
               priority: 1,
               active: true,
               minQuantity: 10,
@@ -96,7 +96,7 @@ vi.mock('@/db', () => ({
               id: 'cs_2',
               chainId: 'chain_ig_likes',
               provider: 'peakerr',
-              providerServiceId: '21054',
+              providerServiceId: '31783',
               priority: 1,
               active: true,
               minQuantity: 10,
@@ -394,7 +394,7 @@ describe('Auto Dispatch Infrastructure (Phase 4.0)', () => {
 
       // Verify Peakerr createOrder call parameters
       expect(peakerrClient.createOrder).toHaveBeenCalledWith({
-        service: '31249',
+        service: '31714',
         link: 'https://instagram.com/guilhermeterraaa',
         quantity: 2000,
       });

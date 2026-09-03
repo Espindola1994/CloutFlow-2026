@@ -6,8 +6,8 @@ const mockOffersDb = [
     id: 'off_active_ig_1',
     platform: 'instagram',
     service: 'followers',
-    name: '2,000 Followers',
-    slug: 'ig-followers-2k',
+    name: 'Starter',
+    slug: 'instagram-followers-starter',
     quantity: 2000,
     bonusQuantity: 0,
     priceCents: 1490,
@@ -66,11 +66,11 @@ describe('Public Offers API - Security & Data Sanitization', () => {
 
     const json = await res.json();
     expect(json.success).toBe(true);
-    expect(json.data.items.length).toBe(1);
+    expect(json.data.items.length).toBe(6);
 
     const item = json.data.items[0];
     expect(item.id).toBe('off_active_ig_1');
-    expect(item.name).toBe('2,000 Followers');
+    expect(item.name).toBe('Starter');
     expect(item.quantity).toBe(2000);
     expect(item.priceCents).toBe(1490);
     expect(item.currency).toBe('USD');

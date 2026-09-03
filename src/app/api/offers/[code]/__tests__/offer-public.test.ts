@@ -61,8 +61,8 @@ describe('Public Offer Landing API (/api/offers/[code])', () => {
     expect(json.data.couponCode).toBe('FLOW25');
     expect(json.data.discountPercent).toBe(25);
     expect(json.data.status).toBe('ACTIVE');
-    expect(json.data.packages).toHaveLength(1);
-    expect(json.data.packages[0].name).toBe('1000 Instagram Followers');
+    expect(json.data.packages).toHaveLength(6);
+    expect(json.data.packages[0].name).toBe('Starter');
 
     // Sensitive fields MUST NOT be exposed
     expect(json.data.packages[0].externalCheckoutUrl).toBeUndefined();
@@ -194,7 +194,9 @@ describe('Public Offer Landing API (/api/offers/[code])', () => {
       profileUrl: null,
       avatarUrl: 'https://example.com/historical-pic.jpg',
       maskedEmail: 'ret*****@example.com',
+      email: 'returning@example.com',
       previousPackageName: null,
+      service: null,
     });
     // Ensure no sensitive fields
     expect(json.data.customerEmail).toBeUndefined();
@@ -237,7 +239,9 @@ describe('Public Offer Landing API (/api/offers/[code])', () => {
       profileUrl: 'https://tiktok.com/@tiktokcreator',
       avatarUrl: null,
       maskedEmail: 'ret*****@example.com',
+      email: 'returning2@example.com',
       previousPackageName: null,
+      service: null,
     });
   });
 });

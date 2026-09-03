@@ -58,6 +58,17 @@ export const plans = pgTable('plans', {
   popular: boolean('popular').default(false).notNull(),
   enabled: boolean('enabled').default(true).notNull(),
   sortOrder: integer('sort_order').default(0).notNull(),
+
+  // Supplier Routing & Cost Ceiling
+  priorityServiceId: varchar('priority_service_id', { length: 255 }),
+  fallback1ServiceId: varchar('fallback1_service_id', { length: 255 }),
+  fallback2ServiceId: varchar('fallback2_service_id', { length: 255 }),
+  minimumGrossMarginPercent: integer('minimum_gross_margin_percent').default(40),
+  minimumGrossProfitCents: bigint('minimum_gross_profit_cents', { mode: 'number' }).default(500),
+  maxSupplierCostAbsoluteCents: bigint('max_supplier_cost_absolute_cents', { mode: 'number' }),
+  costCeilingEnabled: boolean('cost_ceiling_enabled').default(true).notNull(),
+  manualReviewEnabled: boolean('manual_review_enabled').default(false).notNull(),
+
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 });

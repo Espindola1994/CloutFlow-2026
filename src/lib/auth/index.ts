@@ -87,15 +87,52 @@ export function verifyAdminToken(token: string): boolean {
   }
 }
 
-export async function getSession(): Promise<AdminSession | null> {
-  const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME);
-  
-  if (!sessionCookie?.value) {
+export async function getSession(request?: Request): Promise<AdminSession | null> {
+  let token: string | undefined;
+
+  // 1. Try Cookie header
+  try {
+    const cookieStore = await cookies();
+    token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  } catch {
+    // Context without Next cookie store
+  }
+
+  // 2. Try Authorization: Bearer <token>
+  if (!token && request) {
+    const authHeader = request.headers.get('authorization');
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.substring(7).trim();
+    }
+  }
+
+  // 3. Fallback: Check if internal search job secret matches x-admin-secret or Authorization header
+  if (request) {
+    const customSecret = request.headers.get('x-admin-key') || request.headers.get('x-admin-secret');
+    const expectedJobSecret = process.env.SEARCH_JOB_SECRET;
+    const expectedAdminPass = process.env.ADMIN_PASSWORD;
+
+    if (customSecret && (
+      (expectedJobSecret && customSecret === expectedJobSecret) ||
+      (expectedAdminPass && customSecret === expectedAdminPass)
+    )) {
+      return {
+        user: {
+          id: 'admin_root',
+          name: 'Administrator',
+          email: 'admin@cloutflow.co',
+          role: 'SUPER_ADMIN',
+        },
+        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      };
+    }
+  }
+
+  if (!token) {
     return null;
   }
   
-  const isValid = verifyAdminToken(sessionCookie.value);
+  const isValid = verifyAdminToken(token);
   if (!isValid) {
     return null;
   }
@@ -111,16 +148,16 @@ export async function getSession(): Promise<AdminSession | null> {
   };
 }
 
-export async function requireUser(): Promise<AdminSessionUser> {
-  const result = await getSession();
+export async function requireUser(request?: Request): Promise<AdminSessionUser> {
+  const result = await getSession(request);
   if (!result) {
     throw new Error('Unauthorized');
   }
   return result.user;
 }
 
-export async function requireAdmin(): Promise<AdminSessionUser> {
-  const user = await requireUser();
+export async function requireAdmin(request?: Request): Promise<AdminSessionUser> {
+  const user = await requireUser(request);
   if (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN') {
     throw new Error('Forbidden');
   }

@@ -4,6 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OFFER_PLATFORM_THEMES, OfferPlatformTheme } from '@/components/offer-experience/theme';
+import { PLATFORM_SERVICES, CommercialPlatform, CommercialService } from '@/services/commercial-offer.resolver';
 import { OfferHeader } from '@/components/offer-experience/OfferHeader';
 import { OfferWelcomeStage } from '@/components/offer-experience/OfferWelcomeStage';
 import { OfferLookupStage } from '@/components/offer-experience/OfferLookupStage';
@@ -275,11 +276,15 @@ export default function OfferLandingPage() {
             json.data.previousTarget.previousPackageName ||
             'followers'
           ).toLowerCase();
-          const safeService = (
+          const candidateService = (
             rawService.includes('view') ? 'views' :
             rawService.includes('like') ? 'likes' :
             'followers'
           ) as ServiceKey;
+          const validServices = PLATFORM_SERVICES[safePlat as CommercialPlatform] || ['followers'];
+          const safeService = validServices.includes(candidateService as CommercialService)
+            ? candidateService
+            : (validServices[0] as ServiceKey);
           setTargetPlatform(safePlat);
           setTargetService(safeService);
           setCustomerEmail(String(json.data.previousTarget.email || ''));
@@ -937,9 +942,21 @@ export default function OfferLandingPage() {
           liveAvatarUrl={liveAvatarUrl}
           isLoadingLiveAvatar={isLoadingLiveAvatar}
           targetPlatform={targetPlatform}
-          setTargetPlatform={(p) => { setTargetPlatform(p); setLookupError(null); }}
+          setTargetPlatform={(p) => {
+            setTargetPlatform(p);
+            setLookupError(null);
+            const validServices = PLATFORM_SERVICES[p as CommercialPlatform] || ['followers', 'likes', 'views'];
+            if (!validServices.includes(targetService as CommercialService)) {
+              setTargetService(validServices[0] as ServiceKey);
+            }
+          }}
           targetService={targetService}
-          setTargetService={(s) => { setTargetService(s); setLookupError(null); }}
+          setTargetService={(s) => {
+            const validServices = PLATFORM_SERVICES[targetPlatform as CommercialPlatform] || ['followers', 'likes', 'views'];
+            const safeService = validServices.includes(s as CommercialService) ? s : (validServices[0] as ServiceKey);
+            setTargetService(safeService);
+            setLookupError(null);
+          }}
           emailValue={customerEmail}
           setEmailValue={setCustomerEmail}
           lookupInput={lookupInput}

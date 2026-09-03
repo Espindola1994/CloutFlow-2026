@@ -30,8 +30,8 @@ describe('Phase 2.9 — Public Offers & Sales Page Context Tests', () => {
         id: 'off_1',
         platform: 'instagram',
         service: 'followers',
-        name: '1,000 Instagram Followers',
-        slug: 'ig-fol-1k',
+        name: 'Starter',
+        slug: 'instagram-followers-starter',
         description: 'Starter boost',
         quantity: 1000,
         bonusQuantity: 100,
@@ -60,18 +60,18 @@ describe('Phase 2.9 — Public Offers & Sales Page Context Tests', () => {
 
     expect(res.status).toBe(200);
     expect(json.success).toBe(true);
-    expect(json.data.items).toHaveLength(1);
+    expect(json.data.items).toHaveLength(6);
 
     const item = json.data.items[0];
     expect(item.id).toBe('off_1');
-    expect(item.name).toBe('1,000 Instagram Followers');
+    expect(item.name).toBe('Starter');
     expect(item.quantity).toBe(1000);
     expect(item.bonusQuantity).toBe(100);
     expect(item.priceCents).toBe(990);
     expect(item.oldPriceCents).toBe(1990);
     expect(item.badge).toBe('STARTER');
     expect(item.benefits).toEqual(['Instant start', 'No password']);
-    expect(item.ctaText).toBe('BUY NOW');
+    expect(item.ctaText).toBe('Get Started Now');
 
     // Security check: sensitive internal fields must NOT leak
     expect(item.externalCheckoutUrl).toBeUndefined();

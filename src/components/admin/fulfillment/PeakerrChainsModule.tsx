@@ -53,9 +53,9 @@ const DEFAULT_CHAINS: Record<string, ChainConfig> = {
     service: "followers",
     variant: "standard",
     name: "Instagram Followers (Standard)",
-    primaryServiceId: "31249",
-    fallback1Id: "22042",
-    fallback2Id: "30428",
+    primaryServiceId: "31714",
+    fallback1Id: "31849",
+    fallback2Id: "31850",
     autoFallback: true,
   },
   "instagram:likes": {
@@ -63,9 +63,9 @@ const DEFAULT_CHAINS: Record<string, ChainConfig> = {
     service: "likes",
     variant: "standard",
     name: "Instagram Likes (Standard)",
-    primaryServiceId: "21054",
-    fallback1Id: "21055",
-    fallback2Id: "21056",
+    primaryServiceId: "31783",
+    fallback1Id: "31784",
+    fallback2Id: "31785",
     autoFallback: true,
   },
   "instagram:views": {
@@ -73,19 +73,9 @@ const DEFAULT_CHAINS: Record<string, ChainConfig> = {
     service: "views",
     variant: "standard",
     name: "Instagram Views (Standard)",
-    primaryServiceId: "15021",
-    fallback1Id: "15022",
-    fallback2Id: "15023",
-    autoFallback: true,
-  },
-  "instagram:comments": {
-    platform: "instagram",
-    service: "comments",
-    variant: "standard",
-    name: "Instagram Comments (Standard)",
-    primaryServiceId: "41001",
-    fallback1Id: "41002",
-    fallback2Id: "",
+    primaryServiceId: "26641",
+    fallback1Id: "16453",
+    fallback2Id: "14863",
     autoFallback: true,
   },
   "tiktok:followers": {
@@ -93,9 +83,9 @@ const DEFAULT_CHAINS: Record<string, ChainConfig> = {
     service: "followers",
     variant: "standard",
     name: "TikTok Followers (Standard)",
-    primaryServiceId: "51201",
-    fallback1Id: "51202",
-    fallback2Id: "",
+    primaryServiceId: "30159",
+    fallback1Id: "32771",
+    fallback2Id: "33105",
     autoFallback: true,
   },
   "tiktok:likes": {
@@ -103,9 +93,9 @@ const DEFAULT_CHAINS: Record<string, ChainConfig> = {
     service: "likes",
     variant: "standard",
     name: "TikTok Likes (Standard)",
-    primaryServiceId: "51301",
-    fallback1Id: "51302",
-    fallback2Id: "",
+    primaryServiceId: "31040",
+    fallback1Id: "30163",
+    fallback2Id: "31264",
     autoFallback: true,
   },
   "tiktok:views": {
@@ -113,59 +103,9 @@ const DEFAULT_CHAINS: Record<string, ChainConfig> = {
     service: "views",
     variant: "standard",
     name: "TikTok Views (Standard)",
-    primaryServiceId: "51401",
-    fallback1Id: "51402",
-    fallback2Id: "",
-    autoFallback: true,
-  },
-  "tiktok:comments": {
-    platform: "tiktok",
-    service: "comments",
-    variant: "standard",
-    name: "TikTok Comments (Standard)",
-    primaryServiceId: "51501",
-    fallback1Id: "51502",
-    fallback2Id: "",
-    autoFallback: true,
-  },
-  "youtube:followers": {
-    platform: "youtube",
-    service: "followers",
-    variant: "standard",
-    name: "YouTube Subscribers (Standard)",
-    primaryServiceId: "61201",
-    fallback1Id: "61202",
-    fallback2Id: "",
-    autoFallback: true,
-  },
-  "youtube:likes": {
-    platform: "youtube",
-    service: "likes",
-    variant: "standard",
-    name: "YouTube Likes (Standard)",
-    primaryServiceId: "61301",
-    fallback1Id: "61302",
-    fallback2Id: "",
-    autoFallback: true,
-  },
-  "youtube:views": {
-    platform: "youtube",
-    service: "views",
-    variant: "standard",
-    name: "YouTube Views (Standard)",
-    primaryServiceId: "61401",
-    fallback1Id: "61402",
-    fallback2Id: "",
-    autoFallback: true,
-  },
-  "youtube:comments": {
-    platform: "youtube",
-    service: "comments",
-    variant: "standard",
-    name: "YouTube Comments (Standard)",
-    primaryServiceId: "61501",
-    fallback1Id: "61502",
-    fallback2Id: "",
+    primaryServiceId: "32011",
+    fallback1Id: "29890",
+    fallback2Id: "31761",
     autoFallback: true,
   },
   "twitter:followers": {
@@ -173,9 +113,9 @@ const DEFAULT_CHAINS: Record<string, ChainConfig> = {
     service: "followers",
     variant: "standard",
     name: "X Followers (Standard)",
-    primaryServiceId: "71201",
-    fallback1Id: "71202",
-    fallback2Id: "",
+    primaryServiceId: "33882",
+    fallback1Id: "33608",
+    fallback2Id: "33883",
     autoFallback: true,
   },
   "twitter:likes": {
@@ -183,8 +123,8 @@ const DEFAULT_CHAINS: Record<string, ChainConfig> = {
     service: "likes",
     variant: "standard",
     name: "X Likes (Standard)",
-    primaryServiceId: "71301",
-    fallback1Id: "71302",
+    primaryServiceId: "33478",
+    fallback1Id: "33696",
     fallback2Id: "",
     autoFallback: true,
   },
@@ -193,19 +133,29 @@ const DEFAULT_CHAINS: Record<string, ChainConfig> = {
     service: "views",
     variant: "standard",
     name: "X Views (Standard)",
-    primaryServiceId: "71401",
-    fallback1Id: "71402",
-    fallback2Id: "",
+    primaryServiceId: "29863",
+    fallback1Id: "29859",
+    fallback2Id: "9276",
     autoFallback: true,
   },
-  "twitter:comments": {
-    platform: "twitter",
-    service: "comments",
+  "youtube:likes": {
+    platform: "youtube",
+    service: "likes",
     variant: "standard",
-    name: "X Comments (Standard)",
-    primaryServiceId: "71501",
-    fallback1Id: "71502",
-    fallback2Id: "",
+    name: "YouTube Likes (Standard)",
+    primaryServiceId: "33471",
+    fallback1Id: "33528",
+    fallback2Id: "33529",
+    autoFallback: true,
+  },
+  "youtube:views": {
+    platform: "youtube",
+    service: "views",
+    variant: "standard",
+    name: "YouTube Views (Standard)",
+    primaryServiceId: "33451",
+    fallback1Id: "30202",
+    fallback2Id: "30751",
     autoFallback: true,
   },
 };
@@ -1304,7 +1254,7 @@ export function PeakerrChainsModule() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 31249"
+                  placeholder="e.g. 31714"
                   value={chain.primaryServiceId}
                   onChange={(e) => handleUpdate(editingService, "primaryServiceId", e.target.value)}
                   className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
@@ -1317,7 +1267,7 @@ export function PeakerrChainsModule() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 22042"
+                  placeholder="e.g. 31849"
                   value={chain.fallback1Id}
                   onChange={(e) => handleUpdate(editingService, "fallback1Id", e.target.value)}
                   className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"
@@ -1330,7 +1280,7 @@ export function PeakerrChainsModule() {
                 </label>
                 <input
                   type="text"
-                  placeholder="e.g. 30428"
+                  placeholder="e.g. 31850"
                   value={chain.fallback2Id}
                   onChange={(e) => handleUpdate(editingService, "fallback2Id", e.target.value)}
                   className="w-full bg-white border border-[#D1D9DC] rounded-[6px] p-2 text-[#142126] font-mono text-xs focus:outline-none focus:border-[#0F8F8A]"

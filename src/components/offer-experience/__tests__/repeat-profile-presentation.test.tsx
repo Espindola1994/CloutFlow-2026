@@ -32,7 +32,7 @@ describe('RepeatProfilePresentation Component', () => {
     expect(img.getAttribute('src')).toBe('https://example.com/real-avatar.jpg');
     expect(screen.getByText('@guilhermeterraaa')).toBeDefined();
     expect(screen.getByText('gui*****@gmail.com')).toBeDefined();
-    expect(screen.getByText('Last Used')).toBeDefined();
+    expect(screen.getByText('Saved')).toBeDefined();
   });
 
   it('renders confirmed badge when isConfirmed is true', () => {

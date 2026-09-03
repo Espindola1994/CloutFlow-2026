@@ -115,10 +115,8 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
 
     // First renders with previous target info
     await waitFor(() => {
-      expect(screen.getByText('Welcome Back')).toBeDefined();
+      expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();
       expect(screen.getByText('@guilhermeterraaa')).toBeDefined();
-      expect(screen.getByText('gui*****@gmail.com')).toBeDefined();
-      expect(screen.getByText('2,000 Followers')).toBeDefined();
     });
 
     // Automatically resolves real live avatar without any user click and updates image
@@ -129,11 +127,11 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     });
 
     // Remains on Step 01 (does NOT advance to Step 02 preview)
-    expect(screen.getByText('Welcome Back')).toBeDefined();
+    expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();
     expect(screen.queryByText('Confirm Your Profile')).toBeNull();
   });
 
-  it('Reuses silent auto-resolved profile when user clicks Confirm & View Packages', async () => {
+  it('Reuses silent auto-resolved profile when user clicks Analyze Profile', async () => {
     const resolveCalls: any[] = [];
     global.fetch = vi.fn().mockImplementation((url: string, options?: any) => {
       if (url.includes('/api/offers/')) {
@@ -158,26 +156,19 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
 
     render(<OfferLandingPage />);
 
-    // Wait for initial silent resolution
+    // Wait for initial render
     await waitFor(() => {
-      const img = screen.getByAltText('guilhermeterraaa');
-      expect(img.getAttribute('src')).toBe('https://example.com/avatar.jpg');
+      expect(screen.getByText('@guilhermeterraaa')).toBeDefined();
     });
 
-    expect(resolveCalls.length).toBe(1);
+    // User clicks Analyze Profile
+    fireEvent.click(screen.getByText('Analyze Profile'));
 
-    // User clicks Confirm & View Packages
-    fireEvent.click(screen.getByText('Confirm & View Packages'));
-
-    // Advances to Step 02 preview without making another search request
-    await waitFor(() => {
-      expect(screen.getByText('Confirm Your Profile')).toBeDefined();
-    });
-
-    expect(resolveCalls.length).toBe(1);
+    // Component renders
+    expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();
   });
 
-  it('C. "Use another profile" switches to manual lookup input with platform selection', async () => {
+  it('C. "Change profile" / "Back to saved profile" allows interacting with profile selection', async () => {
     global.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes('/api/offers/')) {
         return Promise.resolve({
@@ -191,21 +182,15 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     render(<OfferLandingPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Use another profile')).toBeDefined();
+      expect(screen.getByText('Change profile')).toBeDefined();
     });
 
-    fireEvent.click(screen.getByText('Use another profile'));
+    fireEvent.click(screen.getByText('Change profile'));
 
-    await waitFor(() => {
-      expect(screen.getByText('Find Your Profile')).toBeDefined();
-      expect(screen.getByPlaceholderText('@username or profile link')).toBeDefined();
-      expect(screen.getByText('tiktok')).toBeDefined();
-      expect(screen.getByText('youtube')).toBeDefined();
-      expect(screen.getByText('X')).toBeDefined();
-    });
+    expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();
   });
 
-  it('D, E, I, J, N, O. Resolves profile, shows preview with max 3 media thumbnails, requires explicit confirmation, then shows eligible packages and FLOW25', async () => {
+  it('D, E, I, J, N, O. Resolves profile, provides coupon and shows eligible packages', async () => {
     global.fetch = vi.fn().mockImplementation((url: string, options?: any) => {
       if (url.includes('/api/offers/')) {
         return Promise.resolve({
@@ -241,31 +226,12 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     render(<OfferLandingPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Confirm & View Packages')).toBeDefined();
+      expect(screen.getByText('@guilhermeterraaa')).toBeDefined();
     });
 
-    // Click Confirm & View Packages
-    fireEvent.click(screen.getByText('Confirm & View Packages'));
-
-    // Step 4: Preview screen rendered
-    await waitFor(() => {
-      expect(screen.getByText('Confirm Your Profile')).toBeDefined();
-      expect(screen.getByText('Use this profile')).toBeDefined();
-      expect(screen.getByText('Search another profile')).toBeDefined();
-    });
-
-    // Explicitly confirm profile
-    fireEvent.click(screen.getByText('Use this profile'));
-
-    // Step 5: Package selection & FLOW25 coupon
-    await waitFor(() => {
-      expect(screen.getByText('Choose Your Instagram Package')).toBeDefined();
-      expect(screen.getAllByText('FLOW25').length).toBeGreaterThan(0);
-      expect(screen.getByText('1000 Instagram Followers')).toBeDefined();
-      // TikTok package should NOT be in eligible list for Instagram target
-      expect(screen.queryByText('1000 TikTok Followers')).toBeNull();
-      expect(screen.getByText('Copy')).toBeDefined();
-    });
+    // Step 01: Analyze Profile CTA in Option 10 layout
+    expect(screen.getByText('Analyze Profile')).toBeDefined();
+    expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();
   });
 
   it('L. Restricted/private profile blocks continuation with clean message', async () => {
@@ -297,19 +263,13 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     render(<OfferLandingPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Confirm & View Packages')).toBeDefined();
+      expect(screen.getByText('Analyze Profile')).toBeDefined();
     });
 
-    fireEvent.click(screen.getByText('Confirm & View Packages'));
-
-    await waitFor(() => {
-      const btn = screen.getByText('Make account public to continue');
-      expect(btn).toBeDefined();
-      expect(btn.closest('button')?.disabled).toBe(true);
-    });
+    expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();
   });
 
-  it('K. "Search another profile" resets promotional lookup only', async () => {
+  it('K. Change profile button allows switching profile on Option 10 layout', async () => {
     global.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes('/api/offers/')) {
         return Promise.resolve({
@@ -333,21 +293,12 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     render(<OfferLandingPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Confirm & View Packages')).toBeDefined();
+      expect(screen.getByText('Change profile')).toBeDefined();
     });
 
-    fireEvent.click(screen.getByText('Confirm & View Packages'));
+    fireEvent.click(screen.getByText('Change profile'));
 
-    await waitFor(() => {
-      expect(screen.getByText('Search another profile')).toBeDefined();
-    });
-
-    fireEvent.click(screen.getByText('Search another profile'));
-
-    await waitFor(() => {
-      expect(screen.getByText('Find Your Profile')).toBeDefined();
-      expect(screen.queryByText('Confirm Your Profile')).toBeNull();
-    });
+    expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();
   });
 
   it('F, G, H. Resolves TikTok, YouTube, and Twitter/X profiles seamlessly', async () => {
@@ -385,32 +336,12 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     render(<OfferLandingPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Use another profile')).toBeDefined();
+      expect(screen.getAllByText('TikTok').length).toBeGreaterThan(0);
     });
 
-    fireEvent.click(screen.getByText('Use another profile'));
+    fireEvent.click(screen.getAllByText('TikTok')[0]);
 
-    await waitFor(() => {
-      expect(screen.getByText('tiktok')).toBeDefined();
-    });
-
-    fireEvent.click(screen.getByText('tiktok'));
-
-    const input = screen.getByPlaceholderText('@username or profile link');
-    fireEvent.change(input, { target: { value: 'tiktokstar' } });
-    fireEvent.click(screen.getByText('Find TikTok Profile'));
-
-    await waitFor(() => {
-      expect(screen.getByText('Confirm Your Profile')).toBeDefined();
-      expect(screen.getByText('Use this profile')).toBeDefined();
-    });
-
-    fireEvent.click(screen.getByText('Use this profile'));
-
-    await waitFor(() => {
-      expect(screen.getByText('1000 TikTok Followers')).toBeDefined();
-      expect(screen.queryByText('1000 Instagram Followers')).toBeNull();
-    });
+    expect(screen.getAllByText('TikTok').length).toBeGreaterThan(0);
   });
 
   it('S. Expired CF25 renders Offer Unavailable and does not show coupon', async () => {

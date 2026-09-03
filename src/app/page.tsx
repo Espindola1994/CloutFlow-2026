@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { useFunnelStore } from "@/stores/funnel.store";
 import GrowthPackageBuilder from "@/components/growth-package-builder";
 import { Platform, Service } from "@/config/service-sales.config";
+import { PLATFORM_SERVICES, CommercialPlatform, CommercialService } from "@/services/commercial-offer.resolver";
 import { PublicOfferItem } from "@/components/sales/OfferCard";
 import { PlanSelector } from "@/components/funnel/plan-selector";
 import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
@@ -65,9 +66,11 @@ export default function HomePage() {
   const hasTarget = targetCompatibleWithService;
 
   const changeProduct = (next: Service) => {
-    if (next === service) return;
-    setSelectedService(next);
-    setService(next);
+    const validServices = PLATFORM_SERVICES[platform] || ['followers', 'likes', 'views'];
+    const safeService = validServices.includes(next as CommercialService) ? next : (validServices[0] as Service);
+    if (safeService === service) return;
+    setSelectedService(safeService);
+    setService(safeService);
     setCheckoutError(null);
     setPlansConfirmed(false);
   };
@@ -76,6 +79,12 @@ export default function HomePage() {
     if (next === platform) return;
     setPlatformState(next);
     setPlatform(next);
+    const validServices = PLATFORM_SERVICES[next] || ['followers', 'likes', 'views'];
+    if (!validServices.includes(service as CommercialService)) {
+      const fallback = validServices[0] as Service;
+      setSelectedService(fallback);
+      setService(fallback);
+    }
     setCheckoutError(null);
     setPlansConfirmed(false);
   };

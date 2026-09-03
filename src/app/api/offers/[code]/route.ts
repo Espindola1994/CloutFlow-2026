@@ -6,6 +6,7 @@ import { eq, asc, desc } from 'drizzle-orm';
 import { getEffectiveOfferStatus, formatOfferDateTime } from '@/services/offers/offer-status';
 import { PERFECTPAY_POST_PURCHASE_COUPON } from '@/lib/coupons';
 import { maskEmail } from '@/lib/email/mask';
+import { resolveCommercialCardsForService } from '@/services/commercial-offer.resolver';
 
 export async function GET(
   request: Request,
@@ -150,32 +151,40 @@ export async function GET(
       console.warn('[PublicOfferAPI] previousTarget evaluation warning:', targetErr);
     }
 
-    const activePackages = await db.query.offers.findMany({
+    const activeOffers = await db.query.offers.findMany({
       where: eq(offers.active, true),
       orderBy: [asc(offers.sortOrder), asc(offers.priceCents)],
-      limit: 24,
     }).catch((err) => {
       console.error('[PublicOfferAPI] offers query error:', err);
       return [];
     });
 
+    // Resolve unified packages for Step 3 surface
+    // Determine platform & service context from previousTarget if available, or resolve all canonical platforms
+    const targetPlatform = previousTarget?.platform || 'instagram';
+    const targetService = previousTarget?.service || 'followers';
+
+    const resolvedStep3Cards = resolveCommercialCardsForService(
+      targetPlatform,
+      targetService,
+      activeOffers,
+      'offer_step3'
+    );
+
     // Sanitize packages: strip sensitive backend fields, keep only public display & selection data
-    const sanitizedPackages = activePackages.map((p) => {
-      const meta = (p.metadata as Record<string, any>) || {};
-      return {
-        id: p.id,
-        platform: p.platform,
-        service: p.service,
-        name: p.name,
-        slug: p.slug,
-        quantity: p.quantity,
-        bonusQuantity: p.bonusQuantity || 0,
-        priceCents: Number(p.priceCents),
-        currency: p.currency || 'USD',
-        badge: p.badge || meta.badge || null,
-        isPopular: p.isPopular || Boolean(meta.isPopular || meta.featured),
-      };
-    });
+    const sanitizedPackages = resolvedStep3Cards.map((rc, idx) => ({
+      id: rc.id || `step3-${rc.platform}-${rc.service}-${rc.plan}`,
+      platform: rc.platform,
+      service: rc.service,
+      name: rc.planDisplayName,
+      slug: `${rc.platform}-${rc.service}-${rc.plan}`,
+      quantity: rc.quantity,
+      bonusQuantity: rc.bonusQuantity,
+      priceCents: rc.priceCents,
+      currency: 'USD',
+      badge: rc.badge,
+      isPopular: idx === 3 || idx === 5,
+    }));
 
     // 5. Build Safe Public Response (NO PII, NO DB IDs, NO INTERNAL KEYS)
     const expiresAt = customerOffer.expiresAt ? new Date(customerOffer.expiresAt).toISOString() : null;

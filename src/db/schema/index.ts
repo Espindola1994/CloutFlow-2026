@@ -12,3 +12,4 @@ export * from './fulfillment-chains';
 export * from './lifecycle';
 export * from './crm';
 export * from './email-inbox';
+export * from './supplier-routing';

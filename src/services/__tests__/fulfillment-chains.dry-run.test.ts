@@ -46,9 +46,9 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
     };
 
     const mockServices = [
-      { providerServiceId: '31249', priority: 1, minQuantity: 10, maxQuantity: 1000000, active: true },
-      { providerServiceId: '22042', priority: 2, minQuantity: 10, maxQuantity: 1000000, active: true },
-      { providerServiceId: '30428', priority: 3, minQuantity: 10, maxQuantity: 1000000, active: true },
+      { providerServiceId: '31714', priority: 1, minQuantity: 10, maxQuantity: 1000000, active: true },
+      { providerServiceId: '31849', priority: 2, minQuantity: 10, maxQuantity: 1000000, active: true },
+      { providerServiceId: '31850', priority: 3, minQuantity: 10, maxQuantity: 1000000, active: true },
     ];
 
     const mockOrder = {
@@ -71,8 +71,8 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
     expect(res.success).toBe(true);
     if (res.success) {
       expect(res.action).toBe('DRY_RUN_READY');
-      expect(res.primaryServiceId).toBe('31249');
-      expect(res.fallbacks).toEqual(['22042', '30428']);
+      expect(res.primaryServiceId).toBe('31714');
+      expect(res.fallbacks).toEqual(['31849', '31850']);
       expect(res.chainServicesEvaluation[0].priority).toBe(1);
       expect(res.chainServicesEvaluation[1].priority).toBe(2);
       expect(res.chainServicesEvaluation[2].priority).toBe(3);
@@ -101,7 +101,7 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
     };
 
     const mockServices = [
-      { providerServiceId: '31249', priority: 1, minQuantity: 10, maxQuantity: 1000000, active: true },
+      { providerServiceId: '31714', priority: 1, minQuantity: 10, maxQuantity: 1000000, active: true },
     ];
 
     (db.query.orders.findMany as any).mockResolvedValue([mockOrder]);
@@ -332,12 +332,12 @@ describe('Phase 3.0B — Peakerr Fulfillment Chains Validation & Dry Run', () =>
 
   it('R) Peakerr Client Dry Run executes ZERO live HTTP calls', async () => {
     const dryRunResult = await peakerrClient.createOrderDryRun({
-      service: '31249',
+      service: '31714',
       link: 'https://instagram.com/anaclaramaderite',
       quantity: 2000,
     });
     expect(dryRunResult.dryRun).toBe(true);
-    expect(dryRunResult.request.service).toBe('31249');
+    expect(dryRunResult.request.service).toBe('31714');
     expect(dryRunResult.request.quantity).toBe(2000);
   });
 });

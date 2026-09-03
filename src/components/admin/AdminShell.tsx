@@ -8,6 +8,7 @@ import { Menu } from "lucide-react";
 import { AdminSidebar, AdminTab } from "./AdminSidebar";
 import { DashboardOverview } from "./dashboard/DashboardOverview";
 import { OrdersModule } from "./orders/OrdersModule";
+import { SupplierRoutingControlCenter } from "./supplier-routing/SupplierRoutingControlCenter";
 import { DropShieldModule } from "./dropshield/DropShieldModule";
 import { GrowthModule } from "./growth/GrowthModule";
 import { PeakerrChainsModule } from "./fulfillment/PeakerrChainsModule";
@@ -33,6 +34,7 @@ import {
 const VALID_TABS: AdminTab[] = [
   "dashboard",
   "orders",
+  "supplier-routing",
   "dropshield",
   "fulfillment",
   "growth",
@@ -98,6 +100,8 @@ function AdminShellContent() {
         return <DashboardOverview onNavigateToOrders={() => handleSelectTab("orders")} />;
       case "orders":
         return <OrdersModule />;
+      case "supplier-routing":
+        return <SupplierRoutingControlCenter />;
       case "dropshield":
         return <DropShieldModule monitoredProfiles={monitoredProfiles} />;
       case "fulfillment":

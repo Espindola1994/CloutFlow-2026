@@ -40,6 +40,7 @@ import tiktokIcon from '@/assets/home-icons-vector/tiktok.svg';
 import twitterIcon from '@/assets/home-icons-vector/twitter.svg';
 import youtubeIcon from '@/assets/home-icons-vector/youtube.svg';
 import rocketArt from '@/assets/offer-option10-rocket-social.png';
+import { PLATFORM_SERVICES, CommercialPlatform, CommercialService } from '@/services/commercial-offer.resolver';
 import type { OfferPlatformTheme } from './theme';
 import type { SanitizedPackage } from './OfferPackageStage';
 
@@ -192,8 +193,20 @@ export function OfferOption10Experience(props: Props) {
   } = props;
 
   const cfSelectGoal = (service: ServiceKey) => {
+    const validServices = PLATFORM_SERVICES[targetPlatform as CommercialPlatform] || ['followers', 'likes', 'views'];
+    if (!validServices.includes(service as CommercialService)) return;
     setCfGoalSelection(service);
     setTargetService(service);
+  };
+
+  const handleNetworkSelection = (plat: PlatformKey) => {
+    setTargetPlatform(plat);
+    const validServices = PLATFORM_SERVICES[plat as CommercialPlatform] || ['followers', 'likes', 'views'];
+    if (!validServices.includes(targetService as CommercialService)) {
+      const safe = validServices[0] as ServiceKey;
+      setCfGoalSelection(safe);
+      setTargetService(safe);
+    }
   };
 
 
@@ -348,7 +361,7 @@ export function OfferOption10Experience(props: Props) {
                   <h1>Ready to Take Your Growth <em>Further?</em></h1>
                   <p>Your 25% reward is ready.<br />Keep growing with CloutFlow.</p>
                 </div>
-                <Image className="cf-o10-rocket-image" src={rocketArt} alt="" priority />
+                <Image className="cf-o10-rocket-image" src={rocketArt} alt="" width={72} height={72} priority />
               </div>
 
               <div className="cf-o10-goal-builder" data-network={targetPlatform}>
@@ -362,45 +375,63 @@ export function OfferOption10Experience(props: Props) {
                   </div>
 
                   <div className="cf-o10-gb-goals">
-                    <button
-                      type="button"
-                      data-service="followers"
-                      data-platform={targetPlatform}
-                      aria-pressed={cfGoalSelection === 'followers'}
-                      onClick={() => cfSelectGoal('followers')}
-                      onTouchEnd={() => cfSelectGoal('followers')}
-                      className={`cf-o10-gb-goal-card ${cfGoalSelection === 'followers' ? 'is-active' : ''}`}
-                    >
-                      <span className="cf-o10-gb-goal-icon cf-o10-gb-goal-icon-reference"><img src={`/offer/goal-followers-${targetPlatform}.png`} alt="" /></span>
-                      <strong>Followers</strong>
-                      {cfGoalSelection === 'followers' && <b className="cf-o10-gb-check"><Check /></b>}
-                    </button>
-                    <button
-                      type="button"
-                      data-service="likes"
-                      data-platform={targetPlatform}
-                      aria-pressed={cfGoalSelection === 'likes'}
-                      onClick={() => cfSelectGoal('likes')}
-                      onTouchEnd={() => cfSelectGoal('likes')}
-                      className={`cf-o10-gb-goal-card ${cfGoalSelection === 'likes' ? 'is-active' : ''}`}
-                    >
-                      <span className="cf-o10-gb-goal-icon cf-o10-gb-goal-icon-reference"><img src={`/offer/goal-likes-${targetPlatform}.png`} alt="" /></span>
-                      <strong>Likes</strong>
-                      {cfGoalSelection === 'likes' && <b className="cf-o10-gb-check"><Check /></b>}
-                    </button>
-                    <button
-                      type="button"
-                      data-service="views"
-                      data-platform={targetPlatform}
-                      aria-pressed={cfGoalSelection === 'views'}
-                      onClick={() => cfSelectGoal('views')}
-                      onTouchEnd={() => cfSelectGoal('views')}
-                      className={`cf-o10-gb-goal-card ${cfGoalSelection === 'views' ? 'is-active' : ''}`}
-                    >
-                      <span className="cf-o10-gb-goal-icon cf-o10-gb-goal-icon-reference"><img src={`/offer/goal-views-${targetPlatform}.png`} alt="" /></span>
-                      <strong>Views</strong>
-                      {cfGoalSelection === 'views' && <b className="cf-o10-gb-check"><Check /></b>}
-                    </button>
+                    {(PLATFORM_SERVICES[targetPlatform as CommercialPlatform] || ['followers', 'likes', 'views']).map((serviceKey) => {
+                      if (serviceKey === 'followers') {
+                        return (
+                          <button
+                            key="followers"
+                            type="button"
+                            data-service="followers"
+                            data-platform={targetPlatform}
+                            aria-pressed={cfGoalSelection === 'followers'}
+                            onClick={() => cfSelectGoal('followers')}
+                            onTouchEnd={() => cfSelectGoal('followers')}
+                            className={`cf-o10-gb-goal-card ${cfGoalSelection === 'followers' ? 'is-active' : ''}`}
+                          >
+                            <span className="cf-o10-gb-goal-icon cf-o10-gb-goal-icon-reference"><img src={`/offer/goal-followers-${targetPlatform}.png`} alt="" /></span>
+                            <strong>Followers</strong>
+                            {cfGoalSelection === 'followers' && <b className="cf-o10-gb-check"><Check /></b>}
+                          </button>
+                        );
+                      }
+                      if (serviceKey === 'likes') {
+                        return (
+                          <button
+                            key="likes"
+                            type="button"
+                            data-service="likes"
+                            data-platform={targetPlatform}
+                            aria-pressed={cfGoalSelection === 'likes'}
+                            onClick={() => cfSelectGoal('likes')}
+                            onTouchEnd={() => cfSelectGoal('likes')}
+                            className={`cf-o10-gb-goal-card ${cfGoalSelection === 'likes' ? 'is-active' : ''}`}
+                          >
+                            <span className="cf-o10-gb-goal-icon cf-o10-gb-goal-icon-reference"><img src={`/offer/goal-likes-${targetPlatform}.png`} alt="" /></span>
+                            <strong>Likes</strong>
+                            {cfGoalSelection === 'likes' && <b className="cf-o10-gb-check"><Check /></b>}
+                          </button>
+                        );
+                      }
+                      if (serviceKey === 'views') {
+                        return (
+                          <button
+                            key="views"
+                            type="button"
+                            data-service="views"
+                            data-platform={targetPlatform}
+                            aria-pressed={cfGoalSelection === 'views'}
+                            onClick={() => cfSelectGoal('views')}
+                            onTouchEnd={() => cfSelectGoal('views')}
+                            className={`cf-o10-gb-goal-card ${cfGoalSelection === 'views' ? 'is-active' : ''}`}
+                          >
+                            <span className="cf-o10-gb-goal-icon cf-o10-gb-goal-icon-reference"><img src={`/offer/goal-views-${targetPlatform}.png`} alt="" /></span>
+                            <strong>Views</strong>
+                            {cfGoalSelection === 'views' && <b className="cf-o10-gb-check"><Check /></b>}
+                          </button>
+                        );
+                      }
+                      return null;
+                    })}
                   </div>
                 </section>
 
@@ -421,7 +452,7 @@ export function OfferOption10Experience(props: Props) {
                         data-network={network.key}
                         aria-pressed={targetPlatform === network.key}
                         onClick={() => {
-                          setTargetPlatform(network.key);
+                          handleNetworkSelection(network.key);
                         }}
                         className={`cf-o10-gb-network ${targetPlatform === network.key ? 'is-active' : ''}`}
                       >
@@ -462,7 +493,7 @@ export function OfferOption10Experience(props: Props) {
                         {avatar ? (
                           <img
                             src={avatar}
-                            alt={`@${username}`}
+                            alt={username || "profile avatar"}
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           />
                         ) : (
@@ -600,14 +631,14 @@ export function OfferOption10Experience(props: Props) {
                   <h1>{flowStep === 'PREVIEW' ? <>Profile <em>found!</em></> : <>Find your <em>profile.</em></>}</h1>
                   <p>{flowStep === 'PREVIEW' ? 'Confirm the destination before continuing.' : 'Choose a network and enter your public profile.'}</p>
                 </div>
-                <Image className="cf-o10-rocket-image" src={rocketArt} alt="" priority />
+                <Image className="cf-o10-rocket-image" src={rocketArt} alt="" width={72} height={72} priority />
               </div>
 
               {flowStep !== 'PREVIEW' && (
                 <>
                   <div className="cf-o10-label">Choose your goal</div>
                   <div className="cf-o10-service-quick">
-                    {(['followers','likes','views'] as const).map((service) => (
+                    {(PLATFORM_SERVICES[targetPlatform as CommercialPlatform] || ['followers', 'likes', 'views']).map((service) => (
                       <button
                         type="button"
                         key={service}
@@ -622,7 +653,7 @@ export function OfferOption10Experience(props: Props) {
                   <div className="cf-o10-label">Choose your network</div>
                   <div className="cf-o10-net-grid">
                     {NETWORKS.map((n) => (
-                      <button key={n.key} type="button" className={targetPlatform === n.key ? 'active' : ''} disabled={flowStep === 'LOADING'} onClick={() => setTargetPlatform(n.key)}>
+                      <button key={n.key} type="button" className={targetPlatform === n.key ? 'active' : ''} disabled={flowStep === 'LOADING'} onClick={() => handleNetworkSelection(n.key)}>
                         <Image src={n.icon} alt="" width={20} height={20} />
                         <span>{n.label}</span>
                         {targetPlatform === n.key && <BadgeCheck />}
@@ -698,14 +729,13 @@ export function OfferOption10Experience(props: Props) {
               const serviceLabel = pkg.service.charAt(0).toUpperCase() + pkg.service.slice(1);
               const isBestValue = index === 3 || index === 5;
               const planNames = ['Starter', 'Boost', 'Growth', 'Pro', 'Elite', 'Max'];
-                const currentPlanPrices = [14.90, 29.90, 39.90, 69.90, 119.90, 199.90];
-                const planFollowerQuantities = [2000, 6000, 10000, 20000, 40000, 100000];
-                const planFollowerQuantity = planFollowerQuantities[index] ?? pkg.quantity;
-                const comparisonPlanPrices = [19.90, 44.90, 54.90, 99.90, 179.90, 319.90];
-                const currentPlanPrice = currentPlanPrices[index] ?? (pkg.priceCents / 100);
-                const comparisonPlanPrice = comparisonPlanPrices[index] ?? (currentPlanPrice * 1.25);
-                const planDiscountPercent = Math.round(((comparisonPlanPrice - currentPlanPrice) / comparisonPlanPrice) * 100);
-              const planName = planNames[index] || `Plan ${index + 1}`;
+              const planQuantity = pkg.quantity;
+              const currentPlanPrice = pkg.priceCents / 100;
+              const comparisonPlanPrice = pkg.oldPriceCents ? pkg.oldPriceCents / 100 : Number((currentPlanPrice * 1.35).toFixed(2));
+              const planDiscountPercent = comparisonPlanPrice > currentPlanPrice
+                ? Math.round(((comparisonPlanPrice - currentPlanPrice) / comparisonPlanPrice) * 100)
+                : 25;
+              const planName = pkg.name || planNames[index] || `Plan ${index + 1}`;
               const planIconKey = ['starter', 'growth', 'pro', 'authority', 'influencer', 'scale'][index] || 'starter';
 
               return (
@@ -755,10 +785,10 @@ export function OfferOption10Experience(props: Props) {
                     </b>
                   </div>
 
-                  <h3 className="cf-o10-package-ref-qty">{planFollowerQuantity.toLocaleString('en-US')} {serviceLabel}</h3>
+                  <h3 className="cf-o10-package-ref-qty">{planQuantity.toLocaleString('en-US')} {serviceLabel}</h3>
 
                   <div className="cf-o10-package-ref-bonus-slot">
-                    {index === 0 ? (
+                    {index === 0 || !pkg.bonusQuantity ? (
                       <div className="cf-o10-package-ref-no-bonus">
                         <span aria-hidden="true">×</span> No bonus included
                       </div>
@@ -798,7 +828,7 @@ export function OfferOption10Experience(props: Props) {
                     }}
                   >
                     <span className="cf-o10-cta-default">
-                      Get {(planFollowerQuantity + (pkg.bonusQuantity || 0)).toLocaleString('en-US')} {serviceLabel} <ArrowRight />
+                      Get {(planQuantity + (pkg.bonusQuantity || 0)).toLocaleString('en-US')} {serviceLabel} <ArrowRight />
                     </span>
                     <span className="cf-o10-cta-hover">
                       Selected <Check />

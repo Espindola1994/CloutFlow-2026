@@ -15,6 +15,7 @@ export interface SanitizedPackage {
   quantity: number;
   bonusQuantity: number;
   priceCents: number;
+  oldPriceCents?: number | null;
   currency: string;
   badge?: string | null;
   isPopular?: boolean;

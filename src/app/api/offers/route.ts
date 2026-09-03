@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { offers } from '@/db/schema';
 import { and, eq, asc } from 'drizzle-orm';
+import { resolveCommercialCardsForService } from '@/services/commercial-offer.resolver';
 
 export async function GET(request: Request) {
   try {
@@ -16,36 +17,38 @@ export async function GET(request: Request) {
       );
     }
 
-    const items = await db.query.offers.findMany({
-      where: and(
-        eq(offers.active, true),
-        eq(offers.platform, platform),
-        eq(offers.service, service)
-      ),
-      orderBy: [asc(offers.sortOrder), asc(offers.priceCents)],
-      limit: 6,
-    });
+    // Fetch existing active offers from database
+    const items = await db.query.offers
+      .findMany({
+        where: and(
+          eq(offers.active, true),
+          eq(offers.platform, platform),
+          eq(offers.service, service)
+        ),
+        orderBy: [asc(offers.sortOrder), asc(offers.priceCents)],
+      })
+      .catch(() => []);
 
-    // Strip sensitive internal fields: NO externalCheckoutUrl, NO productCode, NO planCode
-    const publicOffers = items.map((o) => {
-      const meta = (o.metadata as Record<string, any>) || {};
-      return {
-        id: o.id,
-        name: o.name,
-        slug: o.slug,
-        description: o.description || null,
-        quantity: o.quantity,
-        bonusQuantity: o.bonusQuantity || 0,
-        priceCents: Number(o.priceCents),
-        oldPriceCents: o.oldPriceCents ? Number(o.oldPriceCents) : null,
-        currency: o.currency,
-        badge: o.badge || meta.badge || null,
-        isPopular: o.isPopular || Boolean(meta.isPopular || meta.featured),
-        sortOrder: o.sortOrder,
-        benefits: Array.isArray(meta.benefits) ? meta.benefits : null,
-        ctaText: typeof meta.ctaText === 'string' ? meta.ctaText : null,
-      };
-    });
+    // Resolve via unified resolver for Home surface
+    const resolvedCards = resolveCommercialCardsForService(platform, service, items, 'home');
+
+    // Strip internal/sensitive identifiers: NO productCode, NO planCode, NO checkoutUrl in public response
+    const publicOffers = resolvedCards.map((rc, idx) => ({
+      id: rc.id || `canonical-${rc.platform}-${rc.service}-${rc.plan}`,
+      name: rc.planDisplayName,
+      slug: `${rc.platform}-${rc.service}-${rc.plan}`,
+      description: rc.subtitle || null,
+      quantity: rc.quantity,
+      bonusQuantity: rc.bonusQuantity,
+      priceCents: rc.priceCents,
+      oldPriceCents: rc.compareAtPriceCents,
+      currency: 'USD',
+      badge: rc.badge,
+      isPopular: idx === 3 || idx === 5,
+      sortOrder: idx + 1,
+      benefits: rc.features,
+      ctaText: 'Get Started Now',
+    }));
 
     return NextResponse.json({
       success: true,

@@ -255,6 +255,25 @@ export class PeakerrClient {
   }
 
   /**
+   * Fetches the current live details of a specific service from Peakerr catalog.
+   */
+  public async getServiceDetails(serviceId: string | number): Promise<PeakerrService | { error: string }> {
+    const targetId = String(serviceId).trim();
+    const services = await this.getServices();
+    if ('error' in services) {
+      return services;
+    }
+
+    const found = services.find((s) => String(s.service).trim() === targetId);
+    if (!found) {
+      return { error: `SERVICE_NOT_FOUND: Service ${targetId} not found in Peakerr live catalog.` };
+    }
+
+    return found;
+  }
+
+
+  /**
    * Official createRefill (action=refill, order=<orderId>).
    */
   public async createRefill(orderId: string | number): Promise<PeakerrRefillResponse> {

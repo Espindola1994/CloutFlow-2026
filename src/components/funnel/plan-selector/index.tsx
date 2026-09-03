@@ -64,18 +64,8 @@ const faqIcons = [
 ];
 
 
-const packageQuantities: Record<string, number[]> = {
-  followers: [2000, 6000, 10000, 20000, 40000, 100000, 200000, 400000],
-  likes: [1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000],
-  views: [5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000],
-  comments: [100, 250, 500, 1000, 2500, 5000, 10000, 25000],
-};
-
 const offerStep2PlanNames = ["Starter", "Boost", "Growth", "Pro", "Elite", "Max"] as const;
 const offerStep2IconKeys = ["starter", "growth", "pro", "authority", "influencer", "scale"] as const;
-const offerStep2Prices = [14.90, 29.90, 39.90, 69.90, 119.90, 199.90];
-const offerStep2ComparePrices = [19.90, 44.90, 54.90, 99.90, 179.90, 319.90];
-const offerStep2DefaultBonuses = [0, 200, 500, 1000, 2000, 5000];
 
 function serviceLabel(service:string){
   if(service==="subscribers") return "Subscribers";
@@ -93,20 +83,24 @@ export function PlanSelector({ plans, username, platform, service, hasTarget, on
   const metric=useMemo(()=>serviceLabel(service),[service]);
   const slots=useMemo(()=>offerStep2PlanNames.map((title,index)=>{
     const live=plans[index];
-    const quantity = Number(live?.quantity || packageQuantities[service]?.[index] || packageQuantities.followers[index]);
-    const bonusQuantity = Number(live?.bonusQuantity ?? offerStep2DefaultBonuses[index] ?? 0);
+    const quantity = Number(live?.quantity || 0);
+    const bonusQuantity = Number(live?.bonusQuantity || 0);
+    const currentPrice = live?.priceCents ? Number(live.priceCents) / 100 : 0;
+    const comparePrice = live?.oldPriceCents ? Number(live.oldPriceCents) / 100 : (currentPrice > 0 ? Number((currentPrice * 1.35).toFixed(2)) : 0);
+    const discountPercent = comparePrice > currentPrice ? Math.round(((comparePrice - currentPrice) / comparePrice) * 100) : 25;
+
     return {
       id: live?.id || null,
-      title,
+      title: live?.name || title,
       iconKey: offerStep2IconKeys[index],
       quantity,
       bonusQuantity,
-      currentPrice: offerStep2Prices[index],
-      comparePrice: offerStep2ComparePrices[index],
-      discountPercent: Math.round(((offerStep2ComparePrices[index] - offerStep2Prices[index]) / offerStep2ComparePrices[index]) * 100),
+      currentPrice,
+      comparePrice,
+      discountPercent,
       isBestValue: index === 3 || index === 5,
     };
-  }),[plans,service]);
+  }),[plans]);
   const select=(id:string|null)=>{ if(!id) return; setPlan(id); void onSelectPlan?.(id); };
 
   return <>

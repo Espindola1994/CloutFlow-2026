@@ -6,6 +6,15 @@ import crypto from 'crypto';
 import { z } from 'zod';
 import { emitLifecycleEvent } from '@/services/lifecycle/event.service';
 import { getEffectiveOfferStatus } from '@/services/offers/offer-status';
+import { 
+  isValidPlatformService, 
+  validateCheckoutUrl,
+  CommercialPlatform, 
+  CommercialService,
+  normalizePlatform,
+  normalizeService,
+  normalizePlan
+} from '@/services/commercial-offer.resolver';
 
 const ALLOWED_TARGET_HOSTS: Record<string, string[]> = {
   instagram: ['instagram.com', 'www.instagram.com'],
@@ -48,10 +57,32 @@ export async function POST(request: Request) {
     const data = checkoutContextCreateSchema.parse(body);
 
     // 1. Fetch & Validate Active Offer Server-Side
-    const foundOffers = await db.query.offers.findMany({
-      where: and(eq(offers.id, data.offerId), eq(offers.active, true)),
-    });
-    const offer = foundOffers.find((o) => o.id === data.offerId && o.active);
+    let offer = null;
+
+    if (data.offerId.startsWith('canonical-') || data.offerId.startsWith('step3-')) {
+      // Resolve canonical/synthetic ID format: canonical-{platform}-{service}-{plan}
+      const parts = data.offerId.split('-');
+      if (parts.length >= 4) {
+        const plat = normalizePlatform(parts[1]);
+        const serv = normalizeService(parts[2]);
+        const pl = normalizePlan(parts[3]);
+        if (plat && serv && pl) {
+          const matching = await db.query.offers.findMany({
+            where: and(
+              eq(sql`LOWER(${offers.platform})`, plat),
+              eq(sql`LOWER(${offers.service})`, serv),
+              eq(offers.active, true)
+            ),
+          });
+          offer = matching.find((o) => normalizePlan(o.name || o.slug) === pl && o.active);
+        }
+      }
+    } else {
+      const foundOffers = await db.query.offers.findMany({
+        where: and(eq(offers.id, data.offerId), eq(offers.active, true)),
+      });
+      offer = foundOffers.find((o) => o.id === data.offerId && o.active);
+    }
 
     if (!offer) {
       return NextResponse.json(
@@ -60,7 +91,8 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!offer.externalCheckoutUrl || !offer.perfectpayProductId || !offer.perfectpayPlanId) {
+    const isUrlSecure = validateCheckoutUrl(offer.externalCheckoutUrl);
+    if (!offer.externalCheckoutUrl || !isUrlSecure || !offer.perfectpayProductId || !offer.perfectpayPlanId) {
       return NextResponse.json(
         { success: false, error: { message: 'Offer checkout configuration is incomplete' } },
         { status: 422 }
@@ -70,28 +102,26 @@ export async function POST(request: Request) {
     const platform = offer.platform.toLowerCase();
     const service = offer.service.toLowerCase();
 
+    if (!isValidPlatformService(platform as CommercialPlatform, service as CommercialService)) {
+      return NextResponse.json(
+        { success: false, error: { message: `Service '${service}' is not available for platform '${platform}'` } },
+        { status: 400 }
+      );
+    }
+
     // 2. Validate Target Type & Requirements against Service
     if (service === 'followers') {
-      if (platform === 'youtube') {
-        if (data.targetType !== 'channel' && data.targetType !== 'profile') {
-          return NextResponse.json(
-            { success: false, error: { message: 'YouTube followers requires a valid channel or handle target' } },
-            { status: 400 }
-          );
-        }
-      } else {
-        if (data.targetType !== 'profile') {
-          return NextResponse.json(
-            { success: false, error: { message: 'Followers service requires a profile target' } },
-            { status: 400 }
-          );
-        }
-        if (!data.socialUsername || data.socialUsername.trim().length === 0) {
-          return NextResponse.json(
-            { success: false, error: { message: 'Social username is required for followers service' } },
-            { status: 400 }
-          );
-        }
+      if (data.targetType !== 'profile') {
+        return NextResponse.json(
+          { success: false, error: { message: 'Followers service requires a profile target' } },
+          { status: 400 }
+        );
+      }
+      if (!data.socialUsername || data.socialUsername.trim().length === 0) {
+        return NextResponse.json(
+          { success: false, error: { message: 'Social username is required for followers service' } },
+          { status: 400 }
+        );
       }
     } else if (service === 'likes' || service === 'views' || service === 'comments') {
       if (!data.targetUrl) {
