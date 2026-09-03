@@ -105,7 +105,7 @@ export default function HomePage({
       ? currentSocialUsername.replace(/^@+/, "").trim()
       : (currentTargetValue ? currentTargetValue.replace(/^@+/, "").trim() : null);
 
-    const targetUrlCandidate = currentTargetUrl || currentProfileUrl || (normalizedUsername ? `https://${platform === "twitter" ? "x.com" : platform === "youtube" ? "youtube.com/@" : `${platform}.com/`}${normalizedUsername}` : null);
+    const targetUrlCandidate = currentTargetUrl || currentProfileUrl || (normalizedUsername ? `https://${platform === "twitter" ? "x.com/" : platform === "youtube" ? "youtube.com/@" : `${platform}.com/`}${normalizedUsername}` : null);
 
     const isContentTarget = resolvedTargetType === "post" || resolvedTargetType === "video";
     const targetValue = currentTargetValue || normalizedUsername;
