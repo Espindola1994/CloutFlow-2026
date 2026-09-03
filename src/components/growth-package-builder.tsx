@@ -227,26 +227,26 @@ export default function GrowthPackageBuilder({
     const normalizedUsername = found.username.replace(/^@+/, "").trim();
     const record = found as unknown as Record<string, unknown>;
     const profileCandidate = (record.profile_url as string | undefined) || (record.link as string | undefined) || null;
-    const profileUrl = profileCandidate || `https://${platform === "twitter" ? "x.com" : platform === "youtube" ? "youtube.com/@" : `${platform}.com/`}${normalizedUsername}`;
+    const profileUrl = profileCandidate || (isContent ? identifier.trim() : `https://${platform === "twitter" ? "x.com" : platform === "youtube" ? "youtube.com/@" : `${platform}.com/`}${normalizedUsername}`);
     const targetType = isContent ? ((platform === "youtube" || platform === "tiktok") ? "video" : "post") : (platform === "youtube" ? "channel" : "profile");
     useFunnelStore.getState().setEmail(cleanEmail);
     useFunnelStore.getState().setTarget({
       targetType,
       targetValue: isContent ? identifier.trim() : normalizedUsername,
       targetUrl: isContent ? identifier.trim() : profileUrl,
-      socialUsername: normalizedUsername,
-      profileUrl,
+      socialUsername: isContent ? null : normalizedUsername,
+      profileUrl: isContent ? null : profileUrl,
       email: cleanEmail,
       verifiedTargetData: found as unknown as Record<string, unknown>,
     });
-    setUsername(normalizedUsername);
+    if (!isContent) setUsername(normalizedUsername);
     setProfileData(found as unknown as Record<string, unknown>);
   };
 
   const finish = (found: VerifiedSocialProfile) => {
     persistTarget(found);
     setProfile(found); setProgress(100);
-    window.setTimeout(() => setStage("result"), 350);
+    setStage("result");
   };
 
   const confirmDisplayedProfile = () => {

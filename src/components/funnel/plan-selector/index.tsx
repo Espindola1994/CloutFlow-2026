@@ -104,7 +104,7 @@ export function PlanSelector({ plans, username, platform, service, hasTarget, on
   const select=(id:string|null)=>{ if(!id) return; setPlan(id); void onSelectPlan?.(id); };
 
   return <>
-    {hasTarget && <section className="cf-plans-pricing cf-home-offer-pricing">
+    <section className="cf-plans-pricing cf-home-offer-pricing">
         <div className="cf-plans-section-title cf-pricing-title">
           <h2>Choose Your <span className="cf-growth-plan-accent">Growth Plan</span> <span aria-hidden="true">♥</span></h2>
           <p>Pick a plan for your goals and start growing today.</p>
@@ -218,7 +218,7 @@ BEST DEAL
             })}
           </div>
         </div>
-    </section>}
+    </section>
 
 
     <section id="reviews" className="cf-plans-reviews">

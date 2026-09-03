@@ -681,8 +681,7 @@ export default function OfferLandingPage() {
     } catch {}
 
     const normalizedUsername = (verifiedProfile.username || '').replace(/^@+/, '').trim();
-    const isYouTube = targetPlatform === 'youtube';
-    const targetType = isYouTube ? 'channel' : 'profile';
+    const targetType = 'profile';
 
     try {
       const payload = {

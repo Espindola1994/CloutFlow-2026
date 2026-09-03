@@ -23,9 +23,15 @@ const PLATFORM_META: Record<PlatformId, { label: string; icon: any; accent: stri
   twitter: { label: "X (Twitter)", icon: twitterIcon, accent: "#111111", accent2: "#5F6B7A" },
 };
 
-export default function HomePage() {
-  const [platform, setPlatformState] = useState<PlatformId>("instagram");
-  const [service, setSelectedService] = useState<Service>("followers");
+export default function HomePage({
+  initialPlatform = "instagram",
+  initialService = "followers",
+}: {
+  initialPlatform?: PlatformId;
+  initialService?: Service;
+} = {}) {
+  const [platform, setPlatformState] = useState<PlatformId>(initialPlatform);
+  const [service, setSelectedService] = useState<Service>(initialService);
   const meta = PLATFORM_META[platform] || PLATFORM_META.instagram;
 
   const { targetType, targetValue, targetUrl, socialUsername, profileUrl, email, setPlatform, setService } = useFunnelStore();
@@ -33,11 +39,6 @@ export default function HomePage() {
   const [loadingOffers, setLoadingOffers] = useState(true);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [plansConfirmed, setPlansConfirmed] = useState(false);
-
-  useEffect(() => {
-    setPlatform(platform);
-    setService(service);
-  }, [platform, service, setPlatform, setService]);
 
   const fetchOffers = useCallback(async () => {
     try {
@@ -61,9 +62,9 @@ export default function HomePage() {
 
   const isContentTarget = targetType === "post" || targetType === "video";
   const targetCompatibleWithService = service === "followers"
-    ? Boolean((targetType === "profile" || targetType === "channel") && socialUsername)
+    ? Boolean((targetType === "profile" || targetType === "channel") && (socialUsername || targetValue))
     : Boolean(isContentTarget && targetUrl);
-  const hasTarget = targetCompatibleWithService;
+  const hasTarget = targetCompatibleWithService || plansConfirmed;
 
   const changeProduct = (next: Service) => {
     const validServices = PLATFORM_SERVICES[platform] || ['followers', 'likes', 'views'];
@@ -91,24 +92,33 @@ export default function HomePage() {
 
   const handleCheckout = async (offerId: string) => {
     setCheckoutError(null);
-    if (!hasTarget) {
-      document.querySelector(".cf-premium-builder")?.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
+    const funnelState = useFunnelStore.getState();
+    const currentTargetType = funnelState.targetType;
+    const currentSocialUsername = funnelState.socialUsername;
+    const currentTargetValue = funnelState.targetValue;
+    const currentTargetUrl = funnelState.targetUrl;
+    const currentProfileUrl = funnelState.profileUrl;
+    const currentEmail = funnelState.email;
+
     try {
-      const resolvedTargetType = targetType || (isFollowers ? (platform === "youtube" ? "channel" : "profile") : "post");
-      const normalizedUsername = socialUsername ? socialUsername.replace(/^@+/, "").trim() : null;
+      const resolvedTargetType = isFollowers ? "profile" : (platform === "youtube" || platform === "tiktok" ? "video" : "post");
+      const normalizedUsername = currentSocialUsername
+        ? currentSocialUsername.replace(/^@+/, "").trim()
+        : (currentTargetValue ? currentTargetValue.replace(/^@+/, "").trim() : null);
+
+      const targetUrlCandidate = currentTargetUrl || currentProfileUrl || (normalizedUsername ? `https://${platform === "twitter" ? "x.com" : platform === "youtube" ? "youtube.com/@" : `${platform}.com/`}${normalizedUsername}` : null);
+
       const res = await fetch("/api/checkout/context", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           offerId,
           targetType: resolvedTargetType,
-          targetValue: targetValue || normalizedUsername,
-          targetUrl: targetUrl || null,
-          socialUsername: normalizedUsername,
-          profileUrl: profileUrl || null,
-          email: email ? email.trim().toLowerCase() : null,
+          targetValue: currentTargetValue || normalizedUsername || "guest_profile",
+          targetUrl: isFollowers ? (currentProfileUrl || targetUrlCandidate) : (currentTargetUrl || targetUrlCandidate),
+          socialUsername: normalizedUsername || (currentTargetValue ? currentTargetValue.replace(/^@+/, "").trim() : "guest_profile"),
+          profileUrl: currentProfileUrl || targetUrlCandidate,
+          email: currentEmail ? currentEmail.trim().toLowerCase() : null,
         }),
       });
       const json = await res.json();
@@ -187,7 +197,7 @@ export default function HomePage() {
           username={username}
           platform={platform}
           service={service}
-          hasTarget={plansConfirmed}
+          hasTarget={true}
           onSelectPlan={handleCheckout}
         />
       </section>
