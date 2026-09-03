@@ -153,12 +153,86 @@ describe('HomePage E2E DOM Interaction & Checkout Flow for TikTok, Twitter, YouT
       expect(ctaButton).not.toBeNull();
       fireEvent.click(ctaButton!);
 
-      // Verify that checkout context API was called with the canonical offer ID
+      // Verify that checkout context API was called with the canonical offer ID and real target
       await waitFor(() => {
         expect(fetchCalls.length).toBe(1);
         const requestPayload = JSON.parse(fetchCalls[0].init.body);
         expect(requestPayload.offerId).toBe(canonicalOfferId);
+        expect(requestPayload.targetType).toBe(item.targetType);
+        if (item.service === 'followers') {
+          expect(requestPayload.targetValue).toBe(item.username);
+          expect(requestPayload.socialUsername).toBe(item.username);
+        } else {
+          expect(requestPayload.targetUrl).toBe(item.targetUrl);
+        }
       }, { timeout: 4000 });
+    });
+
+    it(`blocks checkout and shows friendly validation message when target is missing for ${item.platform} ${item.service}`, async () => {
+      const fetchCalls: any[] = [];
+      global.fetch = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
+        if (url.includes('/api/offers')) {
+          const cards = resolveCommercialCardsForService(item.platform as any, item.service as any, [], 'home');
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({
+              success: true,
+              data: {
+                items: cards.map((c, idx) => ({
+                  id: c.id || `canonical-${c.platform}-${c.service}-${c.plan}`,
+                  name: c.planDisplayName,
+                  slug: `${c.platform}-${c.service}-${c.plan}`,
+                  quantity: c.quantity,
+                  bonusQuantity: c.bonusQuantity,
+                  priceCents: c.priceCents,
+                  oldPriceCents: c.compareAtPriceCents,
+                  currency: 'USD',
+                  badge: c.badge,
+                  isPopular: idx === 3 || idx === 5,
+                })),
+              },
+            }),
+          });
+        }
+        if (url.includes('/api/checkout/context')) {
+          fetchCalls.push({ url, init });
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            json: async () => ({ success: true, data: { contextId: 'CFCTX_mock123', checkoutUrl: 'https://example.com' } }),
+          });
+        }
+      }) as any;
+
+      // Reset store so no target is present
+      useFunnelStore.getState().reset();
+      useFunnelStore.getState().setPlatform(item.platform);
+      useFunnelStore.getState().setService(item.service);
+
+      const { container } = render(<HomePage initialPlatform={item.platform as any} initialService={item.service as any} />);
+
+      await waitFor(() => {
+        expect(container.querySelectorAll('.cf-o10-package-ref-card').length).toBe(6);
+      }, { timeout: 4000 });
+
+      const starterCard = container.querySelectorAll('.cf-o10-package-ref-card')[0];
+      const ctaButton = starterCard.querySelector('.cf-o10-package-ref-cta');
+      fireEvent.click(ctaButton!);
+
+      // Endpoint must NOT be called
+      expect(fetchCalls.length).toBe(0);
+
+      // Friendly validation message should appear
+      await waitFor(() => {
+        const errorEl = container.querySelector('.cf-plans-error');
+        expect(errorEl).not.toBeNull();
+        if (item.service === 'followers') {
+          expect(errorEl!.textContent).toContain('Enter your profile username before continuing.');
+        } else {
+          expect(errorEl!.textContent).toContain('Enter the post or video URL before continuing.');
+        }
+      });
     });
   }
 });

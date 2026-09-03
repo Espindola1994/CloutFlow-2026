@@ -174,4 +174,41 @@ describe('Checkout Context API - Target Validation & Security Gates', () => {
     const res = await createCheckoutContext(req);
     expect(res.status).toBe(400);
   });
+
+  it('6. Rejects Followers request when socialUsername is missing/empty', async () => {
+    const payload = {
+      offerId: 'off_ig_followers_2k',
+      targetType: 'profile',
+      socialUsername: '',
+    };
+
+    const req = new Request('http://localhost:3000/api/checkout/context', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    const res = await createCheckoutContext(req);
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.success).toBe(false);
+    expect(json.error.message).toContain('Social username is required for followers service');
+  });
+
+  it('7. Rejects Views request when targetUrl is missing', async () => {
+    const payload = {
+      offerId: 'off_youtube_views_5k',
+      targetType: 'video',
+    };
+
+    const req = new Request('http://localhost:3000/api/checkout/context', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    const res = await createCheckoutContext(req);
+    expect(res.status).toBe(400);
+    const json = await res.json();
+    expect(json.success).toBe(false);
+    expect(json.error.message).toContain('Content target URL is required for views');
+  });
 });

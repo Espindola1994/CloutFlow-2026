@@ -100,23 +100,42 @@ export default function HomePage({
     const currentProfileUrl = funnelState.profileUrl;
     const currentEmail = funnelState.email;
 
+    const resolvedTargetType = isFollowers ? "profile" : (platform === "youtube" || platform === "tiktok" ? "video" : "post");
+    const normalizedUsername = currentSocialUsername
+      ? currentSocialUsername.replace(/^@+/, "").trim()
+      : (currentTargetValue ? currentTargetValue.replace(/^@+/, "").trim() : null);
+
+    const targetUrlCandidate = currentTargetUrl || currentProfileUrl || (normalizedUsername ? `https://${platform === "twitter" ? "x.com" : platform === "youtube" ? "youtube.com/@" : `${platform}.com/`}${normalizedUsername}` : null);
+
+    const isContentTarget = resolvedTargetType === "post" || resolvedTargetType === "video";
+    const targetValue = currentTargetValue || normalizedUsername;
+    const targetUrl = isFollowers ? (currentProfileUrl || targetUrlCandidate) : (currentTargetUrl || targetUrlCandidate);
+    
+    // Validate target existence before proceeding
+    if (isFollowers && !targetValue) {
+      setCheckoutError("Enter your profile username before continuing.");
+      document.querySelector(".cf-pb-input input")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      (document.querySelector(".cf-pb-input input") as HTMLInputElement)?.focus();
+      return;
+    }
+
+    if (isContentTarget && !targetUrl) {
+      setCheckoutError("Enter the post or video URL before continuing.");
+      document.querySelector(".cf-pb-input input")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      (document.querySelector(".cf-pb-input input") as HTMLInputElement)?.focus();
+      return;
+    }
+
     try {
-      const resolvedTargetType = isFollowers ? "profile" : (platform === "youtube" || platform === "tiktok" ? "video" : "post");
-      const normalizedUsername = currentSocialUsername
-        ? currentSocialUsername.replace(/^@+/, "").trim()
-        : (currentTargetValue ? currentTargetValue.replace(/^@+/, "").trim() : null);
-
-      const targetUrlCandidate = currentTargetUrl || currentProfileUrl || (normalizedUsername ? `https://${platform === "twitter" ? "x.com" : platform === "youtube" ? "youtube.com/@" : `${platform}.com/`}${normalizedUsername}` : null);
-
       const res = await fetch("/api/checkout/context", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           offerId,
           targetType: resolvedTargetType,
-          targetValue: currentTargetValue || normalizedUsername || "guest_profile",
-          targetUrl: isFollowers ? (currentProfileUrl || targetUrlCandidate) : (currentTargetUrl || targetUrlCandidate),
-          socialUsername: normalizedUsername || (currentTargetValue ? currentTargetValue.replace(/^@+/, "").trim() : "guest_profile"),
+          targetValue,
+          targetUrl,
+          socialUsername: normalizedUsername || (currentTargetValue ? currentTargetValue.replace(/^@+/, "").trim() : null),
           profileUrl: currentProfileUrl || targetUrlCandidate,
           email: currentEmail ? currentEmail.trim().toLowerCase() : null,
         }),

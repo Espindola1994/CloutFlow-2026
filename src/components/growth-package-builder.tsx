@@ -295,6 +295,42 @@ export default function GrowthPackageBuilder({
     } finally { timers.forEach(clearTimeout); }
   };
 
+  const getInputPlaceholder = () => {
+    if (goal === "followers") {
+      if (platform === "youtube") return "@username or channel link...";
+      return "@username or profile link...";
+    }
+    // Likes or Views
+    switch (platform) {
+      case "tiktok":
+        return "https://www.tiktok.com/@username/video/...";
+      case "twitter":
+        return "https://x.com/username/status/...";
+      case "youtube":
+        return "https://www.youtube.com/watch?v=...";
+      case "instagram":
+      default:
+        return "https://www.instagram.com/p/... or /reel/...";
+    }
+  };
+
+  const getInputLabel = () => {
+    if (goal === "followers") {
+      return platform === "youtube" ? "Channel username or link" : "Username or profile link";
+    }
+    switch (platform) {
+      case "tiktok":
+        return "TikTok video link";
+      case "twitter":
+        return "X / Twitter post link";
+      case "youtube":
+        return "YouTube video link";
+      case "instagram":
+      default:
+        return "Instagram post / reel link";
+    }
+  };
+
   return (
     <section id="growth-package-builder" className="cf-premium-builder" data-platform={platform} aria-label="Build your growth package" style={{"--pb-icon-main": meta.iconMain, "--pb-icon-alt": meta.iconAlt, "--pb-icon-soft": meta.iconSoft, "--pb-network-accent": meta.accent} as React.CSSProperties}>
       <div className="cf-premium-builder-head"><small>✦ &nbsp; START HERE &nbsp; ✦</small><h2>Build Your <em>Growth</em> Package</h2><p>Three quick steps. Analyze. Choose. Grow.</p></div>
@@ -302,7 +338,7 @@ export default function GrowthPackageBuilder({
         <div className="cf-premium-builder-controls">
           <div className="cf-pb-step"><div className="cf-pb-label"><i>1</i><div><b>Choose your goal</b><small>What do you want to achieve?</small></div></div><div className="cf-pb-goals">{((PLATFORM_SERVICES[platform] || ["followers", "likes", "views"]) as Goal[]).map(g => <button key={g} className={goal===g?"active":""} onClick={()=>chooseGoal(g)}><GoalIcon goal={g} premium/><b>{g[0].toUpperCase()+g.slice(1)}</b>{goal===g&&<Check/>}</button>)}</div></div>
           <div className="cf-pb-step"><div className="cf-pb-label"><i>2</i><div><b>Choose the network</b><small>We support all 4 platforms below</small></div></div><div className="cf-pb-platforms">{(Object.entries(META) as [PlatformId, typeof META[PlatformId]][]).map(([id,item]) => <button key={id} className={platform===id?"active":""} style={{"--pb-accent":item.accent} as React.CSSProperties} onClick={()=>choosePlatform(id)}><PlatformIcon src={item.icon}/><b>{item.label}</b>{platform===id&&<Check/>}</button>)}</div>
-            <label className="cf-pb-field-label">{isContent ? "Public video / reel / post link" : "Username or profile link"}</label><div className="cf-pb-input"><ScanSearch/><input value={identifier} onChange={e=>setIdentifier(e.target.value)} placeholder={isContent ? "Paste the exact content link..." : "@username or profile/channel link..."}/></div>
+            <label className="cf-pb-field-label">{getInputLabel()}</label><div className="cf-pb-input"><ScanSearch/><input value={identifier} onChange={e=>setIdentifier(e.target.value)} placeholder={getInputPlaceholder()}/></div>
             <label className="cf-pb-field-label">Email <strong>(required)</strong></label><div className="cf-pb-input"><Mail/><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Enter your email address"/></div><p className="cf-pb-privacy"><ShieldCheck/> We use this email to save your search, orders and updates.</p>
           </div>
           <div className="cf-pb-step cf-pb-analyze"><div className="cf-pb-label"><i>3</i><div><b>Analyze profile</b><small>We'll fetch public data and confirm your profile.</small></div></div>{error&&<div className="cf-pb-error">{error}</div>}<button className="cf-pb-analyze-btn" disabled={stage==="analyzing"} onClick={analyze}>{stage==="analyzing"?<Loader2 className="spin"/>:<ScanSearch/>}{stage==="analyzing"?"Analyzing...":"Analyze Profile"}</button></div>
