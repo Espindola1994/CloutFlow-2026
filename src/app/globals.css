@@ -33088,3 +33088,72 @@ html body .cf-offer-page
   background: linear-gradient(135deg, #111111 0%, #65707D 100%) !important;
   box-shadow: 0 3px 8px rgba(15,20,25,.22) !important;
 }
+
+
+/* ==========================================================================
+   V680 — MOBILE-ONLY ADJUSTMENTS: HOME / PLANS
+   Desktop ( > 900px ) remains 100% untouched.
+   ========================================================================== */
+
+/* 1. MOBILE — até 900px */
+@media (max-width: 900px) {
+
+  .cf-plans-final-copy h2 {
+    line-height: 1.102 !important;
+  }
+
+  .cf-plans-final-cta {
+    gap: 7px 28px !important;
+  }
+
+  html body .cf-plans-final-action small {
+    justify-content: center !important;
+    font-size: 12.5px !important;
+  }
+
+  html body .cf-pb-input svg {
+    color: #7786a1 !important;
+    flex: none !important;
+    width: 23px !important;
+    height: 23px !important;
+  }
+
+  html body .cf-pb-input input {
+    color: #172033 !important;
+    background: 0 0 !important;
+    border: 0 !important;
+    outline: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    font-size: 12px !important;
+  }
+
+  html body .cf-pb-platform-icon img {
+    object-fit: contain !important;
+    width: 35px !important;
+    height: 35px !important;
+  }
+
+  html body .cf-plans-section-title p {
+    color: #718097 !important;
+    margin: 1px 0 0 !important;
+    font-size: 13.5px !important;
+  }
+}
+
+/* 2. MOBILE — até 700px */
+@media (max-width: 700px) {
+
+  .cf-trust-pill {
+    gap: 5px !important;
+  }
+}
+
+/* 3. MOBILE PEQUENO — até 390px */
+@media (max-width: 390px) {
+
+  .cf-plans-final-cta .cf-plans-rocket-art {
+    width: 110px !important;
+  }
+}
+
