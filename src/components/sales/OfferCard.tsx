@@ -126,11 +126,9 @@ export function OfferCard({
               {serviceUnit}
             </span>
           </div>
-          {offer.bonusQuantity > 0 && (
-            <span className="inline-block mt-1.5 text-xs font-bold text-emerald-400">
-              +{offer.bonusQuantity.toLocaleString()} Extra Bonus
-            </span>
-          )}
+          <span className="inline-block mt-1.5 text-xs font-bold text-emerald-400">
+            5% Promo
+          </span>
           {offer.description && (
             <p className="text-xs text-neutral-400 mt-1 font-medium">{offer.description}</p>
           )}

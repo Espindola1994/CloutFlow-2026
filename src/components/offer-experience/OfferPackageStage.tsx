@@ -81,7 +81,7 @@ export function OfferPackageStage({ platform, theme, verifiedProfile, couponCode
               <div className="cf-offer-plan-icon"><UserRound /></div>
               <small>{pkg.service}</small>
               <h3>{pkg.name}</h3>
-              {pkg.bonusQuantity > 0 && <p className="cf-offer-plan-bonus">+{pkg.bonusQuantity.toLocaleString()} bonus included</p>}
+              <p className="cf-offer-plan-bonus"><Sparkles className="inline-block w-3 h-3 mr-1" />5% Promo</p>
               <div className="cf-offer-plan-price"><strong>${discountedPrice}</strong><del>${price}</del></div>
               <span className="cf-offer-plan-save">25% reward applied</span>
               <ul>

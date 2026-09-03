@@ -171,15 +171,9 @@ BEST DEAL
                   </h3>
 
                   <div className="cf-o10-package-ref-bonus-slot">
-                    {index === 0 ? (
-                      <div className="cf-o10-package-ref-no-bonus">
-                        <span aria-hidden="true">×</span> No bonus included
-                      </div>
-                    ) : (
-                      <div className="cf-o10-package-ref-bonus">
-+{p.bonusQuantity.toLocaleString("en-US")} Bonus Included
-                      </div>
-                    )}
+                    <div className="cf-o10-package-ref-bonus">
+                      <Sparkles /> 5% Promo
+                    </div>
                   </div>
 
                   <div className="cf-o10-package-ref-price">
@@ -213,7 +207,7 @@ BEST DEAL
                     }}
                   >
                     <span className="cf-o10-cta-default">
-                      Get {(p.quantity + p.bonusQuantity).toLocaleString("en-US")} {serviceUnit} <ArrowRight />
+                      Get {p.quantity.toLocaleString("en-US")} {serviceUnit} <ArrowRight />
                     </span>
                     <span className="cf-o10-cta-hover">
                       Selected <Check />

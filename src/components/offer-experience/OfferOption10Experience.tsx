@@ -788,15 +788,9 @@ export function OfferOption10Experience(props: Props) {
                   <h3 className="cf-o10-package-ref-qty">{planQuantity.toLocaleString('en-US')} {serviceLabel}</h3>
 
                   <div className="cf-o10-package-ref-bonus-slot">
-                    {index === 0 || !pkg.bonusQuantity ? (
-                      <div className="cf-o10-package-ref-no-bonus">
-                        <span aria-hidden="true">×</span> No bonus included
-                      </div>
-                    ) : pkg.bonusQuantity > 0 ? (
-                      <div className="cf-o10-package-ref-bonus">
-                        <Sparkles /> +{pkg.bonusQuantity.toLocaleString('en-US')} Bonus Included
-                      </div>
-                    ) : null}
+                    <div className="cf-o10-package-ref-bonus">
+                      <Sparkles /> 5% Promo
+                    </div>
                   </div>
 
                   <div className="cf-o10-package-ref-price">
@@ -828,7 +822,7 @@ export function OfferOption10Experience(props: Props) {
                     }}
                   >
                     <span className="cf-o10-cta-default">
-                      Get {(planQuantity + (pkg.bonusQuantity || 0)).toLocaleString('en-US')} {serviceLabel} <ArrowRight />
+                      Get {planQuantity.toLocaleString('en-US')} {serviceLabel} <ArrowRight />
                     </span>
                     <span className="cf-o10-cta-hover">
                       Selected <Check />
