@@ -746,11 +746,11 @@ export async function executeSupplierRouting(
     };
   }
 
-  // 10. DRY RUN MODE: Stop before any mutation or Peakerr order creation
-  if (isDryRun) {
+  // 10. DRY RUN MODE / SAFE MODE: Stop before any mutation or Peakerr order creation
+  if (isDryRun || !peakerrClient.isLiveEnabled()) {
     return {
       success: true,
-      code: 'DRY_RUN_APPROVED',
+      code: isDryRun ? 'DRY_RUN_APPROVED' : 'SAFE_MODE_FULFILLMENT_BLOCKED',
       orderId: order.id,
       publicId: order.publicId,
       routingStatus: 'SUBMITTED',
@@ -764,7 +764,9 @@ export async function executeSupplierRouting(
       grossMarginPercent: approvedCandidate.grossMarginPercent,
       attempts,
       isDryRun: true,
-      message: `[DRY RUN] Order would be routed to ${approvedCandidate.slot.position} supplier (${approvedCandidate.slot.serviceId}) at rate ${approvedCandidate.currentRate}.`,
+      message: isDryRun
+        ? `[DRY RUN] Order would be routed to ${approvedCandidate.slot.position} supplier (${approvedCandidate.slot.serviceId}) at rate ${approvedCandidate.currentRate}.`
+        : `[SAFE MODE] Order routed to ${approvedCandidate.slot.position} supplier (#${approvedCandidate.slot.serviceId}) in SAFE MODE. Live Peakerr fulfillment blocked.`,
     };
   }
 

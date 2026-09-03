@@ -27,7 +27,15 @@ export class PeakerrClient {
   }
 
   public isLiveEnabled(): boolean {
-    return process.env.PEAKERR_LIVE_FULFILLMENT === 'true';
+    const fulfillmentEnabled = process.env.FULFILLMENT_ENABLED;
+    if (fulfillmentEnabled !== undefined && fulfillmentEnabled.trim().toLowerCase() === 'false') {
+      return false;
+    }
+    const safeMode = process.env.SAFE_MODE;
+    if (safeMode !== undefined && safeMode.trim().toLowerCase() === 'true') {
+      return false;
+    }
+    return process.env.PEAKERR_LIVE_FULFILLMENT === 'true' && fulfillmentEnabled !== 'false';
   }
 
   /**

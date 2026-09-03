@@ -152,10 +152,10 @@ export class SplitFulfillmentService {
     }
 
     // 4. Dry Run Stop: Return planned chunks without database mutation or Peakerr calls
-    if (isDryRun) {
+    if (isDryRun || !peakerrClient.isLiveEnabled()) {
       return {
         success: true,
-        code: 'DRY_RUN_SPLIT_APPROVED',
+        code: isDryRun ? 'DRY_RUN_SPLIT_APPROVED' : 'SAFE_MODE_SPLIT_BLOCKED',
         orderId: order.id,
         isSplit: splitPlan.isSplit,
         chunkCount: splitPlan.chunkCount,
@@ -171,7 +171,9 @@ export class SplitFulfillmentService {
           externalOrderId: null,
         })),
         parentStatus: 'SPLIT_PLANNED',
-        message: `[DRY RUN] Split plan approved: ${splitPlan.chunkCount} child orders planned with total cost $${splitPlan.estimatedTotalCost.toFixed(2)}.`,
+        message: isDryRun
+          ? `[DRY RUN] Split plan approved: ${splitPlan.chunkCount} child orders planned with total cost $${splitPlan.estimatedTotalCost.toFixed(2)}.`
+          : `[SAFE MODE] Split plan evaluated safely (${splitPlan.chunkCount} child orders). Live fulfillment blocked by SAFE MODE.`,
       };
     }
 
@@ -536,6 +538,14 @@ export class SplitFulfillmentService {
         success: false,
         split,
         message: `Child chunk already has externalOrderId "${split.externalOrderId}". Duplicate submission blocked.`,
+      };
+    }
+
+    if (!peakerrClient.isLiveEnabled()) {
+      return {
+        success: false,
+        split,
+        message: 'PEAKERR_LIVE_FULFILLMENT_DISABLED: Live fulfillment kill switch is active. Retry blocked.',
       };
     }
 

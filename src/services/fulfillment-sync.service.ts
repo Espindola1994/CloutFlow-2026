@@ -3,6 +3,7 @@ import { orders, fulfillmentOrders, orderEvents } from '@/db/schema';
 import { eq, and, inArray, isNotNull, ne } from 'drizzle-orm';
 import { peakerrClient } from '@/providers/peakerr/peakerr.client';
 import { mapPeakerrStatusToLocal, resolveCanonicalFulfillmentTarget } from './fulfillment.service';
+import { isLiveFulfillmentEnabled } from './fulfillment-auto-dispatch.service';
 import { releaseNextQueuedOrderForTarget, releaseAllEligibleQueuedTargetsDetailed } from './fulfillment-target-queue.service';
 import { canUpgradeProviderCost } from '@/lib/financials';
 
@@ -47,7 +48,7 @@ export async function syncStatusesAndReleaseQueues(options?: {
   const isSyncEnabled = process.env.PEAKERR_STATUS_SYNC_ENABLED === 'true';
   const isQueueAutoReleaseEnabled = process.env.PEAKERR_TARGET_QUEUE_AUTO_RELEASE_ENABLED === 'true';
   const isAutoDispatch = process.env.PEAKERR_AUTO_DISPATCH_ENABLED === 'true';
-  const isLiveFulfillment = process.env.PEAKERR_LIVE_FULFILLMENT === 'true';
+  const isLiveFulfillment = isLiveFulfillmentEnabled();
 
   const result: SyncAndReleaseResult = {
     success: true,
