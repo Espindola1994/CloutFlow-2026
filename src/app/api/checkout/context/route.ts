@@ -14,7 +14,8 @@ import {
   normalizePlatform,
   normalizeService,
   normalizePlan,
-  resolveCommercialOffer
+  resolveCommercialOffer,
+  getCanonicalPerfectPayItem
 } from '@/services/commercial-offer.resolver';
 
 const ALLOWED_TARGET_HOSTS: Record<string, string[]> = {
@@ -76,24 +77,25 @@ export async function POST(request: Request) {
             ),
           }).catch(() => []);
           const found = matching.find((o) => normalizePlan(o.name || o.slug) === pl && o.active);
-          if (found) {
+          if (found && found.externalCheckoutUrl && found.perfectpayProductId && found.perfectpayPlanId) {
             offer = found;
           } else {
             // Materialize canonical offer with official PerfectPay dataset
+            const canonicalPP = getCanonicalPerfectPayItem(plat, serv, pl);
             const resolved = resolveCommercialOffer(plat, serv, pl, [], 'home');
-            if (resolved) {
+            if (resolved && canonicalPP) {
               offer = {
-                id: `canonical-${plat}-${serv}-${pl}`,
+                id: found?.id || `canonical-${plat}-${serv}-${pl}`,
                 platform: plat,
                 service: serv,
-                name: resolved.planDisplayName,
-                slug: `${plat}-${serv}-${pl}`,
-                quantity: resolved.quantity,
-                bonusQuantity: resolved.bonusQuantity,
-                priceCents: resolved.priceCents,
-                perfectpayProductId: resolved.productCode,
-                perfectpayPlanId: resolved.planCode,
-                externalCheckoutUrl: resolved.checkoutUrl,
+                name: found?.name || resolved.planDisplayName,
+                slug: found?.slug || `${plat}-${serv}-${pl}`,
+                quantity: found?.quantity ?? resolved.quantity,
+                bonusQuantity: found?.bonusQuantity ?? resolved.bonusQuantity,
+                priceCents: found?.priceCents ? Number(found.priceCents) : resolved.priceCents,
+                perfectpayProductId: found?.perfectpayProductId || canonicalPP.productCode,
+                perfectpayPlanId: found?.perfectpayPlanId || canonicalPP.planCode,
+                externalCheckoutUrl: found?.externalCheckoutUrl || canonicalPP.checkoutUrl,
                 active: true,
                 syncHome: true,
                 syncOfferStep3: true,
@@ -106,7 +108,19 @@ export async function POST(request: Request) {
       const foundOffers = await db.query.offers.findMany({
         where: and(eq(offers.id, data.offerId), eq(offers.active, true)),
       }).catch(() => []);
-      offer = foundOffers.find((o) => o.id === data.offerId && o.active);
+      const found = foundOffers.find((o) => o.id === data.offerId && o.active);
+      if (found) {
+        const plat = normalizePlatform(found.platform);
+        const serv = normalizeService(found.service);
+        const pl = normalizePlan(found.name || found.slug);
+        const canonicalPP = plat && serv && pl ? getCanonicalPerfectPayItem(plat, serv, pl) : null;
+        offer = {
+          ...found,
+          perfectpayProductId: found.perfectpayProductId || canonicalPP?.productCode || null,
+          perfectpayPlanId: found.perfectpayPlanId || canonicalPP?.planCode || null,
+          externalCheckoutUrl: found.externalCheckoutUrl || canonicalPP?.checkoutUrl || null,
+        };
+      }
     }
 
     if (!offer) {
