@@ -1,7 +1,7 @@
 import { getTransactionalEmailTransport } from './transport';
 
 export async function sendOrderConfirmation(email: string, orderData: Record<string, unknown>) {
-  const transport = getTransactionalEmailTransport();
+  const transport = getTransactionalEmailTransport(email, false);
   
   const result = await transport.send({
     to: email,
@@ -20,7 +20,7 @@ export async function sendOrderConfirmation(email: string, orderData: Record<str
 }
 
 export async function sendPaymentConfirmation(email: string, orderData: Record<string, unknown>) {
-  const transport = getTransactionalEmailTransport();
+  const transport = getTransactionalEmailTransport(email, false);
 
   const result = await transport.send({
     to: email,

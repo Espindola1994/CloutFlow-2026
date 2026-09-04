@@ -48,8 +48,23 @@ export function getMarketingEmailTransport(recipientEmail?: string, forceManualA
   return new ResendEmailTransport();
 }
 
-export function getTransactionalEmailTransport(): EmailTransport {
-  // Transactional emails (order confirmation, payment received, fulfillment status) use Resend
+/**
+ * Evaluates transactional transport based on LIFECYCLE_EMAILS_ENABLED and allowlist.
+ * If LIFECYCLE_EMAILS_ENABLED=false:
+ * - Allowlisted recipient -> Active Resend transport
+ * - Non-allowlisted recipient -> DisabledEmailTransport('BLOCKED_NOT_ALLOWLISTED')
+ * - Manual admin send (forceManualAllowed=true) -> Active Resend transport
+ * If LIFECYCLE_EMAILS_ENABLED=true:
+ * - All valid recipients -> Active Resend transport
+ */
+export function getTransactionalEmailTransport(recipientEmail?: string, forceManualAllowed: boolean = false): EmailTransport {
+  const isGlobalEnabled = process.env.LIFECYCLE_EMAILS_ENABLED === 'true';
+  const isAllowlisted = recipientEmail ? isEmailInAllowlist(recipientEmail) : false;
+
+  if (!isGlobalEnabled && !isAllowlisted && !forceManualAllowed) {
+    return new DisabledEmailTransport('BLOCKED_NOT_ALLOWLISTED');
+  }
+
   return new ResendEmailTransport();
 }
 

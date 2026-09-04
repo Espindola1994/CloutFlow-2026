@@ -253,13 +253,20 @@ describe('Provider-Safe Finalization Verification (Requirements A-J)', () => {
     expect(transport).toBeInstanceOf(RealDisabledEmailTransport);
   });
 
-  it('J. Transactional eligibility remains independent of marketing transport', async () => {
+  it('J. Transactional eligibility follows allowlist protection when LIFECYCLE_EMAILS_ENABLED=false', async () => {
     vi.doUnmock('@/integrations/email/transport');
-    const { getTransactionalEmailTransport: getRealTransactionalTransport, DisabledEmailTransport: RealDisabledEmailTransport } = await import('@/integrations/email/transport');
+    const { getTransactionalEmailTransport: getRealTransactionalTransport, DisabledEmailTransport: RealDisabledEmailTransport, ResendEmailTransport: RealResendEmailTransport } = await import('@/integrations/email/transport');
 
     process.env.LIFECYCLE_EMAILS_ENABLED = 'false';
-    const transactionalTransport = getRealTransactionalTransport();
-    expect(transactionalTransport).not.toBeInstanceOf(RealDisabledEmailTransport);
+    process.env.LIFECYCLE_EMAIL_ALLOWLIST = 'instaplussoftware@gmail.com';
+
+    // Allowlisted recipient gets active Resend transport
+    const allowedTransport = getRealTransactionalTransport('instaplussoftware@gmail.com');
+    expect(allowedTransport).toBeInstanceOf(RealResendEmailTransport);
+
+    // Non-allowlisted recipient gets DisabledEmailTransport
+    const disabledTransport = getRealTransactionalTransport('unauthorized@example.com');
+    expect(disabledTransport).toBeInstanceOf(RealDisabledEmailTransport);
   });
 });
 

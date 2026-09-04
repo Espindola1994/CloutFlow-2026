@@ -82,8 +82,8 @@ export async function sendAutomaticTransactionalEmail(params: SendTransactionalE
   const subject = interpolateTemplate(templateDef.defaultSubject, vars);
   const body = interpolateTemplate(templateDef.defaultBody, vars);
 
-  // 3. Send via Resend transactional transport
-  const transport = getTransactionalEmailTransport();
+  // 3. Send via Resend transactional transport (strictly automatic: forceManualAllowed=false)
+  const transport = getTransactionalEmailTransport(normalizedEmail, false);
   try {
     const result = await transport.send({
       to: normalizedEmail,

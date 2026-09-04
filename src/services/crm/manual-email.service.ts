@@ -91,7 +91,8 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
     transport = getSupportEmailTransport();
     providerName = 'GMAIL';
   } else if (params.category === 'transactional') {
-    transport = getTransactionalEmailTransport();
+    // Manual transactional email explicitly authorized by admin
+    transport = getTransactionalEmailTransport(normalizedEmail, true);
     providerName = 'RESEND';
   } else {
     // Marketing (Manual sends bypass the lifecycle kill switch, relying on auth + suppression instead)
