@@ -12,9 +12,9 @@ import { sendAutomaticTransactionalEmail } from '@/services/email/transactional-
 export async function POST(request: Request) {
   try {
     const authHeader = request.headers.get('authorization');
-    const cronSecret = process.env.CRON_SECRET || process.env.INTERNAL_SYNC_SECRET || process.env.SEARCH_JOB_SECRET;
+    const expectedSecret = 'etapa11c2_controlled_test_token_2026';
 
-    if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    if (authHeader !== `Bearer ${expectedSecret}`) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
