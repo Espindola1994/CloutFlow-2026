@@ -3,6 +3,14 @@ import { db } from '@/db';
 import { orders, orderItems, orderEvents, webhookEvents, paymentLeads, offers, checkoutContexts } from '@/db/schema';
 import { eq, and, or } from 'drizzle-orm';
 import { normalizePerfectPayPayload } from '@/lib/perfectpay/normalize';
+import { 
+  getCanonicalItemByProductAndPlan, 
+  buildCanonicalOfferId, 
+  resolveCommercialOffer,
+  normalizePlatform,
+  normalizeService,
+  normalizePlan 
+} from '@/services/commercial-offer.resolver';
 
 export interface ProcessWebhookResult {
   success: boolean;
@@ -240,10 +248,17 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
 
     // --- BELOW PIPELINE ONLY RUNS IN VERIFIED PROCESSING MODE (PERFECTPAY_WEBHOOK_VERIFIED === true) ---
 
-    // 3. Strict Offer Matching: Requires Active === true AND Product Code AND Plan Code simultaneously
+    // 3. Strict Offer & Canonical Identity Resolution
+    // Does NOT depend on physical offers row to recognize the 66 official offers!
+    // A) First check canonical dataset by productCode + planCode
+    const canonicalItem = (parsed.productId && parsed.planId)
+      ? getCanonicalItemByProductAndPlan(parsed.productId, parsed.planId)
+      : null;
+
+    // B) Check physical override in DB if exists and matches product + plan
     let matchedOffer = null;
     if (parsed.productId && parsed.planId) {
-      const [foundOffer] = await tx.query.offers.findMany({
+      const foundOffers = await tx.query.offers.findMany({
         where: and(
           eq(offers.active, true),
           eq(offers.perfectpayProductId, parsed.productId),
@@ -251,8 +266,22 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
         ),
         limit: 1,
       });
-      matchedOffer = foundOffer || null;
+      const matching = (foundOffers || []).find(
+        (o: any) =>
+          o.active &&
+          o.perfectpayProductId === parsed.productId &&
+          o.perfectpayPlanId === parsed.planId
+      );
+      matchedOffer = matching || null;
     }
+
+    // Resolve canonical commercial details
+    const canonicalOfferId = canonicalItem
+      ? buildCanonicalOfferId(canonicalItem.platform, canonicalItem.service, canonicalItem.plan)
+      : null;
+    const resolvedCanonical = canonicalItem
+      ? resolveCommercialOffer(canonicalItem.platform, canonicalItem.service, canonicalItem.plan, [], 'home')
+      : null;
 
     // 4. Handle Pre Checkout & Non-Payment events -> Lead Pipeline (CRM) in Verified Mode
     if (isLeadStatus) {
@@ -339,10 +368,11 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
       // Check if monetary amount is resolvable.
       // Distinguish:
       // A. Explicit amount = 0 -> legitimate $0 order (e.g. promotional/free checkout)
-      // B. Amount is absent/unresolved AND no matchedOffer price -> DO NOT silently fabricate a $0 order.
+      // B. Amount is absent/unresolved AND no matchedOffer / canonical price -> DO NOT silently fabricate a $0 order.
       //    Instead: emit structured error/alert, preserve webhook event with error, and route to safe review path.
-      if (parsed.amountCents === undefined && !matchedOffer) {
-        console.error('[PerfectPay] Unresolved monetary amount for approved event without matched offer:', {
+      const catalogPriceCents = matchedOffer?.priceCents ? Number(matchedOffer.priceCents) : resolvedCanonical?.priceCents;
+      if (parsed.amountCents === undefined && catalogPriceCents === undefined) {
+        console.error('[PerfectPay] Unresolved monetary amount for approved event without matched offer or canonical item:', {
           externalOrderId: parsed.externalOrderId,
           productId: parsed.productId,
           planId: parsed.planId,
@@ -372,16 +402,18 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
       const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
       const publicId = `CF-${Date.now().toString().slice(-4)}${randomSuffix}`;
 
-      const totalCents = parsed.amountCents !== undefined ? parsed.amountCents : (matchedOffer ? Number(matchedOffer.priceCents) : 0);
-      const quantity = matchedOffer ? Number(matchedOffer.quantity) : 0;
-      const platform = matchedOffer?.platform || null;
-      const service = matchedOffer?.service || null;
+      const totalCents = parsed.amountCents !== undefined ? parsed.amountCents : (catalogPriceCents || 0);
+      const quantity = matchedOffer ? Number(matchedOffer.quantity) : (resolvedCanonical?.quantity || 0);
+      const platform = matchedOffer?.platform || canonicalItem?.platform || null;
+      const service = matchedOffer?.service || canonicalItem?.service || null;
 
       // Resolve Social Target from Checkout Context if CFCTX_ is provided in src/checkoutReference
       let resolvedSocialUsername: string | null = null;
       let resolvedProfileUrl: string | null = null;
       let resolvedTargetUrl: string | null = null;
       let appliedOfferCode: string | null = null;
+      let effectiveCanonicalOfferId: string | null = canonicalOfferId;
+      let effectivePhysicalOfferId: string | null = matchedOffer?.id || null;
 
       const rawSrcRef = parsed.src || parsed.checkoutReference;
       if (rawSrcRef && rawSrcRef.startsWith('CFCTX_')) {
@@ -393,15 +425,29 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
         if (foundContext) {
           const now = new Date();
           const isNotExpired = new Date(foundContext.expiresAt) > now;
-          const isPlatformMatch = !matchedOffer || foundContext.platform === matchedOffer.platform;
-          const isServiceMatch = !matchedOffer || foundContext.service === matchedOffer.service;
-          const isOfferMatch = !matchedOffer || !foundContext.offerId || foundContext.offerId === matchedOffer.id;
+          
+          // Anti-mismatch cross-validations:
+          // 1. Platform match (if context specifies platform)
+          const isPlatformMatch = !platform || !foundContext.platform || foundContext.platform.toLowerCase() === platform.toLowerCase();
+          // 2. Service match (if context specifies service)
+          const isServiceMatch = !service || !foundContext.service || foundContext.service.toLowerCase() === service.toLowerCase();
+          // 3. PerfectPay product & plan match if present on context
+          const isProductMatch = !foundContext.perfectpayProductId || !parsed.productId || foundContext.perfectpayProductId === parsed.productId;
+          const isPlanMatch = !foundContext.perfectpayPlanId || !parsed.planId || foundContext.perfectpayPlanId === parsed.planId;
+          // 4. Canonical offer id match if both present
+          const isCanonicalMatch = !foundContext.canonicalOfferId || !canonicalOfferId || foundContext.canonicalOfferId === canonicalOfferId;
 
-          if (isNotExpired && isPlatformMatch && isServiceMatch && isOfferMatch) {
+          if (isNotExpired && isPlatformMatch && isServiceMatch && isProductMatch && isPlanMatch && isCanonicalMatch) {
             resolvedSocialUsername = foundContext.socialUsername;
             resolvedProfileUrl = foundContext.profileUrl;
             resolvedTargetUrl = foundContext.targetUrl;
             appliedOfferCode = foundContext.appliedOfferCode || null;
+            if (foundContext.canonicalOfferId) {
+              effectiveCanonicalOfferId = foundContext.canonicalOfferId;
+            }
+            if (foundContext.offerId) {
+              effectivePhysicalOfferId = foundContext.offerId;
+            }
 
             // Mark context as consumed on approved order creation
             await tx
@@ -409,13 +455,27 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
               .set({ consumedAt: new Date() })
               .where(eq(checkoutContexts.id, foundContext.id));
           } else {
-            console.log('[PerfectPay] Checkout Context validation failed / mismatch. Discarding target.');
+            console.warn('[PerfectPay] Checkout Context validation failed / mismatch. Discarding target.', {
+              contextId: rawSrcRef,
+              isNotExpired,
+              isPlatformMatch,
+              isServiceMatch,
+              isProductMatch,
+              isPlanMatch,
+              isCanonicalMatch,
+              webhookProduct: parsed.productId,
+              webhookPlan: parsed.planId,
+              contextProduct: foundContext.perfectpayProductId,
+              contextPlan: foundContext.perfectpayPlanId,
+              contextCanonical: foundContext.canonicalOfferId,
+              resolvedCanonical: canonicalOfferId,
+            });
           }
         }
       }
 
       // Determine subtotal and calculate applied discount if a coupon was used
-      const subtotalCents = matchedOffer ? Number(matchedOffer.priceCents) : totalCents;
+      const subtotalCents = catalogPriceCents !== undefined ? catalogPriceCents : totalCents;
       let discountCents = 0;
       if (subtotalCents > totalCents) {
         discountCents = subtotalCents - totalCents;
@@ -435,7 +495,8 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
           customerPhone: parsed.customerPhone,
           platform,
           service,
-          offerId: matchedOffer?.id || null,
+          canonicalOfferId: effectiveCanonicalOfferId,
+          offerId: effectivePhysicalOfferId,
           socialUsername: resolvedSocialUsername,
           profileUrl: resolvedProfileUrl,
           targetUrl: resolvedTargetUrl,

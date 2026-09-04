@@ -34,6 +34,7 @@ export const orders = pgTable('orders', {
   serviceId: text('service_id').references(() => services.id),
   service: varchar('service', { length: 100 }),
   planId: text('plan_id').references(() => plans.id),
+  canonicalOfferId: varchar('canonical_offer_id', { length: 100 }),
   offerId: text('offer_id'),
   
   username: varchar('username', { length: 255 }),

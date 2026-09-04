@@ -102,6 +102,17 @@ export function normalizePlan(plan: string): CommercialPlan | null {
 }
 
 /**
+ * Builds the official canonical offer ID string: canonical-{platform}-{service}-{plan}
+ */
+export function buildCanonicalOfferId(
+  platform: CommercialPlatform,
+  service: CommercialService,
+  plan: CommercialPlan
+): string {
+  return `canonical-${platform}-${service}-${plan}`;
+}
+
+/**
  * Validates if the combination platform + service is valid (e.g. YouTube Followers is blocked)
  */
 export function isValidPlatformService(platform: CommercialPlatform, service: CommercialService): boolean {
@@ -180,6 +191,17 @@ export function getCanonicalCatalogPackage(
 /**
  * Resolves the canonical PerfectPay dataset configuration for an exact (platform, service, plan) identity.
  */
+export function getCanonicalItemByProductAndPlan(
+  productCode: string,
+  planCode: string
+): PerfectPayDatasetItem | null {
+  if (!productCode || !planCode) return null;
+  const match = OFFICIAL_PERFECTPAY_66_DATASET.find(
+    (item) => item.productCode === productCode.trim() && item.planCode === planCode.trim()
+  );
+  return match || null;
+}
+
 export function getCanonicalPerfectPayItem(
   platformInput: string,
   serviceInput: string,

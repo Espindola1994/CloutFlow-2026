@@ -11,11 +11,13 @@ import {
   validateCheckoutUrl,
   CommercialPlatform, 
   CommercialService,
+  CommercialPlan,
   normalizePlatform,
   normalizeService,
   normalizePlan,
   resolveCommercialOffer,
-  getCanonicalPerfectPayItem
+  getCanonicalPerfectPayItem,
+  buildCanonicalOfferId
 } from '@/services/commercial-offer.resolver';
 
 const ALLOWED_TARGET_HOSTS: Record<string, string[]> = {
@@ -59,67 +61,138 @@ export async function POST(request: Request) {
     const data = checkoutContextCreateSchema.parse(body);
 
     // 1. Fetch & Validate Active Offer Server-Side
+    // We enforce the strict separation:
+    // canonicalOfferId: canonical-{platform}-{service}-{plan} (mandatory official commercial identity)
+    // physicalOfferId: UUID from offers table (only if physical override exists, otherwise NULL)
+    let canonicalPlat: CommercialPlatform | null = null;
+    let canonicalServ: CommercialService | null = null;
+    let canonicalPl: CommercialPlan | null = null;
+    let physicalOfferId: string | null = null;
     let offer: any = null;
 
     if (data.offerId.startsWith('canonical-') || data.offerId.startsWith('step3-')) {
       // Resolve canonical/synthetic ID format: canonical-{platform}-{service}-{plan}
       const parts = data.offerId.split('-');
       if (parts.length >= 4) {
-        const plat = normalizePlatform(parts[1]);
-        const serv = normalizeService(parts[2]);
-        const pl = normalizePlan(parts[3]);
-        if (plat && serv && pl) {
-          const matching = await db.query.offers.findMany({
-            where: and(
-              eq(sql`LOWER(${offers.platform})`, plat),
-              eq(sql`LOWER(${offers.service})`, serv),
-              eq(offers.active, true)
-            ),
-          }).catch(() => []);
-          const found = matching.find((o) => normalizePlan(o.name || o.slug) === pl && o.active);
-          if (found && found.externalCheckoutUrl && found.perfectpayProductId && found.perfectpayPlanId) {
-            offer = found;
-          } else {
-            // Materialize canonical offer with official PerfectPay dataset
-            const canonicalPP = getCanonicalPerfectPayItem(plat, serv, pl);
-            const resolved = resolveCommercialOffer(plat, serv, pl, [], 'home');
-            if (resolved && canonicalPP) {
-              offer = {
-                id: found?.id || `canonical-${plat}-${serv}-${pl}`,
-                platform: plat,
-                service: serv,
-                name: found?.name || resolved.planDisplayName,
-                slug: found?.slug || `${plat}-${serv}-${pl}`,
-                quantity: found?.quantity ?? resolved.quantity,
-                bonusQuantity: found?.bonusQuantity ?? resolved.bonusQuantity,
-                priceCents: found?.priceCents ? Number(found.priceCents) : resolved.priceCents,
-                perfectpayProductId: found?.perfectpayProductId || canonicalPP.productCode,
-                perfectpayPlanId: found?.perfectpayPlanId || canonicalPP.planCode,
-                externalCheckoutUrl: found?.externalCheckoutUrl || canonicalPP.checkoutUrl,
-                active: true,
-                syncHome: true,
-                syncOfferStep3: true,
-              };
-            }
-          }
-        }
+        canonicalPlat = normalizePlatform(parts[1]);
+        canonicalServ = normalizeService(parts[2]);
+        canonicalPl = normalizePlan(parts[3]);
       }
     } else {
-      const foundOffers = await db.query.offers.findMany({
-        where: and(eq(offers.id, data.offerId), eq(offers.active, true)),
-      }).catch(() => []);
-      const found = foundOffers.find((o) => o.id === data.offerId && o.active);
-      if (found) {
-        const plat = normalizePlatform(found.platform);
-        const serv = normalizeService(found.service);
-        const pl = normalizePlan(found.name || found.slug);
-        const canonicalPP = plat && serv && pl ? getCanonicalPerfectPayItem(plat, serv, pl) : null;
-        offer = {
-          ...found,
-          perfectpayProductId: found.perfectpayProductId || canonicalPP?.productCode || null,
-          perfectpayPlanId: found.perfectpayPlanId || canonicalPP?.planCode || null,
-          externalCheckoutUrl: found.externalCheckoutUrl || canonicalPP?.checkoutUrl || null,
-        };
+      // Input might be a physical UUID or custom offerId from offers table
+      try {
+        const foundOffers = await db.query.offers.findMany({
+          where: and(eq(offers.id, data.offerId), eq(offers.active, true)),
+        });
+        const found = (foundOffers || []).find((o) => o.id === data.offerId && o.active);
+        if (found) {
+          canonicalPlat = normalizePlatform(found.platform);
+          canonicalServ = normalizeService(found.service);
+          canonicalPl = normalizePlan(found.name || found.slug || 'starter');
+          physicalOfferId = found.id;
+          offer = found;
+        }
+      } catch {
+        // Safe fallback if query fails
+      }
+    }
+
+    if (canonicalPlat && canonicalServ && !isValidPlatformService(canonicalPlat, canonicalServ)) {
+      return NextResponse.json(
+        { success: false, error: { message: `Service '${canonicalServ}' is not available for platform '${canonicalPlat}'` } },
+        { status: 400 }
+      );
+    }
+
+    if (!canonicalPlat || !canonicalServ || !canonicalPl) {
+      return NextResponse.json(
+        { success: false, error: { message: 'Offer not found or no longer active' } },
+        { status: 404 }
+      );
+    }
+
+    const canonicalOfferId = buildCanonicalOfferId(canonicalPlat, canonicalServ, canonicalPl);
+    const canonicalPP = getCanonicalPerfectPayItem(canonicalPlat, canonicalServ, canonicalPl);
+
+    // Check if there is a physical override in the database for this exact canonical identity
+    let physicalOverride: any = offer;
+    if (!physicalOverride) {
+      try {
+        const matchingOverrides = await db.query.offers.findMany({
+          where: and(
+            eq(sql`LOWER(${offers.platform})`, canonicalPlat),
+            eq(sql`LOWER(${offers.service})`, canonicalServ),
+            eq(offers.active, true)
+          ),
+        });
+        physicalOverride = (matchingOverrides || []).find(
+          (o) =>
+            normalizePlatform(o.platform) === canonicalPlat &&
+            normalizeService(o.service) === canonicalServ &&
+            normalizePlan(o.name || o.slug) === canonicalPl &&
+            o.active
+        );
+      } catch {
+        // Safe fallback if query fails
+      }
+    }
+
+    if (physicalOverride) {
+      physicalOfferId = physicalOverride.id;
+      offer = {
+        id: physicalOverride.id,
+        platform: canonicalPlat,
+        service: canonicalServ,
+        name: physicalOverride.name,
+        slug: physicalOverride.slug,
+        quantity: physicalOverride.quantity,
+        bonusQuantity: physicalOverride.bonusQuantity,
+        priceCents: physicalOverride.priceCents ? Number(physicalOverride.priceCents) : null,
+        perfectpayProductId: physicalOverride.perfectpayProductId || canonicalPP?.productCode,
+        perfectpayPlanId: physicalOverride.perfectpayPlanId || canonicalPP?.planCode,
+        externalCheckoutUrl: physicalOverride.externalCheckoutUrl || canonicalPP?.checkoutUrl,
+        active: true,
+      };
+    } else {
+      // Pure canonical offer without physical override: physicalOfferId is NULL
+      physicalOfferId = null;
+      if (!canonicalPP) {
+        return NextResponse.json(
+          { success: false, error: { message: 'Official checkout configuration not found for canonical offer' } },
+          { status: 404 }
+        );
+      }
+      const resolved = resolveCommercialOffer(canonicalPlat, canonicalServ, canonicalPl, [], 'home');
+      if (!resolved) {
+        return NextResponse.json(
+          { success: false, error: { message: 'Canonical offer could not be resolved' } },
+          { status: 404 }
+        );
+      }
+      offer = {
+        id: null,
+        platform: canonicalPlat,
+        service: canonicalServ,
+        name: resolved.planDisplayName,
+        slug: `${canonicalPlat}-${canonicalServ}-${canonicalPl}`,
+        quantity: resolved.quantity,
+        bonusQuantity: resolved.bonusQuantity,
+        priceCents: resolved.priceCents,
+        perfectpayProductId: canonicalPP.productCode,
+        perfectpayPlanId: canonicalPP.planCode,
+        externalCheckoutUrl: canonicalPP.checkoutUrl,
+        active: true,
+      };
+    }
+
+    // Server-side validation of Product Code and Plan Code against official dataset
+    if (canonicalPP && (offer.perfectpayProductId !== canonicalPP.productCode || offer.perfectpayPlanId !== canonicalPP.planCode)) {
+      // In case physical override explicitly customized product/plan, verify it exists or fallback
+      if (!physicalOverride) {
+        return NextResponse.json(
+          { success: false, error: { message: 'Checkout product/plan mismatch with canonical identity' } },
+          { status: 422 }
+        );
       }
     }
 
@@ -214,7 +287,10 @@ export async function POST(request: Request) {
       }
     }
 
-    // 4. Persist Context in Database
+    // 4. Persist Context in Database (STRICT COMMIT: Checkout URL is ONLY returned after DB commit)
+    // canonical_offer_id is mandatory for the official commercial identity.
+    // offer_id is physical UUID if override exists, or NULL if no override exists.
+    // NO silent catch -> warning -> HTTP 200. Failures MUST yield HTTP 500/503 without checkoutUrl.
     try {
       await db.insert(checkoutContexts).values({
         contextId,
@@ -226,7 +302,8 @@ export async function POST(request: Request) {
         socialUsername: cleanUsername,
         profileUrl: data.profileUrl ? data.profileUrl.trim() : null,
         customerEmail: normalizedEmail,
-        offerId: offer.id,
+        canonicalOfferId,
+        offerId: physicalOfferId,
         appliedOfferCode: appliedOfferCode || null,
         perfectpayProductId: offer.perfectpayProductId,
         perfectpayPlanId: offer.perfectpayPlanId,
@@ -239,28 +316,11 @@ export async function POST(request: Request) {
       });
     } catch (dbInsertError: unknown) {
       const msg = dbInsertError instanceof Error ? dbInsertError.message : String(dbInsertError);
-      console.warn('[CheckoutContextAPI] Primary insert error, attempting base fallback insert:', msg);
-      if (typeof db.execute === 'function') {
-        await db.execute(sql`
-            INSERT INTO checkout_contexts (
-              id, context_id, platform, service, target_type, target_value, target_url, 
-              social_username, profile_url, offer_id, perfectpay_product_id, perfectpay_plan_id, 
-              utm_source, utm_medium, utm_campaign, utm_content, utm_term, expires_at
-            ) VALUES (
-              ${crypto.randomUUID()}, ${contextId}, ${platform}, ${service}, ${data.targetType}, 
-              ${data.targetValue ? data.targetValue.trim() : cleanUsername}, 
-              ${data.targetUrl ? data.targetUrl.trim() : null}, ${cleanUsername}, 
-              ${data.profileUrl ? data.profileUrl.trim() : null}, ${offer.id}, 
-              ${offer.perfectpayProductId}, ${offer.perfectpayPlanId}, 
-              ${data.utmSource || null}, 
-              ${data.utmMedium || null}, 
-              ${data.utmCampaign || null}, 
-              ${data.utmContent || null}, 
-              ${data.utmTerm || null}, 
-              ${expiresAt}
-            )
-          `).catch(e => console.warn('[CheckoutContextAPI] Fallback insert failed:', e));
-      }
+      console.error('[CheckoutContextAPI] Critical: Failed to persist checkout context:', msg);
+      return NextResponse.json(
+        { success: false, error: { message: 'Database failure while securing checkout context. Checkout aborted.' } },
+        { status: 503 }
+      );
     }
 
     // 5. Early CRM Lead Capture & Lifecycle Events (Persist BEFORE user leaves for checkout)
@@ -337,7 +397,8 @@ export async function POST(request: Request) {
             platform,
             service,
             targetHandle: cleanUsername,
-            offerId: offer.id,
+            canonicalOfferId,
+            offerId: physicalOfferId,
           },
         }).catch((err) => console.warn('[CheckoutContextAPI] LEAD_CAPTURED warning:', err?.message));
 
@@ -351,7 +412,8 @@ export async function POST(request: Request) {
             platform,
             service,
             targetHandle: cleanUsername,
-            offerId: offer.id,
+            canonicalOfferId,
+            offerId: physicalOfferId,
             priceCents: offer.priceCents,
           },
         }).catch((err) => console.warn('[CheckoutContextAPI] CHECKOUT_STARTED warning:', err?.message));

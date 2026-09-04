@@ -83,7 +83,7 @@ describe('Funnel Early Email Capture & Context Persistence (Requirements A, B, C
     expect(db.insert).toHaveBeenCalled();
   });
 
-  it('Regression Test: Checkout succeeds safely even if DB lacks customer_email or lead capture throws', async () => {
+  it('Regression Test: Checkout strictly requires DB persistence and fails safely with 503 if checkout_contexts insert fails', async () => {
     vi.mocked(db.query.offers.findMany).mockResolvedValueOnce([
       {
         id: 'offer-fail-safe',
@@ -97,13 +97,12 @@ describe('Funnel Early Email Capture & Context Persistence (Requirements A, B, C
       } as any,
     ]);
 
-    // Simulate primary insert failing (e.g. column customer_email does not exist in production yet)
+    // Simulate primary insert failing (e.g. database failure)
     let callCount = 0;
     vi.mocked(db.insert).mockImplementation(() => ({
       values: vi.fn(() => {
         callCount++;
         if (callCount === 1) {
-          // Primary insert fails due to missing column
           throw new Error('column "customer_email" of relation "checkout_contexts" does not exist');
         }
         return {
@@ -131,10 +130,10 @@ describe('Funnel Early Email Capture & Context Persistence (Requirements A, B, C
     const res = await checkoutContextPost(req);
     const json = await res.json();
 
-    expect(res.status).toBe(200);
-    expect(json.success).toBe(true);
-    expect(json.data.contextId).toMatch(/^CFCTX_/);
-    expect(json.data.checkoutUrl).toContain('https://checkout.perfectpay.com.br/pay/PPU999');
-    expect(json.data.checkoutUrl).toContain('src=CFCTX_');
+    // In Stage 8C, silent failure is completely forbidden: DB insert error returns 503 without checkoutUrl
+    expect(res.status).toBe(503);
+    expect(json.success).toBe(false);
+    expect(json.data).toBeUndefined();
+    expect(json.error.message).toContain('Database failure');
   });
 });

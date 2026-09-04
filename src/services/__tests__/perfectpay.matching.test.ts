@@ -125,7 +125,7 @@ describe('PerfectPay Webhook Service - Phase 2.3B Strict Product + Plan Matching
       sale_amount: 39.90,
       currency_enum: 2, // USD
       product: { code: 'PPPBF6TP', name: 'CloutFlow' },
-      plan: { code: 'PPLQQQ3GC', name: 'Ultimate - ALE' },
+      plan: { code: 'PPL_NON_EXISTENT_999', name: 'Unknown Plan' },
     };
 
     const res = await processPerfectPayWebhook(payload);

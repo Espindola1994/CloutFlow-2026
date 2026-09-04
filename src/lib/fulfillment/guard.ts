@@ -2,6 +2,7 @@ export interface DispatchableOrder {
   id: string;
   paymentStatus: string;
   fulfillmentStatus: string;
+  canonicalOfferId?: string | null;
   offerId?: string | null;
   platform?: string | null;
   service?: string | null;
@@ -18,7 +19,8 @@ export interface DispatchableOffer {
 /**
  * Strict fail-safe gate to determine if an order is eligible for provider fulfillment.
  * Rejects PENDING fulfillment status.
- * Rejects unmatched orders, inactive offers, or missing targets according to service type.
+ * Rejects unmatched orders, inactive physical offers (when present), or missing targets according to service type.
+ * Ausência de physical override NÃO pode ser motivo isolado para bloqueio se canonical identity / platform / service forem válidos.
  */
 export function canDispatchOrder(order: DispatchableOrder, offer?: DispatchableOffer | null): boolean {
   if (order.paymentStatus !== 'PAID' && order.paymentStatus !== 'COMPLETED') {
@@ -30,10 +32,12 @@ export function canDispatchOrder(order: DispatchableOrder, offer?: DispatchableO
     return false;
   }
 
-  if (!order.offerId) {
+  // Must have either canonicalOfferId or physical offerId (or both)
+  if (!order.canonicalOfferId && !order.offerId) {
     return false;
   }
 
+  // If a physical offer override is provided, it must be active
   if (offer && !offer.active) {
     return false;
   }

@@ -12,6 +12,7 @@ export const checkoutContexts = pgTable('checkout_contexts', {
   socialUsername: varchar('social_username', { length: 255 }),
   profileUrl: varchar('profile_url', { length: 1024 }),
   customerEmail: varchar('customer_email', { length: 255 }),
+  canonicalOfferId: varchar('canonical_offer_id', { length: 100 }),
   offerId: text('offer_id').references(() => offers.id, { onDelete: 'set null' }),
   appliedOfferCode: varchar('applied_offer_code', { length: 50 }),
   perfectpayProductId: varchar('perfectpay_product_id', { length: 255 }),
