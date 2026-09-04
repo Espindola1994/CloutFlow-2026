@@ -28,6 +28,21 @@ export interface ProcessWebhookResult {
   leadId?: string;
   message?: string;
   mode?: 'OBSERVATION' | 'VERIFIED';
+  normalizedCustomerEmail?: string;
+  normalizedStatus?: string;
+  orderData?: {
+    externalOrderId?: string;
+    customerEmail?: string;
+    platform?: string | null;
+    service?: string | null;
+    quantity?: number;
+    canonicalOfferId?: string | null;
+    subtotalCents?: number;
+    totalCents?: number;
+    checkoutContextId?: string | null;
+    targetUrl?: string | null;
+    socialUsername?: string | null;
+  };
 }
 
 /**
@@ -234,6 +249,8 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
           leadId: lead.id,
           message: `Authenticated lead event observed and safely recorded in payment_leads (ID: ${lead.id}) in Observation Mode. No orders created.`,
           mode: 'OBSERVATION',
+          normalizedCustomerEmail: parsed.customerEmail,
+          normalizedStatus: parsed.normalizedStatus,
         };
       }
 
@@ -243,6 +260,8 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
         action: 'OBSERVED_AUTHENTICATED',
         message: `Authenticated webhook observed and safely logged in Observation Mode with status ${parsed.normalizedStatus}. No orders created or modified.`,
         mode: 'OBSERVATION',
+        normalizedCustomerEmail: parsed.customerEmail,
+        normalizedStatus: parsed.normalizedStatus,
       };
     }
 
@@ -361,6 +380,21 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
           orderId: existingOrder.id,
           publicId: existingOrder.publicId,
           mode: 'VERIFIED',
+          normalizedCustomerEmail: existingOrder.customerEmail || parsed.customerEmail,
+          normalizedStatus: parsed.normalizedStatus,
+          orderData: {
+            externalOrderId: existingOrder.externalOrderId || parsed.externalOrderId,
+            customerEmail: existingOrder.customerEmail || parsed.customerEmail,
+            platform: existingOrder.platform,
+            service: existingOrder.service,
+            quantity: existingOrder.quantity,
+            canonicalOfferId: existingOrder.canonicalOfferId,
+            subtotalCents: existingOrder.subtotalCents,
+            totalCents: existingOrder.totalCents,
+            checkoutContextId: existingOrder.src && existingOrder.src.startsWith('CFCTX_') ? existingOrder.src : null,
+            targetUrl: existingOrder.targetUrl,
+            socialUsername: existingOrder.socialUsername,
+          },
         };
       }
 
@@ -630,6 +664,21 @@ export async function processPerfectPayWebhook(rawPayload: Record<string, unknow
         orderId: newOrder.id,
         publicId: newOrder.publicId,
         mode: 'VERIFIED',
+        normalizedCustomerEmail: newOrder.customerEmail || parsed.customerEmail,
+        normalizedStatus: parsed.normalizedStatus,
+        orderData: {
+          externalOrderId: newOrder.externalOrderId || parsed.externalOrderId,
+          customerEmail: newOrder.customerEmail || parsed.customerEmail,
+          platform: newOrder.platform,
+          service: newOrder.service,
+          quantity: newOrder.quantity,
+          canonicalOfferId: newOrder.canonicalOfferId,
+          subtotalCents: newOrder.subtotalCents,
+          totalCents: newOrder.totalCents,
+          checkoutContextId: newOrder.src && newOrder.src.startsWith('CFCTX_') ? newOrder.src : null,
+          targetUrl: newOrder.targetUrl,
+          socialUsername: newOrder.socialUsername,
+        },
       };
     }
 

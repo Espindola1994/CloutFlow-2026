@@ -1,6 +1,6 @@
 import { db } from '@/db';
-import { lifecycleAutomations, lifecycleEvents } from '@/db/schema';
-import { eq, and, lte, gte, inArray } from 'drizzle-orm';
+import { lifecycleAutomations, lifecycleEvents, orders } from '@/db/schema';
+import { eq, and, lte, gte, inArray, or } from 'drizzle-orm';
 import crypto from 'crypto';
 import { emitLifecycleEvent } from './event.service';
 
@@ -75,6 +75,51 @@ export async function evaluateCheckoutAbandonments(thresholdMinutes = DEFAULT_AB
 
     if (converted) {
       continue;
+    }
+
+    // 2.5 Financial Guard: Check persistent order truth (orders table)
+    // Never rely solely on lifecycle_events. If there is an approved/paid order matching this journey or created after this checkout start, do not mark abandoned.
+    try {
+      const orderMatchConditions = [];
+      if (journeyId && journeyId.startsWith('CFCTX_')) {
+        orderMatchConditions.push(eq(orders.src, journeyId));
+      }
+      if (leadPayload.externalReference) {
+        orderMatchConditions.push(eq(orders.externalOrderId, String(leadPayload.externalReference)));
+      }
+      if (leadPayload.orderId) {
+        orderMatchConditions.push(eq(orders.id, String(leadPayload.orderId)));
+      }
+
+      let financialOrderMatch: any[] = [];
+      if (orderMatchConditions.length > 0) {
+        financialOrderMatch = await db.query.orders.findMany({
+          where: and(
+            eq(orders.customerEmail, lead.customerEmail),
+            inArray(orders.paymentStatus, ['PAID', 'COMPLETED', 'approved', 'completed']),
+            or(...orderMatchConditions)
+          ),
+          limit: 1,
+        });
+      }
+
+      if (financialOrderMatch.length === 0) {
+        // Fallback: Check if an order for this email was paid after the checkout started
+        financialOrderMatch = await db.query.orders.findMany({
+          where: and(
+            eq(orders.customerEmail, lead.customerEmail),
+            inArray(orders.paymentStatus, ['PAID', 'COMPLETED', 'approved', 'completed']),
+            gte(orders.createdAt, lead.createdAt)
+          ),
+          limit: 1,
+        });
+      }
+
+      if (financialOrderMatch && financialOrderMatch.length > 0) {
+        continue;
+      }
+    } catch (orderGuardErr) {
+      console.warn('[LifecycleScheduler] Financial guard query skipped on error:', orderGuardErr);
     }
 
     // 3. Check if we already emitted an abandonment for THIS journey.

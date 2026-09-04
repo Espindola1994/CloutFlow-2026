@@ -1,8 +1,8 @@
 import { claimReadyAutomations, handleAutomationFailure, markAutomationCompleted } from './scheduler.service';
 import { db } from '@/db';
-import { lifecycleAutomations, lifecycleEvents, emailLogs } from '@/db/schema';
+import { lifecycleAutomations, lifecycleEvents, emailLogs, orders } from '@/db/schema';
 import { customerOffers } from '@/db/schema/offers';
-import { eq, and, gt } from 'drizzle-orm';
+import { eq, and, gt, gte, inArray, or } from 'drizzle-orm';
 import { getCartRecoveryTemplate, getPostPurchaseOfferTemplate } from './templates.service';
 import { getMarketingEmailTransport } from '@/integrations/email/transport';
 import { isEmailSuppressed } from './unsubscribe.service';
@@ -43,6 +43,7 @@ export async function runLifecycleWorker(limit = 10) {
       }
 
       // 2. Pre-send revalidation: Check for payment/order after this abandonment
+      // Revalidate against both lifecycle events AND persistent orders financial truth
       const [laterPayment] = await db.query.lifecycleEvents.findMany({
         where: and(
           eq(lifecycleEvents.customerEmail, normalizedEmail),
@@ -52,7 +53,52 @@ export async function runLifecycleWorker(limit = 10) {
         limit: 1,
       });
 
-      if (laterPayment) {
+      let laterOrderConverted = false;
+      if (!laterPayment) {
+        try {
+          const contextData = automation.contextData as Record<string, unknown>;
+          const journeyId = contextData?.journeyId || contextData?.checkoutContextId;
+          const orderMatchConditions = [];
+          if (journeyId && typeof journeyId === 'string' && journeyId.startsWith('CFCTX_')) {
+            orderMatchConditions.push(eq(orders.src, journeyId));
+          }
+          if (contextData?.externalReference) {
+            orderMatchConditions.push(eq(orders.externalOrderId, String(contextData.externalReference)));
+          }
+
+          let matchedOrders: any[] = [];
+          if (orderMatchConditions.length > 0) {
+            matchedOrders = await db.query.orders.findMany({
+              where: and(
+                eq(orders.customerEmail, normalizedEmail),
+                inArray(orders.paymentStatus, ['PAID', 'COMPLETED', 'approved', 'completed']),
+                or(...orderMatchConditions)
+              ),
+              limit: 1,
+            });
+          }
+
+          if (matchedOrders.length === 0) {
+            // Also check if any order for this email was created & paid after the automation was created
+            matchedOrders = await db.query.orders.findMany({
+              where: and(
+                eq(orders.customerEmail, normalizedEmail),
+                inArray(orders.paymentStatus, ['PAID', 'COMPLETED', 'approved', 'completed']),
+                gte(orders.createdAt, automation.createdAt)
+              ),
+              limit: 1,
+            });
+          }
+
+          if (matchedOrders && matchedOrders.length > 0) {
+            laterOrderConverted = true;
+          }
+        } catch (orderCheckErr) {
+          console.warn('[LifecycleWorker] Pre-send order check warning:', orderCheckErr);
+        }
+      }
+
+      if (laterPayment || laterOrderConverted) {
         await db.update(lifecycleAutomations).set({ status: 'SUPPRESSED_CONVERTED', updatedAt: new Date() }).where(eq(lifecycleAutomations.id, automation.id));
         await logEmailSend(automation.id, normalizedEmail, automation.actionType, (automation.contextData as Record<string, unknown>)?.stepNumber as number, 'SUPPRESSED', 'Customer converted before send');
         succeeded++;
@@ -84,10 +130,22 @@ export async function runLifecycleWorker(limit = 10) {
         const contextData = automation.contextData as Record<string, unknown>;
         
         let returnUrl = baseUrl;
-        if (contextData?.platform && contextData?.service && contextData?.offerId) {
-           returnUrl = `${baseUrl}/order/${contextData.platform}/${contextData.service}?offer=${contextData.offerId}`;
-        } else if (contextData?.checkoutUrl) {
+        if (contextData?.checkoutUrl) {
            returnUrl = contextData.checkoutUrl as string;
+        } else if (contextData?.canonicalOfferId || (contextData?.platform && contextData?.service)) {
+           // Canonical recovery: resolve platform and service to return to the catalog
+           const plat = (contextData.platform as string) || '';
+           const serv = (contextData.service as string) || '';
+           const offerParam = (contextData.offerId as string) || (contextData.canonicalOfferId as string) || '';
+           if (plat && serv && offerParam) {
+             returnUrl = `${baseUrl}/order/${plat}/${serv}?offer=${offerParam}`;
+           } else if (plat && serv) {
+             returnUrl = `${baseUrl}/order/${plat}/${serv}`;
+           } else {
+             returnUrl = baseUrl;
+           }
+        } else if (contextData?.offerId) {
+           returnUrl = `${baseUrl}/order?offer=${contextData.offerId}`;
         }
 
         const template = getCartRecoveryTemplate(stepNumber, { returnUrl, customerEmail: normalizedEmail });

@@ -33,44 +33,72 @@ export async function POST(request: Request) {
     // Errors are swallowed safely to prevent transactional rollback.
     if (result.success && result.authenticated && result.mode === 'VERIFIED') {
       try {
-        if (result.action === 'LEAD_RECORDED' && payload.customer_email) {
+        const customerEmail = result.normalizedCustomerEmail || result.orderData?.customerEmail;
+
+        if (result.action === 'LEAD_RECORDED' && customerEmail) {
           await emitLifecycleEvent({
-            customerEmail: String(payload.customer_email),
+            customerEmail,
             eventType: 'LEAD_CAPTURED',
             idempotencyKey: `LEAD_CAPTURED:${result.leadId || Date.now()}`,
             payload: {
+              leadId: result.leadId,
               product: payload.product_name,
               plan: payload.plan_name,
               amount: payload.sale_amount,
               capturedAt: new Date().toISOString()
             }
           });
-        } else if ((result.action === 'ORDER_CREATED' || result.action === 'ORDER_UPDATED') && payload.customer_email) {
+        } else if ((result.action === 'ORDER_CREATED' || result.action === 'ORDER_UPDATED') && customerEmail && result.orderId) {
           const rawStatus = String(payload.sale_status_enum || payload.sale_status || '').toLowerCase();
-          if (rawStatus === '2' || rawStatus === 'approved') {
-            await emitLifecycleEvent({
-              customerEmail: String(payload.customer_email),
+          const isApproved = rawStatus === '2' || rawStatus === 'approved' || result.normalizedStatus === 'approved' || result.normalizedStatus === 'completed';
+          const isRefunded = rawStatus === '7' || rawStatus === 'refunded' || result.normalizedStatus === 'refunded';
+
+          if (isApproved) {
+            const orderDetails = result.orderData || {};
+            const emitRes = await emitLifecycleEvent({
+              customerEmail,
               eventType: 'PAYMENT_APPROVED',
               idempotencyKey: `PAYMENT_APPROVED:ORDER:${result.orderId}`,
-              payload: { orderId: result.orderId, amount: payload.sale_amount }
+              payload: {
+                orderId: result.orderId,
+                externalOrderId: orderDetails.externalOrderId,
+                amount: orderDetails.totalCents ? orderDetails.totalCents / 100 : payload.sale_amount,
+                amountCents: orderDetails.totalCents,
+                customerEmail,
+                platform: orderDetails.platform,
+                service: orderDetails.service,
+                quantity: orderDetails.quantity,
+                canonicalOfferId: orderDetails.canonicalOfferId,
+                checkoutContextId: orderDetails.checkoutContextId,
+                journeyId: orderDetails.checkoutContextId,
+                target: orderDetails.socialUsername || orderDetails.targetUrl,
+                targetHandle: orderDetails.socialUsername,
+                targetUrl: orderDetails.targetUrl,
+              }
             });
-            // Also evaluate repeat purchase logic if we have customer email
-            const { evaluateRepeatPurchase } = await import('@/services/lifecycle/event.service');
-            await evaluateRepeatPurchase(String(payload.customer_email), result.orderId!, payload.sale_amount as string);
 
-            // Phase F: Evaluate and schedule Post-Purchase Offer
-            try {
-              const { schedulePostPurchaseOffer } = await import('@/services/lifecycle/post-purchase.service');
-              await schedulePostPurchaseOffer({
-                customerEmail: String(payload.customer_email),
-                sourceOrderId: result.orderId!
-              });
-            } catch (postPurchaseErr) {
-              console.error('[PerfectPayWebhook] Error scheduling post-purchase offer:', postPurchaseErr);
+            // Only evaluate downstream flows if this was NOT a duplicate payment event
+            if (!emitRes.isDuplicate) {
+              // Evaluate repeat purchase logic
+              const { evaluateRepeatPurchase } = await import('@/services/lifecycle/event.service');
+              await evaluateRepeatPurchase(customerEmail, result.orderId, (orderDetails.totalCents ? orderDetails.totalCents / 100 : payload.sale_amount) as string | number);
+
+              // Phase F: Evaluate and schedule Post-Purchase Offer
+              try {
+                const { schedulePostPurchaseOffer } = await import('@/services/lifecycle/post-purchase.service');
+                await schedulePostPurchaseOffer({
+                  customerEmail,
+                  sourceOrderId: result.orderId,
+                  lifecycleEventId: emitRes.eventId,
+                  sourceJourneyId: orderDetails.checkoutContextId || undefined,
+                });
+              } catch (postPurchaseErr) {
+                console.error('[PerfectPayWebhook] Error scheduling post-purchase offer:', postPurchaseErr);
+              }
             }
-          } else if (rawStatus === '10' || rawStatus === 'refunded') {
+          } else if (isRefunded) {
              await emitLifecycleEvent({
-                customerEmail: String(payload.customer_email),
+                customerEmail,
                 eventType: 'ORDER_REFUNDED',
                 idempotencyKey: `ORDER_REFUNDED:ORDER:${result.orderId}`,
                 payload: { orderId: result.orderId, amount: payload.sale_amount }
