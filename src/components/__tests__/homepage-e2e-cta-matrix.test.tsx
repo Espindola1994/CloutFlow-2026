@@ -123,17 +123,19 @@ describe('HomePage E2E DOM Interaction & Checkout Flow for TikTok, Twitter, YouT
         }
       }) as any;
 
-      // Set funnel store target state matching the scenario
+      // Set funnel store target state matching the scenario (target verified + valid email)
       useFunnelStore.getState().setPlatform(item.platform);
       useFunnelStore.getState().setService(item.service);
       useFunnelStore.getState().setEmail('customer@example.com');
       useFunnelStore.getState().setTarget({
         targetType: item.targetType as any,
-        targetValue: item.username,
+        targetValue: item.service === 'followers' ? item.username : (item.targetUrl || 'https://example.com'),
         targetUrl: item.targetUrl || `https://${item.platform === 'twitter' ? 'x.com' : item.platform === 'youtube' ? 'youtube.com/@' : `${item.platform}.com/`}${item.username}`,
-        socialUsername: item.username,
-        profileUrl: `https://${item.platform === 'twitter' ? 'x.com' : item.platform === 'youtube' ? 'youtube.com/@' : `${item.platform}.com/`}${item.username}`,
+        socialUsername: item.service === 'followers' ? item.username : null,
+        profileUrl: item.service === 'followers' ? `https://${item.platform === 'twitter' ? 'x.com' : item.platform === 'youtube' ? 'youtube.com/@' : `${item.platform}.com/`}${item.username}` : null,
         email: 'customer@example.com',
+        verifiedTargetData: { username: item.username, verified: true },
+        verificationStatus: 'success',
       });
       useFunnelStore.getState().setUsername(item.username);
 
@@ -168,7 +170,7 @@ describe('HomePage E2E DOM Interaction & Checkout Flow for TikTok, Twitter, YouT
       }, { timeout: 4000 });
     });
 
-    it(`blocks checkout and shows friendly validation message when target is missing for ${item.platform} ${item.service}`, async () => {
+    it(`blocks plan selection and keeps cards hidden when target or email is missing for ${item.platform} ${item.service}`, async () => {
       const fetchCalls: any[] = [];
       global.fetch = vi.fn().mockImplementation((url: string, init?: RequestInit) => {
         if (url.includes('/api/offers')) {
@@ -212,27 +214,13 @@ describe('HomePage E2E DOM Interaction & Checkout Flow for TikTok, Twitter, YouT
 
       const { container } = render(<HomePage initialPlatform={item.platform as any} initialService={item.service as any} />);
 
+      // When target is missing, cards MUST be hidden / gated
       await waitFor(() => {
-        expect(container.querySelectorAll('.cf-o10-package-ref-card').length).toBe(6);
+        expect(container.querySelectorAll('.cf-o10-package-ref-card').length).toBe(0);
       }, { timeout: 4000 });
 
-      const starterCard = container.querySelectorAll('.cf-o10-package-ref-card')[0];
-      const ctaButton = starterCard.querySelector('.cf-o10-package-ref-cta');
-      fireEvent.click(ctaButton!);
-
-      // Endpoint must NOT be called
+      // Checkout API must never be called
       expect(fetchCalls.length).toBe(0);
-
-      // Friendly validation message should appear
-      await waitFor(() => {
-        const errorEl = container.querySelector('.cf-plans-error');
-        expect(errorEl).not.toBeNull();
-        if (item.service === 'followers') {
-          expect(errorEl!.textContent).toContain('Enter your profile username before continuing.');
-        } else {
-          expect(errorEl!.textContent).toContain('Enter the post or video URL before continuing.');
-        }
-      });
     });
   }
 });

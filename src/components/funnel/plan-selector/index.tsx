@@ -101,9 +101,14 @@ export function PlanSelector({ plans, username, platform, service, hasTarget, on
       isBestValue: index === 3 || index === 5,
     };
   }),[plans]);
-  const select=(id:string|null)=>{ if(!id) return; setPlan(id); void onSelectPlan?.(id); };
+  const select=(id:string|null)=>{ 
+    if(!id || !hasTarget) return; 
+    setPlan(id); 
+    void onSelectPlan?.(id); 
+  };
 
   return <>
+    {hasTarget && (
     <section className="cf-plans-pricing cf-home-offer-pricing">
         <div className="cf-plans-section-title cf-pricing-title">
           <h2>Choose Your <span className="cf-growth-plan-accent">Growth Plan</span> <span aria-hidden="true">♥</span></h2>
@@ -132,7 +137,7 @@ export function PlanSelector({ plans, username, platform, service, hasTarget, on
                   )}
                   {index === 5 && (
                     <span className="cf-o10-package-ref-best cf-o10-package-ref-best--deal">
-BEST DEAL
+                      BEST DEAL
                     </span>
                   )}
 
@@ -219,6 +224,7 @@ BEST DEAL
           </div>
         </div>
     </section>
+    )}
 
 
     <section id="reviews" className="cf-plans-reviews">

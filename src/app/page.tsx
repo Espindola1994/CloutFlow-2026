@@ -36,11 +36,10 @@ export default function HomePage({
   const [service, setSelectedService] = useState<Service>(initialService);
   const meta = PLATFORM_META[platform] || PLATFORM_META.instagram;
 
-  const { targetType, targetValue, targetUrl, socialUsername, profileUrl, email, setPlatform, setService } = useFunnelStore();
+  const { targetType, targetValue, targetUrl, socialUsername, profileUrl, email, verificationStatus, verifiedTargetData, setPlatform, setService } = useFunnelStore();
   const [offers, setOffers] = useState<PublicOfferItem[]>([]);
   const [loadingOffers, setLoadingOffers] = useState(true);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [plansConfirmed, setPlansConfirmed] = useState(false);
 
   const fetchOffers = useCallback(async () => {
     try {
@@ -59,14 +58,12 @@ export default function HomePage({
     fetchOffers();
   }, [fetchOffers]);
 
+  const funnelReadiness = useMemo(() => {
+    return useFunnelStore.getState().getReadiness();
+  }, [platform, service, targetType, targetValue, targetUrl, socialUsername, profileUrl, email, verificationStatus, verifiedTargetData]);
+
   const isFollowers = service === "followers";
   const username = (socialUsername || targetValue || "your profile").replace(/^@+/, "");
-
-  const isContentTarget = targetType === "post" || targetType === "video";
-  const targetCompatibleWithService = service === "followers"
-    ? Boolean((targetType === "profile" || targetType === "channel") && (socialUsername || targetValue))
-    : Boolean(isContentTarget && targetUrl);
-  const hasTarget = targetCompatibleWithService || plansConfirmed;
 
   const changeProduct = (next: Service) => {
     const validServices = PLATFORM_SERVICES[platform] || ['followers', 'likes', 'views'];
@@ -75,7 +72,6 @@ export default function HomePage({
     setSelectedService(safeService);
     setService(safeService);
     setCheckoutError(null);
-    setPlansConfirmed(false);
   };
 
   const changePlatform = (next: PlatformId) => {
@@ -89,48 +85,14 @@ export default function HomePage({
       setService(fallback);
     }
     setCheckoutError(null);
-    setPlansConfirmed(false);
   };
 
   const handleCheckout = async (offerId: string) => {
     setCheckoutError(null);
-    const funnelState = useFunnelStore.getState();
-    const currentTargetType = funnelState.targetType;
-    const currentSocialUsername = funnelState.socialUsername;
-    const currentTargetValue = funnelState.targetValue;
-    const currentTargetUrl = funnelState.targetUrl;
-    const currentProfileUrl = funnelState.profileUrl;
-    const currentEmail = funnelState.email;
+    const readiness = useFunnelStore.getState().getReadiness();
 
-    const resolvedTargetType = isFollowers ? "profile" : (platform === "youtube" || platform === "tiktok" ? "video" : "post");
-    const normalizedUsername = currentSocialUsername
-      ? currentSocialUsername.replace(/^@+/, "").trim()
-      : (currentTargetValue ? currentTargetValue.replace(/^@+/, "").trim() : null);
-
-    const canonicalProfileUrl = normalizedUsername ? buildCanonicalProfileUrl(platform, normalizedUsername) : null;
-    let validatedProfileUrl: string | null = null;
-    if (currentProfileUrl) {
-      const validation = validateSafeUrl(currentProfileUrl, platform as any);
-      if (validation.isSafe) {
-        validatedProfileUrl = currentProfileUrl;
-      }
-    }
-    const finalProfileUrl = isFollowers ? (canonicalProfileUrl || validatedProfileUrl) : null;
-
-    const isContentTarget = resolvedTargetType === "post" || resolvedTargetType === "video";
-    const targetValue = isFollowers ? (normalizedUsername || currentTargetValue) : (currentTargetValue || normalizedUsername);
-    const targetUrl = isFollowers ? finalProfileUrl : (currentTargetUrl || null);
-    
-    // Validate target existence before proceeding
-    if (isFollowers && !targetValue) {
-      setCheckoutError("Enter your profile username before continuing.");
-      document.querySelector(".cf-pb-input input")?.scrollIntoView({ behavior: "smooth", block: "center" });
-      (document.querySelector(".cf-pb-input input") as HTMLInputElement)?.focus();
-      return;
-    }
-
-    if (isContentTarget && !targetUrl) {
-      setCheckoutError("Enter the post or video URL before continuing.");
+    if (!readiness.canCheckout) {
+      setCheckoutError(readiness.reason || "Please complete verification and email before checkout.");
       document.querySelector(".cf-pb-input input")?.scrollIntoView({ behavior: "smooth", block: "center" });
       (document.querySelector(".cf-pb-input input") as HTMLInputElement)?.focus();
       return;
@@ -142,12 +104,12 @@ export default function HomePage({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           offerId,
-          targetType: resolvedTargetType,
-          targetValue,
-          targetUrl,
-          socialUsername: isFollowers ? normalizedUsername : null,
-          profileUrl: finalProfileUrl,
-          email: currentEmail ? currentEmail.trim().toLowerCase() : null,
+          targetType: readiness.resolvedTargetType,
+          targetValue: readiness.resolvedTargetValue,
+          targetUrl: readiness.resolvedTargetUrl,
+          socialUsername: readiness.normalizedUsername,
+          profileUrl: readiness.canonicalProfileUrl,
+          email: readiness.normalizedEmail,
         }),
       });
       const json = await res.json();
@@ -208,14 +170,13 @@ export default function HomePage({
           onPlatformChange={changePlatform}
           onGoalChange={(goal) => changeProduct(goal)}
           onContinue={() => {
-            setPlansConfirmed(true);
             void fetchOffers();
             window.setTimeout(() => {
               document.querySelector(".cf-plans-pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
             }, 180);
           }}
         />
-        {loadingOffers && (
+        {loadingOffers && funnelReadiness.canShowPlans && (
           <div className="cf-plans-loading cf-plans-loading-inline">
             <Loader2 />
             <span>Loading current live packages...</span>
@@ -226,7 +187,7 @@ export default function HomePage({
           username={username}
           platform={platform}
           service={service}
-          hasTarget={true}
+          hasTarget={funnelReadiness.canShowPlans}
           onSelectPlan={handleCheckout}
         />
       </section>

@@ -198,12 +198,14 @@ export default function GrowthPackageBuilder({
 
   const choosePlatform = (next: PlatformId) => {
     if (stage === "analyzing") return;
-    setPlatformLocal(next); setProfile(null); setStage("idle"); setError(null);
+    setPlatformLocal(next); setProfile(null); setStage("idle"); setError(null); setIdentifier("");
+    useFunnelStore.getState().setPlatform(next);
     const validServices = PLATFORM_SERVICES[next] || ['followers'];
     let safeGoal = goal;
     if (!validServices.includes(goal)) {
       safeGoal = validServices[0] as Goal;
       setGoalLocal(safeGoal);
+      useFunnelStore.getState().setService(safeGoal);
       onGoalChange(safeGoal);
     }
     onPlatformChange(next);
@@ -212,7 +214,9 @@ export default function GrowthPackageBuilder({
     if (stage === "analyzing") return;
     const validServices = PLATFORM_SERVICES[platform] || ['followers'];
     if (!validServices.includes(next)) return;
-    setGoalLocal(next); setProfile(null); setStage("idle"); setError(null); onGoalChange(next);
+    setGoalLocal(next); setProfile(null); setStage("idle"); setError(null); setIdentifier("");
+    useFunnelStore.getState().setService(next);
+    onGoalChange(next);
   };
 
   const resetSearch = () => {
@@ -220,6 +224,7 @@ export default function GrowthPackageBuilder({
     previewTimers.current.forEach(window.clearTimeout);
     previewTimers.current = [];
     setStage("idle"); setProgress(0); setProfile(null); setError(null); setIdentifier("");
+    useFunnelStore.getState().resetTarget();
   };
 
   const persistTarget = (found: VerifiedSocialProfile) => {
@@ -238,6 +243,7 @@ export default function GrowthPackageBuilder({
       profileUrl,
       email: cleanEmail,
       verifiedTargetData: found as unknown as Record<string, unknown>,
+      verificationStatus: "success",
     });
     if (!isContent) setUsername(normalizedUsername);
     setProfileData(found as unknown as Record<string, unknown>);
