@@ -104,9 +104,24 @@ export function resolveFunnelReadiness(input: FunnelReadinessInput): FunnelReadi
       const trimmedUrl = rawUrl.trim();
       const safeValidation = validateSafeUrl(trimmedUrl, platform);
       if (safeValidation.isSafe && safeValidation.url) {
-        resolvedTargetUrl = trimmedUrl;
-        resolvedTargetValue = trimmedUrl;
-        targetValid = true;
+        // Enforce Content Rules: YouTube Views/Likes CANNOT be a channel URL (@ or /channel/)
+        if (platform === 'youtube') {
+          const parsed = safeValidation.url;
+          const pathname = parsed.pathname.toLowerCase();
+          const isChannel = pathname.includes('/channel/') || pathname.includes('/@') || pathname.includes('/c/') || pathname.includes('/user/');
+          const isVideo = pathname.includes('/watch') || parsed.hostname.includes('youtu.be') || pathname.includes('/shorts/');
+          if (isChannel || !isVideo) {
+            targetValid = false;
+          } else {
+            resolvedTargetUrl = trimmedUrl;
+            resolvedTargetValue = trimmedUrl;
+            targetValid = true;
+          }
+        } else {
+          resolvedTargetUrl = trimmedUrl;
+          resolvedTargetValue = trimmedUrl;
+          targetValid = true;
+        }
       }
     }
   }

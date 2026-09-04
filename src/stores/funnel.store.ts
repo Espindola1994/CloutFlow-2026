@@ -55,7 +55,7 @@ export interface FunnelState {
   getReadiness: () => FunnelReadinessResult;
 }
 
-const CURRENT_FUNNEL_VERSION = 2;
+const CURRENT_FUNNEL_VERSION = 3;
 
 export const useFunnelStore = create<FunnelState>()(
   persist(
@@ -187,32 +187,29 @@ export const useFunnelStore = create<FunnelState>()(
       },
     }),
     {
-      name: 'funnel-storage-v2', // Safe migration to eliminate stale persisted states
-      version: CURRENT_FUNNEL_VERSION,
+      name: 'funnel-storage-v3', // Migration v3: stale persisted verification states never unlock plans automatically
+      version: 3,
       migrate: (persistedState: any, version: number) => {
-        if (version < CURRENT_FUNNEL_VERSION || !persistedState) {
-          return {
-            version: CURRENT_FUNNEL_VERSION,
-            platformSlug: null,
-            serviceSlug: null,
-            followerType: null,
-            username: null,
-            email: null,
-            profileData: null,
-            targetType: null,
-            targetValue: null,
-            targetUrl: null,
-            socialUsername: null,
-            profileUrl: null,
-            verifiedTargetData: null,
-            verificationStatus: 'idle',
-            nicheId: null,
-            customNiche: null,
-            selectedMedia: null,
-            planId: null,
-          };
-        }
-        return persistedState;
+        return {
+          version: 3,
+          platformSlug: null,
+          serviceSlug: null,
+          followerType: null,
+          username: null,
+          email: null,
+          profileData: null,
+          targetType: null,
+          targetValue: null,
+          targetUrl: null,
+          socialUsername: null,
+          profileUrl: null,
+          verifiedTargetData: null,
+          verificationStatus: 'idle',
+          nicheId: null,
+          customNiche: null,
+          selectedMedia: null,
+          planId: null,
+        };
       },
     }
   )

@@ -214,4 +214,234 @@ describe('Funnel Central Readiness & Transition Matrix', () => {
       expect(useFunnelStore.getState().targetUrl).toBeNull();
     });
   });
+
+  describe('ETAPA 11D-0: Strict Funnel Regression Scenarios A through L', () => {
+    it('A) fresh load -> canShowPlans=false', () => {
+      useFunnelStore.getState().reset();
+      const readiness = useFunnelStore.getState().getReadiness();
+      expect(readiness.canShowPlans).toBe(false);
+      expect(readiness.targetVerified).toBe(false);
+      expect(readiness.canCheckout).toBe(false);
+    });
+
+    it('B) stale persisted unlocked state -> fresh validation relocks / resets to idle', () => {
+      // If store is freshly reset or initialized without explicit confirmation
+      useFunnelStore.getState().reset();
+      expect(useFunnelStore.getState().getReadiness().canShowPlans).toBe(false);
+      expect(useFunnelStore.getState().verificationStatus).toBe('idle');
+      expect(useFunnelStore.getState().verifiedTargetData).toBeNull();
+    });
+
+    it('C) valid profile found -> targetValid=true, targetVerified=false, canShowPlans=false', () => {
+      useFunnelStore.getState().reset();
+      useFunnelStore.getState().setPlatform('instagram');
+      useFunnelStore.getState().setService('followers');
+      useFunnelStore.getState().setEmail('user@cloutflow.co');
+      
+      // Search found profile, but user has NOT clicked "Yes, this is my profile"
+      useFunnelStore.getState().setTarget({
+        targetType: 'profile',
+        targetValue: 'found_user',
+        socialUsername: 'found_user',
+        profileUrl: 'https://www.instagram.com/found_user',
+        email: 'user@cloutflow.co',
+        verifiedTargetData: null, // Not confirmed yet
+        verificationStatus: 'idle', // Not confirmed yet
+      });
+
+      const readiness = useFunnelStore.getState().getReadiness();
+      expect(readiness.targetValid).toBe(true);
+      expect(readiness.targetVerified).toBe(false);
+      expect(readiness.canShowPlans).toBe(false);
+      expect(readiness.canCheckout).toBe(false);
+    });
+
+    it('D) confirmation click -> targetVerified=true', () => {
+      useFunnelStore.getState().reset();
+      useFunnelStore.getState().setPlatform('instagram');
+      useFunnelStore.getState().setService('followers');
+      useFunnelStore.getState().setEmail('user@cloutflow.co');
+      
+      // User clicks "Yes, this is my profile"
+      useFunnelStore.getState().setTarget({
+        targetType: 'profile',
+        targetValue: 'found_user',
+        socialUsername: 'found_user',
+        profileUrl: 'https://www.instagram.com/found_user',
+        email: 'user@cloutflow.co',
+        verifiedTargetData: { username: 'found_user', verified: true },
+        verificationStatus: 'success',
+      });
+
+      const readiness = useFunnelStore.getState().getReadiness();
+      expect(readiness.targetValid).toBe(true);
+      expect(readiness.targetVerified).toBe(true);
+    });
+
+    it('E) only after all required gates -> canShowPlans=true', () => {
+      useFunnelStore.getState().reset();
+      useFunnelStore.getState().setPlatform('instagram');
+      useFunnelStore.getState().setService('followers');
+      useFunnelStore.getState().setEmail('user@cloutflow.co');
+      
+      useFunnelStore.getState().setTarget({
+        targetType: 'profile',
+        targetValue: 'found_user',
+        socialUsername: 'found_user',
+        profileUrl: 'https://www.instagram.com/found_user',
+        email: 'user@cloutflow.co',
+        verifiedTargetData: { username: 'found_user' },
+        verificationStatus: 'success',
+      });
+
+      const readiness = useFunnelStore.getState().getReadiness();
+      expect(readiness.targetValid).toBe(true);
+      expect(readiness.targetVerified).toBe(true);
+      expect(readiness.emailValid).toBe(true);
+      expect(readiness.canShowPlans).toBe(true);
+      expect(readiness.canCheckout).toBe(true);
+    });
+
+    it('F) target change -> relock', () => {
+      // Start in confirmed state
+      useFunnelStore.getState().setPlatform('instagram');
+      useFunnelStore.getState().setService('followers');
+      useFunnelStore.getState().setEmail('user@cloutflow.co');
+      useFunnelStore.getState().setTarget({
+        targetType: 'profile',
+        targetValue: 'initial_user',
+        socialUsername: 'initial_user',
+        verificationStatus: 'success',
+        verifiedTargetData: { username: 'initial_user' },
+      });
+      expect(useFunnelStore.getState().getReadiness().canShowPlans).toBe(true);
+
+      // User resets or modifies target
+      useFunnelStore.getState().resetTarget();
+      const readinessAfter = useFunnelStore.getState().getReadiness();
+      expect(readinessAfter.targetVerified).toBe(false);
+      expect(readinessAfter.canShowPlans).toBe(false);
+      expect(readinessAfter.canCheckout).toBe(false);
+    });
+
+    it('G) service change -> relock', () => {
+      useFunnelStore.getState().setPlatform('instagram');
+      useFunnelStore.getState().setService('followers');
+      useFunnelStore.getState().setEmail('user@cloutflow.co');
+      useFunnelStore.getState().setTarget({
+        targetType: 'profile',
+        targetValue: 'user_a',
+        socialUsername: 'user_a',
+        verificationStatus: 'success',
+        verifiedTargetData: { username: 'user_a' },
+      });
+      expect(useFunnelStore.getState().getReadiness().canShowPlans).toBe(true);
+
+      // Switch service
+      useFunnelStore.getState().setService('likes');
+      const readinessAfter = useFunnelStore.getState().getReadiness();
+      expect(readinessAfter.targetVerified).toBe(false);
+      expect(readinessAfter.canShowPlans).toBe(false);
+      expect(readinessAfter.canCheckout).toBe(false);
+    });
+
+    it('H) platform change -> relock', () => {
+      useFunnelStore.getState().setPlatform('instagram');
+      useFunnelStore.getState().setService('followers');
+      useFunnelStore.getState().setEmail('user@cloutflow.co');
+      useFunnelStore.getState().setTarget({
+        targetType: 'profile',
+        targetValue: 'user_a',
+        socialUsername: 'user_a',
+        verificationStatus: 'success',
+        verifiedTargetData: { username: 'user_a' },
+      });
+      expect(useFunnelStore.getState().getReadiness().canShowPlans).toBe(true);
+
+      // Switch platform
+      useFunnelStore.getState().setPlatform('twitter');
+      const readinessAfter = useFunnelStore.getState().getReadiness();
+      expect(readinessAfter.targetVerified).toBe(false);
+      expect(readinessAfter.canShowPlans).toBe(false);
+      expect(readinessAfter.canCheckout).toBe(false);
+    });
+
+    it('I) failed search -> canShowPlans=false', () => {
+      useFunnelStore.getState().reset();
+      useFunnelStore.getState().setPlatform('instagram');
+      useFunnelStore.getState().setService('followers');
+      useFunnelStore.getState().setEmail('user@cloutflow.co');
+      useFunnelStore.getState().setVerificationStatus('error');
+
+      const readiness = useFunnelStore.getState().getReadiness();
+      expect(readiness.targetVerified).toBe(false);
+      expect(readiness.canShowPlans).toBe(false);
+      expect(readiness.canCheckout).toBe(false);
+    });
+
+    it('J) invalid content URL -> canShowPlans=false', () => {
+      const res = resolveFunnelReadiness({
+        platform: 'instagram',
+        service: 'likes',
+        targetType: 'post',
+        targetUrl: 'not_a_valid_url',
+        email: 'user@cloutflow.co',
+        verificationStatus: 'success',
+        verifiedTargetData: { id: 'test' },
+      });
+      expect(res.targetValid).toBe(false);
+      expect(res.canShowPlans).toBe(false);
+    });
+
+    it('K) YouTube channel URL for Views -> blocked', () => {
+      const channelUrls = [
+        'https://www.youtube.com/@channelName',
+        'https://www.youtube.com/channel/UC1234567890',
+        'https://www.youtube.com/@somecreator/about',
+        'https://www.youtube.com/c/CreatorName',
+      ];
+
+      for (const channelUrl of channelUrls) {
+        const res = resolveFunnelReadiness({
+          platform: 'youtube',
+          service: 'views',
+          targetType: 'video',
+          targetUrl: channelUrl,
+          email: 'user@cloutflow.co',
+          verificationStatus: 'success',
+          verifiedTargetData: { id: 'fake_channel' },
+        });
+
+        expect(res.targetValid).toBe(false);
+        expect(res.targetVerified).toBe(false);
+        expect(res.canShowPlans).toBe(false);
+        expect(res.canCheckout).toBe(false);
+      }
+    });
+
+    it('L) YouTube video URL -> valid content path', () => {
+      const videoUrls = [
+        'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        'https://youtu.be/dQw4w9WgXcQ',
+        'https://www.youtube.com/shorts/dQw4w9WgXcQ',
+      ];
+
+      for (const videoUrl of videoUrls) {
+        const res = resolveFunnelReadiness({
+          platform: 'youtube',
+          service: 'views',
+          targetType: 'video',
+          targetUrl: videoUrl,
+          email: 'user@cloutflow.co',
+          verificationStatus: 'success',
+          verifiedTargetData: { id: 'dQw4w9WgXcQ' },
+        });
+
+        expect(res.targetValid).toBe(true);
+        expect(res.targetVerified).toBe(true);
+        expect(res.canShowPlans).toBe(true);
+        expect(res.canCheckout).toBe(true);
+      }
+    });
+  });
 });

@@ -227,7 +227,7 @@ export default function GrowthPackageBuilder({
     useFunnelStore.getState().resetTarget();
   };
 
-  const persistTarget = (found: VerifiedSocialProfile) => {
+  const persistTarget = (found: VerifiedSocialProfile, isConfirmed: boolean = false) => {
     const cleanEmail = email.trim().toLowerCase();
     const normalizedUsername = found.username.replace(/^@+/, "").trim();
     const canonicalProfileUrl = buildCanonicalProfileUrl(platform, normalizedUsername);
@@ -242,21 +242,26 @@ export default function GrowthPackageBuilder({
       socialUsername: isContent ? null : normalizedUsername,
       profileUrl,
       email: cleanEmail,
-      verifiedTargetData: found as unknown as Record<string, unknown>,
-      verificationStatus: "success",
+      verifiedTargetData: isConfirmed ? (found as unknown as Record<string, unknown>) : null,
+      verificationStatus: isConfirmed ? "success" : "idle",
     });
     if (!isContent) setUsername(normalizedUsername);
     setProfileData(found as unknown as Record<string, unknown>);
   };
 
   const finish = (found: VerifiedSocialProfile) => {
-    persistTarget(found);
+    // Stage 1: Result found. Target is valid, but NOT yet verified until user explicitly confirms!
+    persistTarget(found, false);
     setProfile(found); setProgress(100);
     setStage("result");
   };
 
   const confirmDisplayedProfile = () => {
-    if (displayProfile) persistTarget(displayProfile);
+    // Stage 2: User explicitly clicked "Yes, this is my profile".
+    // ONLY THIS ACTION promotes targetVerified to true and unlocks the plans!
+    if (displayProfile) {
+      persistTarget(displayProfile, true);
+    }
     onContinue();
   };
 
@@ -266,8 +271,22 @@ export default function GrowthPackageBuilder({
     if (!emailCheck.isValid) { setError("Enter a valid email address to continue."); return; }
     if (!identifier.trim()) { setError(isContent ? "Paste the exact public post or video link." : "Enter an @username or profile/channel link."); return; }
     if (isContent) {
-      try { const u = new URL(identifier.trim()); if (!/^https?:$/.test(u.protocol)) throw new Error(); }
-      catch { setError("For Likes or Views, paste a valid public post/video URL."); return; }
+      try {
+        const u = new URL(identifier.trim());
+        if (!/^https?:$/.test(u.protocol)) throw new Error();
+        if (platform === "youtube") {
+          const pathname = u.pathname.toLowerCase();
+          const isChannel = pathname.includes("/channel/") || pathname.includes("/@") || pathname.includes("/c/") || pathname.includes("/user/");
+          const isVideo = pathname.includes("/watch") || u.hostname.includes("youtu.be") || pathname.includes("/shorts/");
+          if (isChannel || !isVideo) {
+            setError("YouTube Views requires a direct video link (e.g. youtube.com/watch?v=... or youtu.be/...). Channel links are not accepted.");
+            return;
+          }
+        }
+      } catch {
+        setError("For Likes or Views, paste a valid public post/video URL.");
+        return;
+      }
     }
 
     polling.current = true; setStage("analyzing"); setProgress(8); setProfile(null);
@@ -356,7 +375,7 @@ export default function GrowthPackageBuilder({
 
           {displayStage === "idle" && <><div className="cf-pb-empty"><span>✦</span><h3>Ready when you are</h3><p>Select your goal and network, then enter your profile/content and email to start.</p></div><div className="cf-pb-ready-guide" aria-label="What happens next"><div><i>1</i><span><b>Analyze</b><small>We check real public data.</small></span></div><div><i>2</i><span><b>Confirm</b><small>Review the exact profile or content.</small></span></div><div><i>3</i><span><b>Choose</b><small>Continue straight to your plans.</small></span></div></div></>}
           {displayStage === "analyzing" && <div className="cf-pb-loading"><div className="cf-pb-progress" style={{"--progress":`${displayProgress*3.6}deg`} as React.CSSProperties}><b>{displayProgress}%</b></div><div><h3>Analyzing profile...</h3><p>Please wait while we fetch public data.</p><div className="cf-pb-statuses">{progressRows.map(([label,at])=><div key={label} className={displayProgress>=at?"done":displayProgress+24>=at?"current":""}><span>{displayProgress>=at?<Check/>:<i/>}</span><b>{label}</b><small>{displayProgress>=at?"Completed":displayProgress+24>=at?"In progress":"Pending"}</small></div>)}</div></div></div>}
-          {displayStage === "result" && displayProfile && <><div className={`cf-pb-native-stage cf-pb-native-${displayProfile.platform}`}><div className="cf-pb-native-mobile"><NativePreview profile={displayProfile} onBack={resetSearch}/></div></div><div className="cf-pb-result-actions"><button onClick={resetSearch}><RotateCcw/> Search again</button><button onClick={confirmDisplayedProfile}>Yes, this is my profile <ArrowRight/></button></div></>}
+          {displayStage === "result" && displayProfile && <><div className={`cf-pb-native-stage cf-pb-native-${displayProfile.platform}`}><div className="cf-pb-native-mobile"><NativePreview profile={displayProfile} onBack={resetSearch}/></div></div><div className="cf-pb-result-actions"><button onClick={resetSearch}><RotateCcw/> Search again</button><button onClick={confirmDisplayedProfile}>{isContent ? "Yes, this is my content" : "Yes, this is my profile"} <ArrowRight/></button></div></>}
         </div>
       </div>
       {process.env.NODE_ENV === "development" && (
