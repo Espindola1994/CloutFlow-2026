@@ -47,6 +47,7 @@ import {
   CommercialService, 
   CommercialPlan, 
   getCanonicalCatalogPackage,
+  getCanonicalPerfectPayItem,
   evaluateCheckoutStatus,
   computeCommercialDiagnostics,
   validateCheckoutUrl
@@ -218,8 +219,9 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
       setFormSyncStep3(match.syncOfferStep3 ?? true);
       setFormActive(match.active);
     } else {
-      // Load canonical default
+      // Load canonical default (with official PerfectPay dataset base)
       const canonical = getCanonicalCatalogPackage(nextPlat, safeServ, nextPlan);
+      const canonicalPP = getCanonicalPerfectPayItem(nextPlat, safeServ, nextPlan);
       if (canonical) {
         setFormQuantity(canonical.quantity.toString());
         setFormBonus("0");
@@ -235,9 +237,9 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
         setFormSortOrder("0");
         setFormBenefits(canonical.features.join("\n"));
         setFormCtaText("Get Started Now");
-        setFormCheckoutUrl("");
-        setFormProductId("");
-        setFormPlanId("");
+        setFormCheckoutUrl(canonicalPP?.checkoutUrl || "");
+        setFormProductId(canonicalPP?.productCode || "");
+        setFormPlanId(canonicalPP?.planCode || "");
         setFormSyncHome(true);
         setFormSyncStep3(true);
         setFormActive(true);
@@ -431,9 +433,66 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
     }
   };
 
-  // Administrative diagnostics & progress calculation
+  // Administrative diagnostics & progress calculation (directly based on offersList items where canonical is base)
   const diagnostics = useMemo(() => {
-    return computeCommercialDiagnostics(offersList);
+    let readyCount = 0;
+    let incompleteCount = 0;
+    let missingCount = 0;
+    let prodCount = 0;
+    let planCount = 0;
+    let urlCount = 0;
+
+    const urlMap = new Map<string, { platform: CommercialPlatform; service: CommercialService; plan: CommercialPlan; offerId?: string | null }[]>();
+    const codeMap = new Map<string, { platform: CommercialPlatform; service: CommercialService; plan: CommercialPlan; offerId?: string | null }[]>();
+
+    for (const p of offersList) {
+      const evalStatus = evaluateCheckoutStatus(p.perfectpayProductId, p.perfectpayPlanId, p.checkoutUrl);
+      if (evalStatus.status === 'READY') readyCount++;
+      else if (evalStatus.status === 'INCOMPLETE') incompleteCount++;
+      else missingCount++;
+
+      if (evalStatus.productCode) prodCount++;
+      if (evalStatus.planCode) planCount++;
+      if (evalStatus.checkoutUrl) urlCount++;
+
+      if (evalStatus.checkoutUrl) {
+        const existing = urlMap.get(evalStatus.checkoutUrl) || [];
+        existing.push({ platform: p.platform, service: p.service, plan: p.plan, offerId: p.id });
+        urlMap.set(evalStatus.checkoutUrl, existing);
+      }
+
+      if (evalStatus.productCode && evalStatus.planCode) {
+        const comboKey = `${evalStatus.productCode}::${evalStatus.planCode}`;
+        const existing = codeMap.get(comboKey) || [];
+        existing.push({ platform: p.platform, service: p.service, plan: p.plan, offerId: p.id });
+        codeMap.set(comboKey, existing);
+      }
+    }
+
+    const duplicateWarnings: any[] = [];
+    for (const [url, identities] of urlMap.entries()) {
+      if (identities.length > 1) {
+        duplicateWarnings.push({
+          type: 'DUPLICATE_CHECKOUT_URL',
+          value: url,
+          identities,
+        });
+      }
+    }
+
+    return {
+      counters: {
+        totalCards: offersList.length,
+        checkoutReady: readyCount,
+        checkoutIncomplete: incompleteCount,
+        checkoutMissing: missingCount,
+        productCodeConfigured: prodCount,
+        planCodeConfigured: planCount,
+        checkoutUrlConfigured: urlCount,
+      },
+      duplicateWarnings,
+      cards: [],
+    };
   }, [offersList]);
 
   // Filter computation
@@ -597,7 +656,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
                     <span className="font-semibold">{w.type === 'DUPLICATE_CHECKOUT_URL' ? 'Duplicate URL' : 'Duplicate Product+Plan'}:</span>{' '}
                     <code className="bg-[#FEF3C7] px-1 py-0.5 rounded text-[10px]">{w.value}</code> shared across{' '}
                     <span className="font-medium">
-                      {w.identities.map((i) => `${i.platform} ${i.service} ${i.plan}`).join(', ')}
+                      {w.identities.map((i: any) => `${i.platform} ${i.service} ${i.plan}`).join(', ')}
                     </span>
                   </li>
                 ))}

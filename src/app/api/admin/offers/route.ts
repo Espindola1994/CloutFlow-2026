@@ -13,6 +13,7 @@ import {
   normalizeService, 
   normalizePlan,
   getCanonicalCatalogPackage,
+  getCanonicalPerfectPayItem,
   resolveCommercialOffer,
   validateCheckoutUrl 
 } from '@/services/commercial-offer.resolver';
@@ -79,6 +80,7 @@ export async function GET() {
           const o = overrideMap.get(key);
           const canonical = getCanonicalCatalogPackage(plat, serv, planObj.key);
           if (!canonical) continue;
+          const canonicalPP = getCanonicalPerfectPayItem(plat, serv, planObj.key);
 
           if (o) {
             const meta = (o.metadata as Record<string, any>) || {};
@@ -109,9 +111,9 @@ export async function GET() {
               refillText: meta.refillText || undefined,
               qualityText: meta.qualityText || undefined,
               popular: o.isPopular || Boolean(meta.isPopular || meta.featured),
-              checkoutUrl: o.externalCheckoutUrl || undefined,
-              perfectpayProductId: o.perfectpayProductId || undefined,
-              perfectpayPlanId: o.perfectpayPlanId || undefined,
+              checkoutUrl: o.externalCheckoutUrl || canonicalPP?.checkoutUrl || undefined,
+              perfectpayProductId: o.perfectpayProductId || canonicalPP?.productCode || undefined,
+              perfectpayPlanId: o.perfectpayPlanId || canonicalPP?.planCode || undefined,
               syncHome: o.syncHome ?? true,
               syncOfferStep3: o.syncOfferStep3 ?? true,
               active: o.active,
@@ -147,9 +149,9 @@ export async function GET() {
               refillText: canonical.refillText,
               qualityText: canonical.qualityText,
               popular: false,
-              checkoutUrl: resolved?.checkoutUrl || undefined,
-              perfectpayProductId: resolved?.productCode || undefined,
-              perfectpayPlanId: resolved?.planCode || undefined,
+              checkoutUrl: resolved?.checkoutUrl || canonicalPP?.checkoutUrl || undefined,
+              perfectpayProductId: resolved?.productCode || canonicalPP?.productCode || undefined,
+              perfectpayPlanId: resolved?.planCode || canonicalPP?.planCode || undefined,
               syncHome: true,
               syncOfferStep3: true,
               active: true,
