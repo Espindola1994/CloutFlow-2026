@@ -33139,6 +33139,25 @@ html body .cf-offer-page
     margin: 1px 0 0 !important;
     font-size: 13.5px !important;
   }
+
+  /* Step 1 Goal cards horizontal redistribution:
+     Give "Followers" adequate breathing room on mobile so [icon] + [gap] + "Followers"
+     fits comfortably on a single line without reducing font size or icon dimensions.
+     Likes and Views have shorter labels and remain spacious.
+     YouTube renders 2 goals (likes, views) which splits 1fr 1fr naturally. */
+  html body .cf-premium-builder-controls .cf-pb-goals {
+    grid-template-columns: minmax(0, 1.22fr) minmax(0, 0.89fr) minmax(0, 0.89fr) !important;
+    gap: 6px !important;
+  }
+
+  html body .cf-premium-builder[data-platform="youtube"] .cf-premium-builder-controls .cf-pb-goals {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  html body .cf-premium-builder-controls .cf-pb-goals button {
+    padding: 0 4px !important;
+    gap: 5px !important;
+  }
 }
 
 /* 2. MOBILE — até 700px */
