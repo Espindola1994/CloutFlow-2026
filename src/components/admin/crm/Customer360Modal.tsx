@@ -26,7 +26,7 @@ interface Customer360ModalProps {
   email: string | null;
   isOpen: boolean;
   onClose: () => void;
-  onRefreshParent?: () => void;
+  onRefreshParent?: () => void | Promise<void>;
 }
 
 export function Customer360Modal({
@@ -575,9 +575,9 @@ export function Customer360Modal({
           quantity={latestOrder?.quantity}
           service={latestOrder?.service}
           isSuppressed={contact?.suppressed}
-          onSuccess={() => {
-            loadCustomer();
-            onRefreshParent?.();
+          onSuccess={async () => {
+            await loadCustomer();
+            await onRefreshParent?.();
           }}
         />
       )}

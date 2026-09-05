@@ -28,7 +28,7 @@ interface ManualEmailModalProps {
   quantity?: number | null;
   service?: string | null;
   isSuppressed?: boolean;
-  onSuccess?: () => void;
+  onSuccess?: () => void | Promise<void>;
 }
 
 export function ManualEmailModal({
@@ -121,7 +121,7 @@ export function ManualEmailModal({
             ? "Email logged (Marketing send globally disabled in safe mode)"
             : "Email dispatched successfully!"
         );
-        onSuccess?.();
+        await onSuccess?.();
         onClose();
       } else {
         toast.error(data.data?.reason || data.error?.message || "Failed to send email");
