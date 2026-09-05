@@ -571,7 +571,8 @@ export function Customer360Modal({
           recipientName={contact?.name}
           target={contact?.target}
           platform={contact?.platform}
-          orderId={latestOrder?.publicId}
+          orderId={latestOrder?.id}
+          orderPublicId={latestOrder?.publicId}
           quantity={latestOrder?.quantity}
           service={latestOrder?.service}
           isSuppressed={contact?.suppressed}

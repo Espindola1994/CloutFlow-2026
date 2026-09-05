@@ -25,6 +25,7 @@ interface ManualEmailModalProps {
   target?: string | null;
   platform?: string | null;
   orderId?: string | null;
+  orderPublicId?: string | null;
   quantity?: number | null;
   service?: string | null;
   isSuppressed?: boolean;
@@ -39,6 +40,7 @@ export function ManualEmailModal({
   target,
   platform,
   orderId,
+  orderPublicId,
   quantity,
   service,
   isSuppressed,
@@ -60,7 +62,7 @@ export function ManualEmailModal({
     quantity: quantity || 1000,
     plan_name: service ? `${quantity || 1000} ${service}` : "Growth Plan",
     service: service || "Followers Boost",
-    order_id: orderId || "CF-10001",
+    order_id: orderPublicId || orderId || "",
     platform: platform ? platform.charAt(0).toUpperCase() + platform.slice(1) : "Instagram",
     order_status: "Processing"
   };
