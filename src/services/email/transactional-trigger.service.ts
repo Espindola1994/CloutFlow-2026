@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { orders, emailLogs, lifecycleEvents } from '@/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc, sql } from 'drizzle-orm';
 import { getTransactionalEmailTransport } from '@/integrations/email/transport';
 import { CANONICAL_EMAIL_TEMPLATES, interpolateTemplate } from '@/services/crm/templates';
 
@@ -19,7 +19,10 @@ interface SendTransactionalEmailParams {
 
 /**
  * Dispatches automatic transactional emails triggered by lifecycle events / fulfillment updates.
- * Guarantees strict idempotency by checking `email_logs` before attempting send.
+ * Guarantees strict idempotency by:
+ * 1. Filtering email_logs specifically by recipient, templateId, and exact orderId in metadata
+ * 2. Evaluating SENT status to block duplicates, while allowing retries if previously FAILED
+ * 3. Enforcing concurrency protection via transactional lifecycle_events lock record
  */
 export async function sendAutomaticTransactionalEmail(params: SendTransactionalEmailParams): Promise<{
   success: boolean;
@@ -49,27 +52,90 @@ export async function sendAutomaticTransactionalEmail(params: SendTransactionalE
   }
 
   const idempotencyKey = `AUTO_TX:${params.type}:${params.orderId}`;
+  const lockEventKey = `LOCK_TX_EMAIL:${templateId}:${params.orderId}`;
 
-  // 1. Idempotency check in email_logs
-  const [existingLog] = await db.query.emailLogs.findMany({
+  // 1. Idempotency check in email_logs: must match recipient, template, and exact orderId
+  // We query all matching logs ordered by createdAt DESC to find if ANY previous attempt was SENT
+  const candidateLogs = await db.query.emailLogs.findMany({
     where: and(
       eq(emailLogs.customerEmail, normalizedEmail),
-      eq(emailLogs.templateId, templateId),
-      eq(emailLogs.status, 'SENT')
+      eq(emailLogs.templateId, templateId)
     ),
-    limit: 10,
+    orderBy: [desc(emailLogs.createdAt)],
+    limit: 50,
   });
 
-  const matchingLog = existingLog && (existingLog.metadata as Record<string, unknown>)?.orderId === params.orderId;
-  if (matchingLog) {
+  const matchingSentLog = candidateLogs.find((log) => {
+    // Exact template check
+    if (log.templateId && log.templateId !== templateId) {
+      return false;
+    }
+    const meta = log.metadata as Record<string, unknown> | null;
+    const matchesOrder = meta?.orderId === params.orderId;
+    const matchesIdempotency = meta?.idempotencyKey === idempotencyKey;
+    return (matchesOrder || matchesIdempotency) && log.status === 'SENT';
+  });
+
+  if (matchingSentLog) {
     return {
       success: true,
       isDuplicate: true,
-      messageId: existingLog.providerMessageId || undefined,
+      messageId: matchingSentLog.providerMessageId || undefined,
     };
   }
 
-  // 2. Variable interpolation
+  // 2. Concurrency protection: atomically claim execution lock via lifecycle_events unique constraint
+  // If a concurrent call is running or already completed, insert will fail or encounter existing record
+  let lockAcquired = false;
+  try {
+    await db.insert(lifecycleEvents).values({
+      customerEmail: normalizedEmail,
+      eventType: `TX_EMAIL_${params.type}`,
+      idempotencyKey: lockEventKey,
+      payload: {
+        orderId: params.orderId,
+        templateId,
+        lockedAt: new Date().toISOString(),
+      },
+    });
+    lockAcquired = true;
+  } catch (err: unknown) {
+    // Unique violation or already exists: another process is handling or has handled this exact send
+    // Double check email_logs to return existing SENT result if available
+    const postCheckLogs = await db.query.emailLogs.findMany({
+      where: and(
+        eq(emailLogs.customerEmail, normalizedEmail),
+        eq(emailLogs.templateId, templateId)
+      ),
+      orderBy: [desc(emailLogs.createdAt)],
+      limit: 20,
+    });
+
+    const alreadySent = postCheckLogs.find((log) => {
+      if (log.templateId && log.templateId !== templateId) {
+        return false;
+      }
+      const meta = log.metadata as Record<string, unknown> | null;
+      return (meta?.orderId === params.orderId || meta?.idempotencyKey === idempotencyKey) && log.status === 'SENT';
+    });
+
+    if (alreadySent) {
+      return {
+        success: true,
+        isDuplicate: true,
+        messageId: alreadySent.providerMessageId || undefined,
+      };
+    }
+
+    // If lock exists but no SENT log yet, concurrent request is in-flight: block duplicate send
+    return {
+      success: true,
+      isDuplicate: true,
+      error: 'Concurrent email send in progress',
+    };
+  }
+
+  // 3. Variable interpolation
   const vars = {
     customer_name: params.customerName || 'Valued Customer',
     order_id: params.orderId,
@@ -82,7 +148,7 @@ export async function sendAutomaticTransactionalEmail(params: SendTransactionalE
   const subject = interpolateTemplate(templateDef.defaultSubject, vars);
   const body = interpolateTemplate(templateDef.defaultBody, vars);
 
-  // 3. Send via Resend transactional transport (strictly automatic: forceManualAllowed=false)
+  // 4. Send via Resend transactional transport (strictly automatic: forceManualAllowed=false)
   const transport = getTransactionalEmailTransport(normalizedEmail, false);
   try {
     const result = await transport.send({
@@ -96,7 +162,7 @@ export async function sendAutomaticTransactionalEmail(params: SendTransactionalE
     const isSent = result.success && !result.blocked;
     const logStatus = isSent ? 'SENT' : (result.reason || 'FAILED');
 
-    // 4. Log to email_logs
+    // 5. Log to email_logs
     await db.insert(emailLogs).values({
       customerEmail: normalizedEmail,
       sendOrigin: 'AUTOMATION',
@@ -115,6 +181,15 @@ export async function sendAutomaticTransactionalEmail(params: SendTransactionalE
       },
     });
 
+    // 6. If send failed, release the lock record so subsequent retry is permitted
+    if (!isSent && lockAcquired) {
+      try {
+        await db.delete(lifecycleEvents).where(eq(lifecycleEvents.idempotencyKey, lockEventKey));
+      } catch (delErr) {
+        console.warn(`[AutomaticTransactionalEmail] Failed to release lock on failure:`, delErr);
+      }
+    }
+
     return {
       success: isSent,
       messageId: result.messageId,
@@ -122,6 +197,16 @@ export async function sendAutomaticTransactionalEmail(params: SendTransactionalE
     };
   } catch (error) {
     console.error(`[AutomaticTransactionalEmail] Failed to send ${params.type} to ${normalizedEmail}:`, error);
+
+    // Release the lock record on error so a retry can occur
+    if (lockAcquired) {
+      try {
+        await db.delete(lifecycleEvents).where(eq(lifecycleEvents.idempotencyKey, lockEventKey));
+      } catch (delErr) {
+        console.warn(`[AutomaticTransactionalEmail] Failed to release lock on catch:`, delErr);
+      }
+    }
+
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown email send error',
