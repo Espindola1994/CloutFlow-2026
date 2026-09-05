@@ -33157,3 +33157,317 @@ html body .cf-offer-page
   }
 }
 
+/* =====================================================================
+   DESKTOP OVERRIDES (EXCLUSIVAMENTE >= 901px)
+   ===================================================================== */
+@media (min-width: 901px) {
+
+    .cf-premium-builder-result.cf-pb-result-result .cf-pb-summary {
+        margin: 0 0 4px !important;
+    }
+
+    .cf-premium-builder-result.cf-pb-result-result {
+        height: auto !important;
+        min-height: 0 !important;
+        padding: 16.3px !important;
+    }
+
+    .cf-plans-hero h1 span {
+        font-size: 35px !important;
+    }
+
+    .cf-plans-hero h1 b {
+        margin-top: 4px !important;
+        font-size: 37px !important;
+    }
+
+    .cf-plans-hero p {
+        max-width: 560px !important;
+        margin-top: 5px !important;
+        font-size: 16px !important;
+        line-height: 1.45 !important;
+    }
+
+    .cf-plans-hero {
+        padding-bottom: 5px !important;
+    }
+
+    .cf-premium-builder-head small {
+        letter-spacing: .12em !important;
+        font-size: 15px !important;
+        font-weight: 900 !important;
+        line-height: 1.2 !important;
+    }
+
+    .cf-premium-builder-head p {
+        font-size: 14.5px !important;
+        font-weight: 450 !important;
+        line-height: 1.35 !important;
+    }
+
+    .cf-premium-builder-controls .cf-pb-label b {
+        letter-spacing: -.12px !important;
+        font-size: 14.5px !important;
+        font-weight: 850 !important;
+        line-height: 1.2 !important;
+    }
+
+    .cf-premium-builder-controls .cf-pb-label small {
+        font-size: 12.5px !important;
+        font-weight: 500 !important;
+        line-height: 1.35 !important;
+    }
+
+    .cf-premium-builder-controls .cf-pb-field-label {
+        margin-top: 8px !important;
+        margin-bottom: 5px !important;
+        font-size: 12.5px !important;
+        font-weight: 800 !important;
+        line-height: 1.2 !important;
+    }
+
+    .cf-premium-builder-controls .cf-pb-input > svg,
+    .cf-premium-builder-controls .cf-pb-input svg {
+        stroke-width: 2.2px !important;
+        width: 23px !important;
+        height: 23px !important;
+    }
+
+    .cf-premium-builder-controls .cf-pb-input input {
+        font-size: 11.5px !important;
+        font-weight: 500 !important;
+        line-height: 1.2 !important;
+    }
+
+    .cf-premium-builder-controls .cf-pb-platforms .cf-pb-platform-icon img {
+        width: 29px !important;
+        height: 29px !important;
+    }
+
+    .cf-premium-builder-controls .cf-pb-privacy {
+        font-size: 11.5px !important;
+        font-weight: 400 !important;
+        line-height: 1.35 !important;
+    }
+
+    .cf-premium-builder-controls .cf-pb-goals button b {
+        font-size: 12.5px !important;
+        font-weight: 800 !important;
+        line-height: 1 !important;
+    }
+
+    .cf-premium-builder-controls .cf-pb-platforms button b {
+        text-overflow: clip !important;
+        white-space: nowrap !important;
+        flex: none !important;
+        max-width: none !important;
+        font-size: 11.5px !important;
+        overflow: visible !important;
+    }
+
+    .cf-pb-summary b {
+        font-size: 12px !important;
+        font-weight: 700 !important;
+        line-height: 1.15 !important;
+    }
+
+    .cf-pb-summary small {
+        margin-top: 3px !important;
+        font-size: 11.8px !important;
+        font-weight: 500 !important;
+        line-height: 1.15 !important;
+    }
+
+    .cf-pb-summary .cf-pb-platform-icon img {
+        object-fit: contain !important;
+        object-position: center !important;
+        width: 29px !important;
+        max-width: 29px !important;
+        height: 29px !important;
+        max-height: 29px !important;
+    }
+
+    .cf-pb-summary .cf-pb-service-icon .cf-pb-glyph {
+        width: 25px !important;
+        max-width: 25px !important;
+        height: 25px !important;
+        max-height: 25px !important;
+        margin: auto !important;
+        display: block !important;
+        overflow: visible !important;
+        transform: none !important;
+    }
+
+    .cf-pb-result-idle .cf-pb-empty > span {
+        border-radius: 13px;
+        width: 50px;
+        height: 50px;
+        font-size: 35px;
+    }
+
+    .cf-pb-result-idle .cf-pb-empty p {
+        max-width: 330px !important;
+        font-size: 12.5px !important;
+        font-weight: 450 !important;
+        line-height: 1.45 !important;
+    }
+
+    .cf-pb-ready-guide b {
+        font-size: 11.5px !important;
+        font-weight: 700 !important;
+        line-height: 1.15 !important;
+    }
+
+    .cf-pb-ready-guide small {
+        font-size: 11px !important;
+        font-weight: 400 !important;
+        line-height: 1.3 !important;
+    }
+
+    .cf-pb-ready-guide i {
+        flex-basis: 34px !important;
+        width: 34px !important;
+        height: 34px !important;
+        font-size: 14px !important;
+    }
+
+    .cf-premium-builder-controls .cf-pb-analyze-btn {
+        height: 47px !important;
+        font-size: 15px !important;
+        font-weight: 850 !important;
+        line-height: 1 !important;
+    }
+
+    .cf-premium-builder-controls .cf-pb-analyze-btn svg {
+        stroke-width: 2.25px !important;
+        width: 27px !important;
+        height: 27px !important;
+    }
+
+    .cf-pb-goals button .cf-pb-glyph {
+        width: 25px !important;
+        height: 25px !important;
+    }
+
+    .cf-plans-section-title p {
+        font-size: 15px !important;
+    }
+
+    .cf-plans-section-title h2 {
+        color: #111827;
+        letter-spacing: -.7px;
+        margin: 0;
+        font-size: 21px;
+        font-weight: 900;
+        line-height: 1.1;
+        margin-bottom: -4px !important;
+    }
+
+    .cf-plans-final-action button {
+        min-width: 220px;
+        height: 47px;
+        font-size: 14px;
+    }
+
+    .cf-plans-final-copy p,
+    .cf-plans-final-action small {
+        font-size: 14px !important;
+    }
+
+    .cf-plans-value-row small {
+        font-size: 11.5px !important;
+    }
+
+    .cf-home-faq-compact .cf-home-faq-head h2 {
+        color: #11182b !important;
+        letter-spacing: -1.2px !important;
+        margin: 0 !important;
+        font-size: 30px !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+    }
+
+    .cf-home-faq-compact .cf-home-faq-eyebrow {
+        color: #ef2f75 !important;
+        letter-spacing: .12em !important;
+        margin: 0 0 7px !important;
+        font-size: 15px !important;
+    }
+
+    .cf-home-faq-compact .cf-home-faq-head p {
+        color: #7b879e !important;
+        margin: 8px auto 0 !important;
+        font-size: 14.5px !important;
+        font-weight: 450 !important;
+        line-height: 1.4 !important;
+    }
+
+    .cf-home-faq-compact .cf-home-faq-question-copy {
+        color: #20283b !important;
+        font-size: 14px !important;
+        font-weight: 600 !important;
+        line-height: 1.2 !important;
+    }
+
+    .cf-home-faq-compact .cf-home-faq-answer p {
+        color: #748096 !important;
+        margin: 0 !important;
+        padding: 0 48px 12px 56px !important;
+        font-size: 13px !important;
+        font-weight: 410 !important;
+        line-height: 1.5 !important;
+    }
+
+    .cf-trust-reviews {
+        color: #6f7c94 !important;
+        white-space: nowrap !important;
+        font-size: 13.5px !important;
+        font-weight: 540 !important;
+    }
+
+    .cf-trustpilot {
+        color: #20293b !important;
+        white-space: nowrap !important;
+        align-items: center !important;
+        gap: 4px !important;
+        font-size: 13.5px !important;
+        font-weight: 760 !important;
+    }
+
+    .cf-trust-excellent {
+        color: #23304b !important;
+        letter-spacing: -.01em !important;
+        white-space: nowrap !important;
+        font-size: 13.5px !important;
+        font-weight: 750 !important;
+    }
+
+    .cf-trust-score {
+        color: #34415c !important;
+        white-space: nowrap !important;
+        font-size: 13.5px !important;
+        font-weight: 700 !important;
+    }
+
+    .cf-trust-stars span {
+        color: #fff !important;
+        font-size: 12px !important;
+        line-height: 1 !important;
+    }
+
+    .cf-plans-reviews h2 {
+        font-size: 24px !important;
+    }
+
+    .cf-plans-section-title h2 span {
+        font-size: 26px;
+    }
+
+    .cf-plans-header-tagline > b {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+    }
+}
+
+
