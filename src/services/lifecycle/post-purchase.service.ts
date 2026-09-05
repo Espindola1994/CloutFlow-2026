@@ -14,7 +14,7 @@ function normalizeCanonicalEmail(email: string): string | null {
 export const POST_PURCHASE_OFFER_CAMPAIGN = 'POST_PURCHASE_25_OFF';
 export const POST_PURCHASE_DISCOUNT_PERCENT = 25;
 export const POST_PURCHASE_OFFER_DEFAULT_VALID_HOURS = 48;
-export const POST_PURCHASE_SCHEDULE_DELAY_MINUTES = 15;
+export const POST_PURCHASE_SCHEDULE_DELAY_MINUTES = 5;
 
 /**
  * Gets the configured validity window for the post-purchase offer in hours.
@@ -121,7 +121,7 @@ export async function schedulePostPurchaseOffer(params: HandlePostPurchaseOfferP
     }
   }).returning();
 
-  // 5. Schedule the lifecycle automation step (10-15 minutes after purchase)
+  // 5. Schedule the lifecycle automation step (5 minutes after purchase)
   const scheduledFor = new Date(now.getTime() + POST_PURCHASE_SCHEDULE_DELAY_MINUTES * 60 * 1000);
   
   // Find or use lifecycleEventId

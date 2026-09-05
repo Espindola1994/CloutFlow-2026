@@ -49,20 +49,17 @@ export function getMarketingEmailTransport(recipientEmail?: string, forceManualA
 }
 
 /**
- * Evaluates transactional transport based on LIFECYCLE_EMAILS_ENABLED and allowlist.
- * If LIFECYCLE_EMAILS_ENABLED=false:
- * - Allowlisted recipient -> Active Resend transport
- * - Non-allowlisted recipient -> DisabledEmailTransport('BLOCKED_NOT_ALLOWLISTED')
- * - Manual admin send (forceManualAllowed=true) -> Active Resend transport
- * If LIFECYCLE_EMAILS_ENABLED=true:
- * - All valid recipients -> Active Resend transport
+ * Evaluates transactional transport.
+ * In a real commercial flow, transactional emails (such as PAYMENT_RECEIVED) must be
+ * delivered to real buyers without requiring a development test allowlist.
+ * If TRANSACTIONAL_EMAILS_ENABLED is explicitly 'false', sends are blocked with BLOCKED_SEND_DISABLED.
+ * Otherwise, transactional emails are delivered to all valid buyer recipients.
+ * Manual admin sends (forceManualAllowed=true) are always permitted.
  */
 export function getTransactionalEmailTransport(recipientEmail?: string, forceManualAllowed: boolean = false): EmailTransport {
-  const isGlobalEnabled = process.env.LIFECYCLE_EMAILS_ENABLED === 'true';
-  const isAllowlisted = recipientEmail ? isEmailInAllowlist(recipientEmail) : false;
-
-  if (!isGlobalEnabled && !isAllowlisted && !forceManualAllowed) {
-    return new DisabledEmailTransport('BLOCKED_NOT_ALLOWLISTED');
+  // Explicit kill switch for transactional emails (defaults to enabled for commercial flow)
+  if (process.env.TRANSACTIONAL_EMAILS_ENABLED === 'false' && !forceManualAllowed) {
+    return new DisabledEmailTransport('BLOCKED_SEND_DISABLED');
   }
 
   return new ResendEmailTransport();

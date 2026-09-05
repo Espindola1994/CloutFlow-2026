@@ -114,10 +114,9 @@ describe('ETAPA 11C-1: Proteção Unificada de Allowlist (Transactional + Lifecy
     expect(transport).toBeInstanceOf(ResendEmailTransport);
   });
 
-  // Test B: global=false, recipient NOT allowlisted, transactional -> DisabledEmailTransport -> provider call 0
-  it('B) global=false, recipient NOT allowlisted, transactional -> DisabledEmailTransport (provider call 0)', async () => {
-    process.env.LIFECYCLE_EMAILS_ENABLED = 'false';
-    process.env.LIFECYCLE_EMAIL_ALLOWLIST = ALLOWLISTED_EMAIL;
+  // Test B: TRANSACTIONAL_EMAILS_ENABLED=false -> DisabledEmailTransport -> provider call 0
+  it('B) TRANSACTIONAL_EMAILS_ENABLED=false, transactional -> DisabledEmailTransport (provider call 0)', async () => {
+    process.env.TRANSACTIONAL_EMAILS_ENABLED = 'false';
 
     const transport = getTransactionalEmailTransport(NON_ALLOWLISTED_EMAIL, false);
     expect(transport).toBeInstanceOf(DisabledEmailTransport);
@@ -131,8 +130,9 @@ describe('ETAPA 11C-1: Proteção Unificada de Allowlist (Transactional + Lifecy
 
     expect(result.success).toBe(false);
     expect(result.blocked).toBe(true);
-    expect(result.reason).toBe('BLOCKED_NOT_ALLOWLISTED');
+    expect(result.reason).toBe('BLOCKED_SEND_DISABLED');
     expect(result.messageId).toBeUndefined();
+    delete process.env.TRANSACTIONAL_EMAILS_ENABLED;
   });
 
   // Test C: global=true, recipient qualquer válido, transactional -> active transport
@@ -193,10 +193,9 @@ describe('ETAPA 11C-1: Proteção Unificada de Allowlist (Transactional + Lifecy
     );
   });
 
-  // Test F: automated code path não consegue bypassar allowlist via forceManualAllowed
-  it('F) automated code path (sendAutomaticTransactionalEmail) não passa forceManualAllowed e bloqueia non-allowlisted', async () => {
-    process.env.LIFECYCLE_EMAILS_ENABLED = 'false';
-    process.env.LIFECYCLE_EMAIL_ALLOWLIST = ALLOWLISTED_EMAIL;
+  // Test F: automated code path respeita TRANSACTIONAL_EMAILS_ENABLED=false
+  it('F) automated code path (sendAutomaticTransactionalEmail) não passa forceManualAllowed e bloqueia se TRANSACTIONAL_EMAILS_ENABLED=false', async () => {
+    process.env.TRANSACTIONAL_EMAILS_ENABLED = 'false';
 
     (db.query.emailLogs.findMany as any).mockResolvedValueOnce([]); // No previous send
 
@@ -212,61 +211,60 @@ describe('ETAPA 11C-1: Proteção Unificada de Allowlist (Transactional + Lifecy
     expect(result.success).toBe(false);
     expect(resendSpy).not.toHaveBeenCalled();
 
-    // Verify logged status in emailLogs is BLOCKED_NOT_ALLOWLISTED
+    // Verify logged status in emailLogs is BLOCKED_SEND_DISABLED
     const logged = (db as any)._stores.emailLogsStore.find(
       (l: any) => l.customerEmail === NON_ALLOWLISTED_EMAIL && l.templateId === 'PAYMENT_RECEIVED'
     );
     expect(logged).toBeDefined();
-    expect(logged.status).toBe('BLOCKED_NOT_ALLOWLISTED');
+    expect(logged.status).toBe('BLOCKED_SEND_DISABLED');
     expect(logged.sendOrigin).toBe('AUTOMATION');
     expect(logged.sentAt).toBeNull();
+    delete process.env.TRANSACTIONAL_EMAILS_ENABLED;
   });
 
-  // Requirement 6: Teste Integrado PAYMENT_RECEIVED com LIFECYCLE_EMAILS_ENABLED=false
-  describe('6. Teste Integrado PAYMENT_RECEIVED com LIFECYCLE_EMAILS_ENABLED=false', () => {
-    it('simula PAYMENT_APPROVED -> PAYMENT_RECEIVED: allowlisted allows send intent, non-allowlisted blocks with provider calls = 0', async () => {
-      process.env.LIFECYCLE_EMAILS_ENABLED = 'false';
-      process.env.LIFECYCLE_EMAIL_ALLOWLIST = ALLOWLISTED_EMAIL;
-
+  // Requirement 6: Teste Integrado PAYMENT_RECEIVED com comprador real vs kill-switch
+  describe('6. Teste Integrado PAYMENT_RECEIVED para compradores reais', () => {
+    it('simula PAYMENT_APPROVED -> PAYMENT_RECEIVED: comprador real permitido sem allowlist, bloqueado se kill switch desativado', async () => {
       const resendSendSpy = vi.spyOn(ResendEmailTransport.prototype, 'send').mockResolvedValue({
         success: true,
         messageId: 'resend_allowlisted_tx_999',
       });
 
-      // 1. Simular para allowlisted: expected send intent allowed
-      (db.query.emailLogs.findMany as any).mockResolvedValueOnce([]); // No previous send for allowlisted
-      const allowlistedResult = await sendAutomaticTransactionalEmail({
+      // 1. Simular para comprador real não allowlisted: expected send intent allowed
+      (db.query.emailLogs.findMany as any).mockResolvedValueOnce([]); // No previous send
+      const realBuyerResult = await sendAutomaticTransactionalEmail({
         type: 'PAYMENT_APPROVED',
-        orderId: 'ord_allowlisted_001',
-        customerEmail: ALLOWLISTED_EMAIL,
-        customerName: 'InstaPlus Software Allowlisted',
-        target: 'instaplus_official',
+        orderId: 'ord_real_buyer_001',
+        customerEmail: NON_ALLOWLISTED_EMAIL,
+        customerName: 'Real Buyer',
+        target: 'buyer_account',
         platform: 'instagram',
         service: 'followers',
         quantity: 1000,
       });
 
-      expect(allowlistedResult.success).toBe(true);
-      expect(allowlistedResult.messageId).toBe('resend_allowlisted_tx_999');
+      expect(realBuyerResult.success).toBe(true);
+      expect(realBuyerResult.messageId).toBe('resend_allowlisted_tx_999');
       expect(resendSendSpy).toHaveBeenCalledTimes(1);
 
-      // Verify log for allowlisted
-      const allowlistedLog = (db as any)._stores.emailLogsStore.find(
-        (l: any) => l.customerEmail === ALLOWLISTED_EMAIL && l.templateId === 'PAYMENT_RECEIVED'
+      // Verify log for real buyer
+      const buyerLog = (db as any)._stores.emailLogsStore.find(
+        (l: any) => l.customerEmail === NON_ALLOWLISTED_EMAIL && l.templateId === 'PAYMENT_RECEIVED'
       );
-      expect(allowlistedLog).toBeDefined();
-      expect(allowlistedLog.status).toBe('SENT');
-      expect(allowlistedLog.sentAt).not.toBeNull();
+      expect(buyerLog).toBeDefined();
+      expect(buyerLog.status).toBe('SENT');
+      expect(buyerLog.sentAt).not.toBeNull();
 
       // Clear spy call history
       resendSendSpy.mockClear();
 
-      // 2. Simular para non-allowlisted: expected blocked, provider call 0
-      (db.query.emailLogs.findMany as any).mockResolvedValueOnce([]); // No previous send for non-allowlisted
-      const nonAllowlistedResult = await sendAutomaticTransactionalEmail({
+      // 2. Simular quando TRANSACTIONAL_EMAILS_ENABLED=false: provider call 0
+      process.env.TRANSACTIONAL_EMAILS_ENABLED = 'false';
+      (db.query.emailLogs.findMany as any).mockResolvedValueOnce([]);
+      const blockedResult = await sendAutomaticTransactionalEmail({
         type: 'PAYMENT_APPROVED',
-        orderId: 'ord_non_allowlisted_002',
-        customerEmail: NON_ALLOWLISTED_EMAIL,
+        orderId: 'ord_killed_002',
+        customerEmail: 'another_user@gmail.com',
         customerName: 'Random Customer',
         target: 'random_target',
         platform: 'instagram',
@@ -274,17 +272,10 @@ describe('ETAPA 11C-1: Proteção Unificada de Allowlist (Transactional + Lifecy
         quantity: 500,
       });
 
-      expect(nonAllowlistedResult.success).toBe(false);
+      expect(blockedResult.success).toBe(false);
       // Resend provider call must be strictly 0
       expect(resendSendSpy).toHaveBeenCalledTimes(0);
-
-      // Verify log for non-allowlisted
-      const nonAllowlistedLog = (db as any)._stores.emailLogsStore.find(
-        (l: any) => l.customerEmail === NON_ALLOWLISTED_EMAIL && l.templateId === 'PAYMENT_RECEIVED'
-      );
-      expect(nonAllowlistedLog).toBeDefined();
-      expect(nonAllowlistedLog.status).toBe('BLOCKED_NOT_ALLOWLISTED');
-      expect(nonAllowlistedLog.sentAt).toBeNull();
+      delete process.env.TRANSACTIONAL_EMAILS_ENABLED;
     });
   });
 });
