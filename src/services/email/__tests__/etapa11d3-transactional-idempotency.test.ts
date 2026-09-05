@@ -3,7 +3,7 @@ import { sendAutomaticTransactionalEmail } from '@/services/email/transactional-
 import { db } from '@/db';
 import * as transportModule from '@/integrations/email/transport';
 
-// In-memory mock store for rigorous testing of A-H and concurrency
+// In-memory mock store for rigorous testing of simple idempotency flow
 interface MockEmailLog {
   id: string;
   customerEmail: string;
@@ -14,17 +14,7 @@ interface MockEmailLog {
   createdAt: Date;
 }
 
-interface MockLifecycleEvent {
-  id: string;
-  customerEmail: string;
-  eventType: string;
-  idempotencyKey: string;
-  payload: Record<string, unknown>;
-  createdAt: Date;
-}
-
 let emailLogsStore: MockEmailLog[] = [];
-let lifecycleEventsStore: MockLifecycleEvent[] = [];
 
 vi.mock('@/db', () => {
   return {
@@ -33,75 +23,36 @@ vi.mock('@/db', () => {
         emailLogs: {
           findMany: vi.fn((opts?: any) => {
             let filtered = [...emailLogsStore];
-            // In Drizzle, where condition checks customerEmail, templateId, etc.
-            // When transactional-trigger passes where: and(eq(emailLogs.templateId, templateId)),
-            // we should respect templateId filtering if provided in opts
-            // We sort by createdAt desc as transactional-trigger does
             filtered.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
             return Promise.resolve(filtered);
-          }),
-        },
-        lifecycleEvents: {
-          findMany: vi.fn((opts?: any) => {
-            return Promise.resolve([...lifecycleEventsStore]);
           }),
         },
       },
       insert: vi.fn((table: any) => ({
         values: vi.fn((vals: any) => {
-          if (vals.eventType && vals.idempotencyKey) {
-            // lifecycleEvents insert: check unique constraint on idempotencyKey
-            const exists = lifecycleEventsStore.some(e => e.idempotencyKey === vals.idempotencyKey);
-            if (exists) {
-              const err: any = new Error('duplicate key value violates unique constraint "lifecycle_events_idempotency_key_unique"');
-              err.code = '23505';
-              return Promise.reject(err);
-            }
-            const record: MockLifecycleEvent = {
-              id: `evt-${Date.now()}-${Math.random()}`,
-              customerEmail: vals.customerEmail,
-              eventType: vals.eventType,
-              idempotencyKey: vals.idempotencyKey,
-              payload: vals.payload,
-              createdAt: new Date(),
-            };
-            lifecycleEventsStore.push(record);
-            return Promise.resolve([record]);
-          } else {
-            // emailLogs insert
-            const record: MockEmailLog = {
-              id: `log-${Date.now()}-${Math.random()}`,
-              customerEmail: vals.customerEmail,
-              templateId: vals.templateId,
-              status: vals.status,
-              providerMessageId: vals.providerMessageId || null,
-              metadata: vals.metadata || {},
-              createdAt: vals.sentAt || new Date(),
-            };
-            emailLogsStore.push(record);
-            return Promise.resolve([record]);
-          }
-        }),
-      })),
-      delete: vi.fn((table: any) => ({
-        where: vi.fn((cond: any) => {
-          // Release lock by removing from lifecycleEventsStore
-          // In test environment, clear lock entries
-          lifecycleEventsStore = lifecycleEventsStore.filter(e => !e.idempotencyKey.startsWith('LOCK_TX_EMAIL:'));
-          return Promise.resolve();
+          const record: MockEmailLog = {
+            id: `log-${Date.now()}-${Math.random()}`,
+            customerEmail: vals.customerEmail,
+            templateId: vals.templateId,
+            status: vals.status,
+            providerMessageId: vals.providerMessageId || null,
+            metadata: vals.metadata || {},
+            createdAt: vals.sentAt || new Date(),
+          };
+          emailLogsStore.push(record);
+          return Promise.resolve([record]);
         }),
       })),
     },
   };
 });
 
-describe('Etapa 11D-3: Strict Transactional Email Idempotency & Concurrency Matrix', () => {
+describe('Etapa 11D-3/Rollback: Strict Transactional Email Idempotency (Simple Flow without Lock)', () => {
   let mockSend: any;
 
   beforeEach(() => {
     vi.clearAllMocks();
     emailLogsStore = [];
-    lifecycleEventsStore = [];
     mockSend = vi.fn().mockImplementation(async () => {
       return { success: true, messageId: `resend-${Date.now()}-${Math.random()}` };
     });
@@ -273,36 +224,26 @@ describe('Etapa 11D-3: Strict Transactional Email Idempotency & Concurrency Matr
     expect(mockSend).not.toHaveBeenCalled();
   });
 
-  it('G) Duas chamadas concorrentes -> no máximo 1 provider send', async () => {
-    // Emulate latency in mockSend to simulate real concurrent requests
-    mockSend.mockImplementation(async () => {
-      await new Promise(r => setTimeout(r, 20));
-      return { success: true, messageId: 'resend-concurrent-winner' };
+  it('G) Duas chamadas sequenciais depois do primeiro SENT -> segunda bloqueada', async () => {
+    // 1st call executes send
+    const res1 = await sendAutomaticTransactionalEmail({
+      type: 'PAYMENT_APPROVED',
+      orderId: 'seq-order-xyz',
+      customerEmail: 'instaplussoftware@gmail.com',
     });
-
-    const [call1, call2] = await Promise.all([
-      sendAutomaticTransactionalEmail({
-        type: 'PAYMENT_APPROVED',
-        orderId: 'concurrent-order-xyz',
-        customerEmail: 'instaplussoftware@gmail.com',
-      }),
-      sendAutomaticTransactionalEmail({
-        type: 'PAYMENT_APPROVED',
-        orderId: 'concurrent-order-xyz',
-        customerEmail: 'instaplussoftware@gmail.com',
-      }),
-    ]);
-
-    // Exactly one winner makes the provider call
+    expect(res1.success).toBe(true);
+    expect(res1.isDuplicate).toBeUndefined();
     expect(mockSend).toHaveBeenCalledTimes(1);
 
-    // Both return success=true to callers
-    expect(call1.success).toBe(true);
-    expect(call2.success).toBe(true);
-
-    // One of them is identified as duplicate / concurrent
-    const duplicates = [call1, call2].filter(c => c.isDuplicate);
-    expect(duplicates).toHaveLength(1);
+    // 2nd call sequential after SENT is in emailLogs -> must be blocked
+    const res2 = await sendAutomaticTransactionalEmail({
+      type: 'PAYMENT_APPROVED',
+      orderId: 'seq-order-xyz',
+      customerEmail: 'instaplussoftware@gmail.com',
+    });
+    expect(res2.success).toBe(true);
+    expect(res2.isDuplicate).toBe(true);
+    expect(mockSend).toHaveBeenCalledTimes(1);
   });
 
   it('H) TEST-EMAIL-11C-2 não interfere com ordem real', async () => {
