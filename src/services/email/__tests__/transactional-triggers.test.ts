@@ -56,8 +56,8 @@ describe('Requirement Q, R, S: Automatic Transactional Email Triggers & Idempote
 
     const callArgs = mockSend.mock.calls[0][0];
     expect(callArgs.html).toContain('Social Growth, Simplified.');
-    expect(callArgs.html).toContain('ORDER CONFIRMED');
-    expect(callArgs.text).toContain('ORDER CONFIRMED');
+    expect(callArgs.html).toContain('PAYMENT CONFIRMED');
+    expect(callArgs.text).toContain('PAYMENT CONFIRMED');
     expect(callArgs.html).toContain('CF-ORD-101');
     expect(callArgs.text).toContain('CF-ORD-101');
   });
@@ -82,7 +82,7 @@ describe('Requirement Q, R, S: Automatic Transactional Email Triggers & Idempote
     // HTML checks
     expect(callArgs.html).toContain('CLOUTFLOW');
     expect(callArgs.html).toContain('Social Growth, Simplified.');
-    expect(callArgs.html).toContain('ORDER CONFIRMED');
+    expect(callArgs.html).toContain('PAYMENT CONFIRMED');
     expect(callArgs.html).not.toContain('undefined');
     expect(callArgs.html).not.toContain('null');
     // text/plain companion enviado

@@ -400,4 +400,93 @@ describe('CloutFlow Email Design System - renderCloutFlowEmail', () => {
     expect(result.html).toContain('<!--[if (gte mso 9)|(IE)]>');
     expect(result.html).toContain('@media only screen and (max-width: 620px)');
   });
+
+  // 26. Phase 2B.2 Premium Visual Elements Verification
+  it('26. should render Phase 2B.2 Premium visual elements: logo, headline, badges, what happens next, and social footer', () => {
+    const result = renderCloutFlowEmail({
+      category: 'transactional',
+      eyebrow: 'PAYMENT CONFIRMED',
+      title: "We've received your order",
+      preheader: 'Your payment was successfully received.',
+      customerName: 'Alex',
+      bodyText: 'Thank you for choosing CloutFlow. Your payment has been approved and your order is being prepared for delivery.',
+      order: {
+        publicId: 'CF-PREMIUM-101',
+        network: 'instagram',
+        service: 'Followers',
+        quantity: 1000,
+        target: '@alex_growth',
+        status: 'Payment confirmed',
+      },
+      supportReplyNotice: true,
+    });
+
+    // 1. Logo, Hero Assets & Branding
+    expect(result.html).toContain('https://cloutflow.co/email/cloutflow-payment-hero-desktop.png');
+    expect(result.html).toContain('https://cloutflow.co/email/cloutflow-payment-hero-mobile.png');
+    expect(result.html).toContain('CLOUTFLOW');
+    expect(result.html).toContain('Social Growth, Simplified.');
+
+    // 2. PAYMENT CONFIRMED badge
+    expect(result.html).toContain('PAYMENT CONFIRMED');
+    expect(result.text).toContain('PAYMENT CONFIRMED');
+
+    // 3. Premium Hero alt text and text plain headline
+    expect(result.html).toContain('Real People. Real Results. Growth Made Simple.');
+    expect(result.text).toContain('Real People. Real Results.');
+    expect(result.text).toContain('Growth Made Simple.');
+    expect(result.text).toContain('More Reach');
+    expect(result.text).toContain('More Engagement');
+    expect(result.text).toContain('More Opportunities');
+
+    // 4. Order Details
+    expect(result.html).toContain('Order Details');
+    expect(result.html).toContain('CF-PREMIUM-101');
+    expect(result.html).toContain('Instagram');
+    expect(result.html).toContain('Followers');
+    expect(result.html).toContain('1,000');
+    expect(result.html).toContain('@alex_growth');
+
+    // 5. What happens next
+    expect(result.html).toContain('What happens next?');
+    expect(result.html).toContain('Our team is now preparing your order.');
+    expect(result.html).toContain('delivery is completed.');
+    expect(result.text).toContain('What happens next?');
+
+    // 6. Support section
+    expect(result.html).toContain('Need help?');
+    expect(result.html).toContain('Simply reply directly to this email. Our support team will be happy to assist you.');
+    expect(result.text).toContain('Need help?');
+
+    // 7. Footer & Socials (Instagram, TikTok, X, YouTube)
+    expect(result.html).toContain('Grow Your Presence. Unlock New Opportunities.');
+    expect(result.html).toContain('Instagram');
+    expect(result.html).toContain('TikTok');
+    expect(result.html).toContain('X');
+    expect(result.html).toContain('YouTube');
+    expect(result.html).toContain('cloutflow.co');
+    expect(result.html).toContain('&copy; 2026 CloutFlow. All rights reserved.');
+    expect(result.text).toContain('© 2026 CloutFlow. All rights reserved.');
+
+    // 8. Mobile responsive media query & classes
+    expect(result.html).toContain('@media only screen and (max-width: 620px)');
+    expect(result.html).toContain('email-container');
+    expect(result.html).toContain('order-details-table');
+
+    // 9. Absence of unrendered placeholders
+    expect(result.html).not.toContain('undefined');
+    expect(result.html).not.toContain('null');
+    expect(result.html).not.toContain('()');
+    expect(result.text).not.toContain('undefined');
+    expect(result.text).not.toContain('null');
+    expect(result.text).not.toContain('()');
+
+    // 10. No fake CTAs or URLs
+    expect(result.html).not.toContain('/track/');
+    expect(result.text).not.toContain('/track/');
+
+    // 11. No YouTube Subscribers in copy
+    expect(result.html).not.toContain('YouTube Subscribers');
+    expect(result.text).not.toContain('YouTube Subscribers');
+  });
 });

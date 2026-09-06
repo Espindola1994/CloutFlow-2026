@@ -99,9 +99,9 @@ export async function sendAutomaticTransactionalEmail(params: SendTransactionalE
 
     const rendered = renderCloutFlowEmail({
       category: 'transactional',
-      eyebrow: 'ORDER CONFIRMED',
+      eyebrow: 'PAYMENT CONFIRMED',
       title: "We've received your order",
-      preheader: 'Your payment was successfully received. We are now preparing your order.',
+      preheader: 'Your payment was successfully received.',
       customerName: params.customerName,
       bodyText: 'Thank you for choosing CloutFlow. Your payment has been approved and your order is being prepared for delivery.',
       order: {
