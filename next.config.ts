@@ -7,21 +7,7 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     const legacyPlatforms = "instagram|tiktok|youtube|twitter|x";
-    const legacyServices = "follower|followers|like|likes|view|views|comments";
-
     return [
-      // Legacy platform + service + plans: /:platform/:service/plans -> /
-      {
-        source: `/:platform(${legacyPlatforms})/:service(${legacyServices})/plans`,
-        destination: "/",
-        permanent: true,
-      },
-      // Legacy platform + service: /:platform/:service -> /
-      {
-        source: `/:platform(${legacyPlatforms})/:service(${legacyServices})`,
-        destination: "/",
-        permanent: true,
-      },
       // Legacy platform: /:platform -> /
       {
         source: `/:platform(${legacyPlatforms})`,

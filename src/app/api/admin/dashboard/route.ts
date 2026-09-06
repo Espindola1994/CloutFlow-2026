@@ -7,6 +7,7 @@ import { db } from '@/db';
 import { orders, adminCostSettings } from '@/db/schema';
 import { desc, eq } from 'drizzle-orm';
 import { calculateFinancialTotals, resolveOrderFulfillmentCost, calculateGatewayFeeCents } from '@/lib/financials';
+import { aggregateDashboardOrders } from '@/lib/dashboard-aggregation';
 
 export async function GET() {
   try {
@@ -64,36 +65,8 @@ export async function GET() {
     const financials = calculateFinancialTotals(orderFinancialRecords, costConfigItems);
 
     // 2. Platform Breakdown (Net Revenue in USD)
-    const breakdownMap: Record<string, { count: number; revenue: number; percentage: number }> = {
-      instagram: { count: 0, revenue: 0, percentage: 0 },
-      tiktok: { count: 0, revenue: 0, percentage: 0 },
-      twitter: { count: 0, revenue: 0, percentage: 0 },
-      youtube: { count: 0, revenue: 0, percentage: 0 },
-    };
-
     const netRevenueDollars = financials.netRevenueCents / 100;
-
-    for (const o of allOrders) {
-      const p = (o.platform || 'instagram').toLowerCase();
-      const status = (o.paymentStatus || '').toUpperCase();
-      const isPaid = status === 'PAID' || status === 'COMPLETED' || status === 'APPROVED';
-      const orderAmountDollars = Number(o.totalCents || 0) / 100;
-
-      if (breakdownMap[p]) {
-        breakdownMap[p].count += 1;
-        if (isPaid) {
-          breakdownMap[p].revenue += orderAmountDollars;
-        }
-      }
-    }
-
-    Object.keys(breakdownMap).forEach((p) => {
-      if (netRevenueDollars > 0) {
-        breakdownMap[p].percentage = Math.round((breakdownMap[p].revenue / netRevenueDollars) * 100);
-      } else {
-        breakdownMap[p].percentage = 0;
-      }
-    });
+    const breakdownMap = aggregateDashboardOrders(allOrders, netRevenueDollars);
 
     // 3. PerfectPay Funnel Analytics
     const funnelStats = {

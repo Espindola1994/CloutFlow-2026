@@ -67,7 +67,7 @@ export const PLATFORM_SERVICES: Record<CommercialPlatform, CommercialService[]> 
  * Normalizes platform slug: 'x' -> 'twitter'
  */
 export function normalizePlatform(platform: string): CommercialPlatform | null {
-  const p = platform?.toLowerCase().trim();
+  const p = platform?.toLowerCase().trim().replace(/[\s_-]+/g, '');
   if (p === 'twitter' || p === 'x') return 'twitter';
   if (p === 'instagram' || p === 'tiktok' || p === 'youtube') return p as CommercialPlatform;
   return null;
@@ -78,7 +78,9 @@ export function normalizePlatform(platform: string): CommercialPlatform | null {
  */
 export function normalizeService(service: string): CommercialService | null {
   const s = service?.toLowerCase().trim();
-  if (s === 'followers' || s === 'likes' || s === 'views') return s as CommercialService;
+  if (s === 'follower' || s === 'followers') return 'followers';
+  if (s === 'like' || s === 'likes') return 'likes';
+  if (s === 'view' || s === 'views') return 'views';
   return null;
 }
 

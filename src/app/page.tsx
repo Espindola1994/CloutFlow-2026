@@ -10,8 +10,7 @@ import { Platform, Service } from "@/config/service-sales.config";
 import { PLATFORM_SERVICES, CommercialPlatform, CommercialService } from "@/services/commercial-offer.resolver";
 import { PublicOfferItem } from "@/components/sales/OfferCard";
 import { PlanSelector } from "@/components/funnel/plan-selector";
-import { buildCanonicalProfileUrl } from "@/lib/social/normalize";
-import { validateSafeUrl } from "@/lib/social/security";
+import { markCheckoutReturn, processCheckoutReturn } from "@/lib/checkout-return";
 import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
 import tiktokIcon from "@/assets/home-icons-vector/tiktok.svg";
 import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
@@ -40,6 +39,25 @@ export default function HomePage({
   const [offers, setOffers] = useState<PublicOfferItem[]>([]);
   const [loadingOffers, setLoadingOffers] = useState(true);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const state = useFunnelStore.getState();
+    state.setPlatform(initialPlatform);
+    state.setService(initialService);
+  }, [initialPlatform, initialService]);
+
+  useEffect(() => {
+    const handlePageShow = (event: PageTransitionEvent) => {
+      processCheckoutReturn({
+        persisted: event.persisted,
+        resetFunnel: () => useFunnelStore.getState().reset(),
+        replaceHome: () => window.history.replaceState(null, "", "/"),
+      });
+    };
+    window.addEventListener("pageshow", handlePageShow);
+    handlePageShow({ persisted: false } as PageTransitionEvent);
+    return () => window.removeEventListener("pageshow", handlePageShow);
+  }, []);
 
   const fetchOffers = useCallback(async () => {
     try {
@@ -71,6 +89,7 @@ export default function HomePage({
     if (safeService === service) return;
     setSelectedService(safeService);
     setService(safeService);
+    window.history.replaceState(null, "", `/${platform === "twitter" ? "x" : platform}/${safeService}`);
     setCheckoutError(null);
   };
 
@@ -83,6 +102,9 @@ export default function HomePage({
       const fallback = validServices[0] as Service;
       setSelectedService(fallback);
       setService(fallback);
+      window.history.replaceState(null, "", `/${next === "twitter" ? "x" : next}/${fallback}`);
+    } else {
+      window.history.replaceState(null, "", `/${next === "twitter" ? "x" : next}/${service}`);
     }
     setCheckoutError(null);
   };
@@ -92,8 +114,8 @@ export default function HomePage({
     const readiness = useFunnelStore.getState().getReadiness();
 
     if (!readiness.canCheckout) {
-      setCheckoutError(readiness.reason || "Please complete verification and email before checkout.");
-      document.querySelector(".cf-pb-input input")?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setCheckoutError("Analyze your profile first to continue.");
+      document.querySelector("#growth-package-builder")?.scrollIntoView({ behavior: "smooth", block: "start" });
       (document.querySelector(".cf-pb-input input") as HTMLInputElement)?.focus();
       return;
     }
@@ -114,12 +136,14 @@ export default function HomePage({
       });
       const json = await res.json();
       if (res.ok && json.success && json.data?.checkoutUrl) {
+        markCheckoutReturn();
+        window.history.replaceState(null, "", "/");
         window.location.href = json.data.checkoutUrl;
       } else {
-        setCheckoutError(json.error?.message || "Não foi possível finalizar a compra. Tente novamente.");
+        setCheckoutError(json.error?.message || "We could not complete checkout. Please try again.");
       }
     } catch {
-      setCheckoutError("Não foi possível finalizar a compra. Tente novamente.");
+      setCheckoutError("We could not complete checkout. Please try again.");
     }
   };
 

@@ -225,13 +225,13 @@ export function SmartInboxTab() {
         });
       } else {
         if (isBackground) {
-          setRefreshError("Não foi possível atualizar novas mensagens em segundo plano.");
+          setRefreshError("Unable to refresh new messages in the background.");
         }
       }
     } catch (err) {
       console.error("Failed to load thread detail:", err);
       if (isBackground) {
-        setRefreshError("Erro de conexão ao atualizar conversa.");
+        setRefreshError("Connection error while refreshing the conversation.");
       }
     } finally {
       setLoadingDetail(false);

@@ -102,9 +102,9 @@ export function PlanSelector({ plans, username, platform, service, hasTarget, on
     };
   }),[plans]);
   const select=(id:string|null)=>{ 
-    if(!id || !hasTarget) return; 
-    setPlan(id); 
-    void onSelectPlan?.(id); 
+     if(!id) return; 
+     setPlan(id); 
+     void onSelectPlan?.(id); 
   };
 
   return <>

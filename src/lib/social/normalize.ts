@@ -4,37 +4,37 @@ import { ALLOWED_HOSTS, validateSafeUrl } from "./security";
 // Simple local email validation (no external APIs, no DNS, no SMTP)
 export function validateEmailFormat(email: string): { isValid: boolean; normalized?: string; message?: string } {
   if (!email || typeof email !== "string") {
-    return { isValid: false, message: "Digite um email válido. Exemplo: nome@email.com" };
+    return { isValid: false, message: "Enter a valid email address. Example: name@email.com" };
   }
 
   const trimmed = email.trim();
 
   // Basic length constraints
   if (trimmed.length < 5 || trimmed.length > 254) {
-    return { isValid: false, message: "Digite um email válido. Exemplo: nome@email.com" };
+    return { isValid: false, message: "Enter a valid email address. Example: name@email.com" };
   }
 
   // Spaces not allowed
   if (/\s/.test(trimmed)) {
-    return { isValid: false, message: "Digite um email válido. Exemplo: nome@email.com" };
+    return { isValid: false, message: "Enter a valid email address. Example: name@email.com" };
   }
 
   // Must have exactly one @
   const atParts = trimmed.split("@");
   if (atParts.length !== 2) {
-    return { isValid: false, message: "Digite um email válido. Exemplo: nome@email.com" };
+    return { isValid: false, message: "Enter a valid email address. Example: name@email.com" };
   }
 
   const [localPart, domainPart] = atParts;
 
   // Local part and domain part non-empty
   if (!localPart || !domainPart) {
-    return { isValid: false, message: "Digite um email válido. Exemplo: nome@email.com" };
+    return { isValid: false, message: "Enter a valid email address. Example: name@email.com" };
   }
 
   // Domain must contain a dot, not at start or end, and valid TLD format
   if (!domainPart.includes(".") || domainPart.startsWith(".") || domainPart.endsWith(".")) {
-    return { isValid: false, message: "Digite um email válido. Exemplo: nome@email.com" };
+    return { isValid: false, message: "Enter a valid email address. Example: name@email.com" };
   }
 
   const domainSubParts = domainPart.split(".");
@@ -42,14 +42,14 @@ export function validateEmailFormat(email: string): { isValid: boolean; normaliz
 
   // TLD must have at least 2 alpha characters
   if (!/^[a-zA-Z]{2,24}$/.test(tld)) {
-    return { isValid: false, message: "Digite um email válido. Exemplo: nome@email.com" };
+    return { isValid: false, message: "Enter a valid email address. Example: name@email.com" };
   }
 
   // Standard safe regex test for characters
   const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
 
   if (!emailRegex.test(trimmed)) {
-    return { isValid: false, message: "Digite um email válido. Exemplo: nome@email.com" };
+    return { isValid: false, message: "Enter a valid email address. Example: name@email.com" };
   }
 
   return { isValid: true, normalized: trimmed.toLowerCase() };

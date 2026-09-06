@@ -1,7 +1,6 @@
-import { notFound, permanentRedirect } from "next/navigation";
-
-const LEGACY_PLATFORMS = new Set(["instagram", "tiktok", "youtube", "twitter", "x"]);
-const LEGACY_SERVICES = new Set(["follower", "followers", "like", "likes", "view", "views", "comments"]);
+import { notFound } from "next/navigation";
+import HomePage from "@/app/page";
+import { PLATFORM_SERVICES, normalizePlatform, normalizeService } from "@/services/commercial-offer.resolver";
 
 export default async function ServiceSalesLandingPage({
   params,
@@ -9,14 +8,11 @@ export default async function ServiceSalesLandingPage({
   params: Promise<{ platform: string; service: string }>;
 }) {
   const { platform, service } = await params;
-  if (
-    LEGACY_PLATFORMS.has(platform.toLowerCase()) &&
-    LEGACY_SERVICES.has(service.toLowerCase())
-  ) {
-    permanentRedirect("/");
+  const normalizedPlatform = normalizePlatform(platform);
+  const normalizedService = normalizeService(service);
+  if (normalizedPlatform && normalizedService && PLATFORM_SERVICES[normalizedPlatform].includes(normalizedService)) {
+    return <HomePage initialPlatform={normalizedPlatform} initialService={normalizedService} />;
   }
 
   notFound();
 }
-
-

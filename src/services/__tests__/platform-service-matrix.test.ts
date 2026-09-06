@@ -6,6 +6,8 @@ import {
   isValidPlatformService, 
   resolveCommercialOffer,
   resolveCommercialCardsForService,
+  normalizePlatform,
+  normalizeService,
   CommercialPlatform,
   CommercialService,
   CommercialPlan
@@ -13,6 +15,21 @@ import {
 import { CLOUTFLOW_CATALOG_PACKAGES } from '@/config/financial-protection.config';
 
 describe('Matriz de Serviços por Plataforma e Bloqueio de YouTube Followers', () => {
+  it('normalizes valid commercial order identities, including TikTok Followers', () => {
+    expect(normalizePlatform('Tik Tok')).toBe('tiktok');
+    expect(normalizeService('Follower')).toBe('followers');
+
+    const supported = [
+      ['instagram', 'followers'], ['instagram', 'likes'], ['instagram', 'views'],
+      ['tiktok', 'followers'], ['tiktok', 'likes'], ['tiktok', 'views'],
+      ['twitter', 'followers'], ['twitter', 'likes'], ['twitter', 'views'],
+      ['youtube', 'likes'], ['youtube', 'views'],
+    ] as const;
+
+    for (const [platform, service] of supported) {
+      expect(resolveCommercialCardsForService(platform, service)).toHaveLength(6);
+    }
+  });
   // 1. YouTube mostra apenas Likes e Views no Growth/Offer / Shared Matrix
   it('1. YouTube possui apenas Likes e Views na matriz comercial oficial', () => {
     expect(PLATFORM_SERVICES.youtube).toEqual(['likes', 'views']);

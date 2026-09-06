@@ -15,7 +15,7 @@ function formatSubscribers(num: number): string {
   if (num >= 1_000) {
     return (num / 1_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " mil";
   }
-  return num.toLocaleString("pt-BR");
+  return num.toLocaleString("en-US");
 }
 
 function formatVideos(num: number): string {
@@ -26,7 +26,7 @@ function formatVideos(num: number): string {
   if (num >= 1_000) {
     return (num / 1_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " mil";
   }
-  return num.toLocaleString("pt-BR");
+  return num.toLocaleString("en-US");
 }
 
 function formatViews(num: number): string {
@@ -40,7 +40,7 @@ function formatViews(num: number): string {
   if (num >= 1_000) {
     return (num / 1_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " mil";
   }
-  return num.toLocaleString("pt-BR");
+  return num.toLocaleString("en-US");
 }
 
 function hasValue(val: any): boolean {
@@ -129,7 +129,7 @@ export function YouTubePreview({ profile, onClose }: { profile: YouTubeVerifiedP
                 <>
   <span className="cf-youtube-video-count-desktop"> · {formatVideos(profile.video_count)
     .replace(/(\d+),(\d+)\s*mil/i, "$1.$2k")
-    .replace(/(\d+)\s*mil/i, "$1k")} vídeos</span>
+    .replace(/(\d+)\s*mil/i, "$1k")} videos</span>
   <span className="cf-youtube-video-count-mobile"> · {formatVideos(profile.video_count)
     .replace(/(\d+),(\d+)\s*mil/i, "$1.$2K")
     .replace(/(\d+)\s*mil/i, "$1K")

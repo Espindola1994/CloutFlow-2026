@@ -15,7 +15,7 @@ function formatCount(num: number): string {
   if (num >= 1_000) {
     return (num / 1_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " mil";
   }
-  return num.toLocaleString("pt-BR");
+  return num.toLocaleString("en-US");
 }
 
 function hasValue(val: any): boolean {
