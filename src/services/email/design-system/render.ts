@@ -80,6 +80,18 @@ function getNetworkAsset(network?: string | null): string {
   }
 }
 
+
+function getServiceAsset(service?: string | null): string {
+  const normalized = (service || '').toLowerCase().trim();
+  if (!normalized) return `${ASSET}/email-icon-service.png`;
+
+  if (normalized.includes('follower')) return `${ASSET}/email-icon-followers.png`;
+  if (normalized.includes('like')) return `${ASSET}/email-icon-like.png`;
+  if (normalized.includes('view')) return `${ASSET}/email-icon-views.png`;
+
+  return `${ASSET}/email-icon-service.png`;
+}
+
 function getNetworkTheme(network?: string | null) {
   switch ((network || '').toLowerCase().trim()) {
     case 'tiktok':
@@ -177,7 +189,7 @@ export function renderCloutFlowEmail(options: RenderCloutFlowEmailOptions): Rend
 
   const titleHtml = escapeHtml(titleText).replace(
     /(your order)/i,
-    '<span class="gradient-text" style="color:#E725A7;">$1</span>'
+    '<span style="color:#E725A7;">$1</span>'
   );
 
   const bodyContentHtml = rawBodyHtml
@@ -241,7 +253,7 @@ export function renderCloutFlowEmail(options: RenderCloutFlowEmailOptions): Rend
     }
     if (order.service) {
       rowsHtml += detailRow(
-        `${ASSET}/email-icon-service.png`,
+        getServiceAsset(order.service),
         'Service',
         order.service,
         '#111A3A',
@@ -360,7 +372,6 @@ table{border-collapse:separate;}
 img{-ms-interpolation-mode:bicubic;border:0;}
 body{margin:0!important;padding:0!important;width:100%!important;background:#F4F7FB;}
 .hero-mobile{display:none;max-height:0;overflow:hidden;}
-.gradient-text{background:linear-gradient(90deg,#F72585,#7C3AED 55%,#1677FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .benefit-sub-mobile{display:none;}
 @media only screen and (max-width:620px){
   *{box-sizing:border-box!important;}
@@ -389,7 +400,7 @@ body{margin:0!important;padding:0!important;width:100%!important;background:#F4F
   .confirm-subtitle{font-size:14px!important;line-height:19px!important;}
   .order-id-label{font-size:13px!important;line-height:18px!important;}
   .order-id-value{font-size:14px!important;line-height:19px!important;white-space:nowrap!important;}
-  .headline{font-size:24px!important;line-height:29px!important;letter-spacing:-.25px!important;word-break:normal!important;overflow-wrap:normal!important;}
+  .headline{font-size:17px!important;line-height:21px!important;letter-spacing:-.25px!important;word-break:normal!important;overflow-wrap:normal!important;white-space:nowrap!important;}
   .main-left,.main-right{display:block!important;width:100%!important;padding:0!important;}
   .main-right{padding-top:12px!important;}
   .main-left>table,.main-right>table{width:100%!important;max-width:100%!important;table-layout:fixed!important;}
@@ -425,7 +436,7 @@ body{margin:0!important;padding:0!important;width:100%!important;background:#F4F
 }
 @media only screen and (max-width:360px){
   .content{padding:14px 11px 18px!important;}
-  .headline{font-size:20px!important;line-height:22px!important;}
+  .headline{font-size:16px!important;line-height:20px!important;white-space:nowrap!important;}
   .benefit-title{font-size:12px!important;line-height:12.5px!important;letter-spacing:-.22px!important;white-space:nowrap!important;}
   .benefit-subtitle{font-size:12px!important;line-height:13.8px!important;}
   .detail-label{width:66px!important;font-size:12.5px!important;}
