@@ -149,6 +149,7 @@ export async function emitLifecycleEvent(params: EmitLifecycleEventParams): Prom
       sendAutomaticTransactionalEmail({
         type: 'PAYMENT_APPROVED',
         orderId: String(params.payload.orderId),
+        publicId: params.payload.publicId ? String(params.payload.publicId) : undefined,
         customerEmail: normalizedEmail,
         customerName: params.payload.customerName ? String(params.payload.customerName) : undefined,
         target: (params.payload.targetHandle || params.payload.target) ? String(params.payload.targetHandle || params.payload.target) : undefined,

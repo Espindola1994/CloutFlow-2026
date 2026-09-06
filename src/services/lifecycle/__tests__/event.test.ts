@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { emitLifecycleEvent, normalizeCanonicalEmail, evaluateRepeatPurchase } from '@/services/lifecycle/event.service';
+import * as transactionalTriggerService from '@/services/email/transactional-trigger.service';
 
 const mockLifecycleEvents: any[] = [];
 const mockAutomations: any[] = [];
@@ -83,6 +84,41 @@ describe('Lifecycle Event Service - Phase A', () => {
       payload: { orderId: '123' }
     });
     expect(res.success).toBe(true);
+  });
+
+  it('passes publicId to sendAutomaticTransactionalEmail alongside internal orderId when provided', async () => {
+    const spy = vi.spyOn(transactionalTriggerService, 'sendAutomaticTransactionalEmail').mockResolvedValue({
+      success: true,
+    });
+
+    await emitLifecycleEvent({
+      customerEmail: 'buyer@test.com',
+      eventType: 'PAYMENT_APPROVED',
+      idempotencyKey: 'PAYMENT_APPROVED:ORDER:ord_internal_uuid_999',
+      payload: {
+        orderId: 'ord_internal_uuid_999',
+        publicId: 'CF-1194S63WJM',
+        customerName: 'Alice',
+        platform: 'instagram',
+        service: 'followers',
+        quantity: 500,
+      }
+    });
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'PAYMENT_APPROVED',
+        orderId: 'ord_internal_uuid_999',
+        publicId: 'CF-1194S63WJM',
+        customerEmail: 'buyer@test.com',
+        customerName: 'Alice',
+        platform: 'instagram',
+        service: 'followers',
+        quantity: 500,
+      })
+    );
+
+    spy.mockRestore();
   });
 });
 

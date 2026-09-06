@@ -62,29 +62,29 @@ vi.mock('@/db', () => {
           findMany: vi.fn(),
         },
       },
-      transaction: vi.fn(async (callback) => {
+       transaction: vi.fn(async (callback) => {
         const tx = {
           query: {
             lifecycleEvents: {
-              findMany: vi.fn(),
+              findMany: vi.fn().mockResolvedValue([]),
             },
             lifecycleAutomations: {
-              findMany: vi.fn(),
+              findMany: vi.fn().mockResolvedValue([]),
             },
             orders: {
-              findMany: vi.fn(),
+              findMany: vi.fn().mockResolvedValue([]),
             },
             webhookEvents: {
-              findMany: vi.fn(),
+              findMany: vi.fn().mockResolvedValue([]),
             },
             offers: {
-              findMany: vi.fn(),
+              findMany: vi.fn().mockResolvedValue([]),
             },
             checkoutContexts: {
-              findMany: vi.fn(),
+              findMany: vi.fn().mockResolvedValue([]),
             },
             paymentLeads: {
-              findMany: vi.fn(),
+              findMany: vi.fn().mockResolvedValue([]),
             },
           },
           insert: vi.fn(() => ({
@@ -209,6 +209,103 @@ describe('Etapa 11B - Complete Lifecycle & Webhook Control Tests (A-N)', () => {
     expect(res.status).toBe(200);
     expect(json.success).toBe(true);
     expect(json.action).toBe('ORDER_CREATED');
+  });
+
+  it('A2. PerfectPay approved webhook passes publicId alongside orderId to PAYMENT_APPROVED event', async () => {
+    let capturedEventPayload: any = null;
+    (db.transaction as any)
+      .mockImplementationOnce(async (callback: any) => {
+        const tx = {
+          query: {
+            webhookEvents: { findMany: vi.fn().mockResolvedValue([]) },
+            offers: { findMany: vi.fn().mockResolvedValue([]) },
+            checkoutContexts: { findMany: vi.fn().mockResolvedValue([]) },
+            paymentLeads: { findMany: vi.fn().mockResolvedValue([]) },
+            orders: { findMany: vi.fn().mockResolvedValue([]) },
+          },
+          insert: vi.fn(() => ({
+            values: vi.fn(() => ({
+              returning: vi.fn().mockResolvedValue([{
+                id: 'ord_mock_public_id_test',
+                publicId: 'CF-1194S63WJM',
+                customerEmail: 'customer_pub@example.com',
+                platform: 'instagram',
+                service: 'followers',
+                quantity: 100,
+                canonicalOfferId: 'canonical-instagram-followers-starter',
+                totalCents: 999,
+              }]),
+            })),
+          })),
+          update: vi.fn(() => ({
+            set: vi.fn(() => ({
+              where: vi.fn().mockResolvedValue([]),
+            })),
+          })),
+          select: vi.fn(() => ({
+            from: vi.fn(() => ({
+              where: vi.fn().mockResolvedValue([]),
+            })),
+          })),
+        };
+        return await callback(tx);
+      })
+      .mockImplementationOnce(async (callback: any) => {
+        const tx = {
+          query: {
+            lifecycleEvents: { findMany: vi.fn().mockResolvedValue([]) },
+            lifecycleAutomations: { findMany: vi.fn().mockResolvedValue([]) },
+          },
+          insert: vi.fn(() => ({
+            values: vi.fn((vals: any) => {
+              if (vals.eventType === 'PAYMENT_APPROVED') {
+                capturedEventPayload = vals.payload;
+              }
+              return {
+                returning: vi.fn().mockResolvedValue([{ id: 'evt_mock_pub' }]),
+              };
+            }),
+          })),
+          update: vi.fn(() => ({
+            set: vi.fn(() => ({
+              where: vi.fn().mockResolvedValue([]),
+            })),
+          })),
+          select: vi.fn(() => ({
+            from: vi.fn(() => ({
+              where: vi.fn().mockResolvedValue([]),
+            })),
+          })),
+        };
+        return await callback(tx);
+      });
+
+    const payload = {
+      token: 'valid_test_token',
+      code: 'PP_ORDER_PUB_1',
+      sale_status_enum: 2,
+      product: { code: 'PPPBF6TP', name: 'Instagram Followers' },
+      plan: { code: 'PPLQQQ3F7', name: 'Starter' },
+      customer: {
+        email: 'customer_pub@example.com',
+        full_name: 'Customer Public',
+      },
+      sale_amount: '9.99',
+    };
+
+    const req = new Request('http://localhost:3000/api/webhooks/perfectpay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const res = await perfectPayWebhookHandler(req);
+    expect(res.status).toBe(200);
+
+    // Verify the lifecycle event payload
+    expect(capturedEventPayload).toBeDefined();
+    expect(capturedEventPayload.orderId).toBe('ord_mock_public_id_test');
+    expect(capturedEventPayload.publicId).toBe('CF-1194S63WJM');
   });
 
   // B. Payload sem email válido -> comportamento seguro (sem quebra, sem crash)

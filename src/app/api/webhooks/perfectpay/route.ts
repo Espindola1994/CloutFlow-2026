@@ -61,6 +61,7 @@ export async function POST(request: Request) {
               idempotencyKey: `PAYMENT_APPROVED:ORDER:${result.orderId}`,
               payload: {
                 orderId: result.orderId,
+                publicId: result.publicId,
                 externalOrderId: orderDetails.externalOrderId,
                 amount: orderDetails.totalCents ? orderDetails.totalCents / 100 : payload.sale_amount,
                 amountCents: orderDetails.totalCents,
