@@ -66,11 +66,6 @@ export function getTransactionalEmailTransport(recipientEmail?: string, forceMan
 }
 
 export function getSupportEmailTransport(): EmailTransport {
-  // Support replies & manual support communication use authenticated Gmail SMTP
-  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-    return new GmailSmtpEmailTransport();
-  }
-  // Fallback to Resend if Gmail is not configured
   return new ResendEmailTransport();
 }
 

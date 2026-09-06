@@ -45,27 +45,36 @@ describe('Requirement O, P, T, L, M: Manual Email Dispatch & Routing', () => {
     });
   });
 
-  it('Requirement O: manual SUPPORT email routes to Gmail support transport', async () => {
+  it('Requirement O: manual SUPPORT email routes to Resend support transport with CloutFlow Support sender and replyTo', async () => {
     (db.query.emailSuppressions.findMany as any).mockResolvedValue([]);
     (db.query.emailThreads.findMany as any).mockResolvedValue([{ id: 'thread-support-1' }]);
 
-    const result = await sendManualEmail({
-      customerEmail: 'customer@example.com',
-      category: 'support',
-      subject: 'Support inquiry update',
-      body: '<p>Here is your update.</p>',
-      adminName: 'Agent Alice',
-    });
+    const originalReplyTo = process.env.REPLY_TO_EMAIL;
+    process.env.REPLY_TO_EMAIL = 'cloutflow00@gmail.com';
 
-    expect(result.success).toBe(true);
-    expect(result.provider).toBe('GMAIL');
-    expect(mockGmailSend).toHaveBeenCalledWith(
-      expect.objectContaining({
-        to: 'customer@example.com',
+    try {
+      const result = await sendManualEmail({
+        customerEmail: 'customer@example.com',
         category: 'support',
-      })
-    );
-    expect(mockResendSend).not.toHaveBeenCalled();
+        subject: 'Support inquiry update',
+        body: '<p>Here is your update.</p>',
+        adminName: 'Agent Alice',
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.provider).toBe('RESEND');
+      expect(mockGmailSend).toHaveBeenCalledWith(
+        expect.objectContaining({
+          to: 'customer@example.com',
+          from: 'CloutFlow Support <support@cloutflow.co>',
+          replyTo: 'cloutflow00@gmail.com',
+          category: 'support',
+        })
+      );
+      expect(mockResendSend).not.toHaveBeenCalled();
+    } finally {
+      process.env.REPLY_TO_EMAIL = originalReplyTo;
+    }
   });
 
   it('Requirement P: manual TRANSACTIONAL email routes to Resend transport', async () => {

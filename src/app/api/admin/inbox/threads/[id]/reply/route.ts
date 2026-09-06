@@ -55,17 +55,18 @@ export async function POST(
       ? `${latestInbound.references} ${latestInbound.messageId || ''}`.trim()
       : latestInbound?.messageId || undefined;
 
-    const fromEmail = process.env.GMAIL_USER || process.env.RESEND_FROM_EMAIL || 'support@cloutflow.com';
+    const fromEmail = 'support@cloutflow.co';
     const recipientEmail = thread.customerEmail.trim().toLowerCase();
 
     const plainContent = textBody || (htmlBody ? htmlBody.replace(/<[^>]+>/g, ' ') : '');
     const htmlContent = htmlBody || `<p>${plainContent.replace(/\n/g, '<br/>')}</p>`;
 
-    // 3. Dispatch via Support Transport (Gmail SMTP)
+    // 3. Dispatch via Support Transport (Resend)
     const transport = getSupportEmailTransport();
     const sendResult = await transport.send({
       to: recipientEmail,
-      from: `CloutFlow Support <${fromEmail}>`,
+      from: 'CloutFlow Support <support@cloutflow.co>',
+      replyTo: process.env.REPLY_TO_EMAIL,
       subject: replySubject,
       text: plainContent,
       html: htmlContent,
@@ -85,7 +86,7 @@ export async function POST(
     const [insertedMsg] = await db.insert(emailMessages).values({
       threadId: thread.id,
       direction: 'OUTBOUND',
-      provider: 'GMAIL',
+      provider: 'RESEND',
       providerMessageId: sendResult.messageId || null,
       inReplyTo: inReplyTo || null,
       references: references || null,
@@ -107,7 +108,7 @@ export async function POST(
       subject: replySubject,
       sendOrigin: 'MANUAL',
       category: 'support',
-      provider: 'GMAIL',
+      provider: 'RESEND',
       providerMessageId: sendResult.messageId || null,
       status: 'SENT',
       sentAt: new Date(),

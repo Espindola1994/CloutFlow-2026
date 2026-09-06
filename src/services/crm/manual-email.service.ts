@@ -83,13 +83,13 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
     }
   }
 
-  // 3. Routing: SUPPORT -> Gmail SMTP; TRANSACTIONAL -> Resend; MARKETING -> Marketing (Resend/Controlled)
+  // 3. Routing: SUPPORT -> Resend; TRANSACTIONAL -> Resend; MARKETING -> Marketing (Resend/Controlled)
   let transport;
   let providerName = 'RESEND';
 
   if (params.category === 'support') {
     transport = getSupportEmailTransport();
-    providerName = 'GMAIL';
+    providerName = 'RESEND';
   } else if (params.category === 'transactional') {
     // Manual transactional email explicitly authorized by admin
     transport = getTransactionalEmailTransport(normalizedEmail, true);
@@ -107,8 +107,11 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
 
   // 5. Execute send via EmailTransport abstraction
   try {
+    const isSupport = params.category === 'support';
     const result = await transport.send({
       to: normalizedEmail,
+      from: isSupport ? 'CloutFlow Support <support@cloutflow.co>' : undefined,
+      replyTo: isSupport ? process.env.REPLY_TO_EMAIL : undefined,
       subject: finalSubject,
       html: finalBody,
       text: finalBody.replace(/<[^>]+>/g, ' '),
@@ -170,7 +173,9 @@ export async function sendManualEmail(params: SendManualEmailParams): Promise<Se
       }
 
       if (threadId) {
-        const fromEmail = process.env.GMAIL_USER || process.env.RESEND_FROM_EMAIL || 'support@cloutflow.com';
+        const fromEmail = params.category === 'support'
+          ? 'support@cloutflow.co'
+          : (process.env.GMAIL_USER || process.env.RESEND_FROM_EMAIL || 'support@cloutflow.com');
         const [outboundMsg] = await db.insert(emailMessages).values({
           threadId,
           direction: 'OUTBOUND',
