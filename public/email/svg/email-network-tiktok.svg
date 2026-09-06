@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96">
+  <defs>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#1C2B4A" flood-opacity=".16"/>
+    </filter>
+  </defs>
+  <rect x="8" y="8" width="80" height="80" rx="24" fill="#FFF" stroke="#EEF0F7"/>
+  <g filter="url(#shadow)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M52 28v28.5c0 9-7.2 15.5-15.2 15.5-7.2 0-12.8-5.1-12.8-11.7 0-7.2 6-12.7 13.7-12.7 2.4 0 4.4.4 6.3 1.1" stroke="#25F4EE" stroke-width="7" transform="translate(-2 1)"/>
+    <path d="M52 28v28.5c0 9-7.2 15.5-15.2 15.5-7.2 0-12.8-5.1-12.8-11.7 0-7.2 6-12.7 13.7-12.7 2.4 0 4.4.4 6.3 1.1" stroke="#FE2C55" stroke-width="7" transform="translate(2 -1)"/>
+    <path d="M52 28v28.5c0 9-7.2 15.5-15.2 15.5-7.2 0-12.8-5.1-12.8-11.7 0-7.2 6-12.7 13.7-12.7 2.4 0 4.4.4 6.3 1.1" stroke="#0B0B12" stroke-width="7"/>
+    <path d="M52 28c2 8.2 8.1 13 16 13" stroke="#25F4EE" stroke-width="7" transform="translate(-2 1)"/>
+    <path d="M52 28c2 8.2 8.1 13 16 13" stroke="#FE2C55" stroke-width="7" transform="translate(2 -1)"/>
+    <path d="M52 28c2 8.2 8.1 13 16 13" stroke="#0B0B12" stroke-width="7"/>
+  </g>
+</svg>

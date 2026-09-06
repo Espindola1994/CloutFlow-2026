@@ -1,17 +1,10 @@
 /**
  * CloutFlow Email Design System - Pure Renderer
- * Phase 2B.2: Premium Visual Upgrade for PAYMENT_RECEIVED & CloutFlow Emails
- * 
- * Generates email-client safe HTML (table-based, inline CSS, MSO compatible)
- * and clean native plain-text companion.
- * 
- * Compliant with Outlook Desktop (Word engine), Gmail Web/App, Apple Mail, and mobile screens (320px-430px).
- * High fidelity to CloutFlow visual identity: vibrant gradients, crisp SaaS cards, subtle borders/shadows,
- * social networks, official logo, responsive desktop & mobile tables.
+ * Official PAYMENT_RECEIVED layout — aligned to approved desktop/mobile reference.
+ * 750px desktop / 390px mobile, larger readable typography.
  */
 
 export type EmailCategory = 'transactional' | 'support' | 'marketing';
-
 export type SupportedNetwork = 'instagram' | 'tiktok' | 'x' | 'youtube';
 
 export interface EmailOrderDetails {
@@ -35,20 +28,8 @@ export interface RenderCloutFlowEmailOptions {
   eyebrow?: string;
   title: string;
   customerName?: string;
-  /**
-   * Safe plain text body.
-   * If provided, will be HTML-escaped and paragraphs separated with line breaks.
-   */
   bodyText?: string;
-  /**
-   * Optional alias for bodyText to satisfy base options interface.
-   * Will be treated strictly as safe text (escaped) unless bodyHtml is explicitly used.
-   */
   body?: string;
-  /**
-   * Explicit separate field for pre-sanitized HTML body if ever needed in the future.
-   * Takes precedence over bodyText/body if present.
-   */
   bodyHtml?: string;
   order?: EmailOrderDetails;
   cta?: EmailCta;
@@ -62,9 +43,10 @@ export interface RenderCloutFlowEmailResult {
   text: string;
 }
 
-/**
- * Escapes HTML characters to prevent XSS and broken layout
- */
+const SITE_URL = 'https://cloutflow.co';
+const ASSET = `${SITE_URL}/email`;
+const OFFER_ASSET = `${SITE_URL}/offer`;
+
 function escapeHtml(str: string): string {
   if (!str) return '';
   return str
@@ -75,51 +57,84 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
-/**
- * Formats network name with proper branding display
- */
 function formatNetworkDisplay(network?: string | null): string | null {
   if (!network) return null;
-  const lower = network.toLowerCase().trim();
-  switch (lower) {
-    case 'instagram':
-      return 'Instagram';
-    case 'tiktok':
-      return 'TikTok';
+  switch (network.toLowerCase().trim()) {
+    case 'instagram': return 'Instagram';
+    case 'tiktok': return 'TikTok';
     case 'x':
-    case 'twitter':
-      return 'X';
-    case 'youtube':
-      return 'YouTube';
-    default:
-      return null;
+    case 'twitter': return 'X';
+    case 'youtube': return 'YouTube';
+    default: return null;
   }
 }
 
-/**
- * Returns network badge and icon styling
- */
-function getNetworkBadgeConfig(network: string): { bg: string; text: string; border: string; iconSymbol: string } {
-  const lower = network.toLowerCase();
-  switch (lower) {
-    case 'instagram':
-      return { bg: '#FDF2F8', text: '#BE185D', border: '#FBCFE8', iconSymbol: '&#9678;' };
-    case 'tiktok':
-      return { bg: '#F1F5F9', text: '#0F172A', border: '#CBD5E1', iconSymbol: '&#9835;' };
+function getNetworkAsset(network?: string | null): string {
+  switch ((network || '').toLowerCase().trim()) {
+    case 'instagram': return `${ASSET}/email-network-instagram.png`;
+    case 'tiktok': return `${ASSET}/email-network-tiktok.png`;
     case 'x':
-    case 'twitter':
-      return { bg: '#F8FAFC', text: '#0F172A', border: '#CBD5E1', iconSymbol: '&#120143;' };
-    case 'youtube':
-      return { bg: '#FEF2F2', text: '#B91C1C', border: '#FECACA', iconSymbol: '&#9658;' };
-    default:
-      return { bg: '#F0FDFA', text: '#0D9488', border: '#CCFBF1', iconSymbol: '&#10022;' };
+    case 'twitter': return `${ASSET}/email-network-x.png`;
+    case 'youtube': return `${ASSET}/email-network-youtube.png`;
+    default: return '';
   }
 }
 
-/**
- * Pure rendering function for CloutFlow emails.
- * Compliant with Outlook, Gmail, Apple Mail, and mobile clients.
- */
+function getNetworkTheme(network?: string | null) {
+  switch ((network || '').toLowerCase().trim()) {
+    case 'tiktok':
+      return { primary:'#111827', soft:'#F3FFFF', border:'#BDEFF0' };
+    case 'x':
+    case 'twitter':
+      return { primary:'#111111', soft:'#F6F7F9', border:'#D8DDE5' };
+    case 'youtube':
+      return { primary:'#E60023', soft:'#FFF3F3', border:'#FFC4C4' };
+    default:
+      return { primary:'#E725A7', soft:'#FFF2F8', border:'#FFC2E0' };
+  }
+}
+
+function iconImage(src: string, alt: string, size = 32, className = ''): string {
+  const classAttr = className ? ` class="${className}"` : '';
+  return `<img${classAttr} src="${src}" width="${size}" height="${size}" alt="${escapeHtml(alt)}" style="display:block;width:${size}px;height:${size}px;border:0;outline:none;text-decoration:none;" />`;
+}
+
+function safeParagraphs(text: string): string {
+  return text
+    .split(/\n\s*\n/)
+    .map((p) => `<p class="body-paragraph" style="margin:0 0 14px 0;font-size:17px;line-height:24px;color:#52637B;">${escapeHtml(p).replace(/\n/g, '<br />')}</p>`)
+    .join('');
+}
+
+function renderBulletproofCta(cta: EmailCta): string {
+  const url = escapeHtml(cta.url.trim());
+  const label = escapeHtml(cta.label.trim());
+  return `<tr><td align="center" style="padding:22px 0 4px;">
+    <!--[if mso]><v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${url}" style="height:50px;v-text-anchor:middle;width:240px;" arcsize="18%" stroke="f" fillcolor="#6D3CF6"><w:anchorlock/><center style="color:#ffffff;font-family:Aptos,'Segoe UI','Helvetica Neue',Arial,sans-serif;font-size:16px;font-weight:bold;">${label}</center></v:roundrect><![endif]-->
+    <!--[if !mso]><!--><a href="${url}" target="_blank" style="display:inline-block;padding:15px 32px;border-radius:12px;background:#6D3CF6;background-image:linear-gradient(90deg,#E72CA8 0%,#8B3DFF 48%,#1577FF 100%);color:#FFFFFF;text-decoration:none;font-size:16px;font-weight:700;">${label}</a><!--<![endif]-->
+  </td></tr>`;
+}
+
+function detailRow(
+  icon: string,
+  label: string,
+  value: string,
+  valueColor = '#111A3A',
+  badge?: string,
+  badgeBg = '#F4F7FF',
+  badgeColor = '#2563EB',
+  badgeBorder = '#C9D8FF'
+): string {
+  return `<tr><td class="detail-row-cell" style="padding:12px 14px;border-bottom:1px solid #E7ECF6;">
+    <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>
+      <td class="detail-icon" width="40" valign="middle">${iconImage(icon, label, 32)}</td>
+      <td class="detail-label" valign="middle" style="width:86px;padding-left:9px;font-size:15px;line-height:20px;color:#5E7092;">${escapeHtml(label)}</td>
+      <td class="detail-value" valign="middle" style="font-size:15px;line-height:21px;color:${valueColor};font-weight:700;word-break:break-word;">${escapeHtml(value)}</td>
+      ${badge ? `<td class="detail-badge" align="right" width="92" style="padding-left:6px;"><span style="display:inline-block;padding:6px 11px;border-radius:999px;background:${badgeBg};border:1px solid ${badgeBorder};color:${badgeColor};font-size:13.5px;line-height:17px;font-weight:700;">${escapeHtml(badge)}</span></td>` : ''}
+    </tr></table>
+  </td></tr>`;
+}
+
 export function renderCloutFlowEmail(options: RenderCloutFlowEmailOptions): RenderCloutFlowEmailResult {
   const category = options.category || 'transactional';
   const preheaderText = options.preheader?.trim() || '';
@@ -129,586 +144,448 @@ export function renderCloutFlowEmail(options: RenderCloutFlowEmailOptions): Rend
   const rawBodyText = options.bodyText?.trim() || options.body?.trim() || '';
   const rawBodyHtml = options.bodyHtml?.trim() || '';
   const footerText = options.footerText?.trim() || '';
-
-  // Network resolution: explicitly passed or derived from order
-  const resolvedNetwork = options.network || options.order?.network || null;
-  const networkDisplayName = formatNetworkDisplay(resolvedNetwork);
-
-  // CTA resolution
-  const hasValidCta = Boolean(
-    options.cta &&
-    options.cta.label &&
-    options.cta.label.trim() &&
-    options.cta.url &&
-    options.cta.url.trim()
-  );
-
-  // Order Details resolution (only display if at least one field is defined)
   const order = options.order;
+  const resolvedNetwork = options.network || order?.network || null;
+  const networkDisplayName = formatNetworkDisplay(resolvedNetwork);
+  const networkAsset = getNetworkAsset(resolvedNetwork);
+  const theme = getNetworkTheme(resolvedNetwork);
+
+  const isPaymentReceipt =
+    /received your order/i.test(titleText) ||
+    /payment confirmed|order confirmed/i.test(eyebrowText);
+
   const hasOrderDetails = Boolean(
     order &&
-    (order.publicId || order.service || order.quantity || order.target || order.status || order.network)
+    (order.publicId || order.network || order.service || order.quantity || order.target || order.status)
   );
 
-  // Unsubscribe resolution: only show if category is marketing and URL is provided
-  const showUnsubscribe = category === 'marketing' && Boolean(options.unsubscribeUrl && options.unsubscribeUrl.trim());
+  const hasValidCta = Boolean(options.cta?.label?.trim() && options.cta?.url?.trim());
+  const showUnsubscribe = category === 'marketing' && Boolean(options.unsubscribeUrl?.trim());
 
-  // -------------------------------------------------------------
-  // HTML GENERATION
-  // -------------------------------------------------------------
+  const quantityValue =
+    order?.quantity !== undefined &&
+    order?.quantity !== null &&
+    String(order.quantity).trim() !== ''
+      ? typeof order.quantity === 'number'
+        ? order.quantity.toLocaleString('en-US')
+        : String(order.quantity)
+      : '';
 
-  // Preheader snippet with invisible padding hack to prevent preview pollution
   const preheaderHtml = preheaderText
-    ? `<!-- Preheader Text -->
-<div style="display:none;font-size:1px;color:#ffffff;line-height:1px;max-height:0px;max-width:0px;opacity:0;overflow:hidden;mso-hide:all;">
-  ${escapeHtml(preheaderText)}
-  ${'&zwnj;&nbsp;'.repeat(30)}
-</div>`
+    ? `<div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">${escapeHtml(preheaderText)}${'&zwnj;&nbsp;'.repeat(32)}</div>`
     : '';
 
-  // Network Badge inside main content
-  let networkBadgeHtml = '';
-  if (networkDisplayName) {
-    const badgeColors = getNetworkBadgeConfig(networkDisplayName);
-    networkBadgeHtml = `
-      <tr>
-        <td align="left" style="padding: 0 0 12px 0;">
-          <span style="display: inline-block; padding: 4px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 9999px; background-color: ${badgeColors.bg}; color: ${badgeColors.text}; border: 1px solid ${badgeColors.border};">
-            <span style="margin-right: 4px;">${badgeColors.iconSymbol}</span> ${escapeHtml(networkDisplayName)}
-          </span>
-        </td>
-      </tr>`;
-  }
+  const titleHtml = escapeHtml(titleText).replace(
+    /(your order)/i,
+    '<span class="gradient-text" style="color:#E725A7;">$1</span>'
+  );
 
-  // Eyebrow / Badge
-  let eyebrowHtml = '';
-  if (eyebrowText) {
-    eyebrowHtml = `
-      <tr>
-        <td align="left" style="padding: 0 0 10px 0;">
-          <span style="display: inline-block; padding: 4px 10px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; border-radius: 4px; background-color: #ECFDF5; color: #059669; border: 1px solid #A7F3D0;">
-            &#10003;&nbsp; ${escapeHtml(eyebrowText)}
-          </span>
-        </td>
-      </tr>`;
-  }
+  const bodyContentHtml = rawBodyHtml
+    ? `<div class="body-desktop" style="font-size:17px;line-height:24px;color:#52637B;">${rawBodyHtml}</div>${isPaymentReceipt ? `<div class="body-mobile" style="display:none;font-size:14px;line-height:20px;color:#52637B;">Payment confirmed. Your order is being prepared.</div>` : ''}`
+    : rawBodyText
+      ? `${isPaymentReceipt ? `<div class="body-desktop">${safeParagraphs(rawBodyText)}</div><div class="body-mobile" style="display:none;font-size:14px;line-height:20px;color:#52637B;">Payment confirmed. Your order is being prepared.</div>` : safeParagraphs(rawBodyText)}`
+      : '';
 
-  // Greeting
-  let greetingHtml = '';
-  if (customerName) {
-    greetingHtml = `<p style="margin: 0 0 14px 0; font-size: 15px; line-height: 24px; color: #334155; font-weight: 500;">Hello ${escapeHtml(customerName)},</p>`;
-  }
+  const greetingHtml = customerName
+    ? `<p class="greeting" style="margin:0 0 14px;font-size:17px;line-height:24px;color:#52637B;font-weight:600;">Hello ${escapeHtml(customerName)},</p>`
+    : '';
 
-  // Body content
-  let bodyContentHtml = '';
-  if (rawBodyHtml) {
-    bodyContentHtml = `<div style="font-size: 15px; line-height: 24px; color: #475569; margin-bottom: 20px;">${rawBodyHtml}</div>`;
-  } else if (rawBodyText) {
-    const paragraphs = rawBodyText.split(/\n\s*\n/);
-    bodyContentHtml = paragraphs
-      .map((p) => `<p style="margin: 0 0 14px 0; font-size: 15px; line-height: 24px; color: #475569;">${escapeHtml(p).replace(/\n/g, '<br />')}</p>`)
-      .join('');
-  }
+  const confirmationHtml = isPaymentReceipt ? `
+    <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>
+      <td class="confirm-left" width="53%" valign="top" style="padding-right:10px;">
+        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="background:#ECFFF6;border:1px solid #8CE7B9;border-radius:14px;">
+          <tr><td style="padding:14px 16px;">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0"><tr>
+              <td width="52">${iconImage(`${ASSET}/email-icon-status.png`, 'Payment confirmed', 50, 'mobile-confirm-icon')}</td>
+              <td style="padding-left:11px;">
+                <div class="confirm-title" style="font-size:18px;line-height:23px;color:#07875E;font-weight:800;">PAYMENT CONFIRMED</div>
+                <div class="confirm-subtitle" style="font-size:15px;line-height:21px;color:#248D6B;padding-top:2px;">Your order is now being prepared</div>
+              </td>
+            </tr></table>
+          </td></tr>
+        </table>
+      </td>
+      <td class="confirm-right" width="47%" valign="top" style="padding-left:10px;">
+        ${order?.publicId ? `<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="background:#F8FAFF;border:1px solid #C9D9FF;border-radius:14px;">
+          <tr><td style="padding:14px 16px;">
+            <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>
+              <td width="48">${iconImage(`${ASSET}/email-icon-order.png`, 'Order ID', 46, 'mobile-order-id-icon')}</td>
+              <td style="padding-left:9px;">
+                <div class="order-id-label" style="font-size:15px;line-height:19px;color:#66789A;">Order ID</div>
+                <div class="order-id-value" style="font-size:17px;line-height:22px;color:#111A3A;font-weight:800;white-space:nowrap;">${escapeHtml(order.publicId)}</div>
+              </td>
+              <td align="right" width="36">${iconImage(`${ASSET}/email-icon-copy.png`, 'Copy order ID', 32)}</td>
+            </tr></table>
+          </td></tr>
+        </table>` : ''}
+      </td>
+    </tr></table>
+  ` : '';
 
-  // Order Details Table with high fidelity icons & responsive table rows
-  let orderTableHtml = '';
+  let orderDetailsHtml = '';
   if (hasOrderDetails && order) {
-    const rows: { label: string; value: string; icon: string }[] = [];
-    if (order.publicId) rows.push({ label: 'Order ID', value: order.publicId, icon: '&#128179;' });
-    const orderNet = formatNetworkDisplay(order.network) || (networkDisplayName ? networkDisplayName : undefined);
-    if (orderNet) rows.push({ label: 'Network', value: orderNet, icon: '&#9678;' });
-    if (order.service) rows.push({ label: 'Service', value: order.service, icon: '&#9733;' });
-    if (order.quantity !== undefined && order.quantity !== null && String(order.quantity).trim() !== '') {
-      const qVal = typeof order.quantity === 'number' ? order.quantity.toLocaleString('en-US') : String(order.quantity);
-      rows.push({ label: 'Quantity', value: qVal, icon: '&#128200;' });
-    }
-    if (order.target) rows.push({ label: 'Target', value: order.target, icon: '&#127919;' });
-    if (order.status) rows.push({ label: 'Status', value: order.status, icon: '&#9679;' });
+    const orderNetwork = formatNetworkDisplay(order.network) || networkDisplayName || '';
+    let rowsHtml = '';
 
-    if (rows.length > 0) {
-      const tableRowsHtml = rows
-        .map(
-          (r, idx) => `
-            <tr>
-              <td class="order-detail-label" style="padding: 10px 14px; font-size: 13px; color: #64748B; font-weight: 500; border-bottom: ${idx === rows.length - 1 ? 'none' : '1px solid #F1F5F9'}; width: 38%; vertical-align: middle;">
-                <span style="margin-right: 6px; font-size: 12px; display: inline-block;">${r.icon}</span>${escapeHtml(r.label)}
-              </td>
-              <td class="order-detail-value" style="padding: 10px 14px; font-size: 13px; color: #0F172A; font-weight: 600; border-bottom: ${idx === rows.length - 1 ? 'none' : '1px solid #F1F5F9'}; text-align: right; word-break: break-all; overflow-wrap: anywhere; vertical-align: middle;">
-                ${r.label === 'Status' ? `<span style="color: #059669; font-weight: 700;">&#10003; ${escapeHtml(r.value)}</span>` : escapeHtml(r.value)}
-              </td>
-            </tr>`
-        )
-        .join('');
-
-      orderTableHtml = `
-      <tr>
-        <td style="padding: 18px 0;">
-          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="order-details-table" style="width: 100%; max-width: 100%; border-collapse: separate; border-spacing: 0; background-color: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; overflow: hidden; table-layout: fixed;">
-            <tr>
-              <td colspan="2" style="padding: 12px 14px 10px 14px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #0F172A; background-color: #F1F5F9; border-bottom: 1px solid #E2E8F0;">
-                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width: 100%;">
-                  <tr>
-                    <td align="left" style="font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; color: #0F172A;">
-                      Order Details
-                    </td>
-                    ${order.publicId ? `<td align="right" class="order-head-id" style="font-size: 12px; font-weight: 700; color: #2563EB; letter-spacing: 0.2px; word-break: break-all;">${escapeHtml(order.publicId)}</td>` : ''}
-                  </tr>
-                </table>
-              </td>
-            </tr>
-            ${tableRowsHtml}
-          </table>
-        </td>
-      </tr>`;
+    if (orderNetwork) {
+      rowsHtml += detailRow(
+        networkAsset || `${ASSET}/email-icon-service.png`,
+        'Network',
+        orderNetwork,
+        '#111A3A',
+        orderNetwork,
+        theme.soft,
+        theme.primary,
+        theme.border
+      );
     }
+    if (order.service) {
+      rowsHtml += detailRow(
+        `${ASSET}/email-icon-service.png`,
+        'Service',
+        order.service,
+        '#111A3A',
+        'Growth',
+        '#F2F7FF',
+        '#1769E8',
+        '#C9DEFF'
+      );
+    }
+    if (quantityValue) {
+      rowsHtml += detailRow(`${ASSET}/email-icon-quantity.png`, 'Quantity', quantityValue, '#111A3A', 'Standard', '#EAFBF3', '#07875E', '#B9EBD3');
+    }
+    if (order.target) {
+      rowsHtml += detailRow(`${ASSET}/email-icon-target.png`, 'Target', order.target, '#111A3A', '@username', '#EEF5FF', '#1769E8', '#C9DEFF');
+    }
+    if (order.status) {
+      rowsHtml += detailRow(
+        `${ASSET}/email-icon-status.png`,
+        'Status',
+        order.status,
+        '#07966B',
+        'Approved',
+        '#EAFBF3',
+        '#07875E',
+        '#B9EBD3'
+      );
+    }
+
+    orderDetailsHtml = `
+      <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="background:#FCFDFF;border:1px solid #C9D9FF;border-radius:15px;overflow:hidden;">
+        <tr><td style="padding:13px 14px;background:#F6F3FF;background-image:linear-gradient(90deg,#FBF4FF,#F2F7FF);border-bottom:1px solid #DDE5F7;">
+          <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>
+            <td width="38">${iconImage(`${ASSET}/email-icon-order.png`, 'Order details', 30)}</td>
+            <td class="order-details-title" style="padding-left:9px;font-size:17px;line-height:22px;color:#111A3A;font-weight:800;">Order Details</td>
+            ${order.publicId ? `<td class="order-head-id" align="right" style="font-size:14px;line-height:19px;color:#1262FF;font-weight:800;white-space:nowrap;">${escapeHtml(order.publicId)}</td>` : ''}
+          </tr></table>
+        </td></tr>
+        ${rowsHtml}
+      </table>
+    `;
   }
 
-  // Order ID side pill in Payment Confirmed area (Desktop two-column layout, mobile stacks safely)
-  const orderIdDesktopPill = order?.publicId
-    ? `<table role="presentation" border="0" cellpadding="0" cellspacing="0" class="order-id-badge-table" style="width: 100%; margin: 0;">
-        <tr>
-          <td align="right" class="order-id-badge-td" style="background-color: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 8px; padding: 6px 12px; text-align: right;">
-            <span style="display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #64748B;">Order ID</span>
-            <span style="display: block; font-size: 13px; font-weight: 800; color: #0F172A; font-family: monospace, -apple-system, sans-serif; word-break: break-all;">${escapeHtml(order.publicId)}</span>
+  const nextStepsHtml = isPaymentReceipt ? `
+    <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="background:#FFF8FE;background-image:linear-gradient(135deg,#FFF8FD,#F8F2FF);border:1px solid #EFC5F4;border-radius:15px;">
+      <tr><td style="padding:15px 15px 16px;">
+        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>
+          <td width="54" valign="top">${iconImage(`${ASSET}/email-icon-rocket.png`, 'Next steps', 52)}</td>
+          <td valign="top" style="padding-left:9px;">
+            <div class="next-title" style="font-size:18px;line-height:22px;color:#8D1595;font-weight:800;">What happens next?</div>
+            <div class="next-copy" style="padding-top:5px;font-size:15px;line-height:22px;color:#6E4676;">Our team is now preparing your order. You&#39;ll receive another email once the delivery is completed.</div>
           </td>
-        </tr>
-      </table>`
-    : '';
+        </tr></table>
 
-  // What Happens Next Card (highlighted card with rocket icon)
-  const whatHappensNextHtml = `
-      <tr>
-        <td style="padding: 6px 0 16px 0;">
-          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="background-color: #FDF4FF; border: 1px solid #F0ABFC; border-radius: 10px; overflow: hidden;">
-            <tr>
-              <td style="padding: 16px 18px;">
-                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                  <tr>
-                    <td valign="top" style="width: 32px; padding-right: 12px; font-size: 22px; line-height: 1;">
-                      &#128640;
-                    </td>
-                    <td valign="top">
-                      <p style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #701A75; line-height: 20px;">
-                        What happens next?
-                      </p>
-                      <p style="margin: 0; font-size: 13px; line-height: 19px; color: #86198F;">
-                        Our team is now preparing your order. You&#39;ll receive another email once the delivery is completed.
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>`;
+        <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="margin-top:14px;">
+          <tr><td width="42" valign="top"><div style="width:34px;height:34px;line-height:34px;text-align:center;border-radius:50%;background:#8748F7;color:#fff;font-size:16px;font-weight:800;">1</div></td><td style="padding-bottom:10px;"><div class="step-title" style="font-size:16px;line-height:20px;font-weight:800;color:#1B1534;">Processing</div><div style="font-size:14px;line-height:19px;color:#6F5B85;">We validate your order</div></td></tr>
+          <tr><td width="42" valign="top"><div style="width:34px;height:34px;line-height:34px;text-align:center;border-radius:50%;background:#8748F7;color:#fff;font-size:16px;font-weight:800;">2</div></td><td style="padding-bottom:10px;"><div class="step-title" style="font-size:16px;line-height:20px;font-weight:800;color:#1B1534;">Delivery</div><div style="font-size:14px;line-height:19px;color:#6F5B85;">We start the delivery</div></td></tr>
+          <tr><td width="42" valign="top"><div style="width:34px;height:34px;line-height:34px;text-align:center;border-radius:50%;background:#8748F7;color:#fff;font-size:16px;font-weight:800;">3</div></td><td><div class="step-title" style="font-size:16px;line-height:20px;font-weight:800;color:#1B1534;">Complete</div><div style="font-size:14px;line-height:19px;color:#6F5B85;">You&#39;ll get an update</div></td></tr>
+        </table>
+      </td></tr>
+    </table>
+  ` : '';
 
-  // Call to Action (CTA) Button with Outlook MSO compatibility
-  let ctaHtml = '';
-  if (hasValidCta && options.cta) {
-    const ctaUrl = escapeHtml(options.cta.url.trim());
-    const ctaLabel = escapeHtml(options.cta.label.trim());
-    ctaHtml = `
-      <tr>
-        <td align="center" style="padding: 20px 0 16px 0;">
-          <!--[if mso]>
-          <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${ctaUrl}" style="height:44px;v-text-anchor:middle;width:220px;" arcsize="14%" stroke="f" fillcolor="#2563EB">
-            <w:anchorlock/>
-            <center style="color:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:bold;">
-              ${ctaLabel}
-            </center>
-          </v:roundrect>
-          <![endif]-->
-          <!--[if !mso]><!-->
-          <a href="${ctaUrl}" target="_blank" style="display: inline-block; background-color: #2563EB; color: #FFFFFF; font-size: 14px; font-weight: 600; text-decoration: none; padding: 12px 28px; border-radius: 8px; box-shadow: 0 2px 4px rgba(37,99,235,0.2); text-align: center; mso-hide: all;">
-            ${ctaLabel}
-          </a>
-          <!--<![endif]-->
-        </td>
-      </tr>`;
-  }
+  const supportHtml = options.supportReplyNotice ? `
+    <tr><td style="padding-top:18px;">
+      <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="background:#F5FAFF;border:1px solid #C9DEFF;border-radius:14px;">
+        <tr><td style="padding:14px 16px;">
+          <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>
+            <td width="62">${iconImage(`${ASSET}/email-icon-support.png`, 'Support', 50)}</td>
+            <td style="padding-left:10px;">
+              <div class="support-title" style="font-size:17px;line-height:22px;color:#111A3A;font-weight:800;">Need help?</div>
+              <div class="support-copy support-copy-desktop" style="padding-top:3px;font-size:17px;line-height:21px;color:#566B8D;">Simply reply directly to this email. Our support team will be happy to assist you.</div>
+              <div class="support-copy support-copy-mobile" style="display:none;padding-top:3px;font-size:13.5px;line-height:19px;color:#566B8D;">Reply to this email. Our team is happy to help.</div>
+            </td>
+          </tr></table>
+        </td></tr>
+      </table>
+    </td></tr>
+  ` : '';
 
-  // Support section
-  let supportNoticeHtml = '';
-  if (options.supportReplyNotice) {
-    supportNoticeHtml = `
-      <tr>
-        <td style="padding: 16px 0 4px 0; border-top: 1px solid #E2E8F0;">
-          <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-            <tr>
-              <td style="padding: 12px 14px; background-color: #F8FAFC; border-radius: 8px; border: 1px solid #F1F5F9;">
-                <p style="margin: 0 0 2px 0; font-size: 13px; font-weight: 700; color: #0F172A;">
-                  Need help?
-                </p>
-                <p style="margin: 0; font-size: 13px; line-height: 19px; color: #64748B;">
-                  Need help? Simply reply directly to this email. Our support team will be happy to assist you.
-                </p>
-              </td>
-            </tr>
-          </table>
-        </td>
-      </tr>`;
-  }
+  const trustHtml = isPaymentReceipt ? `
+    <tr><td class="trust-wrap" style="padding:20px 4px 6px;">
+      <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>
+        ${[
+          ['email-icon-secure.png','Secure & Reliable','Your data is safe'],
+          ['email-icon-fast.png','Fast Delivery','Get results quickly'],
+          ['email-icon-people.png','Real People','Real engagement'],
+          ['email-icon-partner.png','Growth Partner',"We're with you"]
+        ].map((x,i) => `<td width="25%" align="center" valign="top" style="padding:0 9px;${i ? 'border-left:1px solid #DCE4F0;' : ''}">
+          ${iconImage(`${ASSET}/${x[0]}`, x[1], 40)}
+          <div style="padding-top:6px;font-size:15px;line-height:20px;color:#111A3A;font-weight:800;">${x[1]}</div>
+          <div style="font-size:15px;line-height:18px;color:#667794;">${x[2]}</div>
+        </td>`).join('')}
+      </tr></table>
+    </td></tr>
+  ` : '';
 
-  // Unsubscribe section
-  let unsubscribeHtml = '';
-  if (showUnsubscribe && options.unsubscribeUrl) {
-    unsubscribeHtml = `
-      <tr>
-        <td align="center" style="padding: 8px 0;">
-          <p style="margin: 0; font-size: 12px; line-height: 18px; color: #94A3B8;">
-            No longer want to receive these emails? <a href="${escapeHtml(options.unsubscribeUrl.trim())}" style="color: #64748B; text-decoration: underline;">Unsubscribe</a>
-          </p>
-        </td>
-      </tr>`;
-  }
+  const ctaHtml = hasValidCta && options.cta ? renderBulletproofCta(options.cta) : '';
+  const unsubscribeHtml =
+    showUnsubscribe && options.unsubscribeUrl
+      ? `<tr><td align="center" style="padding:8px 0;font-size:13px;line-height:18px;color:#8794AA;">No longer want these emails? <a href="${escapeHtml(options.unsubscribeUrl.trim())}" style="color:#64748B;text-decoration:underline;">Unsubscribe</a></td></tr>`
+      : '';
 
-  // Optional custom footer text
-  let customFooterHtml = '';
-  if (footerText) {
-    customFooterHtml = `
-      <tr>
-        <td align="center" style="padding: 4px 0 8px 0;">
-          <p style="margin: 0; font-size: 12px; line-height: 18px; color: #94A3B8;">
-            ${escapeHtml(footerText)}
-          </p>
-        </td>
-      </tr>`;
-  }
-
-  const html = `<!DOCTYPE html>
+  const html = `<!doctype html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <title>${escapeHtml(titleText)}</title>
-  <!--[if mso]>
-  <style type="text/css">
-    body, table, td, a { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important; }
-  </style>
-  <![endif]-->
-  <style type="text/css">
-    /* Client-specific Resets */
-    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
-    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
-    img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
-    body { height: 100% !important; margin: 0 !important; padding: 0 !important; width: 100% !important; background-color: #F8FAFC; }
-    
-    /* Mobile Responsive Styles (320px - 430px) */
-    @media only screen and (max-width: 620px) {
-      .email-outer-td { padding: 12px 8px 24px 8px !important; }
-      .email-container { width: 100% !important; max-width: 100% !important; }
-      .email-hero-card { padding: 0 !important; }
-      .email-content { padding: 18px 14px 18px 14px !important; }
-      
-      /* Hero Image Responsive Switch: Show mobile hero, hide desktop hero */
-      .hero-desktop-wrapper { display: none !important; mso-hide: all !important; max-height: 0px !important; overflow: hidden !important; }
-      .hero-mobile-wrapper { display: block !important; width: 100% !important; max-width: 100% !important; height: auto !important; overflow: visible !important; }
-      .hero-img-mobile { display: block !important; width: 100% !important; max-width: 100% !important; height: auto !important; }
-      
-      /* Mobile Confirmation Section Stacking: Order ID goes below */
-      .confirm-head-table { width: 100% !important; }
-      .desktop-split-col { display: block !important; width: 100% !important; }
-      .order-id-col { display: block !important; width: 100% !important; padding-top: 14px !important; }
-      .order-id-badge-table { width: 100% !important; margin-top: 4px !important; }
-      .order-id-badge-td { text-align: left !important; padding: 8px 12px !important; }
-      
-      /* Mobile Order Summary List Stacking */
-      .order-details-table { width: 100% !important; }
-      .order-detail-label { display: block !important; width: 100% !important; box-sizing: border-box !important; padding: 8px 12px 2px 12px !important; border-bottom: none !important; font-size: 11px !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; }
-      .order-detail-value { display: block !important; width: 100% !important; box-sizing: border-box !important; padding: 2px 12px 10px 12px !important; text-align: left !important; font-size: 13px !important; font-weight: 700 !important; }
-      
-      /* Mobile Footer */
-      .footer-stacked-cell { display: block !important; width: 100% !important; text-align: center !important; }
-      .footer-social-td { padding: 4px 6px !important; font-size: 11px !important; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<title>${escapeHtml(titleText)}</title>
+<style type="text/css">
+body,table,td,a{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;}
+body,table,td,a,div,p,h1,h2,h3,span{font-family:Aptos,'Segoe UI','Helvetica Neue',Arial,sans-serif;}
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+table,td{mso-table-lspace:0pt;mso-table-rspace:0pt;}
+table{border-collapse:separate;}
+img{-ms-interpolation-mode:bicubic;border:0;}
+body{margin:0!important;padding:0!important;width:100%!important;background:#F4F7FB;}
+.hero-mobile{display:none;max-height:0;overflow:hidden;}
+.gradient-text{background:linear-gradient(90deg,#F72585,#7C3AED 55%,#1677FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.benefit-sub-mobile{display:none;}
+@media only screen and (max-width:620px){
+  *{box-sizing:border-box!important;}
+  .outer{padding:0!important;}
+  .container{width:100%!important;max-width:390px!important;margin:0 auto!important;}
+  .content{padding:16px 14px 20px!important;}
+  .hero-desktop{display:none!important;max-height:0!important;overflow:hidden!important;}
+  .hero-mobile{display:block!important;max-height:none!important;overflow:visible!important;}
+  .hero-mobile img{display:block!important;width:100%!important;height:auto!important;}
+  .hero-benefits{table-layout:fixed!important;width:100%!important;}
+  .benefit-cell{width:33.33%!important;padding:9px 4px 11px!important;text-align:center!important;vertical-align:top!important;box-sizing:border-box!important;}
+  .benefit-inner{width:100%!important;table-layout:fixed!important;}
+  .benefit-icon-cell,.benefit-text-cell{display:block!important;width:100%!important;text-align:center!important;padding:0!important;}
+  .benefit-icon-cell img{width:24px!important;height:24px!important;margin:0 auto 4px!important;}
+  .benefit-title{font-size:10.5px!important;line-height:13px!important;white-space:nowrap!important;text-align:center!important;letter-spacing:-.18px!important;word-break:normal!important;overflow-wrap:normal!important;}
+  .benefit-subtitle{font-size:11.5px!important;line-height:14.5px!important;white-space:normal!important;text-align:center!important;padding-top:4px!important;}
+  .benefit-sub-desktop{display:none!important;}
+  .benefit-sub-mobile{display:inline!important;}
+  .confirm-left,.confirm-right{display:block!important;width:100%!important;padding:0!important;}
+  .confirm-right{padding-top:10px!important;}
+  .confirm-left>table,.confirm-right>table{width:100%!important;table-layout:fixed!important;}
+  .confirm-left td,.confirm-right td{box-sizing:border-box!important;}
+  .confirm-left>table>tbody>tr>td,.confirm-right>table>tbody>tr>td{padding:12px 13px!important;}
+  .mobile-confirm-icon,.mobile-order-id-icon{width:35px!important;height:35px!important;}
+  .confirm-title{font-size:14px!important;line-height:10px!important;white-space:normal!important;}
+  .confirm-subtitle{font-size:14px!important;line-height:19px!important;}
+  .order-id-label{font-size:13px!important;line-height:18px!important;}
+  .order-id-value{font-size:14px!important;line-height:19px!important;white-space:nowrap!important;}
+  .headline{font-size:24px!important;line-height:29px!important;letter-spacing:-.25px!important;word-break:normal!important;overflow-wrap:normal!important;}
+  .main-left,.main-right{display:block!important;width:100%!important;padding:0!important;}
+  .main-right{padding-top:12px!important;}
+  .main-left>table,.main-right>table{width:100%!important;max-width:100%!important;table-layout:fixed!important;}
+  .detail-row-cell{padding:11px 12px!important;}
+  .detail-icon{width:34px!important;}
+  .detail-icon img{width:28px!important;height:28px!important;}
+  .detail-label{width:72px!important;padding-left:7px!important;font-size:13px!important;line-height:18px!important;}
+  .detail-value{font-size:15px!important;line-height:20px!important;text-align:left!important;padding-left:3px!important;font-weight:700!important;word-break:normal!important;overflow-wrap:anywhere!important;}
+  .detail-badge{display:none!important;width:0!important;max-width:0!important;padding:0!important;overflow:hidden!important;}
+  .order-details-title{font-size:14.5px!important;line-height:21px!important;}
+  .order-head-id{font-size:12px!important;line-height:17px!important;white-space:nowrap!important;}
+  .next-title{font-size:14.5px!important;line-height:16px!important;}
+  .next-copy{font-size:14.5px!important;line-height:21px!important;}
+  .main-right table td{word-break:normal!important;}
+  .step-title{font-size:14.5px!important;line-height:20px!important;}
+  .support-title{font-size:14.5px!important;line-height:20px!important;}
+  .support-copy{font-size:13.5px!important;line-height:19px!important;}
+  .body-paragraph,.greeting{font-size:16px!important;line-height:24px!important;}
+  .body-desktop,.support-copy-desktop{display:none!important;max-height:0!important;overflow:hidden!important;}
+  .body-mobile,.support-copy-mobile{display:block!important;max-height:none!important;overflow:visible!important;}
+  .trust-wrap{display:none!important;}
+  .footer-pad{padding:16px 14px 0!important;}
+  .footer-brand,.footer-socials{display:block!important;width:100%!important;border-right:0!important;padding:0!important;text-align:center!important;}
+  .footer-brand img{margin:0 auto!important;width:150px!important;}
+  .footer-brand div{font-size:13.5px!important;line-height:19px!important;}
+  .footer-socials{padding-top:12px!important;}
+  .footer-socials table{width:100%!important;table-layout:fixed!important;}
+  .footer-socials td{width:25%!important;padding:0 2px!important;}
+  .footer-socials img{width:24px!important;height:24px!important;margin:0 auto!important;}
+  .footer-social-label{font-size:13px!important;line-height:15px!important;}
+  .footer-tagline{font-size:14px!important;line-height:20px!important;}
+  .footer-copyright{font-size:12.5px!important;line-height:19px!important;}
+}
+@media only screen and (max-width:360px){
+  .content{padding:14px 11px 18px!important;}
+  .headline{font-size:20px!important;line-height:22px!important;}
+  .benefit-title{font-size:12px!important;line-height:12.5px!important;letter-spacing:-.22px!important;white-space:nowrap!important;}
+  .benefit-subtitle{font-size:12px!important;line-height:13.8px!important;}
+  .detail-label{width:66px!important;font-size:12.5px!important;}
+  .detail-value{font-size:14.5px!important;line-height:19px!important;}
+  .order-head-id{font-size:11px!important;}
+}
+</style>
 </head>
-<body style="margin: 0; padding: 0; background-color: #F8FAFC; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased;">
-  ${preheaderHtml}
-  
-  <!-- Outer Wrapper Table -->
-  <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="email-outer-table" style="background-color: #F8FAFC; width: 100%; min-height: 100vh;">
+<body style="margin:0;padding:0;background:#F4F7FB;font-family:Aptos,'Segoe UI','Helvetica Neue',Arial,sans-serif;color:#111A3A;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;">
+${preheaderHtml}
+<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="background:#F4F7FB;">
+<tr><td class="outer" align="center" style="padding:24px 10px 34px;">
+<table role="presentation" class="container" width="100%" border="0" cellpadding="0" cellspacing="0" style="width:100%;max-width:780px;margin:0 auto;">
+<tr><td style="line-height:0;background:#F7F4FF;border-radius:16px 16px 0 0;overflow:hidden;">
+  <div class="hero-desktop"><a href="${SITE_URL}" target="_blank"><img src="${ASSET}/cloutflow-payment-hero-desktop.png" width="780" alt="CloutFlow — Real People. Real Results. Growth Made Simple." style="display:block;width:100%;height:auto;"></a></div>
+  <!--[if !mso]><!--><div class="hero-mobile"><a href="${SITE_URL}" target="_blank"><img src="${ASSET}/cloutflow-payment-hero-mobile.png" width="390" alt="CloutFlow — Growth Made Simple." style="display:none;width:100%;height:auto;"></a></div><!--<![endif]-->
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" class="hero-benefits" style="width:100%;background:#F7F4FF;background-image:linear-gradient(90deg,#FFF6FC 0%,#F4F4FF 52%,#EEF7FF 100%);">
     <tr>
-      <td align="center" class="email-outer-td" style="padding: 32px 12px 40px 12px;">
-        
-        <!-- Main Container (Max 600px, 100% fluid on mobile) -->
-        <!--[if (gte mso 9)|(IE)]>
-        <table align="center" border="0" cellspacing="0" cellpadding="0" width="600" style="width: 600px;">
-        <tr>
-        <td align="center" valign="top" width="600">
-        <![endif]-->
-        <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="email-container" style="max-width: 600px; width: 100%; margin: 0 auto;">
-          
-          <!-- HERO PREMIUM SECTION (Vibrant CloutFlow gradient & identity) -->
-          <tr>
-            <td class="email-hero-card" style="background: linear-gradient(135deg, #090D1A 0%, #171038 35%, #251048 70%, #0D1D3A 100%); background-color: #090D1A; border-radius: 14px 14px 0 0; border: 1px solid #1E293B; border-bottom: none; padding: 0; text-align: center; overflow: hidden;">
-              
-              <!-- DESKTOP HERO IMAGE (Visible on screens > 620px) -->
-              <!--[if !mso]><!-->
-              <div class="hero-desktop-wrapper" style="width: 100%; max-width: 600px; margin: 0 auto; text-align: center;">
-              <!--<![endif]-->
-                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="hero-desktop-table" style="width: 100%; max-width: 600px; margin: 0 auto;">
-                  <tr>
-                    <td align="center" style="padding: 0; line-height: 0;">
-                      <a href="https://cloutflow.co" target="_blank" style="text-decoration: none; display: block;">
-                        <img src="https://cloutflow.co/email/cloutflow-payment-hero-desktop.png" alt="CloutFlow - Social Growth, Simplified. Real People. Real Results. Growth Made Simple." width="600" class="hero-img-desktop" style="display: block; border: 0; width: 100%; max-width: 100%; height: auto; margin: 0 auto; line-height: 100%; outline: none; text-decoration: none;" />
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-              <!--[if !mso]><!-->
-              </div>
-              <!--<![endif]-->
-
-              <!-- MOBILE HERO IMAGE (Visible on screens <= 620px) -->
-              <!--[if !mso]><!-->
-              <div class="hero-mobile-wrapper" style="display: none; max-height: 0px; overflow: hidden; mso-hide: all; width: 100%; text-align: center;">
-                <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" style="width: 100%; max-width: 100%;">
-                  <tr>
-                    <td align="center" style="padding: 0; line-height: 0;">
-                      <a href="https://cloutflow.co" target="_blank" style="text-decoration: none; display: block;">
-                        <img src="https://cloutflow.co/email/cloutflow-payment-hero-mobile.png" alt="CloutFlow - Social Growth, Simplified. Real People. Real Results. Growth Made Simple." width="600" class="hero-img-mobile" style="display: none; border: 0; width: 100%; max-width: 100%; height: auto; margin: 0 auto; line-height: 100%; outline: none; text-decoration: none;" />
-                      </a>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              <!--<![endif]-->
-
-            </td>
-          </tr>
-          
-          <!-- Card Content Body (Vibrant clean white card, subtle SaaS border) -->
-          <tr>
-            <td style="background-color: #FFFFFF; border: 1px solid #E2E8F0; border-top: none; border-radius: 0 0 14px 14px; box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.04); overflow: hidden;">
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="email-content" style="padding: 28px 24px 22px 24px;">
-                
-                <!-- Payment Confirmed Area + Order ID Header Row -->
-                <tr>
-                  <td style="padding: 0 0 16px 0;">
-                    <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%" class="confirm-head-table">
-                      <tr>
-                        <td class="desktop-split-col" valign="middle" align="left">
-                          ${eyebrowHtml}
-                          <h2 style="margin: 0; font-size: 20px; font-weight: 800; line-height: 26px; color: #0F172A; letter-spacing: -0.3px;">
-                            ${escapeHtml(titleText)}
-                          </h2>
-                        </td>
-                        ${order?.publicId ? `
-                        <td class="desktop-split-col order-id-col" valign="middle" align="right">
-                          ${orderIdDesktopPill}
-                        </td>` : ''}
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-                
-                ${networkBadgeHtml}
-                
-                <!-- Greeting & Body Text -->
-                <tr>
-                  <td align="left" style="padding: 0 0 10px 0;">
-                    ${greetingHtml}
-                    ${bodyContentHtml}
-                  </td>
-                </tr>
-                
-                ${orderTableHtml}
-                ${whatHappensNextHtml}
-                ${ctaHtml}
-                ${supportNoticeHtml}
-              </table>
-            </td>
-          </tr>
-          
-          <!-- FOOTER (Clean slate theme) -->
-          <tr>
-            <td align="center" style="padding: 24px 16px 16px 16px;">
-              <table role="presentation" border="0" cellpadding="0" cellspacing="0" width="100%">
-                ${customFooterHtml}
-                ${unsubscribeHtml}
-                
-                <!-- Brand logo in footer -->
-                <tr>
-                  <td align="center" style="padding: 0 0 4px 0;">
-                    <span style="font-size: 15px; font-weight: 800; letter-spacing: 0.5px; color: #0F172A;">
-                      CLOUTFLOW
-                    </span>
-                  </td>
-                </tr>
-                
-                <!-- Footer Tagline & Message -->
-                <tr>
-                  <td align="center" style="padding: 0 0 10px 0;">
-                    <p style="margin: 0 0 4px 0; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #64748B;">
-                      Social Growth, Simplified.
-                    </p>
-                    <p style="margin: 0; font-size: 12px; line-height: 18px; color: #64748B; font-weight: 500;">
-                      Grow Your Presence. Unlock New Opportunities.
-                    </p>
-                  </td>
-                </tr>
-                
-                <!-- Social Network Links (Instagram, TikTok, X, YouTube) -->
-                <tr>
-                  <td align="center" style="padding: 6px 0 12px 0;">
-                    <table role="presentation" border="0" cellpadding="0" cellspacing="0">
-                      <tr>
-                        <td class="footer-social-td" style="padding: 0 6px;">
-                          <span style="font-size: 12px; color: #475569; font-weight: 600;">
-                            Instagram
-                          </span>
-                        </td>
-                        <td style="color: #94A3B8; font-size: 11px;">&bull;</td>
-                        <td class="footer-social-td" style="padding: 0 6px;">
-                          <span style="font-size: 12px; color: #475569; font-weight: 600;">
-                            TikTok
-                          </span>
-                        </td>
-                        <td style="color: #94A3B8; font-size: 11px;">&bull;</td>
-                        <td class="footer-social-td" style="padding: 0 6px;">
-                          <span style="font-size: 12px; color: #475569; font-weight: 600;">
-                            X
-                          </span>
-                        </td>
-                        <td style="color: #94A3B8; font-size: 11px;">&bull;</td>
-                        <td class="footer-social-td" style="padding: 0 6px;">
-                          <span style="font-size: 12px; color: #475569; font-weight: 600;">
-                            YouTube
-                          </span>
-                        </td>
-                      </tr>
-                    </table>
-                  </td>
-                </tr>
-                
-                <!-- Copyright & cloutflow.co -->
-                <tr>
-                  <td align="center" style="padding: 8px 0 0 0; border-top: 1px solid #E2E8F0;">
-                    <p style="margin: 8px 0 0 0; font-size: 11px; line-height: 16px; color: #64748B;">
-                      <a href="https://cloutflow.co" target="_blank" style="color: #2563EB; text-decoration: none; font-weight: 600;">cloutflow.co</a>
-                    </p>
-                    <p style="margin: 4px 0 0 0; font-size: 11px; line-height: 16px; color: #94A3B8;">
-                      &copy; 2026 CloutFlow. All rights reserved.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-          
-        </table>
-        <!--[if (gte mso 9)|(IE)]>
-        </td>
-        </tr>
-        </table>
-        <![endif]-->
-        
+      <td class="benefit-cell" width="33.33%" valign="middle" style="padding:11px 13px 12px 18px;">
+        <table class="benefit-inner" role="presentation" border="0" cellpadding="0" cellspacing="0"><tr>
+          <td class="benefit-icon-cell" width="38" valign="middle">${iconImage(`${ASSET}/email-icon-fast.png`, 'More Reach', 34)}</td>
+          <td class="benefit-text-cell" valign="middle" style="padding-left:8px;">
+            <div class="benefit-title" style="font-size:15.5px;line-height:19px;color:#17213B;font-weight:800;white-space:nowrap;">More Reach</div>
+            <div class="benefit-subtitle" style="font-size:15px;line-height:18px;color:#66738F;white-space:nowrap;"><span class="benefit-sub-desktop">Expand Your Audience</span><span class="benefit-sub-mobile">Expand Your<br>Audience</span></div>
+          </td>
+        </tr></table>
+      </td>
+      <td class="benefit-cell" width="33.33%" valign="middle" style="padding:11px 10px 12px;border-left:1px solid #DDE2F2;">
+        <table class="benefit-inner" role="presentation" border="0" cellpadding="0" cellspacing="0"><tr>
+          <td class="benefit-icon-cell" width="38" valign="middle">${iconImage(`${ASSET}/email-icon-quantity.png`, 'More Engagement', 34)}</td>
+          <td class="benefit-text-cell" valign="middle" style="padding-left:8px;">
+            <div class="benefit-title" style="font-size:15.5px;line-height:19px;color:#17213B;font-weight:800;white-space:nowrap;">More Engagement</div>
+            <div class="benefit-subtitle" style="font-size:15px;line-height:18px;color:#66738F;white-space:nowrap;"><span class="benefit-sub-desktop">Build Real Connections</span><span class="benefit-sub-mobile">Build Real<br>Connections</span></div>
+          </td>
+        </tr></table>
+      </td>
+      <td class="benefit-cell" width="33.33%" valign="middle" style="padding:11px 18px 12px 10px;border-left:1px solid #DDE2F2;">
+        <table class="benefit-inner" role="presentation" border="0" cellpadding="0" cellspacing="0"><tr>
+          <td class="benefit-icon-cell" width="38" valign="middle">${iconImage(`${ASSET}/email-icon-people.png`, 'More Opportunities', 34)}</td>
+          <td class="benefit-text-cell" valign="middle" style="padding-left:8px;">
+            <div class="benefit-title" style="font-size:15.5px;line-height:19px;color:#17213B;font-weight:800;white-space:nowrap;">More Opportunities</div>
+            <div class="benefit-subtitle" style="font-size:15px;line-height:18px;color:#66738F;white-space:nowrap;"><span class="benefit-sub-desktop">Turn Growth Into Results</span><span class="benefit-sub-mobile">Turn Growth Into<br>Results</span></div>
+          </td>
+        </tr></table>
       </td>
     </tr>
   </table>
+</td></tr>
+
+<tr><td style="background:#fff;border:1px solid #E0E6F1;border-top:0;">
+<table role="presentation" class="content" width="100%" border="0" cellpadding="0" cellspacing="0" style="padding:20px 24px 24px;">
+<tr><td>${confirmationHtml}</td></tr>
+<tr><td style="padding-top:${isPaymentReceipt ? '20px' : '0'};">
+  <h1 class="headline" style="margin:0;font-size:36px;line-height:41px;letter-spacing:-.6px;color:#111A3A;font-weight:800;">${titleHtml}</h1>
+</td></tr>
+<tr><td style="padding-top:10px;">${greetingHtml}${bodyContentHtml}</td></tr>
+
+${hasOrderDetails || isPaymentReceipt ? `<tr><td style="padding-top:12px;">
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>
+    <td class="main-left" width="62%" valign="top" style="padding-right:8px;">${orderDetailsHtml}</td>
+    <td class="main-right" width="38%" valign="top" style="padding-left:8px;">${nextStepsHtml}</td>
+  </tr></table>
+</td></tr>` : ''}
+
+${ctaHtml}
+${supportHtml}
+${trustHtml}
+</table>
+</td></tr>
+
+<tr><td class="footer-pad" align="center" style="background:#fff;padding:18px 24px 0;border-top:1px solid #EEF1F7;">
+<table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0" style="max-width:694px;">
+${footerText ? `<tr><td align="center" style="padding-bottom:8px;font-size:13px;line-height:19px;color:#71809A;">${escapeHtml(footerText)}</td></tr>` : ''}
+${unsubscribeHtml}
+<tr><td style="padding:2px 0 10px;">
+  <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>
+    <td class="footer-brand" width="46%" valign="middle" style="padding-right:20px;border-right:1px solid #DCE4F0;">
+      <img src="${SITE_URL}/cloutflow-header-logo.png" width="180" alt="CloutFlow" style="display:block;width:180px;height:auto;">
+      <div style="padding-top:3px;font-size:15px;line-height:20px;color:#566B8D;">Social Growth, Simplified.</div>
+    </td>
+    <td class="footer-socials" width="54%" valign="middle" style="padding-left:20px;">
+      <table role="presentation" width="100%" border="0" cellpadding="0" cellspacing="0"><tr>
+        ${[
+          ['Instagram','email-network-instagram.png'],
+          ['TikTok','email-network-tiktok.png'],
+          ['X','email-network-x.png'],
+          ['YouTube','email-network-youtube.png']
+        ].map((x) => `<td align="center" width="25%" style="padding:0 5px;">
+          ${iconImage(`${ASSET}/${x[1]}`, x[0], 28)}
+          <div class="footer-social-label" style="padding-top:5px;font-size:15px;line-height:17px;color:#60708C;">${x[0]}</div>
+        </td>`).join('')}
+      </tr></table>
+    </td>
+  </tr></table>
+</td></tr>
+<tr><td align="center" class="footer-tagline" style="padding:8px 0 3px;font-size:15px;line-height:20px;color:#566B8D;">Grow Your Presence. Unlock New Opportunities.</td></tr>
+<tr><td align="center" class="footer-copyright" style="font-size:15px;line-height:19px;color:#7A89A2;">&copy; 2026 CloutFlow. All rights reserved.</td></tr>
+<tr><td style="padding-top:6px;line-height:0;">
+  <img src="${ASSET}/cloutflow-email-footer-wave.png" width="694" alt="" style="display:block;width:100%;max-width:694px;height:auto;border:0;margin:0 auto;" />
+</td></tr>
+</table>
+</td></tr>
+</table>
+</td></tr>
+</table>
 </body>
 </html>`;
 
-  // -------------------------------------------------------------
-  // TEXT/PLAIN GENERATION (Clean native plain text)
-  // -------------------------------------------------------------
-
   const textSections: string[] = [];
-
-  // Header
   textSections.push('CLOUTFLOW\nSocial Growth, Simplified.');
-
-  // Hero Headline
   textSections.push('Real People. Real Results. Growth Made Simple.\nMore Reach | More Engagement | More Opportunities');
 
-  // Eyebrow & Network
-  const statusLines: string[] = [];
-  if (eyebrowText) {
-    statusLines.push(eyebrowText.toUpperCase());
-  }
-  if (networkDisplayName) {
-    statusLines.push(`[${networkDisplayName.toUpperCase()}]`);
-  }
-  if (statusLines.length > 0) {
-    textSections.push(statusLines.join(' '));
-  }
+  if (eyebrowText) textSections.push(eyebrowText.toUpperCase());
+  if (titleText) textSections.push(titleText);
 
-  // Title
-  if (titleText) {
-    textSections.push(titleText);
-  }
-
-  // Greeting & Body
   const bodyTextParts: string[] = [];
-  if (customerName) {
-    bodyTextParts.push(`Hello ${customerName},`);
-  }
-  if (rawBodyText) {
-    bodyTextParts.push(rawBodyText);
-  } else if (rawBodyHtml) {
-    // If only bodyHtml provided, do a minimal safe strip of tags for text version
+  if (customerName) bodyTextParts.push(`Hello ${customerName},`);
+  if (rawBodyText) bodyTextParts.push(rawBodyText);
+  else if (rawBodyHtml) {
     const stripped = rawBodyHtml
       .replace(/<br\s*\/?>/gi, '\n')
       .replace(/<\/p>/gi, '\n\n')
       .replace(/<[^>]+>/g, '')
       .trim();
-    if (stripped) {
-      bodyTextParts.push(stripped);
-    }
+    if (stripped) bodyTextParts.push(stripped);
   }
-  if (bodyTextParts.length > 0) {
-    textSections.push(bodyTextParts.join('\n\n'));
-  }
+  if (bodyTextParts.length) textSections.push(bodyTextParts.join('\n\n'));
 
-  // Order Details
   if (hasOrderDetails && order) {
-    const orderLines: string[] = ['ORDER DETAILS'];
-    if (order.publicId) orderLines.push(`Order ID: ${order.publicId}`);
-    const orderNet = formatNetworkDisplay(order.network) || (networkDisplayName ? networkDisplayName : undefined);
-    if (orderNet) orderLines.push(`Network: ${orderNet}`);
-    if (order.service) orderLines.push(`Service: ${order.service}`);
-    if (order.quantity !== undefined && order.quantity !== null && String(order.quantity).trim() !== '') {
-      const qVal = typeof order.quantity === 'number' ? order.quantity.toLocaleString('en-US') : String(order.quantity);
-      orderLines.push(`Quantity: ${qVal}`);
-    }
-    if (order.target) orderLines.push(`Target: ${order.target}`);
-    if (order.status) orderLines.push(`Status: ${order.status}`);
-
-    if (orderLines.length > 1) {
-      textSections.push(orderLines.join('\n'));
-    }
+    const lines = ['ORDER DETAILS'];
+    if (order.publicId) lines.push(`Order ID: ${order.publicId}`);
+    const orderNetwork = formatNetworkDisplay(order.network) || networkDisplayName || '';
+    if (orderNetwork) lines.push(`Network: ${orderNetwork}`);
+    if (order.service) lines.push(`Service: ${order.service}`);
+    if (quantityValue) lines.push(`Quantity: ${quantityValue}`);
+    if (order.target) lines.push(`Target: ${order.target}`);
+    if (order.status) lines.push(`Status: ${order.status}`);
+    textSections.push(lines.join('\n'));
   }
 
-  // What Happens Next
-  textSections.push("What happens next?\nOur team is now preparing your order. You'll receive another email once the delivery is completed.");
+  if (isPaymentReceipt) {
+    textSections.push("What happens next?\nProcessing — We validate your order\nDelivery — We start the delivery\nComplete — You'll get an update");
+  }
 
-  // CTA
   if (hasValidCta && options.cta) {
     textSections.push(`${options.cta.label.trim()}:\n${options.cta.url.trim()}`);
   }
 
-  // Support Reply Notice
   if (options.supportReplyNotice) {
     textSections.push('Need help? Simply reply directly to this email.\nOur support team will be happy to assist you.');
   }
 
-  // Footer / Unsubscribe
-  const footerLines: string[] = [];
-  if (footerText) {
-    footerLines.push(footerText);
-  }
+  if (footerText) textSections.push(footerText);
   if (showUnsubscribe && options.unsubscribeUrl) {
-    footerLines.push(`Unsubscribe: ${options.unsubscribeUrl.trim()}`);
+    textSections.push(`Unsubscribe: ${options.unsubscribeUrl.trim()}`);
   }
-  footerLines.push('Grow Your Presence. Unlock New Opportunities.');
-  footerLines.push('Instagram | TikTok | X | YouTube');
-  footerLines.push('cloutflow.co\n© 2026 CloutFlow. All rights reserved.');
-  textSections.push(footerLines.join('\n'));
 
-  const text = textSections.join('\n\n');
+  textSections.push(
+    'Grow Your Presence. Unlock New Opportunities.\nInstagram | TikTok | X | YouTube\ncloutflow.co\n© 2026 CloutFlow. All rights reserved.'
+  );
 
-  return { html, text };
+  return { html, text: textSections.join('\n\n') };
 }

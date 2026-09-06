@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
+<defs>
+ <filter id="s" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="5" stdDeviation="5" flood-color="#6B7AAE" flood-opacity=".18"/></filter>
+ <linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#20B8FF"/><stop offset=".55" stop-color="#2563EB"/><stop offset="1" stop-color="#6D3CF6"/></linearGradient>
+ <linearGradient id="pink" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FF4DB8"/><stop offset=".55" stop-color="#E725A7"/><stop offset="1" stop-color="#7C3AED"/></linearGradient>
+ <linearGradient id="green" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#35E2B7"/><stop offset="1" stop-color="#00A67A"/></linearGradient>
+ <linearGradient id="insta" x1="0" y1="1" x2="1" y2="0"><stop stop-color="#FFD36A"/><stop offset=".32" stop-color="#FF4F8B"/><stop offset=".68" stop-color="#E725A7"/><stop offset="1" stop-color="#6D3CF6"/></linearGradient>
+</defs>
+<rect x="6" y="6" width="84" height="84" rx="24" fill="#FFFFFF" stroke="#EEF1FA" stroke-width="2" filter="url(#s)"/>
+<path d="M48 73S20 58 20 38c0-12 15-17 28-4 13-13 28-8 28 4 0 20-28 35-28 35z" fill="url(#pink)"/></svg>
