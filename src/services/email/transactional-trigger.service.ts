@@ -3,6 +3,7 @@ import { orders, emailLogs } from '@/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
 import { getTransactionalEmailTransport } from '@/integrations/email/transport';
 import { CANONICAL_EMAIL_TEMPLATES, interpolateTemplate } from '@/services/crm/templates';
+import { renderCloutFlowEmail } from './design-system/render';
 
 export type TransactionalTriggerType = 'PAYMENT_APPROVED' | 'ORDER_PROCESSING' | 'ORDER_COMPLETED';
 
@@ -15,6 +16,7 @@ interface SendTransactionalEmailParams {
   platform?: string;
   service?: string;
   quantity?: number;
+  publicId?: string;
 }
 
 /**
@@ -82,18 +84,52 @@ export async function sendAutomaticTransactionalEmail(params: SendTransactionalE
     };
   }
 
-  // 2. Variable interpolation
-  const vars = {
-    customer_name: params.customerName || 'Valued Customer',
-    order_id: params.orderId,
-    target: params.target || '',
-    platform: params.platform || '',
-    service: params.service || '',
-    quantity: params.quantity || 1,
-  };
+  // 2. Variable interpolation & template rendering
+  let subject: string;
+  let html: string;
+  let text: string | undefined;
 
-  const subject = interpolateTemplate(templateDef.defaultSubject, vars);
-  const body = interpolateTemplate(templateDef.defaultBody, vars);
+  if (templateId === 'PAYMENT_RECEIVED') {
+    const rawPublicId = params.publicId || (params.orderId?.startsWith('CF-') ? params.orderId : undefined);
+    const resolvedPublicId = rawPublicId && rawPublicId.trim() ? rawPublicId.trim() : undefined;
+
+    subject = resolvedPublicId
+      ? `Payment confirmed for order ${resolvedPublicId}`
+      : 'Payment confirmed for your CloutFlow order';
+
+    const rendered = renderCloutFlowEmail({
+      category: 'transactional',
+      eyebrow: 'ORDER CONFIRMED',
+      title: "We've received your order",
+      preheader: 'Your payment was successfully received. We are now preparing your order.',
+      customerName: params.customerName,
+      bodyText: 'Thank you for choosing CloutFlow. Your payment has been approved and your order is being prepared for delivery.',
+      order: {
+        publicId: resolvedPublicId,
+        network: params.platform || undefined,
+        service: params.service || undefined,
+        quantity: params.quantity,
+        target: params.target || undefined,
+        status: 'Payment confirmed',
+      },
+      supportReplyNotice: true,
+    });
+
+    html = rendered.html;
+    text = rendered.text;
+  } else {
+    const vars = {
+      customer_name: params.customerName || 'Valued Customer',
+      order_id: params.orderId,
+      target: params.target || '',
+      platform: params.platform || '',
+      service: params.service || '',
+      quantity: params.quantity || 1,
+    };
+
+    subject = interpolateTemplate(templateDef.defaultSubject, vars);
+    html = interpolateTemplate(templateDef.defaultBody, vars);
+  }
 
   // 3. Send via Resend transactional transport (strictly automatic: forceManualAllowed=false)
   const transport = getTransactionalEmailTransport(normalizedEmail, false);
@@ -101,7 +137,8 @@ export async function sendAutomaticTransactionalEmail(params: SendTransactionalE
     const result = await transport.send({
       to: normalizedEmail,
       subject,
-      html: body,
+      html,
+      text,
       idempotencyKey,
       category: 'transactional',
     });

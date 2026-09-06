@@ -47,10 +47,82 @@ describe('Requirement Q, R, S: Automatic Transactional Email Triggers & Idempote
     expect(mockSend).toHaveBeenCalledWith(
       expect.objectContaining({
         to: 'customer@example.com',
-        subject: expect.stringContaining('CF-ORD-101'),
+        subject: 'Payment confirmed for order CF-ORD-101',
         category: 'transactional',
+        html: expect.stringContaining('CLOUTFLOW'),
+        text: expect.stringContaining('CLOUTFLOW'),
       })
     );
+
+    const callArgs = mockSend.mock.calls[0][0];
+    expect(callArgs.html).toContain('Social Growth, Simplified.');
+    expect(callArgs.html).toContain('ORDER CONFIRMED');
+    expect(callArgs.text).toContain('ORDER CONFIRMED');
+    expect(callArgs.html).toContain('CF-ORD-101');
+    expect(callArgs.text).toContain('CF-ORD-101');
+  });
+
+  it('PAYMENT_RECEIVED: verifies rendered CloutFlow design system output and fallback when publicId missing', async () => {
+    (db.query.emailLogs.findMany as any).mockResolvedValueOnce([]);
+
+    const result = await sendAutomaticTransactionalEmail({
+      type: 'PAYMENT_APPROVED',
+      orderId: 'uuid-12345-non-cf',
+      customerEmail: 'customer@example.com',
+      customerName: 'Bob',
+    });
+
+    expect(result.success).toBe(true);
+    const callArgs = mockSend.mock.calls[0][0];
+    // publicId ausente usa subject fallback seguro
+    expect(callArgs.subject).toBe('Payment confirmed for your CloutFlow order');
+    expect(callArgs.subject).not.toContain('undefined');
+    expect(callArgs.subject).not.toContain('null');
+    expect(callArgs.subject).not.toContain('()');
+    // HTML checks
+    expect(callArgs.html).toContain('CLOUTFLOW');
+    expect(callArgs.html).toContain('Social Growth, Simplified.');
+    expect(callArgs.html).toContain('ORDER CONFIRMED');
+    expect(callArgs.html).not.toContain('undefined');
+    expect(callArgs.html).not.toContain('null');
+    // text/plain companion enviado
+    expect(callArgs.text).toBeDefined();
+    expect(callArgs.text).toContain('Social Growth, Simplified.');
+    expect(callArgs.text).not.toContain('undefined');
+    expect(callArgs.text).not.toContain('null');
+    // Sem CTA ficticio
+    expect(callArgs.html).not.toContain('/track/');
+    expect(callArgs.text).not.toContain('/track/');
+  });
+
+  it('PAYMENT_RECEIVED: uses explicit publicId if provided', async () => {
+    (db.query.emailLogs.findMany as any).mockResolvedValueOnce([]);
+
+    const result = await sendAutomaticTransactionalEmail({
+      type: 'PAYMENT_APPROVED',
+      orderId: 'raw-internal-id-456',
+      publicId: 'CF-999888',
+      customerEmail: 'customer@example.com',
+      customerName: 'Charlie',
+      platform: 'tiktok',
+      service: 'followers',
+      quantity: 1000,
+      target: 'charlie_tk',
+    });
+
+    expect(result.success).toBe(true);
+    const callArgs = mockSend.mock.calls[0][0];
+    expect(callArgs.subject).toBe('Payment confirmed for order CF-999888');
+    expect(callArgs.html).toContain('CF-999888');
+    expect(callArgs.text).toContain('CF-999888');
+    expect(callArgs.html).toContain('TikTok');
+    expect(callArgs.text).toContain('TIKTOK');
+    expect(callArgs.html).toContain('followers');
+    expect(callArgs.text).toContain('followers');
+    expect(callArgs.html).toContain('1,000');
+    expect(callArgs.text).toContain('1,000');
+    expect(callArgs.html).toContain('charlie_tk');
+    expect(callArgs.text).toContain('charlie_tk');
   });
 
   it('Requirement Q (idempotency): prevents duplicate PAYMENT_APPROVED email when already sent', async () => {
