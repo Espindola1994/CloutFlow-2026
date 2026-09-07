@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+﻿import { NextResponse } from 'next/server';
 import { and, asc, desc, eq, inArray, lte, sql } from 'drizzle-orm';
 
 import { db } from '@/db';
@@ -9,17 +9,7 @@ const THRESHOLD_MINUTES = 30;
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request: NextRequest) {
-  const authorization = request.headers.get('authorization');
-  const secret = process.env.CRON_SECRET;
-
-  if (!secret || authorization !== `Bearer ${secret}`) {
-    return NextResponse.json(
-      { success: false, error: 'Unauthorized' },
-      { status: 401 }
-    );
-  }
-
+export async function GET() {
   try {
     const cutoff = new Date(
       Date.now() - THRESHOLD_MINUTES * 60 * 1000
