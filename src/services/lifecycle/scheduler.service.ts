@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { lifecycleAutomations, lifecycleEvents, orders } from '@/db/schema';
-import { eq, and, lte, gte, inArray, or } from 'drizzle-orm';
+import { eq, and, lte, gte, inArray, or, desc } from 'drizzle-orm';
 import crypto from 'crypto';
 import { emitLifecycleEvent } from './event.service';
 
@@ -23,6 +23,7 @@ export async function evaluateCheckoutAbandonments(thresholdMinutes = DEFAULT_AB
       inArray(lifecycleEvents.eventType, ['LEAD_CAPTURED', 'CHECKOUT_STARTED']),
       lte(lifecycleEvents.createdAt, cutoff)
     ),
+    orderBy: [desc(lifecycleEvents.createdAt)],
     limit: 50,
   });
 
