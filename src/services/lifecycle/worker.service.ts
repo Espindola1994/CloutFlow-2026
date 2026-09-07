@@ -150,7 +150,7 @@ export async function runLifecycleWorker(limit = 10) {
 
         const template = getCartRecoveryTemplate(stepNumber, { returnUrl, customerEmail: normalizedEmail });
 
-        const transport = getMarketingEmailTransport(normalizedEmail);
+        const transport = getMarketingEmailTransport(normalizedEmail, true);
         const idempotencyKey = `lifecycle/${automation.id}/step/${stepNumber}`;
 
         // Ensure automation is eligible (Safe Activation boundary check)

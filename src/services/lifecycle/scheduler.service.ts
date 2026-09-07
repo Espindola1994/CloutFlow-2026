@@ -33,6 +33,24 @@ export async function evaluateCheckoutAbandonments(thresholdMinutes = DEFAULT_AB
     // Determine the journey identifier, if present. 
     // Fall back to the event id if there is no strong canonical journey ID, though modern events should have one.
     const leadPayload = lead.payload as Record<string, any> || {};
+
+    // CHECKOUT_STARTED is the canonical abandonment source when both events exist.
+    // Keep LEAD_CAPTURED only as a fallback for flows that never emitted CHECKOUT_STARTED.
+    if (lead.eventType === 'LEAD_CAPTURED') {
+      const [matchingCheckoutStarted] = await db.query.lifecycleEvents.findMany({
+        where: and(
+          eq(lifecycleEvents.customerEmail, lead.customerEmail),
+          eq(lifecycleEvents.eventType, 'CHECKOUT_STARTED'),
+          gte(lifecycleEvents.createdAt, lead.createdAt)
+        ),
+        limit: 1,
+      });
+
+      if (matchingCheckoutStarted) {
+        continue;
+      }
+    }
+
     const journeyId = leadPayload.checkoutContextId || leadPayload.externalReference || leadPayload.paymentLeadId || leadPayload.checkoutToken || lead.id;
 
     // 2. Check if a PAYMENT_APPROVED exists *for this specific journey* (i.e. originating from this attempt).
