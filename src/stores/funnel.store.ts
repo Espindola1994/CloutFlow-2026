@@ -13,6 +13,7 @@ export interface FunnelState {
   followerType: 'real' | 'niche' | null;
   username: string | null;
   email: string | null;
+  draftIdentifier: string | null;
   profileData: Record<string, unknown> | null;
   
   // Generalized Target State
@@ -35,6 +36,7 @@ export interface FunnelState {
   setFollowerType: (type: 'real' | 'niche' | null) => void;
   setUsername: (username: string) => void;
   setEmail: (email: string) => void;
+  setDraftIdentifier: (identifier: string) => void;
   setProfileData: (data: Record<string, unknown> | null) => void;
   setVerificationStatus: (status: VerificationStatus) => void;
   setTarget: (target: {
@@ -51,11 +53,12 @@ export interface FunnelState {
   setNiche: (nicheId: string, custom?: string) => void;
   setSelectedMedia: (media: string[]) => void;
   setPlan: (planId: string) => void;
+  resetAnalysis: () => void;
   reset: () => void;
   getReadiness: () => FunnelReadinessResult;
 }
 
-const CURRENT_FUNNEL_VERSION = 3;
+const CURRENT_FUNNEL_VERSION = 4;
 
 export const useFunnelStore = create<FunnelState>()(
   persist(
@@ -66,6 +69,7 @@ export const useFunnelStore = create<FunnelState>()(
       followerType: null,
       username: null,
       email: null,
+      draftIdentifier: null,
       profileData: null,
       targetType: null,
       targetValue: null,
@@ -120,6 +124,7 @@ export const useFunnelStore = create<FunnelState>()(
       setFollowerType: (type) => set({ followerType: type }),
       setUsername: (username) => set({ username, socialUsername: username.replace(/^@+/, ''), profileData: null }),
       setEmail: (email) => set({ email: email ? email.trim() : null }),
+      setDraftIdentifier: (draftIdentifier) => set({ draftIdentifier: draftIdentifier || null }),
       setProfileData: (data) => set({ profileData: data }),
       setVerificationStatus: (verificationStatus) => set({ verificationStatus }),
 
@@ -149,6 +154,27 @@ export const useFunnelStore = create<FunnelState>()(
       setNiche: (nicheId, custom) => set({ nicheId, customNiche: custom || null }),
       setSelectedMedia: (media) => set({ selectedMedia: media }),
       setPlan: (planId) => set({ planId }),
+
+      // Checkout return invalidates analysis results but keeps the customer's inputs and route context.
+      resetAnalysis: () => set((state) => ({
+        serviceSlug: null,
+        username: null,
+        profileData: null,
+        targetType: null,
+        targetValue: null,
+        targetUrl: null,
+        socialUsername: null,
+        profileUrl: null,
+        verifiedTargetData: null,
+        verificationStatus: 'idle',
+        followerType: null,
+        nicheId: null,
+        customNiche: null,
+        selectedMedia: null,
+        planId: null,
+        email: state.email,
+        draftIdentifier: state.draftIdentifier,
+      })),
       
       reset: () => set({
         platformSlug: null,
@@ -156,6 +182,7 @@ export const useFunnelStore = create<FunnelState>()(
         followerType: null,
         username: null,
         email: null,
+        draftIdentifier: null,
         profileData: null,
         targetType: null,
         targetValue: null,
@@ -187,16 +214,28 @@ export const useFunnelStore = create<FunnelState>()(
       },
     }),
     {
-      name: 'funnel-storage-v3', // Migration v3: stale persisted verification states never unlock plans automatically
-      version: 3,
+      name: 'funnel-storage-v3', // Migration v4: preserve customer inputs while invalidating stale analysis results
+      version: 4,
       migrate: (persistedState: any, version: number) => {
+        const legacyTarget = typeof persistedState?.targetValue === 'string'
+          ? persistedState.targetValue
+          : typeof persistedState?.targetUrl === 'string'
+            ? persistedState.targetUrl
+            : null;
+        const draftIdentifier = typeof persistedState?.draftIdentifier === 'string'
+          ? persistedState.draftIdentifier
+          : legacyTarget && (persistedState?.targetType === 'profile' || persistedState?.targetType === 'channel')
+            ? `@${legacyTarget.replace(/^@+/, '')}`
+            : legacyTarget;
+
         return {
-          version: 3,
+          version: 4,
           platformSlug: null,
           serviceSlug: null,
           followerType: null,
           username: null,
-          email: null,
+          email: typeof persistedState?.email === 'string' ? persistedState.email : null,
+          draftIdentifier,
           profileData: null,
           targetType: null,
           targetValue: null,

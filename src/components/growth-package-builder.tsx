@@ -148,32 +148,54 @@ class DevPreviewBoundary extends React.Component<
 export default function GrowthPackageBuilder({
   initialPlatform,
   initialGoal,
+  resetToken,
   onPlatformChange,
   onGoalChange,
   onContinue,
 }: {
   initialPlatform: PlatformId;
   initialGoal: Goal;
+  resetToken?: number;
   onPlatformChange: (platform: PlatformId) => void;
   onGoalChange: (goal: Goal) => void;
   onContinue: () => void;
 }) {
   const [platform, setPlatformLocal] = useState<PlatformId>(initialPlatform);
   const [goal, setGoalLocal] = useState<Goal>(initialGoal);
-  const [identifier, setIdentifier] = useState("");
-  const [email, setEmail] = useState("");
+  const [identifier, setIdentifier] = useState(() => useFunnelStore.getState().draftIdentifier || "");
+  const [email, setEmail] = useState(() => useFunnelStore.getState().email || "");
   const [stage, setStage] = useState<Stage>("idle");
   const [progress, setProgress] = useState(0);
   const [profile, setProfile] = useState<VerifiedSocialProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const polling = useRef(false);
   const previewTimers = useRef<number[]>([]);
+  const analysisRunId = useRef(0);
   const [devScene, setDevScene] = useState<1 | 2 | 3 | null>(null);
-  const { setUsername, setProfileData } = useFunnelStore();
+  const { setUsername, setEmail: setStoreEmail, setDraftIdentifier, setProfileData } = useFunnelStore();
 
   useEffect(() => setPlatformLocal(initialPlatform), [initialPlatform]);
   useEffect(() => setGoalLocal(initialGoal), [initialGoal]);
-  useEffect(() => () => { polling.current = false; previewTimers.current.forEach(window.clearTimeout); }, []);
+  useEffect(() => {
+    if (!resetToken) return;
+    polling.current = false;
+    analysisRunId.current += 1;
+    previewTimers.current.forEach(window.clearTimeout);
+    previewTimers.current = [];
+    const funnel = useFunnelStore.getState();
+    setStage("idle");
+    setProgress(0);
+    setProfile(null);
+    setError(null);
+    setDevScene(null);
+    setIdentifier(funnel.draftIdentifier || "");
+    setEmail(funnel.email || "");
+  }, [resetToken]);
+  useEffect(() => () => {
+    polling.current = false;
+    analysisRunId.current += 1;
+    previewTimers.current.forEach(window.clearTimeout);
+  }, []);
 
   const isContent = goal === "likes" || goal === "views";
   const meta = META[platform];
@@ -198,7 +220,8 @@ export default function GrowthPackageBuilder({
 
   const choosePlatform = (next: PlatformId) => {
     if (stage === "analyzing") return;
-    setPlatformLocal(next); setProfile(null); setStage("idle"); setError(null); setIdentifier("");
+    analysisRunId.current += 1;
+    setPlatformLocal(next); setProfile(null); setStage("idle"); setError(null); setIdentifier(""); setDraftIdentifier("");
     useFunnelStore.getState().setPlatform(next);
     const validServices = PLATFORM_SERVICES[next] || ['followers'];
     let safeGoal = goal;
@@ -212,18 +235,20 @@ export default function GrowthPackageBuilder({
   };
   const chooseGoal = (next: Goal) => {
     if (stage === "analyzing") return;
+    analysisRunId.current += 1;
     const validServices = PLATFORM_SERVICES[platform] || ['followers'];
     if (!validServices.includes(next)) return;
-    setGoalLocal(next); setProfile(null); setStage("idle"); setError(null); setIdentifier("");
+    setGoalLocal(next); setProfile(null); setStage("idle"); setError(null); setIdentifier(""); setDraftIdentifier("");
     useFunnelStore.getState().setService(next);
     onGoalChange(next);
   };
 
   const resetSearch = () => {
     polling.current = false;
+    analysisRunId.current += 1;
     previewTimers.current.forEach(window.clearTimeout);
     previewTimers.current = [];
-    setStage("idle"); setProgress(0); setProfile(null); setError(null); setIdentifier("");
+    setStage("idle"); setProgress(0); setProfile(null); setError(null); setIdentifier(""); setDraftIdentifier("");
     useFunnelStore.getState().resetTarget();
   };
 
@@ -249,11 +274,13 @@ export default function GrowthPackageBuilder({
     setProfileData(found as unknown as Record<string, unknown>);
   };
 
-  const finish = (found: VerifiedSocialProfile) => {
+  const finish = (found: VerifiedSocialProfile, runId: number) => {
+    if (!polling.current || analysisRunId.current !== runId) return;
     // Stage 1: Result found. Target is valid, but NOT yet verified until user explicitly confirms!
     persistTarget(found, false);
     setProfile(found); setProgress(100);
     setStage("result");
+    polling.current = false;
   };
 
   const confirmDisplayedProfile = () => {
@@ -289,34 +316,45 @@ export default function GrowthPackageBuilder({
       }
     }
 
+    // The service is a selection input, not analysis output. Re-associate it
+    // only when a new analysis actually starts after a checkout return.
+    const runId = ++analysisRunId.current;
+    useFunnelStore.getState().setPlatform(platform);
+    useFunnelStore.getState().setService(goal);
     polling.current = true; setStage("analyzing"); setProgress(8); setProfile(null);
     // Email is intentionally captured before social resolution so a valid lead is not lost.
     void fetch("/api/leads/capture", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim().toLowerCase(), platform, service: goal, identifier: identifier.trim() }) });
+    const isCurrentRun = () => polling.current && analysisRunId.current === runId;
     const timers = [
-      window.setTimeout(() => setProgress(28), 350),
-      window.setTimeout(() => setProgress(52), 900),
-      window.setTimeout(() => setProgress(74), 1500),
+      window.setTimeout(() => { if (isCurrentRun()) setProgress(28); }, 350),
+      window.setTimeout(() => { if (isCurrentRun()) setProgress(52); }, 900),
+      window.setTimeout(() => { if (isCurrentRun()) setProgress(74); }, 1500),
     ];
+    previewTimers.current = timers;
     try {
       const res = await fetch("/api/search/resolve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: identifier.trim(), selectedPlatform: platform }) });
       const data = await res.json();
-      if (res.ok && data.success && data.data && data.resolvedType === "profile") { finish(data.data); return; }
+      if (res.ok && data.success && data.data && data.resolvedType === "profile") { finish(data.data, runId); return; }
       if (res.ok && data.success && data.status === "pending" && data.requestId) {
         let requestId = data.requestId; const started = Date.now();
         while (polling.current && Date.now() - started < 120000) {
           await new Promise(r => setTimeout(r, 2500));
+          if (!isCurrentRun()) return;
           const statusRes = await fetch(`/api/search/status?requestId=${encodeURIComponent(requestId)}`);
           const status = await statusRes.json().catch(() => null);
           if (!status) continue;
           if (status.status === "pending" && status.requestId) requestId = status.requestId;
-          if (status.status === "complete" && status.data) { finish(status.data); return; }
+          if (status.status === "complete" && status.data) { finish(status.data, runId); return; }
           if (status.status === "failed") throw new Error(status.message || "We couldn't find this profile.");
         }
         throw new Error("The search is taking longer than expected. Please try again.");
       }
       throw new Error(data.message || "We couldn't find this profile. Check the @ or link and try again.");
     } catch (e) {
-      polling.current = false; setStage("idle"); setProgress(0); setError(e instanceof Error ? e.message : "Search failed. Please try again.");
+      if (polling.current) {
+        polling.current = false;
+        setStage("idle"); setProgress(0); setError(e instanceof Error ? e.message : "Search failed. Please try again.");
+      }
     } finally { timers.forEach(clearTimeout); }
   };
 
@@ -363,8 +401,8 @@ export default function GrowthPackageBuilder({
         <div className="cf-premium-builder-controls">
           <div className="cf-pb-step"><div className="cf-pb-label"><i>1</i><div><b>Choose your goal</b><small>What do you want to achieve?</small></div></div><div className="cf-pb-goals">{((PLATFORM_SERVICES[platform] || ["followers", "likes", "views"]) as Goal[]).map(g => <button key={g} className={goal===g?"active":""} onClick={()=>chooseGoal(g)}><GoalIcon goal={g} premium/><b>{g[0].toUpperCase()+g.slice(1)}</b>{goal===g&&<Check/>}</button>)}</div></div>
           <div className="cf-pb-step"><div className="cf-pb-label"><i>2</i><div><b>Choose the network</b><small>We support all 4 platforms below</small></div></div><div className="cf-pb-platforms">{(Object.entries(META) as [PlatformId, typeof META[PlatformId]][]).map(([id,item]) => <button key={id} className={platform===id?"active":""} style={{"--pb-accent":item.accent} as React.CSSProperties} onClick={()=>choosePlatform(id)}><PlatformIcon src={item.icon}/><b>{item.label}</b>{platform===id&&<Check/>}</button>)}</div>
-            <label className="cf-pb-field-label">{getInputLabel()}</label><div className="cf-pb-input"><ScanSearch/><input value={identifier} onChange={e=>setIdentifier(e.target.value)} placeholder={getInputPlaceholder()}/></div>
-            <label className="cf-pb-field-label">Email <strong>(required)</strong></label><div className="cf-pb-input"><Mail/><input type="email" value={email} onChange={e=>setEmail(e.target.value)} placeholder="Enter your email address"/></div><p className="cf-pb-privacy"><ShieldCheck className="cf-pb-privacy-shield"/><span className="cf-pb-privacy-text-desktop">We use this email to save your search, orders and updates.</span><span className="cf-pb-privacy-text-mobile">We’ll use this email to save your search, orders and updates.</span></p>
+            <label className="cf-pb-field-label">{getInputLabel()}</label><div className="cf-pb-input"><ScanSearch/><input value={identifier} onChange={e=>{setIdentifier(e.target.value);setDraftIdentifier(e.target.value);}} placeholder={getInputPlaceholder()}/></div>
+            <label className="cf-pb-field-label">Email <strong>(required)</strong></label><div className="cf-pb-input"><Mail/><input type="email" value={email} onChange={e=>{setEmail(e.target.value);setStoreEmail(e.target.value);}} placeholder="Enter your email address"/></div><p className="cf-pb-privacy"><ShieldCheck className="cf-pb-privacy-shield"/><span className="cf-pb-privacy-text-desktop">We use this email to save your search, orders and updates.</span><span className="cf-pb-privacy-text-mobile">We’ll use this email to save your search, orders and updates.</span></p>
           </div>
           <div className="cf-pb-step cf-pb-analyze"><div className="cf-pb-label"><i>3</i><div><b>Analyze profile</b><small>We'll fetch public data and confirm your profile.</small></div></div>{error&&<div className="cf-pb-error">{error}</div>}<button className="cf-pb-analyze-btn" disabled={stage==="analyzing"} onClick={analyze}>{stage==="analyzing"?<Loader2 className="spin"/>:<ScanSearch/>}{stage==="analyzing"?"Analyzing...":"Analyze Profile"}</button></div>
         </div>

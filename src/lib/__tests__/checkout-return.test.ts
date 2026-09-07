@@ -18,9 +18,21 @@ describe("checkout return protection", () => {
     expect(store.getItem(CHECKOUT_RETURN_FLAG)).toBeNull();
   });
 
-  it("does not reset without a flag or persisted pageshow", () => {
+  it("does not reset without a checkout flag, including an unrelated BFCache return", () => {
     const reset = vi.fn();
     expect(processCheckoutReturn({ storage: storage(), resetFunnel: reset, replaceHome: vi.fn() })).toBe(false);
     expect(reset).not.toHaveBeenCalled();
+  });
+
+  it("consumes the flag so a later popstate/pageshow cannot reset again", () => {
+    const store = storage();
+    markCheckoutReturn(store);
+    const reset = vi.fn();
+    const replaceHome = vi.fn();
+
+    expect(processCheckoutReturn({ storage: store, resetFunnel: reset, replaceHome })).toBe(true);
+    expect(processCheckoutReturn({ storage: store, resetFunnel: reset, replaceHome })).toBe(false);
+    expect(reset).toHaveBeenCalledOnce();
+    expect(replaceHome).toHaveBeenCalledOnce();
   });
 });

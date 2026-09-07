@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Loader2 } from "lucide-react";
@@ -39,6 +39,19 @@ export default function HomePage({
   const [offers, setOffers] = useState<PublicOfferItem[]>([]);
   const [loadingOffers, setLoadingOffers] = useState(true);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [analysisResetToken, setAnalysisResetToken] = useState(0);
+  const offersRequestId = useRef(0);
+
+  const resetAfterCheckout = useCallback(() => {
+    useFunnelStore.getState().resetAnalysis();
+    offersRequestId.current += 1;
+    setPlatformState(initialPlatform);
+    setSelectedService(initialService);
+    setOffers([]);
+    setLoadingOffers(false);
+    setCheckoutError(null);
+    setAnalysisResetToken((token) => token + 1);
+  }, [initialPlatform, initialService]);
 
   useEffect(() => {
     const state = useFunnelStore.getState();
@@ -47,38 +60,50 @@ export default function HomePage({
   }, [initialPlatform, initialService]);
 
   useEffect(() => {
-    const handlePageShow = (event: PageTransitionEvent) => {
+    const handleReturn = () => {
       processCheckoutReturn({
-        persisted: event.persisted,
-        resetFunnel: () => useFunnelStore.getState().reset(),
+        resetFunnel: resetAfterCheckout,
         replaceHome: () => window.history.replaceState(null, "", "/"),
       });
     };
-    window.addEventListener("pageshow", handlePageShow);
-    handlePageShow({ persisted: false } as PageTransitionEvent);
-    return () => window.removeEventListener("pageshow", handlePageShow);
-  }, []);
+    window.addEventListener("pageshow", handleReturn);
+    window.addEventListener("popstate", handleReturn);
+    handleReturn();
+    return () => {
+      window.removeEventListener("pageshow", handleReturn);
+      window.removeEventListener("popstate", handleReturn);
+    };
+  }, [resetAfterCheckout]);
 
   const fetchOffers = useCallback(async () => {
+    const requestId = ++offersRequestId.current;
     try {
       setLoadingOffers(true);
       const res = await fetch(`/api/offers?platform=${encodeURIComponent(platform)}&service=${encodeURIComponent(service)}`);
       const json = await res.json();
-      setOffers(res.ok && json.success && Array.isArray(json.data?.items) ? json.data.items : []);
+      if (requestId === offersRequestId.current) {
+        setOffers(res.ok && json.success && Array.isArray(json.data?.items) ? json.data.items : []);
+      }
     } catch {
-      setOffers([]);
+      if (requestId === offersRequestId.current) setOffers([]);
     } finally {
-      setLoadingOffers(false);
+      if (requestId === offersRequestId.current) setLoadingOffers(false);
     }
   }, [platform, service]);
-
-  useEffect(() => {
-    fetchOffers();
-  }, [fetchOffers]);
 
   const funnelReadiness = useMemo(() => {
     return useFunnelStore.getState().getReadiness();
   }, [platform, service, targetType, targetValue, targetUrl, socialUsername, profileUrl, email, verificationStatus, verifiedTargetData]);
+
+  useEffect(() => {
+    if (!funnelReadiness.canShowPlans) {
+      offersRequestId.current += 1;
+      setOffers([]);
+      setLoadingOffers(false);
+      return;
+    }
+    void fetchOffers();
+  }, [fetchOffers, funnelReadiness.canShowPlans]);
 
   const isFollowers = service === "followers";
   const username = (socialUsername || targetValue || "your profile").replace(/^@+/, "");
@@ -191,6 +216,7 @@ export default function HomePage({
         <GrowthPackageBuilder
           initialPlatform={platform}
           initialGoal={service === "followers" || service === "likes" || service === "views" ? service : "followers"}
+          resetToken={analysisResetToken}
           onPlatformChange={changePlatform}
           onGoalChange={(goal) => changeProduct(goal)}
           onContinue={() => {

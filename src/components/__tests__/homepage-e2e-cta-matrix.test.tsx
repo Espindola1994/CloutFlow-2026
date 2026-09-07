@@ -5,6 +5,7 @@ import HomePage from '@/app/page';
 import { useFunnelStore } from '@/stores/funnel.store';
 import { OFFICIAL_PERFECTPAY_66_DATASET } from '@/config/official-perfectpay-dataset';
 import { resolveCommercialCardsForService } from '@/services/commercial-offer.resolver';
+import { markCheckoutReturn } from '@/lib/checkout-return';
 
 vi.mock('next/image', () => ({
   default: (props: any) => <img {...props} />,
@@ -13,6 +14,7 @@ vi.mock('next/image', () => ({
 describe('HomePage E2E DOM Interaction & Checkout Flow for TikTok, Twitter, YouTube and Instagram', () => {
   beforeEach(() => {
     useFunnelStore.getState().reset();
+    window.sessionStorage.clear();
   });
 
   afterEach(() => {
@@ -223,4 +225,78 @@ describe('HomePage E2E DOM Interaction & Checkout Flow for TikTok, Twitter, YouT
       expect(fetchCalls.length).toBe(0);
     });
   }
+
+  it('clears the analyzed profile on checkout pageshow while preserving typed inputs', async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/api/search/resolve')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            success: true,
+            resolvedType: 'profile',
+            data: {
+              platform: 'instagram',
+              username: 'creator',
+              full_name: 'Creator',
+              followers_count: 1234,
+              avatar_url: 'avatar.jpg',
+            },
+          }),
+        });
+      }
+      if (url.includes('/api/offers')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            success: true,
+            data: {
+              items: Array.from({ length: 6 }, (_, index) => ({
+                id: `plan-${index}`,
+                name: ['Starter', 'Boost', 'Growth', 'Pro', 'Elite', 'Max'][index],
+                quantity: (index + 1) * 1000,
+                priceCents: (index + 1) * 100,
+                oldPriceCents: (index + 1) * 150,
+              })),
+            },
+          }),
+        });
+      }
+      if (url.includes('/api/leads/capture')) {
+        return Promise.resolve({ ok: true, json: async () => ({ success: true }) });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
+    }) as any;
+
+    useFunnelStore.getState().setPlatform('instagram');
+    useFunnelStore.getState().setService('followers');
+    useFunnelStore.getState().setEmail('creator@example.com');
+    useFunnelStore.getState().setDraftIdentifier('@creator');
+
+    const { container } = render(<HomePage initialPlatform="instagram" initialService="followers" />);
+    fireEvent.click(screen.getByRole('button', { name: 'Analyze Profile' }));
+    await screen.findByRole('button', { name: /Yes, this is my profile/i });
+    fireEvent.click(screen.getByRole('button', { name: /Yes, this is my profile/i }));
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.cf-o10-package-ref-card').length).toBe(6);
+    });
+
+    markCheckoutReturn();
+    window.dispatchEvent(new Event('pageshow'));
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.cf-o10-package-ref-card').length).toBe(0);
+      expect(screen.queryByRole('button', { name: /Yes, this is my profile/i })).toBeNull();
+    });
+
+    const reset = useFunnelStore.getState();
+    expect(reset.email).toBe('creator@example.com');
+    expect(reset.draftIdentifier).toBe('@creator');
+    expect(reset.profileData).toBeNull();
+    expect(reset.verifiedTargetData).toBeNull();
+    expect(reset.planId).toBeNull();
+    expect(screen.getByRole('button', { name: 'Analyze Profile' })).toBeEnabled();
+  });
 });

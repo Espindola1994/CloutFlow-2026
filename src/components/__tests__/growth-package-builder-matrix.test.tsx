@@ -191,4 +191,77 @@ describe('GrowthPackageBuilder - YouTube Matrix & Normalization', () => {
     expect(state.profileUrl).not.toContain('linktr.ee');
     expect(state.targetUrl).not.toContain('linktr.ee');
   });
+
+  it('6. Checkout return resets the result view and preserves the typed email and target input', async () => {
+    const { useFunnelStore } = await import('@/stores/funnel.store');
+    useFunnelStore.getState().reset();
+
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/api/leads/capture')) {
+        return Promise.resolve({ ok: true, json: async () => ({ success: true }) });
+      }
+      if (url.includes('/api/search/resolve')) {
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          json: async () => ({
+            success: true,
+            resolvedType: 'profile',
+            data: {
+              platform: 'instagram',
+              username: 'creator',
+              full_name: 'Creator',
+              followers_count: 1234,
+              avatar_url: 'avatar.jpg',
+            },
+          }),
+        });
+      }
+      return Promise.resolve({ ok: true, json: async () => ({}) });
+    });
+
+    const { container, rerender } = render(
+      <GrowthPackageBuilder
+        initialPlatform="instagram"
+        initialGoal="followers"
+        resetToken={0}
+        onPlatformChange={vi.fn()}
+        onGoalChange={vi.fn()}
+        onContinue={vi.fn()}
+      />
+    );
+
+    const inputs = container.querySelectorAll('.cf-pb-input input');
+    const usernameInput = inputs[0] as HTMLInputElement;
+    const emailInput = inputs[1] as HTMLInputElement;
+    fireEvent.change(usernameInput, { target: { value: '@creator' } });
+    fireEvent.change(emailInput, { target: { value: 'creator@example.com' } });
+    fireEvent.click(container.querySelector('.cf-pb-analyze-btn')!);
+    await screen.findByText(/Yes, this is my profile/i);
+
+    const beforeReset = useFunnelStore.getState();
+    beforeReset.setPlan('plan_starter');
+    beforeReset.resetAnalysis();
+
+    rerender(
+      <GrowthPackageBuilder
+        initialPlatform="instagram"
+        initialGoal="followers"
+        resetToken={1}
+        onPlatformChange={vi.fn()}
+        onGoalChange={vi.fn()}
+        onContinue={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByText(/Yes, this is my profile/i)).toBeNull();
+    expect(container.querySelector('.cf-pb-result-idle')).not.toBeNull();
+    expect(usernameInput.value).toBe('@creator');
+    expect(emailInput.value).toBe('creator@example.com');
+    expect(useFunnelStore.getState().email).toBe('creator@example.com');
+    expect(useFunnelStore.getState().draftIdentifier).toBe('@creator');
+    expect(useFunnelStore.getState().profileData).toBeNull();
+    expect(useFunnelStore.getState().verifiedTargetData).toBeNull();
+    expect(useFunnelStore.getState().planId).toBeNull();
+  });
 });
