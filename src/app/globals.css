@@ -33603,5 +33603,36 @@ html body .cf-offer-page
     }
 }
 
+/* Review verified badge spacing: moderate separation between reviewer name and blue check badge */
+html body .cf-plans-review-head {
+    grid-template-columns: 48px max-content max-content !important;
+    justify-content: start !important;
+    column-gap: 0 !important;
+    align-items: center !important;
+}
+
+html body .cf-plans-review-head > div {
+    margin-left: 9px !important;
+}
+
+html body .cf-plans-review-head > svg {
+    margin: 0 !important;
+    margin-left: 10px !important;
+    align-self: center !important;
+}
+
+@media (max-width: 900px) {
+    html body .cf-plans-review-head {
+        grid-template-columns: 40px max-content max-content !important;
+        justify-content: start !important;
+        column-gap: 0 !important;
+        align-items: center !important;
+    }
+
+    html body .cf-plans-review-head > div {
+        margin-left: 8px !important;
+    }
+}
+
 
 
