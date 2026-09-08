@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="x-apple-disable-message-reformatting">
+<title>CloutFlow — Abandoned Cart Step 1</title>
+<style>
+body,table,td,a,p,div,span{font-family:Aptos,"Segoe UI","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+html,body{margin:0;padding:0;background:#F5F7FB}
+table{border-collapse:collapse;border-spacing:0}
+img{border:0;outline:none;text-decoration:none;display:block}
+a{text-decoration:none}
+.hero-mobile{display:none!important;max-height:0!important;overflow:hidden!important;mso-hide:all!important}
+
+</style>
+
+
+<style>
+@media only screen and (max-width:620px){
+
+  html,body{
+    margin:0!important;
+    padding:0!important;
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:hidden!important;
+    background:#F5F7FB!important;
+  }
+
+  .outer{padding:6px!important}
+
+  .email{
+    width:100%!important;
+    max-width:375px!important;
+    margin:0 auto!important;
+    table-layout:fixed!important;
+  }
+
+  .hero-desktop{
+    display:none!important;
+    max-height:0!important;
+    overflow:hidden!important;
+  }
+
+  .hero-mobile{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+
+  .hero-mobile img{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    height:auto!important;
+    margin:0!important;
+  }
+
+  /* TOP STRIP */
+  .feature-cell{
+    width:33.333%!important;
+    padding:6px 2px!important;
+    box-sizing:border-box!important;
+    vertical-align:middle!important;
+  }
+
+  .feature-cell > table{
+    width:100%!important;
+    table-layout:fixed!important;
+  }
+
+  .feature-cell > table td:first-child{
+    width:15px!important;
+    min-width:15px!important;
+    max-width:15px!important;
+    padding:0 3px 0 0!important;
+    vertical-align:middle!important;
+  }
+
+  .feature-cell > table td:last-child{
+    width:auto!important;
+    padding:0!important;
+    vertical-align:middle!important;
+    text-align:left!important;
+    overflow:hidden!important;
+  }
+
+  .feature-icon{
+    display:block!important;
+    width:14px!important;
+    height:14px!important;
+    margin:0 auto!important;
+  }
+
+  .feature-title{
+    display:block!important;
+    font-size:9.5px!important;
+    line-height:10.5px!important;
+    font-weight:800!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+
+  .feature-subtitle{
+    display:block!important;
+    font-size:8.7px!important;
+    line-height:10px!important;
+    white-space:normal!important;
+    overflow:hidden!important;
+    max-height:20px!important;
+  }
+
+  /* MAIN BODY — USE THE WIDTH, KEEP EVEN SIDE GUTTERS */
+  .main{
+    padding:12px 8px 14px!important;
+    box-sizing:border-box!important;
+  }
+
+  .main-layout{
+    width:100%!important;
+    table-layout:fixed!important;
+  }
+
+  .main-layout > tbody > tr{
+    display:block!important;
+    width:100%!important;
+  }
+
+  .left,.right{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+    padding:0!important;
+    margin:0 auto!important;
+  }
+
+  .headline{
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    font-size:22px!important;
+    line-height:26px!important;
+    letter-spacing:-.3px!important;
+    white-space:normal!important;
+    overflow-wrap:break-word!important;
+    text-align:left!important;
+  }
+
+  .copy{
+    width:100%!important;
+    margin:8px 0 0!important;
+    font-size:13.5px!important;
+    line-height:19px!important;
+    text-align:left!important;
+  }
+
+  .left > table[style*="margin-top:17px"]{
+    width:100%!important;
+    margin:14px auto 0!important;
+    table-layout:fixed!important;
+  }
+
+  .left > table[style*="margin-top:17px"] td:first-child{
+    width:42px!important;
+    min-width:42px!important;
+    max-width:42px!important;
+    padding:5px 6px 5px 0!important;
+    text-align:center!important;
+    vertical-align:middle!important;
+  }
+
+  .left > table[style*="margin-top:17px"] td:first-child svg{
+    display:block!important;
+    width:35px!important;
+    height:35px!important;
+    margin:0 auto!important;
+  }
+
+  .left > table[style*="margin-top:17px"] td:last-child{
+    width:auto!important;
+    padding:5px 0!important;
+    text-align:left!important;
+    vertical-align:middle!important;
+  }
+
+  .left > table[style*="margin-top:17px"] td:last-child div:first-child{
+    font-size:13.5px!important;
+    line-height:17px!important;
+    font-weight:800!important;
+  }
+
+  .left > table[style*="margin-top:17px"] td:last-child div:last-child{
+    font-size:12.5px!important;
+    line-height:16px!important;
+  }
+
+  .callout{
+    display:none!important;
+    height:0!important;
+    max-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+  }
+
+  .right{
+    padding-top:5px!important;
+    text-align:center!important;
+  }
+
+  .clockwrap{
+    width:185px!important;
+    max-width:56%!important;
+    margin:0 auto!important;
+  }
+
+  .clockwrap svg{
+    display:block!important;
+    width:100%!important;
+    height:auto!important;
+    margin:0 auto!important;
+  }
+
+  /* CTA — ITS OWN FULL-WIDTH ROW */
+  .cta-final{
+    display:block!important;
+    width:238px!important;
+    max-width:72%!important;
+    margin:10px auto 0!important;
+    box-sizing:border-box!important;
+    border-radius:13px!important;
+  }
+
+  .cta-final > table{
+    width:100%!important;
+    table-layout:fixed!important;
+  }
+
+  .cta-final > table > tbody > tr > td:first-child{
+    width:auto!important;
+    padding:8px 4px 8px 13px!important;
+    text-align:left!important;
+    vertical-align:middle!important;
+  }
+
+  .cta-final > table > tbody > tr > td:last-child{
+    width:44px!important;
+    min-width:44px!important;
+    max-width:44px!important;
+    padding:4px 6px 4px 0!important;
+    text-align:center!important;
+    vertical-align:middle!important;
+    box-sizing:border-box!important;
+  }
+
+  .cta-final > table > tbody > tr > td:last-child span{
+    display:block!important;
+    width:34px!important;
+    height:34px!important;
+    line-height:32px!important;
+    margin:0 auto!important;
+    box-sizing:border-box!important;
+    font-size:22px!important;
+  }
+
+  .cta-final div[style*="font-size:15.5px"]{
+    font-size:14px!important;
+    line-height:16px!important;
+    white-space:nowrap!important;
+  }
+
+  .cta-final div[style*="font-size:10px"]{
+    font-size:11.5px!important;
+    line-height:11px!important;
+    white-space:nowrap!important;
+  }
+
+  /* FOOTER */
+  .footer-left,.footer-right{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+    text-align:center!important;
+  }
+
+  .footer-left{
+    padding:0 0 12px!important;
+    border-right:0!important;
+    border-bottom:1px solid #DDE4EF!important;
+  }
+
+  .footer-right{padding:12px 0 0!important}
+
+  .footer-logo{
+    width:135px!important;
+    height:auto!important;
+    margin:0 auto!important;
+  }
+
+  .footer-right > table{
+    width:100%!important;
+    table-layout:fixed!important;
+  }
+
+  .footer-right > table td{
+    width:25%!important;
+    padding:0 2px!important;
+    text-align:center!important;
+  }
+
+  .footer-right img{
+    width:28px!important;
+    height:28px!important;
+    margin:0 auto!important;
+  }
+
+  .social-label{
+    font-size:10px!important;
+    line-height:12px!important;
+    white-space:nowrap!important;
+  }
+}
+</style>
+
+<style>
+@media only screen and (max-width:620px){
+  .mobile-hide-benefits{
+    display:none!important;
+    max-height:0!important;
+    height:0!important;
+    overflow:hidden!important;
+    mso-hide:all!important;
+  }
+}
+</style>
+
+
+<style>
+@media only screen and (max-width:620px){
+  .cta-final{
+    margin-top:12px!important;
+    margin-bottom:17px!important;
+  }
+}
+</style>
+
+
+<style>
+@media only screen and (min-width:621px){
+  .email{width:600px!important;max-width:600px!important}
+  .hero-desktop{
+    display:block!important;
+    width:600px!important;
+    max-width:600px!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+  }
+  .hero-desktop img{
+    display:block!important;
+    width:600px!important;
+    max-width:600px!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+  }
+}
+</style>
+
+
+<style>
+@media only screen and (min-width:621px){
+  .email{
+    width:600px!important;
+    max-width:600px!important;
+    min-width:600px!important;
+    table-layout:fixed!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+  }
+
+  .desktop-hero-cell{
+    width:600px!important;
+    max-width:600px!important;
+    min-width:600px!important;
+    padding:0!important;
+    margin:0!important;
+    line-height:0!important;
+    overflow:hidden!important;
+  }
+
+  .hero-desktop{
+    display:block!important;
+    width:600px!important;
+    max-width:600px!important;
+    min-width:600px!important;
+    padding:0!important;
+    margin:0!important;
+    line-height:0!important;
+    overflow:hidden!important;
+  }
+
+  .hero-desktop img{
+    display:block!important;
+    width:600px!important;
+    max-width:600px!important;
+    min-width:600px!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    border:0!important;
+  }
+
+  .desktop-benefits-table{
+    width:600px!important;
+    max-width:600px!important;
+    table-layout:fixed!important;
+  }
+
+  .desktop-benefits-table > tbody > tr > .feature-cell{
+    width:200px!important;
+    max-width:200px!important;
+    box-sizing:border-box!important;
+  }
+}
+</style>
+
+
+<style>
+@media only screen and (min-width:621px){
+  .desktop-benefits-table{
+    width:600px!important;
+    max-width:600px!important;
+    table-layout:fixed!important;
+  }
+
+  .desktop-benefits-table > tbody > tr > .feature-cell{
+    width:200px!important;
+    max-width:200px!important;
+    padding:8px 7px!important;
+    box-sizing:border-box!important;
+    vertical-align:middle!important;
+    overflow:hidden!important;
+  }
+
+  .desktop-benefits-table > tbody > tr > .feature-cell > table{
+    width:100%!important;
+    table-layout:fixed!important;
+  }
+
+  .desktop-benefits-table > tbody > tr > .feature-cell > table td:first-child{
+    width:38px!important;
+    min-width:38px!important;
+    max-width:38px!important;
+    padding:0!important;
+    vertical-align:middle!important;
+  }
+
+  .desktop-benefits-table > tbody > tr > .feature-cell > table td:last-child{
+    width:auto!important;
+    padding-left:6px!important;
+    overflow:hidden!important;
+    vertical-align:middle!important;
+  }
+
+  .desktop-benefits-table .feature-title{
+    font-size:13.5px!important;
+    line-height:15px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+  }
+
+  .desktop-benefits-table .feature-subtitle{
+    font-size:12.5px!important;
+    line-height:14px!important;
+    white-space:normal!important;
+    overflow:hidden!important;
+    max-height:28px!important;
+  }
+}
+</style>
+
+</head>
+<body>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F5F7FB">
+<tr><td align="center" class="outer" style="padding:12px 0 20px">
+<table role="presentation" width="600" cellpadding="0" cellspacing="0" class="email" style="width:600px;max-width:600px;margin:0 auto;background:#FFF">
+
+<tr>
+<td class="desktop-hero-cell" style="padding:0;line-height:0;border-radius:18px 18px 0 0;overflow:hidden;background:#FFF">
+<div class="hero-desktop" style="display:block;width:100%;max-width:600px;margin:0;padding:0;line-height:0;font-size:0;overflow:hidden"><img src="https://cloutflow.co/email/cloutflow-payment-hero-desktop.png" width="600" alt="CloutFlow" style="display:block;width:100%;max-width:600px;height:auto;margin:0;padding:0;border:0;line-height:0"></div>
+<div class="hero-mobile"><img src="https://cloutflow.co/email/cloutflow-payment-hero-mobile.png" width="620" alt="CloutFlow"></div>
+</td>
+</tr>
+
+<tr>
+<td class="mobile-hide-benefits" style="background:#F8F6FF;border-left:1px solid #E1E6F2;border-right:1px solid #E1E6F2">
+<table role="presentation" width="100%" class="desktop-benefits-table">
+<tr>
+<td class="feature-cell" style="width:33.33%;padding:9px 10px;border-right:1px solid #E1E3F1"><table role="presentation"><tr><td style="width:38px"><img src="https://cloutflow.co/email/email-icon-fast.png" width="35" height="35" class="feature-icon" alt=""></td><td style="padding-left:7px"><div class="feature-title" style="font-size:14.5px;line-height:15px;color:#111A3A;font-weight:800;white-space:nowrap">More Reach</div><div class="feature-subtitle" style="font-size:13.5px;line-height:14px;color:#66738F;white-space:nowrap">Expand Your Audience</div></td></tr></table></td>
+<td class="feature-cell" style="width:33.33%;padding:9px 10px;border-right:1px solid #E1E3F1"><table role="presentation"><tr><td style="width:38px"><img src="https://cloutflow.co/email/email-icon-quantity.png" width="35" height="35" class="feature-icon" alt=""></td><td style="padding-left:7px"><div class="feature-title" style="font-size:14.5px;line-height:15px;color:#111A3A;font-weight:800;white-space:nowrap">More Engagement</div><div class="feature-subtitle" style="font-size:13.5px;line-height:14px;color:#66738F;white-space:nowrap">Build Real Connections</div></td></tr></table></td>
+<td class="feature-cell" style="width:33.33%;padding:9px 10px"><table role="presentation"><tr><td style="width:38px"><img src="https://cloutflow.co/email/email-icon-people.png" width="35" height="35" class="feature-icon" alt=""></td><td style="padding-left:7px"><div class="feature-title" style="font-size:14.5px;line-height:15px;color:#111A3A;font-weight:800;white-space:nowrap">More Opportunities</div><div class="feature-subtitle" style="font-size:13.5px;line-height:14px;color:#66738F;white-space:nowrap">Turn Growth Into Results</div></td></tr></table></td>
+</tr>
+</table>
+</td>
+</tr>
+
+<tr>
+<td class="main" style="padding:14px 24px 18px;background:#FFF;border-left:1px solid #E1E6F2;border-right:1px solid #E1E6F2">
+<table role="presentation" width="100%" class="main-layout">
+<tr>
+<td class="left" valign="top" style="width:54%;padding-right:12px">
+
+<div class="headline" style="padding-top:0;font-size:25px;line-height:30px;letter-spacing:-.45px;color:#111A3A;font-weight:900">You left something <span style="color:#E725A7">behind</span></div>
+
+<p class="copy" style="margin:10px 0 0;color:#617291;font-size:15px;line-height:20px">You started checking out, but your order wasn’t completed. Your CloutFlow checkout is still saved and ready when you are.</p>
+
+<table role="presentation" width="100%" style="margin-top:17px">
+<tr><td style="width:35px;padding:5px 10px 5px 0;vertical-align:middle">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="35" height="35" style="display:block;width:35px;height:35px">
+  <rect x=".5" y=".5" width="35" height="35" rx="11" fill="#FBF8FF" stroke="#E8E2F5"/>
+  <path d="M13 18v-3.1C13 10.7 15.8 8 20 8s7 2.7 7 6.9V18" fill="none" stroke="#7540F2" stroke-width="3" stroke-linecap="round"/>
+  <rect x="11" y="17" width="18" height="15" rx="4.5" fill="#7540F2"/>
+  <circle cx="20" cy="24.5" r="2" fill="#FFF"/>
+</svg></td><td style="padding:5px 0"><div style="font-size:13.5px;line-height:17px;color:#111A3A;font-weight:800">Secure checkout</div><div style="font-size:13.5px;line-height:17px;color:#6B7B98">Your information is always protected</div></td></tr>
+<tr><td style="width:35px;padding:5px 10px 5px 0;vertical-align:middle">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="35" height="35" style="display:block;width:35px;height:35px">
+  <rect x=".5" y=".5" width="35" height="35" rx="11" fill="#F5F9FF" stroke="#E3ECF7"/>
+  <path d="M22.5 6 11.5 22.5H19L17.5 34 28.7 18.5H21L22.5 6Z" fill="#168BFF"/>
+</svg></td><td style="padding:5px 0"><div style="font-size:13.5px;line-height:17px;color:#111A3A;font-weight:800">Takes only a moment</div><div style="font-size:13.5px;line-height:17px;color:#6B7B98">Complete your order in seconds</div></td></tr>
+<tr><td style="width:35px;padding:5px 10px 5px 0;vertical-align:middle">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" width="35" height="35" style="display:block;width:35px;height:35px">
+  <rect x=".5" y=".5" width="35" height="35" rx="11" fill="#FBF8FF" stroke="#E8E2F5"/>
+  <path d="M29 13v8h-8" fill="none" stroke="#7540F2" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M28 20a10 10 0 1 0 1.2 8.6" fill="none" stroke="#7540F2" stroke-width="3" stroke-linecap="round"/>
+</svg></td><td style="padding:5px 0"><div style="font-size:13.5px;line-height:17px;color:#111A3A;font-weight:800">Continue where you left off</div><div style="font-size:13.5px;line-height:17px;color:#6B7B98">Your items are saved and waiting</div></td></tr>
+</table>
+
+</td>
+
+<td class="right" valign="middle" align="center" style="width:46%">
+<div class="callout" style="font-size:16px;line-height:19px;color:#20318B;font-weight:900;font-style:italic;padding-bottom:0">Just a moment<br>and you're back!</div>
+<div class="clockwrap" style="width:248px;max-width:100%;margin:0 auto">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 320" width="100%" height="auto" aria-label="Stopwatch">
+  <defs>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#19A9FF"/>
+      <stop offset=".48" stop-color="#5C43FF"/>
+      <stop offset="1" stop-color="#F22ACF"/>
+    </linearGradient>
+    <linearGradient id="hand" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2C8CFF"/>
+      <stop offset="1" stop-color="#F229C8"/>
+    </linearGradient>
+    <radialGradient id="halo" cx=".55" cy=".55" r=".55">
+      <stop offset="0" stop-color="#E6E0FF" stop-opacity=".72"/>
+      <stop offset=".56" stop-color="#F7E9FD" stop-opacity=".26"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="drop" x="-25%" y="-25%" width="150%" height="170%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#5C38D6" flood-opacity=".22"/>
+    </filter>
+  </defs>
+
+  <!-- soft blending halo, no rectangular image edge -->
+  <ellipse cx="225" cy="195" rx="125" ry="105" fill="url(#halo)"/>
+
+  <!-- speed streaks -->
+  <g opacity=".62">
+    <rect x="3" y="144" width="135" height="8" rx="4" fill="#75C7FF"/>
+    <rect x="0" y="166" width="155" height="8" rx="4" fill="#B878FF"/>
+    <rect x="7" y="188" width="148" height="8" rx="4" fill="#F36FD9"/>
+    <rect x="18" y="210" width="132" height="8" rx="4" fill="#7AB9FF"/>
+    <rect x="28" y="232" width="118" height="8" rx="4" fill="#AF70FF"/>
+  </g>
+
+  <!-- crown -->
+  <g transform="translate(208 31) rotate(7)">
+    <rect width="74" height="29" rx="11" fill="url(#rim)"/>
+    <rect x="10" y="7" width="54" height="6" rx="3" fill="#FFF" opacity=".36"/>
+  </g>
+
+  <!-- body -->
+  <g filter="url(#drop)">
+    <circle cx="220" cy="188" r="106" fill="url(#rim)"/>
+    <circle cx="220" cy="188" r="90" fill="#FAF9FF" stroke="#D7D1FF" stroke-width="4"/>
+    <circle cx="220" cy="188" r="78" fill="#FFFFFF"/>
+  </g>
+
+  <!-- ticks -->
+  <g stroke="#C1BBEF" stroke-width="5" stroke-linecap="round">
+    <line x1="220" y1="121" x2="220" y2="131"/>
+    <line x1="254" y1="130" x2="248" y2="139"/>
+    <line x1="278" y1="154" x2="269" y2="159"/>
+    <line x1="287" y1="188" x2="277" y2="188"/>
+    <line x1="278" y1="222" x2="269" y2="217"/>
+    <line x1="254" y1="246" x2="248" y2="237"/>
+    <line x1="220" y1="255" x2="220" y2="245"/>
+    <line x1="186" y1="246" x2="192" y2="237"/>
+    <line x1="162" y1="222" x2="171" y2="217"/>
+    <line x1="153" y1="188" x2="163" y2="188"/>
+    <line x1="162" y1="154" x2="171" y2="159"/>
+    <line x1="186" y1="130" x2="192" y2="139"/>
+  </g>
+
+  <!-- hands -->
+  <line x1="220" y1="188" x2="185" y2="160" stroke="#2D89FF" stroke-width="10" stroke-linecap="round"/>
+  <line x1="220" y1="188" x2="263" y2="153" stroke="url(#hand)" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="220" cy="188" r="12" fill="url(#rim)" stroke="#5034DF" stroke-width="2"/>
+
+  <!-- accents -->
+  <g stroke="#7B38F6" stroke-width="6" stroke-linecap="round">
+    <line x1="112" y1="85" x2="102" y2="69"/>
+    <line x1="131" y1="79" x2="128" y2="58"/>
+    <line x1="317" y1="249" x2="338" y2="258"/>
+    <line x1="311" y1="270" x2="327" y2="286"/>
+  </g>
+</svg>
+</div>
+</td>
+</tr>
+</table>
+
+<!-- CTA — final compact version, no outer wrapper -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td align="center" style="padding-top:35px;padding-bottom:17px">
+  <a href="#" class="cta-final" style="display:inline-block;width:248px;max-width:52%;background:#6737F2;border:1px solid #5B30DB;border-radius:14px;box-shadow:0 5px 10px rgba(71,38,178,.22),inset 0 1px 0 rgba(255,255,255,.18);text-decoration:none">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td valign="middle" style="padding:9px 8px 8px 16px;text-align:left">
+          <div style="font-size:15.5px;line-height:17px;color:#FFFFFF;font-weight:900;white-space:nowrap">Return to Checkout</div>
+          <div style="padding-top:2px;font-size:12px;line-height:12px;color:#EEE9FF;font-weight:600;white-space:nowrap">Continue your saved order</div>
+        </td>
+        <td width="50" align="center" valign="middle" style="width:50px;padding:5px 7px 5px 1px">
+          <span style="display:inline-block;width:40px;height:40px;line-height:38px;text-align:center;background:#FFFFFF;border:1px solid #E5DFFC;border-radius:50%;box-shadow:0 3px 5px rgba(42,25,112,.22),inset 0 -1px 0 #E9E4F8;color:#6534F4;font-size:25px;font-weight:900;font-family:Arial,sans-serif">→</span>
+        </td>
+      </tr>
+    </table>
+  </a>
+</td>
+</tr>
+</table>
+
+</td>
+</tr>
+
+<tr>
+<td style="padding:16px 22px 10px;background:#F8FAFD;border-top:1px solid #E5EAF3;border-left:1px solid #E1E6F2;border-right:1px solid #E1E6F2">
+<table role="presentation" width="100%">
+<tr>
+<td class="footer-left" valign="middle" style="width:44%;padding-right:20px;border-right:1px solid #DDE4EF"><img src="https://cloutflow.co/cloutflow-header-logo.png" width="155" alt="CloutFlow" class="footer-logo" style="width:155px;max-width:100%;height:auto"><div style="padding-top:6px;font-size:15px;line-height:20px;color:#60708C">Social Growth, Simplified.</div></td>
+<td class="footer-right" valign="middle" style="width:56%;padding-left:20px"><table role="presentation" width="100%"><tr>
+<td align="center" style="padding:0 7px"><img src="https://cloutflow.co/email/email-network-instagram.png" width="35" height="35" alt="Instagram"><div class="social-label" style="padding-top:5px;font-size:15px;line-height:17px;color:#60708C">Instagram</div></td>
+<td align="center" style="padding:0 7px"><img src="https://cloutflow.co/email/email-network-tiktok.png" width="35" height="35" alt="TikTok"><div class="social-label" style="padding-top:5px;font-size:15px;line-height:17px;color:#60708C">TikTok</div></td>
+<td align="center" style="padding:0 7px"><img src="https://cloutflow.co/email/email-network-x.png" width="35" height="35" alt="X"><div class="social-label" style="padding-top:5px;font-size:15px;line-height:17px;color:#60708C">X</div></td>
+<td align="center" style="padding:0 7px"><img src="https://cloutflow.co/email/email-network-youtube.png" width="35" height="35" alt="YouTube"><div class="social-label" style="padding-top:5px;font-size:15px;line-height:17px;color:#60708C">YouTube</div></td>
+</tr></table></td>
+</tr>
+</table>
+
+<table role="presentation" width="100%" style="margin-top:14px">
+<tr><td align="center" style="font-size:13px;line-height:18px;color:#667690">Grow Your Presence. Unlock New Opportunities.</td></tr>
+<tr><td align="center" style="padding-top:4px;font-size:12px;line-height:17px;color:#7A89A2">© 2026 CloutFlow. All rights reserved.</td></tr>
+<tr><td align="center" style="padding-top:7px;font-size:11px;line-height:16px;color:#8A97AD"><a href="#" style="color:#66738F;text-decoration:underline">Unsubscribe</a> from marketing communication.</td></tr>
+</table>
+</td>
+</tr>
+
+<tr><td style="padding:0;line-height:0;background:#FFF"><img src="https://cloutflow.co/email/cloutflow-email-footer-wave.png" width="600" alt="" style="width:100%;height:auto"></td></tr>
+
+</table>
+</td></tr>
+</table>
+</body>
+</html>

@@ -234,13 +234,22 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    if (snapshotRes.status === "failed") {
-      return NextResponse.json({
-        success: false,
-        status: "failed",
-        code: "PROVIDER_ERROR",
-        message: "Não foi possível concluir a busca neste momento. Tente novamente.",
-      });
+    if (snapshotRes.status === "failed" || snapshotRes.status === "error") {
+      console.error(
+        `[Status API] Snapshot error | Platform: ${job.platform} | ` +
+        `Operation: ${job.operation} | Snapshot: ${job.snapshotId} | ` +
+        `Status: ${snapshotRes.status} | Error: ${snapshotRes.error || "UNKNOWN"}`
+      );
+
+      return NextResponse.json(
+        {
+          success: false,
+          status: "failed",
+          code: "PROVIDER_ERROR",
+          message: "Não foi possível concluir a busca neste momento. Tente novamente.",
+        },
+        { status: 502 }
+      );
     }
 
     return NextResponse.json({

@@ -336,17 +336,46 @@ export default function GrowthPackageBuilder({
       const data = await res.json();
       if (res.ok && data.success && data.data && data.resolvedType === "profile") { finish(data.data, runId); return; }
       if (res.ok && data.success && data.status === "pending" && data.requestId) {
-        let requestId = data.requestId; const started = Date.now();
-        while (polling.current && Date.now() - started < 120000) {
+        let requestId = data.requestId;
+        const started = Date.now();
+        const maxPollingMs = 10 * 60 * 1000; // Supports chained Bright Data content -> profile jobs.
+
+        while (polling.current && Date.now() - started < maxPollingMs) {
           await new Promise(r => setTimeout(r, 2500));
           if (!isCurrentRun()) return;
-          const statusRes = await fetch(`/api/search/status?requestId=${encodeURIComponent(requestId)}`);
+
+          const statusRes = await fetch(
+            `/api/search/status?requestId=${encodeURIComponent(requestId)}`,
+            { cache: "no-store" }
+          );
           const status = await statusRes.json().catch(() => null);
-          if (!status) continue;
-          if (status.status === "pending" && status.requestId) requestId = status.requestId;
-          if (status.status === "complete" && status.data) { finish(status.data, runId); return; }
-          if (status.status === "failed") throw new Error(status.message || "We couldn't find this profile.");
+
+          if (!statusRes.ok) {
+            throw new Error(status?.message || "Search failed. Please try again.");
+          }
+          if (!status) {
+            throw new Error("Invalid search response. Please try again.");
+          }
+
+          if (status.status === "pending") {
+            if (typeof status.requestId === "string" && status.requestId.length > 0) {
+              requestId = status.requestId;
+            }
+            continue;
+          }
+
+          if (status.status === "complete" && status.data) {
+            finish(status.data, runId);
+            return;
+          }
+
+          if (status.status === "failed" || status.success === false) {
+            throw new Error(status.message || "We couldn't find this profile.");
+          }
+
+          throw new Error("Invalid search status. Please try again.");
         }
+
         throw new Error("The search is taking longer than expected. Please try again.");
       }
       throw new Error(data.message || "We couldn't find this profile. Check the @ or link and try again.");
