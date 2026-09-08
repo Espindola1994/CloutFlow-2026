@@ -67,6 +67,7 @@ export async function GET(req: NextRequest) {
         success: true,
         status: "pending",
         platform: job.platform,
+        phase: job.operation === "content" ? "finding_content" : "loading_profile",
       });
     }
 
@@ -107,6 +108,8 @@ export async function GET(req: NextRequest) {
                 success: true,
                 status: "pending",
                 platform: "youtube",
+                phase: "loading_profile",
+                creator: channelTarget,
                 requestId: profileRes.requestId,
               });
             }
@@ -162,6 +165,8 @@ export async function GET(req: NextRequest) {
                 success: true,
                 status: "pending",
                 platform: "tiktok",
+                phase: "loading_profile",
+                creator: authorIdentifier,
                 requestId: profileRes.requestId,
               });
             }
@@ -238,6 +243,8 @@ export async function GET(req: NextRequest) {
                 success: true,
                 status: "pending",
                 platform: "twitter",
+                phase: "loading_profile",
+                creator: authorIdentifier,
                 requestId: profileRes.requestId,
               });
             }
@@ -285,6 +292,7 @@ export async function GET(req: NextRequest) {
       success: true,
       status: "pending",
       platform: job.platform,
+      phase: job.operation === "content" ? "finding_content" : "loading_profile",
     });
   } catch (error: any) {
     console.error("Error in /api/search/status:", error);

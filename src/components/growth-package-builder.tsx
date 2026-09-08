@@ -166,6 +166,8 @@ export default function GrowthPackageBuilder({
   const [email, setEmail] = useState(() => useFunnelStore.getState().email || "");
   const [stage, setStage] = useState<Stage>("idle");
   const [progress, setProgress] = useState(0);
+  const [analysisPhase, setAnalysisPhase] = useState<"starting" | "finding_content" | "loading_profile" | "compiling">("starting");
+  const [creatorLabel, setCreatorLabel] = useState<string | null>(null);
   const [profile, setProfile] = useState<VerifiedSocialProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
   const polling = useRef(false);
@@ -185,6 +187,8 @@ export default function GrowthPackageBuilder({
     const funnel = useFunnelStore.getState();
     setStage("idle");
     setProgress(0);
+    setAnalysisPhase("starting");
+    setCreatorLabel(null);
     setProfile(null);
     setError(null);
     setDevScene(null);
@@ -209,14 +213,31 @@ export default function GrowthPackageBuilder({
       : stage;
   const displayProgress =
     process.env.NODE_ENV === "development" && devScene === 2 ? 68 : progress;
+  const displayAnalysisPhase =
+    process.env.NODE_ENV === "development" && devScene === 2 ? "loading_profile" : analysisPhase;
   const displayProfile =
     process.env.NODE_ENV === "development" && devScene === 3 ? frozenPreviewProfile : profile;
-  const progressRows = useMemo(() => [
-    ["Checking username availability", 18],
-    ["Searching social profiles", 42],
-    ["Verifying profile data", 68],
-    ["Compiling results", 88],
-  ] as const, []);
+  const progressRows = useMemo(() => {
+    if (isContent) {
+      const contentDone = displayAnalysisPhase === "loading_profile" || displayAnalysisPhase === "compiling";
+      const profileDone = displayAnalysisPhase === "compiling";
+      const creator = creatorLabel ? `Identifying @${creatorLabel.replace(/^@+/, "")}` : "Identifying @creator";
+      return [
+        { label: platform === "youtube" || platform === "tiktok" ? "Finding your video" : "Finding your content", state: contentDone ? "done" : "current", status: contentDone ? "Found ✓" : "In progress" },
+        { label: "Content found", state: contentDone ? "done" : "pending", status: contentDone ? "Completed" : "Pending" },
+        { label: creator, state: contentDone ? "done" : "pending", status: contentDone ? "Completed" : "Pending" },
+        { label: "Loading profile", state: profileDone ? "done" : contentDone ? "current" : "pending", status: profileDone ? "Completed" : contentDone ? "In progress" : "Pending" },
+      ] as const;
+    }
+
+    const profileDone = displayAnalysisPhase === "compiling";
+    return [
+      { label: "Checking profile address", state: "done", status: "Completed" },
+      { label: "Searching social profile", state: profileDone ? "done" : "current", status: profileDone ? "Completed" : "In progress" },
+      { label: "Loading public profile data", state: profileDone ? "done" : "pending", status: profileDone ? "Completed" : "Pending" },
+      { label: "Compiling results", state: profileDone ? "current" : "pending", status: profileDone ? "In progress" : "Pending" },
+    ] as const;
+  }, [creatorLabel, displayAnalysisPhase, isContent, platform]);
 
   const choosePlatform = (next: PlatformId) => {
     if (stage === "analyzing") return;
@@ -248,7 +269,7 @@ export default function GrowthPackageBuilder({
     analysisRunId.current += 1;
     previewTimers.current.forEach(window.clearTimeout);
     previewTimers.current = [];
-    setStage("idle"); setProgress(0); setProfile(null); setError(null); setIdentifier(""); setDraftIdentifier("");
+    setStage("idle"); setProgress(0); setAnalysisPhase("starting"); setCreatorLabel(null); setProfile(null); setError(null); setIdentifier(""); setDraftIdentifier("");
     useFunnelStore.getState().resetTarget();
   };
 
@@ -357,20 +378,19 @@ export default function GrowthPackageBuilder({
     const runId = ++analysisRunId.current;
     useFunnelStore.getState().setPlatform(platform);
     useFunnelStore.getState().setService(goal);
-    polling.current = true; setStage("analyzing"); setProgress(8); setProfile(null);
+    polling.current = true; setStage("analyzing"); setProgress(isContent ? 12 : 18); setAnalysisPhase(isContent ? "finding_content" : "loading_profile"); setCreatorLabel(null); setProfile(null);
     // Email is intentionally captured before social resolution so a valid lead is not lost.
     void fetch("/api/leads/capture", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim().toLowerCase(), platform, service: goal, identifier: identifier.trim() }) });
     const isCurrentRun = () => polling.current && analysisRunId.current === runId;
-    const timers = [
-      window.setTimeout(() => { if (isCurrentRun()) setProgress(28); }, 350),
-      window.setTimeout(() => { if (isCurrentRun()) setProgress(52); }, 900),
-      window.setTimeout(() => { if (isCurrentRun()) setProgress(74); }, 1500),
-    ];
-    previewTimers.current = timers;
+    previewTimers.current = [];
     try {
       const res = await fetch("/api/search/resolve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: identifier.trim(), selectedPlatform: platform, service: goal }) });
       const data = await res.json();
-      if (res.ok && data.success && data.data && data.resolvedType === "profile") { finish(data.data, runId); return; }
+      if (res.ok && data.success && data.data && data.resolvedType === "profile") {
+        setAnalysisPhase("compiling"); setProgress(96);
+        await new Promise(r => setTimeout(r, 220));
+        finish(data.data, runId); return;
+      }
       if (res.ok && data.success && data.status === "pending" && data.requestId) {
         let requestId = data.requestId;
         const started = Date.now();
@@ -394,6 +414,21 @@ export default function GrowthPackageBuilder({
           }
 
           if (status.status === "pending") {
+            const phase = status.phase === "loading_profile" ? "loading_profile" : status.phase === "finding_content" ? "finding_content" : null;
+            if (typeof status.creator === "string" && status.creator.trim()) {
+              setCreatorLabel(status.creator.trim().replace(/^@+/, ""));
+            }
+
+            if (phase === "loading_profile") {
+              setAnalysisPhase("loading_profile");
+              setProgress(current => Math.min(92, Math.max(current, isContent ? 62 : 36) + 2));
+            } else if (phase === "finding_content") {
+              setAnalysisPhase("finding_content");
+              setProgress(current => Math.min(52, current + 3));
+            } else {
+              setProgress(current => Math.min(isContent ? 52 : 88, current + 2));
+            }
+
             if (typeof status.requestId === "string" && status.requestId.length > 0) {
               requestId = status.requestId;
             }
@@ -401,6 +436,9 @@ export default function GrowthPackageBuilder({
           }
 
           if (status.status === "complete" && status.data) {
+            setAnalysisPhase("compiling");
+            setProgress(96);
+            await new Promise(r => setTimeout(r, 220));
             finish(status.data, runId);
             return;
           }
@@ -420,7 +458,7 @@ export default function GrowthPackageBuilder({
         polling.current = false;
         setStage("idle"); setProgress(0); setError(e instanceof Error ? e.message : "Search failed. Please try again.");
       }
-    } finally { timers.forEach(clearTimeout); }
+    } finally { previewTimers.current.forEach(window.clearTimeout); previewTimers.current = []; }
   };
 
   const getInputPlaceholder = () => {
@@ -477,7 +515,7 @@ export default function GrowthPackageBuilder({
           <div className="cf-pb-summary"><div><PlatformIcon src={meta.icon}/><span><b>{meta.label}</b><small>Platform</small></span></div><div><GoalIcon goal={goal} premium/><span><b>{goal[0].toUpperCase()+goal.slice(1)}</b><small>Goal</small></span></div><div><ServiceIcon type="email"/><span><b>{email.trim() || "Email required"}</b><small>Email</small></span></div></div>
 
           {displayStage === "idle" && <><div className="cf-pb-empty"><span>✦</span><h3>Ready when you are</h3><p>Select your goal and network, then enter your profile/content and email to start.</p></div><div className="cf-pb-ready-guide" aria-label="What happens next"><div><i>1</i><span><b>Analyze</b><small>We check real public data.</small></span></div><div><i>2</i><span><b>Confirm</b><small>Review the exact profile or content.</small></span></div><div><i>3</i><span><b>Choose</b><small>Continue straight to your plans.</small></span></div></div></>}
-          {displayStage === "analyzing" && <div className="cf-pb-loading"><div className="cf-pb-progress" style={{"--progress":`${displayProgress*3.6}deg`} as React.CSSProperties}><b>{displayProgress}%</b></div><div><h3>Analyzing profile...</h3><p>Please wait while we fetch public data.</p><div className="cf-pb-statuses">{progressRows.map(([label,at])=><div key={label} className={displayProgress>=at?"done":displayProgress+24>=at?"current":""}><span>{displayProgress>=at?<Check/>:<i/>}</span><b>{label}</b><small>{displayProgress>=at?"Completed":displayProgress+24>=at?"In progress":"Pending"}</small></div>)}</div></div></div>}
+          {displayStage === "analyzing" && <div className="cf-pb-loading"><div className="cf-pb-progress" style={{"--progress":`${displayProgress*3.6}deg`} as React.CSSProperties}><b>{displayProgress}%</b></div><div><h3>{isContent ? "Analyzing content..." : "Analyzing profile..."}</h3><p>{isContent ? "We’re finding the content and loading its creator profile." : "Please wait while we fetch public data."}</p><div className="cf-pb-statuses">{progressRows.map((row)=><div key={row.label} className={row.state === "pending" ? "" : row.state}><span>{row.state === "done"?<Check/>:<i/>}</span><b>{row.label}</b><small>{row.status}</small></div>)}</div></div></div>}
           {displayStage === "result" && displayProfile && <><div className={`cf-pb-native-stage cf-pb-native-${displayProfile.platform}`}><div className="cf-pb-native-mobile"><NativePreview profile={displayProfile} onBack={resetSearch}/></div></div><div className="cf-pb-result-actions"><button onClick={resetSearch}><RotateCcw/> Search again</button><button onClick={confirmDisplayedProfile}>{isContent ? "Yes, this is my content" : "Yes, this is my profile"} <ArrowRight/></button></div></>}
         </div>
       </div>
