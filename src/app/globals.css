@@ -4964,7 +4964,7 @@ body:has(.cf-fixed-plans-page) {
 .cf-plans-mini-avatars img{width:100%;height:100%;object-fit:cover;display:block}
 .cf-plans-pill-chevron{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;color:#8a96aa;font-size:13px;background:#f7f9fc;border:1px solid #edf0f5;margin-left:-2px}
 
-.cf-plans-benefit-row>div,.cf-plans-platform-tabs a,.cf-plans-review-card,.cf-plans-price-card,.cf-plans-trust-strip,.cf-plans-final-cta,.cf-plans-value-row{
+.cf-plans-benefit-row>div,.cf-plans-platform-tabs a,.cf-plans-price-card,.cf-plans-trust-strip,.cf-plans-final-cta,.cf-plans-value-row{
   box-shadow:0 10px 28px rgba(32,45,78,.07),inset 0 1px 0 rgba(255,255,255,.98)!important;
 }
 .cf-plans-benefit-row span{
@@ -33564,6 +33564,7 @@ html body .cf-offer-page
         min-height: 220px !important;
         padding: 14px 14px 12px !important;
         box-sizing: border-box !important;
+        box-shadow: none !important;
         transition: transform 180ms ease, box-shadow 180ms ease !important;
     }
 
