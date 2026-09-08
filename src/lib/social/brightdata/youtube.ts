@@ -7,6 +7,7 @@ import { socialCache } from "../cache";
 import { fetchBrightDataStructuredScraper } from "./scraper";
 import { getBrightDataConfig } from "./resolvers";
 import { createSignedJobToken } from "../tokens";
+import { resolveYouTubeChannelViaDataApi, resolveYouTubeVideoViaDataApi } from "../youtube-data-api";
 
 // -------------------------------------------------------------
 // YOUTUBE (Channel: gd_lk538t2k2p1k3oos71 / Video: gd_lk56epmy2i5g7lzu0k)
@@ -136,11 +137,25 @@ export async function resolveYouTubeChannel(
     return { success: true, data: cached };
   }
 
+  // FAST PATH: official YouTube Data API. Usually resolves in seconds and
+  // preserves the same normalized profile shape used by the existing UI.
+  const fastProfile = await resolveYouTubeChannelViaDataApi(handleOrUrl);
+  if (fastProfile) {
+    socialCache.set(cacheKey, fastProfile, 21600);
+    socialCache.set(`yt:channel:${fastProfile.username.toLowerCase()}`, fastProfile, 21600);
+    if (fastProfile.channel_id) {
+      socialCache.set(`yt:channel-id:${fastProfile.channel_id.toLowerCase()}`, fastProfile, 21600);
+    }
+    return { success: true, data: fastProfile };
+  }
+
+  // Bright Data remains a transparent fallback for legacy channel URLs and
+  // fields that the official API cannot resolve.
   if (!apiKey) {
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "BRIGHTDATA_API_KEY não configurada no servidor.",
+      message: "YOUTUBE_DATA_API_KEY e BRIGHTDATA_API_KEY não configuradas no servidor.",
     };
   }
 
@@ -175,8 +190,8 @@ export async function resolveYouTubeChannel(
   if (scraperRes.ok && scraperRes.data) {
     const normalized = normalizeYouTubeChannelData(scraperRes.data, handleOrUrl);
     if (normalized) {
-      socialCache.set(cacheKey, normalized, 300);
-      socialCache.set(`yt:channel:${normalized.username.toLowerCase()}`, normalized, 300);
+      socialCache.set(cacheKey, normalized, 21600);
+      socialCache.set(`yt:channel:${normalized.username.toLowerCase()}`, normalized, 21600);
       return { success: true, data: normalized };
     }
   }
@@ -218,11 +233,23 @@ export async function resolveYouTubeVideo(
     return { success: true, data: cached };
   }
 
+  // FAST PATH: validate the video/Short and resolve its owner through the
+  // official YouTube Data API instead of waiting for two Bright Data jobs.
+  const fastProfile = await resolveYouTubeVideoViaDataApi(videoUrl);
+  if (fastProfile) {
+    socialCache.set(cacheKey, fastProfile, 21600);
+    socialCache.set(`yt:channel:${fastProfile.username.toLowerCase()}`, fastProfile, 21600);
+    if (fastProfile.channel_id) {
+      socialCache.set(`yt:channel-id:${fastProfile.channel_id.toLowerCase()}`, fastProfile, 21600);
+    }
+    return { success: true, data: fastProfile };
+  }
+
   if (!apiKey) {
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "BRIGHTDATA_API_KEY não configurada no servidor.",
+      message: "YOUTUBE_DATA_API_KEY e BRIGHTDATA_API_KEY não configuradas no servidor.",
     };
   }
 

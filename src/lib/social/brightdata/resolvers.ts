@@ -23,6 +23,158 @@ export function getBrightDataConfig() {
 // -------------------------------------------------------------
 // TIKTOK (Dataset: gd_l1villgoiiidt09ci / Post: gd_lu702nij2f790tmv9h)
 // -------------------------------------------------------------
+const TIKTOK_CACHE_SECONDS = 6 * 60 * 60;
+const TIKTOK_FAST_TIMEOUT_MS = 8000;
+
+function cleanTikTokUsername(value: string): string {
+  return value.trim().replace(/^@+/, "").split(/[/?#]/)[0];
+}
+
+function extractTikTokUsernameFromVideoUrl(input: string): string | null {
+  try {
+    const url = new URL(input);
+    const segments = url.pathname.split("/").filter(Boolean);
+    if (segments[0]?.startsWith("@") && segments[1] === "video" && segments[2]) {
+      return cleanTikTokUsername(segments[0]);
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function extractJsonScript(html: string, id: string): any | null {
+  const match = html.match(new RegExp(`<script[^>]+id=["']${id}["'][^>]*>([\\s\\S]*?)<\\/script>`, "i"));
+  if (!match?.[1]) return null;
+  try {
+    return JSON.parse(match[1]);
+  } catch {
+    return null;
+  }
+}
+
+function normalizeTikTokHydrationJson(json: any, fallbackUsername: string): TikTokVerifiedProfile | null {
+  if (!json) return null;
+
+  // Current TikTok web hydration format.
+  const detail = json?.__DEFAULT_SCOPE__?.["webapp.user-detail"]?.userInfo;
+  if (detail?.user) {
+    const user = detail.user;
+    const stats = detail.stats || {};
+    const detailVideos =
+      detail?.itemList ||
+      detail?.items ||
+      detail?.videos ||
+      json?.__DEFAULT_SCOPE__?.["webapp.user-detail"]?.itemList ||
+      [];
+    return normalizeTikTokProfileData({
+      account_id: user.uniqueId || fallbackUsername,
+      nickname: user.nickname,
+      profile_pic_url_hd: user.avatarLarger || user.avatarMedium || user.avatarThumb,
+      following: stats.followingCount,
+      followers: stats.followerCount,
+      likes: stats.heartCount,
+      biography: user.signature,
+      bioLink: user.bioLink,
+      privateAccount: user.privateAccount,
+      verified: user.verified,
+      videos: Array.isArray(detailVideos) ? detailVideos : [],
+    }, fallbackUsername);
+  }
+
+  // Older SIGI_STATE format, kept as a compatibility fallback.
+  const users = json?.UserModule?.users || {};
+  const statsMap = json?.UserModule?.stats || {};
+  const username = cleanTikTokUsername(fallbackUsername);
+  const user = users[username] || users[`@${username}`] || (Object.values(users)[0] as any);
+  const stats = statsMap[username] || statsMap[`@${username}`] || (Object.values(statsMap)[0] as any);
+  if (user) {
+    const itemModule = json?.ItemModule || {};
+    const profileVideos = Object.values(itemModule).filter((item: any) => {
+      const owner = item?.author || item?.authorUniqueId || item?.author_name;
+      return !owner || cleanTikTokUsername(String(owner)).toLowerCase() === username.toLowerCase();
+    });
+    return normalizeTikTokProfileData({
+      account_id: user.uniqueId || username,
+      nickname: user.nickname,
+      profile_pic_url_hd: user.avatarLarger || user.avatarMedium || user.avatarThumb,
+      following: stats?.followingCount,
+      followers: stats?.followerCount,
+      likes: stats?.heartCount,
+      biography: user.signature,
+      bioLink: user.bioLink,
+      privateAccount: user.privateAccount,
+      verified: user.verified,
+      videos: profileVideos,
+    }, username);
+  }
+
+  return null;
+}
+
+async function resolveTikTokProfileFast(username: string): Promise<TikTokVerifiedProfile | null> {
+  const cleanUsername = cleanTikTokUsername(username);
+  if (!cleanUsername) return null;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIKTOK_FAST_TIMEOUT_MS);
+  try {
+    const response = await fetch(`https://www.tiktok.com/@${encodeURIComponent(cleanUsername)}`, {
+      method: "GET",
+      signal: controller.signal,
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/152 Safari/537.36",
+        "Accept-Language": "en-US,en;q=0.9",
+        Accept: "text/html,application/xhtml+xml",
+      },
+      next: { revalidate: TIKTOK_CACHE_SECONDS },
+    });
+
+    if (!response.ok) return null;
+    const html = await response.text();
+    const universal = extractJsonScript(html, "__UNIVERSAL_DATA_FOR_REHYDRATION__");
+    const fromUniversal = normalizeTikTokHydrationJson(universal, cleanUsername);
+    if (fromUniversal) return fromUniversal;
+
+    const sigi = extractJsonScript(html, "SIGI_STATE");
+    return normalizeTikTokHydrationJson(sigi, cleanUsername);
+  } catch (error) {
+    console.warn(`[TikTok Fast Path] @${cleanUsername} failed:`, error instanceof Error ? error.message : error);
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function resolveTikTokVideoOwnerFast(videoUrl: string): Promise<string | null> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIKTOK_FAST_TIMEOUT_MS);
+  try {
+    const endpoint = `https://www.tiktok.com/oembed?url=${encodeURIComponent(videoUrl)}`;
+    const response = await fetch(endpoint, {
+      method: "GET",
+      signal: controller.signal,
+      next: { revalidate: TIKTOK_CACHE_SECONDS },
+    });
+    if (!response.ok) return null;
+    const data = await response.json().catch(() => null);
+    if (!data) return null;
+
+    if (typeof data.author_url === "string") {
+      const match = data.author_url.match(/tiktok\.com\/@([^/?#]+)/i);
+      if (match?.[1]) return cleanTikTokUsername(match[1]);
+    }
+    if (typeof data.author_name === "string" && data.author_name.trim()) {
+      return cleanTikTokUsername(data.author_name);
+    }
+    return null;
+  } catch {
+    return null;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export async function resolveTikTokProfileByUsername(
   username: string
 ): Promise<{
@@ -33,17 +185,29 @@ export async function resolveTikTokProfileByUsername(
   code?: SearchErrorCode;
   message?: string;
 }> {
-  if (!username) {
+  const cleanUsername = cleanTikTokUsername(username);
+  if (!cleanUsername) {
     return { success: false, code: "INVALID_HANDLE", message: "Este @ não possui um formato válido." };
   }
 
-  const { apiKey } = getBrightDataConfig();
-  const cacheKey = `tk:user:${username.toLowerCase()}`;
+  const cacheKey = `tk:user:${cleanUsername.toLowerCase()}`;
   const cached = socialCache.get<TikTokVerifiedProfile>(cacheKey);
   if (cached) {
     return { success: true, data: cached };
   }
 
+  // FAST PATH: read TikTok's public web hydration payload first. This keeps
+  // avatar, follower/following/likes counts, bio, privacy and verification
+  // without waiting minutes for a dataset snapshot.
+  const fastProfile = await resolveTikTokProfileFast(cleanUsername);
+  if (fastProfile) {
+    socialCache.set(cacheKey, fastProfile, TIKTOK_CACHE_SECONDS);
+    return { success: true, data: fastProfile };
+  }
+
+  // Existing Bright Data dataset remains the safe fallback when TikTok blocks
+  // direct HTML or changes its public hydration structure.
+  const { apiKey } = getBrightDataConfig();
   if (!apiKey) {
     return {
       success: false,
@@ -52,7 +216,7 @@ export async function resolveTikTokProfileByUsername(
     };
   }
 
-  const targetUrl = `https://www.tiktok.com/@${username}`;
+  const targetUrl = `https://www.tiktok.com/@${cleanUsername}`;
   const tiktokDatasetId = process.env.BRIGHTDATA_TIKTOK_DATASET;
 
   if (!tiktokDatasetId) {
@@ -63,31 +227,29 @@ export async function resolveTikTokProfileByUsername(
     };
   }
 
-  // Permite pending assíncrono caso o scraper retorne snapshot 202
   const scraperRes = await fetchBrightDataStructuredScraper(
     tiktokDatasetId,
     { url: targetUrl, country: "" },
     true
   );
 
-  console.log(`[TikTok Scraper] User: @${username} | Status: ${scraperRes.status} | Pending: ${Boolean(scraperRes.pending)}`);
+  console.log(`[TikTok Scraper Fallback] User: @${cleanUsername} | Status: ${scraperRes.status} | Pending: ${Boolean(scraperRes.pending)}`);
 
-  // Se retornou snapshot assíncrono, gera token opaco assinado
   if (scraperRes.pending && scraperRes.snapshotId) {
     const requestId = createSignedJobToken({
       platform: "tiktok",
       snapshotId: scraperRes.snapshotId,
       operation: "profile",
-      originalInput: username,
+      originalInput: cleanUsername,
     }, 300);
 
     return { success: true, pending: true, requestId };
   }
 
   if (scraperRes.ok && scraperRes.data) {
-    const normalized = normalizeTikTokProfileData(scraperRes.data, username);
+    const normalized = normalizeTikTokProfileData(scraperRes.data, cleanUsername);
     if (normalized) {
-      socialCache.set(cacheKey, normalized, 180);
+      socialCache.set(cacheKey, normalized, TIKTOK_CACHE_SECONDS);
       return { success: true, data: normalized };
     }
   }
@@ -121,13 +283,42 @@ export async function resolveTikTokContentToProfile(
     return { success: false, code: "CONTENT_NOT_FOUND", message: "Esse conteúdo não foi encontrado ou não está mais disponível." };
   }
 
-  const { apiKey } = getBrightDataConfig();
-  const cacheKey = `tk:content:${videoUrlOrId}`;
+  const targetUrl = videoUrlOrId.startsWith("http") ? videoUrlOrId : `https://www.tiktok.com/video/${videoUrlOrId}`;
+  const cacheKey = `tk:content:${targetUrl.toLowerCase()}`;
   const cached = socialCache.get<TikTokVerifiedProfile>(cacheKey);
   if (cached) {
     return { success: true, data: cached };
   }
 
+  // FAST PATH: TikTok oEmbed validates a public video and provides its owner
+  // without a long-running snapshot. URLs already containing @creator can be
+  // used as a secondary hint if oEmbed is temporarily unavailable.
+  const urlOwner = extractTikTokUsernameFromVideoUrl(targetUrl);
+  const [oEmbedOwner, hintedProfile] = await Promise.all([
+    resolveTikTokVideoOwnerFast(targetUrl),
+    urlOwner ? resolveTikTokProfileFast(urlOwner) : Promise.resolve(null),
+  ]);
+
+  // Only the oEmbed result is treated as content validation. The username in
+  // the URL is merely used to prefetch the profile in parallel.
+  if (oEmbedOwner) {
+    if (hintedProfile && urlOwner && cleanTikTokUsername(oEmbedOwner).toLowerCase() === urlOwner.toLowerCase()) {
+      socialCache.set(`tk:user:${urlOwner.toLowerCase()}`, hintedProfile, TIKTOK_CACHE_SECONDS);
+      socialCache.set(cacheKey, hintedProfile, TIKTOK_CACHE_SECONDS);
+      return { success: true, data: hintedProfile };
+    }
+
+    const profileRes = await resolveTikTokProfileByUsername(oEmbedOwner);
+    if (profileRes.success && profileRes.data) {
+      socialCache.set(cacheKey, profileRes.data, TIKTOK_CACHE_SECONDS);
+      return profileRes;
+    }
+    if (profileRes.pending) return profileRes;
+  }
+
+  // Fall back to the original post dataset if the fast public endpoints do not
+  // confirm/resolve the content.
+  const { apiKey } = getBrightDataConfig();
   if (!apiKey) {
     return {
       success: false,
@@ -136,9 +327,7 @@ export async function resolveTikTokContentToProfile(
     };
   }
 
-  const targetUrl = videoUrlOrId.startsWith("http") ? videoUrlOrId : `https://www.tiktok.com/video/${videoUrlOrId}`;
   const tiktokPostDatasetId = process.env.BRIGHTDATA_TIKTOK_POST_DATASET;
-
   if (!tiktokPostDatasetId) {
     return {
       success: false,
@@ -153,7 +342,7 @@ export async function resolveTikTokContentToProfile(
     true
   );
 
-  console.log(`[TikTok Post Scraper] URL: ${targetUrl} | Status: ${scraperRes.status} | Pending: ${Boolean(scraperRes.pending)}`);
+  console.log(`[TikTok Post Scraper Fallback] URL: ${targetUrl} | Status: ${scraperRes.status} | Pending: ${Boolean(scraperRes.pending)}`);
 
   if (scraperRes.pending && scraperRes.snapshotId) {
     const requestId = createSignedJobToken({
@@ -172,7 +361,11 @@ export async function resolveTikTokContentToProfile(
     const authorUsername = item?.author?.uniqueId || item?.author?.username || item?.author_username || item?.authorUniqueId || item?.account_id || item?.username;
 
     if (authorUsername) {
-      return await resolveTikTokProfileByUsername(authorUsername);
+      const profileRes = await resolveTikTokProfileByUsername(authorUsername);
+      if (profileRes.success && profileRes.data) {
+        socialCache.set(cacheKey, profileRes.data, TIKTOK_CACHE_SECONDS);
+      }
+      return profileRes;
     }
   }
 

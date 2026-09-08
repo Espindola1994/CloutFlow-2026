@@ -79,10 +79,10 @@ export async function GET(req: NextRequest) {
         if (job.operation === "profile") {
           const normalized = normalizeYouTubeChannelData(snapshotRes.data, job.originalInput || "youtube_channel");
           if (normalized) {
-            socialCache.set(`yt:channel:${normalized.username.toLowerCase()}`, normalized, 300);
+            socialCache.set(`yt:channel:${normalized.username.toLowerCase()}`, normalized, 21600);
             if (job.originalInput) {
               try {
-                socialCache.set(`yt:channel:${normalizeYouTubeChannelUrl(job.originalInput).toLowerCase()}`, normalized, 300);
+                socialCache.set(`yt:channel:${normalizeYouTubeChannelUrl(job.originalInput).toLowerCase()}`, normalized, 21600);
               } catch {
                 // Keep the username cache even if the original alias cannot be normalized.
               }
@@ -141,7 +141,7 @@ export async function GET(req: NextRequest) {
         if (job.operation === "profile") {
           const normalized = normalizeTikTokProfileData(snapshotRes.data, job.originalInput || "tiktok_user");
           if (normalized) {
-            socialCache.set(`tk:user:${normalized.username.toLowerCase()}`, normalized, 180);
+            socialCache.set(`tk:user:${normalized.username.toLowerCase()}`, normalized, 21600);
             return NextResponse.json({
               success: true,
               status: "complete",
