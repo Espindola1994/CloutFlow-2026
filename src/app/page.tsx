@@ -194,9 +194,10 @@ export default function HomePage({
         <Link href="/" className="cf-plans-logo cf-plans-logo-image" aria-label="CloutFlow home">
           <Image src="/cloutflow-header-logo.png" alt="CloutFlow" width={160} height={53} priority />
         </Link>
-        <div className="cf-plans-header-tagline" aria-label="Post. Engage. Grow Faster.">
+        <div className="cf-plans-header-tagline" aria-label="Post. Engage. Grow.">
           <Flame className="cf-plans-header-flame" aria-hidden="true" />
-          <b>Post. Engage. Grow Faster.</b>
+          <b className="cf-tagline-text-desktop">Post. Engage. Grow Faster.</b>
+          <b className="cf-tagline-text-mobile">Post. Engage. Grow.</b>
         </div>
       </header>
       <section className="cf-plans-shell">
