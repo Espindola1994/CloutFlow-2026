@@ -12,6 +12,36 @@ import { createSignedJobToken } from "../tokens";
 // YOUTUBE (Channel: gd_lk538t2k2p1k3oos71 / Video: gd_lk56epmy2i5g7lzu0k)
 // -------------------------------------------------------------
 
+export function extractYouTubeChannelTarget(rawData: any): string | null {
+  const item = Array.isArray(rawData) ? rawData[0] : (rawData?.data ? rawData.data[0] || rawData.data : rawData);
+  if (!item) return null;
+
+  const candidates = [
+    item.channel_url,
+    item.channel_url_decoded,
+    item.youtuber,
+    item.uploader_url,
+    item.author_url,
+    item.channel_handle,
+    item.handle,
+  ];
+
+  for (const candidate of candidates) {
+    if (typeof candidate !== "string") continue;
+    const clean = candidate.trim();
+    if (!clean) continue;
+    if (clean.startsWith("http") || clean.startsWith("@")) return clean;
+  }
+
+  // Bright Data's handle_name is commonly a display name, not a handle.
+  // Use it only when it is explicitly formatted as @handle.
+  if (typeof item.handle_name === "string" && item.handle_name.trim().startsWith("@")) {
+    return item.handle_name.trim();
+  }
+
+  return null;
+}
+
 export function normalizeYouTubeChannelUrl(input: string): string {
   const clean = input.trim();
   if (clean.startsWith("@")) {
@@ -145,7 +175,8 @@ export async function resolveYouTubeChannel(
   if (scraperRes.ok && scraperRes.data) {
     const normalized = normalizeYouTubeChannelData(scraperRes.data, handleOrUrl);
     if (normalized) {
-      socialCache.set(cacheKey, normalized, 180);
+      socialCache.set(cacheKey, normalized, 300);
+      socialCache.set(`yt:channel:${normalized.username.toLowerCase()}`, normalized, 300);
       return { success: true, data: normalized };
     }
   }
@@ -224,9 +255,7 @@ export async function resolveYouTubeVideo(
   }
 
   if (scraperRes.ok && scraperRes.data) {
-    const rawData = scraperRes.data;
-    const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
-    const channelTarget = item?.channel_url || item?.channel_url_decoded || item?.handle_name || item?.youtuber || item?.uploader_url;
+    const channelTarget = extractYouTubeChannelTarget(scraperRes.data);
 
     if (channelTarget) {
       return await resolveYouTubeChannel(channelTarget);

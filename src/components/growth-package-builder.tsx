@@ -256,15 +256,17 @@ export default function GrowthPackageBuilder({
     const cleanEmail = email.trim().toLowerCase();
     const normalizedUsername = found.username.replace(/^@+/, "").trim();
     const canonicalProfileUrl = buildCanonicalProfileUrl(platform, normalizedUsername);
-    const profileUrl = isContent ? null : canonicalProfileUrl;
+    const profileUrl = canonicalProfileUrl;
     const targetUrl = isContent ? identifier.trim() : canonicalProfileUrl;
-    const targetType = isContent ? ((platform === "youtube" || platform === "tiktok") ? "video" : "post") : (platform === "youtube" ? "channel" : "profile");
+    const targetType = isContent
+      ? ((platform === "youtube" || platform === "tiktok" || (platform === "twitter" && goal === "views") || (platform === "instagram" && goal === "views")) ? "video" : "post")
+      : (platform === "youtube" ? "channel" : "profile");
     useFunnelStore.getState().setEmail(cleanEmail);
     useFunnelStore.getState().setTarget({
       targetType,
       targetValue: isContent ? identifier.trim() : normalizedUsername,
       targetUrl,
-      socialUsername: isContent ? null : normalizedUsername,
+      socialUsername: normalizedUsername,
       profileUrl,
       email: cleanEmail,
       verifiedTargetData: isConfirmed ? (found as unknown as Record<string, unknown>) : null,
@@ -301,12 +303,46 @@ export default function GrowthPackageBuilder({
       try {
         const u = new URL(identifier.trim());
         if (!/^https?:$/.test(u.protocol)) throw new Error();
+
+        const hostname = u.hostname.toLowerCase();
+        const pathname = u.pathname.toLowerCase();
+
+        if (platform === "instagram") {
+          const isStory = pathname.includes("/stories/");
+          const isPost = pathname.includes("/p/");
+          const isVideo = pathname.includes("/reel/") || pathname.includes("/reels/") || pathname.includes("/tv/");
+
+          if (isStory || (goal === "views" ? !isVideo : !(isPost || isVideo))) {
+            setError(
+              goal === "views"
+                ? "Instagram Views accepts only public video/reel links. Photo posts and Stories are not accepted."
+                : "Instagram Likes accepts public feed posts, videos and reels. Stories are not accepted."
+            );
+            return;
+          }
+        }
+
+        if (platform === "tiktok") {
+          const isVideo = pathname.includes("/video/") || hostname === "vm.tiktok.com" || hostname === "vt.tiktok.com";
+          if (!isVideo) {
+            setError("TikTok Likes or Views requires a direct public video link.");
+            return;
+          }
+        }
+
+        if (platform === "twitter") {
+          const isPost = pathname.includes("/status/") || pathname.includes("/statuses/");
+          if (!isPost) {
+            setError("X / Twitter Likes or Views requires a direct post/video status link.");
+            return;
+          }
+        }
+
         if (platform === "youtube") {
-          const pathname = u.pathname.toLowerCase();
           const isChannel = pathname.includes("/channel/") || pathname.includes("/@") || pathname.includes("/c/") || pathname.includes("/user/");
-          const isVideo = pathname.includes("/watch") || u.hostname.includes("youtu.be") || pathname.includes("/shorts/");
+          const isVideo = pathname.includes("/watch") || hostname === "youtu.be" || pathname.includes("/shorts/");
           if (isChannel || !isVideo) {
-            setError("YouTube Views requires a direct video link (e.g. youtube.com/watch?v=... or youtu.be/...). Channel links are not accepted.");
+            setError("YouTube Likes or Views requires a direct video or Shorts link. Channel links are not accepted.");
             return;
           }
         }
@@ -332,7 +368,7 @@ export default function GrowthPackageBuilder({
     ];
     previewTimers.current = timers;
     try {
-      const res = await fetch("/api/search/resolve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: identifier.trim(), selectedPlatform: platform }) });
+      const res = await fetch("/api/search/resolve", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input: identifier.trim(), selectedPlatform: platform, service: goal }) });
       const data = await res.json();
       if (res.ok && data.success && data.data && data.resolvedType === "profile") { finish(data.data, runId); return; }
       if (res.ok && data.success && data.status === "pending" && data.requestId) {
@@ -345,7 +381,7 @@ export default function GrowthPackageBuilder({
           if (!isCurrentRun()) return;
 
           const statusRes = await fetch(
-            `/api/search/status?requestId=${encodeURIComponent(requestId)}`,
+            `/api/search/status?requestId=${encodeURIComponent(requestId)}&service=${encodeURIComponent(goal)}`,
             { cache: "no-store" }
           );
           const status = await statusRes.json().catch(() => null);

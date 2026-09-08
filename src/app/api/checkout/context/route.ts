@@ -55,6 +55,105 @@ function validateSocialUrl(urlStr: string, platform: string): boolean {
   }
 }
 
+
+function getContentKind(urlStr: string, platform: string): "profile" | "post" | "video" | "story" | "invalid" {
+  try {
+    const parsed = new URL(urlStr);
+    const path = parsed.pathname.toLowerCase();
+    const host = parsed.hostname.toLowerCase();
+    const p = platform.toLowerCase();
+
+    if (p === "instagram") {
+      if (path.includes("/stories/") || path.includes("/story/")) return "story";
+      if (path.includes("/reel/") || path.includes("/reels/") || path.includes("/tv/")) return "video";
+      if (path.includes("/p/")) return "post";
+      return "profile";
+    }
+
+    if (p === "tiktok") {
+      if (path.includes("/video/") || host === "vm.tiktok.com" || host === "vt.tiktok.com") return "video";
+      return "profile";
+    }
+
+    if (p === "youtube") {
+      if (path.includes("/watch") || path.includes("/shorts/") || host === "youtu.be") return "video";
+      return "profile";
+    }
+
+    if (p === "twitter") {
+      if (path.includes("/status/") || path.includes("/statuses/")) return "post";
+      return "profile";
+    }
+
+    return "invalid";
+  } catch {
+    return "invalid";
+  }
+}
+
+function validateTargetForService(params: {
+  platform: string;
+  service: string;
+  targetType: "profile" | "post" | "video" | "channel";
+  targetUrl?: string | null;
+}): string | null {
+  const { platform, service, targetType, targetUrl } = params;
+  const p = platform.toLowerCase();
+  const s = service.toLowerCase();
+
+  if (s === "followers") {
+    const expected = p === "youtube" ? "channel" : "profile";
+    if (targetType !== expected) return `Followers requires a ${expected} target.`;
+
+    if (targetUrl) {
+      const kind = getContentKind(targetUrl, p);
+      if (kind === "post" || kind === "video" || kind === "story") {
+        return "Followers cannot use a post, video, reel, Shorts or Story URL.";
+      }
+    }
+    return null;
+  }
+
+  if (!targetUrl) return `Content target URL is required for ${s}.`;
+  const kind = getContentKind(targetUrl, p);
+
+  if (kind === "story") return "Stories are not supported targets.";
+
+  if (p === "instagram") {
+    if (s === "views") {
+      if (targetType !== "video" || kind !== "video") {
+        return "Instagram Views accepts only video/reel targets. Photo posts and Stories are not supported.";
+      }
+      return null;
+    }
+    if (s === "likes") {
+      if (!["post", "video"].includes(kind) || !["post", "video"].includes(targetType)) {
+        return "Instagram Likes accepts only feed posts, videos and reels. Stories are not supported.";
+      }
+      return null;
+    }
+  }
+
+  if (p === "tiktok") {
+    if (targetType !== "video" || kind !== "video") return `TikTok ${s} requires a direct video target.`;
+    return null;
+  }
+
+  if (p === "youtube") {
+    if (targetType !== "video" || kind !== "video") return `YouTube ${s} requires a video or Shorts target.`;
+    return null;
+  }
+
+  if (p === "twitter") {
+    if (kind !== "post") return `X / Twitter ${s} requires a direct status URL.`;
+    if (s === "views" && targetType !== "video") return "X / Twitter Views requires a video post target.";
+    if (s === "likes" && !["post", "video"].includes(targetType)) return "X / Twitter Likes requires a post/video target.";
+    return null;
+  }
+
+  return null;
+}
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -223,12 +322,6 @@ export async function POST(request: Request) {
 
     // 2. Validate Target Type & Requirements against Service
     if (service === 'followers') {
-      if (data.targetType !== 'profile') {
-        return NextResponse.json(
-          { success: false, error: { message: 'Followers service requires a profile target' } },
-          { status: 400 }
-        );
-      }
       if (!data.socialUsername || data.socialUsername.trim().length === 0) {
         return NextResponse.json(
           { success: false, error: { message: 'Social username is required for followers service' } },
@@ -248,6 +341,19 @@ export async function POST(request: Request) {
           { status: 400 }
         );
       }
+    }
+
+    const targetRuleError = validateTargetForService({
+      platform,
+      service,
+      targetType: data.targetType,
+      targetUrl: data.targetUrl,
+    });
+    if (targetRuleError) {
+      return NextResponse.json(
+        { success: false, error: { message: targetRuleError } },
+        { status: 400 }
+      );
     }
 
     // Optional profileUrl SSRF / Host validation

@@ -125,6 +125,7 @@ export function buildCanonicalProfileUrl(platform: PlatformId | string, username
     case "twitter":
       return `https://x.com/${cleanUsername}`;
     case "youtube":
+      return `https://www.youtube.com/@${cleanUsername}`;
     default:
       return null;
   }
@@ -242,6 +243,19 @@ export function detectSearchInput(
       }
 
       const first = segments[0].toLowerCase();
+
+      // Stories are intentionally excluded from CloutFlow products.
+      if (first === "stories" || first === "story") {
+        return {
+          originalInput: raw,
+          inputType: "invalid",
+          platform: "instagram",
+          isValid: false,
+          errorCode: "UNSUPPORTED_URL_TYPE",
+          errorMessage: "Stories do Instagram não são aceitos para Likes ou Views.",
+        };
+      }
+
       if (first === "p" || first === "reel" || first === "tv" || first === "reels") {
         const code = segments[1];
         if (!code) {

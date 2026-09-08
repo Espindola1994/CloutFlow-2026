@@ -9,6 +9,8 @@ import {
 } from "@/lib/social/brightdata/resolvers";
 import {
   normalizeYouTubeChannelData,
+  normalizeYouTubeChannelUrl,
+  extractYouTubeChannelTarget,
   resolveYouTubeChannel,
 } from "@/lib/social/brightdata/youtube";
 import { verifySignedJobToken } from "@/lib/social/tokens";
@@ -17,6 +19,7 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const requestId = searchParams.get("requestId");
+    const service = (searchParams.get("service") || "").toLowerCase();
 
     if (!requestId) {
       return NextResponse.json(
@@ -75,7 +78,14 @@ export async function GET(req: NextRequest) {
         if (job.operation === "profile") {
           const normalized = normalizeYouTubeChannelData(snapshotRes.data, job.originalInput || "youtube_channel");
           if (normalized) {
-            socialCache.set(`yt:channel:${normalized.username.toLowerCase()}`, normalized, 180);
+            socialCache.set(`yt:channel:${normalized.username.toLowerCase()}`, normalized, 300);
+            if (job.originalInput) {
+              try {
+                socialCache.set(`yt:channel:${normalizeYouTubeChannelUrl(job.originalInput).toLowerCase()}`, normalized, 300);
+              } catch {
+                // Keep the username cache even if the original alias cannot be normalized.
+              }
+            }
             return NextResponse.json({
               success: true,
               status: "complete",
@@ -87,9 +97,7 @@ export async function GET(req: NextRequest) {
         }
 
         if (job.operation === "content") {
-          const rawData = snapshotRes.data;
-          const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
-          const channelTarget = item?.channel_url || item?.channel_url_decoded || item?.handle_name || item?.youtuber || item?.uploader_url;
+          const channelTarget = extractYouTubeChannelTarget(snapshotRes.data);
 
           if (channelTarget) {
             const profileRes = await resolveYouTubeChannel(channelTarget);
@@ -199,7 +207,28 @@ export async function GET(req: NextRequest) {
         if (job.operation === "content") {
           const rawData = snapshotRes.data;
           const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
-          const authorIdentifier = item?.user?.screen_name || item?.author?.username || item?.author_username || item?.user_id || item?.screen_name;
+
+          if (service === "views") {
+            const videos = item?.videos;
+            const hasVideo =
+              (Array.isArray(videos) && videos.length > 0) ||
+              Boolean(videos && !Array.isArray(videos)) ||
+              Boolean(item?.video || item?.video_url || item?.media?.video || item?.extended_entities?.media?.some?.((m: any) => m?.type === "video" || m?.type === "animated_gif"));
+
+            if (!hasVideo) {
+              return NextResponse.json(
+                {
+                  success: false,
+                  status: "failed",
+                  code: "INVALID_CONTENT_URL",
+                  message: "X / Twitter Views aceita somente posts que contenham vídeo.",
+                },
+                { status: 400 }
+              );
+            }
+          }
+
+          const authorIdentifier = item?.user_posted || item?.user?.screen_name || item?.author?.username || item?.author_username || item?.username || item?.screen_name || item?.user_id;
 
           if (authorIdentifier) {
             const profileRes = await resolveTwitterProfileByUsername(authorIdentifier);

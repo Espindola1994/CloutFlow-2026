@@ -361,7 +361,7 @@ export async function resolveTwitterContentToProfile(
   if (scraperRes.ok && scraperRes.data) {
     const rawData = scraperRes.data;
     const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
-    const authorUsername = item?.user?.screen_name || item?.author?.username || item?.author_username || item?.user_id || item?.screen_name;
+    const authorUsername = item?.user_posted || item?.user?.screen_name || item?.author?.username || item?.author_username || item?.username || item?.screen_name || item?.user_id;
 
     if (authorUsername) {
       return await resolveTwitterProfileByUsername(authorUsername);
@@ -377,7 +377,7 @@ export async function resolveTwitterContentToProfile(
 
 export function normalizeTwitterProfileData(rawData: any, fallbackUsername: string): TwitterVerifiedProfile | null {
   const item = Array.isArray(rawData) ? rawData[0] : (rawData.data ? rawData.data[0] || rawData.data : rawData);
-  if (!item || (!item.profile_name && !item.screen_name && !item.username && !item.id && !item.x_id)) {
+  if (!item || (!item.profile_name && !item.screen_name && !item.username && !item.user_posted && !item.id && !item.x_id)) {
     return null;
   }
 
@@ -397,8 +397,8 @@ export function normalizeTwitterProfileData(rawData: any, fallbackUsername: stri
 
   return {
     platform: "twitter",
-    username: String(item.screen_name || item.username || (item.id && !item.id.includes(" ") ? item.id : fallbackUsername.replace(/^@/, ""))),
-    full_name: String(item.profile_name || item.name || item.id || fallbackUsername.replace(/^@/, "")),
+    username: String(item.screen_name || item.username || item.user_posted || (item.id && !item.id.includes(" ") ? item.id : fallbackUsername.replace(/^@/, ""))),
+    full_name: String(item.profile_name || item.name || item.user_posted || item.id || fallbackUsername.replace(/^@/, "")),
     avatar_url: String(item.profile_image_link || item.profile_image_url_https || item.profile_image_url || item.avatar || `https://ui-avatars.com/api/?name=${fallbackUsername}`),
     cover_url: item.banner_image || item.banner_img || item.header_image || item.profile_banner_url || item.cover_image || undefined,
     followers_count: Number(item.followers !== undefined ? item.followers : (item.followers_count || item.follower_count || 0)),

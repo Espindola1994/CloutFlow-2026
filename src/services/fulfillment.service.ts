@@ -45,6 +45,7 @@ export function resolveCanonicalFulfillmentTarget(order: {
   socialUsername?: string | null;
   username?: string | null;
   targetUrl?: string | null;
+  targetType?: string | null;
 }) {
   const p = order.platform || '';
   const s = order.service || '';
@@ -66,7 +67,7 @@ export function resolveCanonicalFulfillmentTarget(order: {
     rawTarget = order.targetUrl ? order.targetUrl.trim() : null;
   }
 
-  return resolveAndValidateTarget(rawTarget, p, s);
+  return resolveAndValidateTarget(rawTarget, p, s, order.targetType);
 }
 
 /**

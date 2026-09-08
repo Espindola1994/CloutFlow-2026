@@ -19,9 +19,58 @@ import {
   resolveYouTubeVideo,
 } from "./brightdata/youtube";
 
+type SearchService = "followers" | "likes" | "views" | "comments";
+
+function validateServiceTarget(
+  detected: CanonicalSearchInput,
+  platform: PlatformId,
+  service?: SearchService
+): { ok: true } | { ok: false; code: "INVALID_INPUT" | "UNSUPPORTED_URL_TYPE"; message: string } {
+  if (!service) return { ok: true };
+
+  const isContent = detected.inputType === "content_url";
+  const isProfile = detected.inputType === "handle" || detected.inputType === "profile_url";
+
+  if (service === "followers") {
+    if (!isProfile) {
+      return {
+        ok: false,
+        code: "UNSUPPORTED_URL_TYPE",
+        message: "Followers aceita somente @perfil, perfil ou canal. Links de posts e vídeos não são aceitos.",
+      };
+    }
+    return { ok: true };
+  }
+
+  if (service === "likes" || service === "views" || service === "comments") {
+    if (!isContent) {
+      return {
+        ok: false,
+        code: "UNSUPPORTED_URL_TYPE",
+        message: `${service.toUpperCase()} exige um link direto de conteúdo.`,
+      };
+    }
+
+    if (platform === "instagram" && service === "views") {
+      const pathname = detected.canonicalUrl ? new URL(detected.canonicalUrl).pathname.toLowerCase() : "";
+      const isVideo = pathname.includes("/reel/") || pathname.includes("/reels/") || pathname.includes("/tv/");
+      if (!isVideo) {
+        return {
+          ok: false,
+          code: "UNSUPPORTED_URL_TYPE",
+          message: "Instagram Views aceita somente vídeos/reels públicos. Fotos e Stories não são aceitos.",
+        };
+      }
+    }
+  }
+
+  return { ok: true };
+}
+
 export async function resolveSearchInput(
   rawInput: string,
-  selectedPlatform?: PlatformId
+  selectedPlatform?: PlatformId,
+  selectedService?: string
 ): Promise<ResolveSearchResult> {
   const detected = detectSearchInput(rawInput, selectedPlatform);
 
@@ -55,6 +104,18 @@ export async function resolveSearchInput(
   }
 
   const platform = detected.platform || selectedPlatform || "instagram";
+  const service = selectedService && ["followers", "likes", "views", "comments"].includes(selectedService)
+    ? selectedService as SearchService
+    : undefined;
+
+  const targetPolicy = validateServiceTarget(detected, platform, service);
+  if (!targetPolicy.ok) {
+    return {
+      success: false,
+      code: targetPolicy.code,
+      message: targetPolicy.message,
+    };
+  }
 
   // 2. Instagram Resolution via HikerAPI
   if (platform === "instagram") {

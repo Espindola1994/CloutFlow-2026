@@ -35,9 +35,17 @@ export async function POST(req: NextRequest) {
 
     const input = body.input.trim();
     const selectedPlatform = body.selectedPlatform || body.platform;
+    const service = typeof body.service === "string" ? body.service.toLowerCase().trim() : undefined;
+
+    if (service && !["followers", "likes", "views", "comments"].includes(service)) {
+      return NextResponse.json(
+        { success: false, code: "INVALID_INPUT", message: "Serviço social inválido." },
+        { status: 400 }
+      );
+    }
 
     // 3. Resolve using Central Social Resolver
-    const result = await resolveSearchInput(input, selectedPlatform);
+    const result = await resolveSearchInput(input, selectedPlatform, service);
 
     if (!result.success) {
       const statusMap: Record<string, number> = {

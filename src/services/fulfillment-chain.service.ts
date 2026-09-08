@@ -131,13 +131,46 @@ export function isContentUrl(urlStr: string, platform: string): boolean {
   }
 }
 
+
+function classifyTargetUrl(urlStr: string, platform: string): 'profile' | 'post' | 'video' | 'story' | 'invalid' {
+  try {
+    const parsed = new URL(urlStr.startsWith('http') ? urlStr : `https://${urlStr}`);
+    const path = parsed.pathname.toLowerCase();
+    const host = parsed.hostname.toLowerCase();
+    const p = platform.toLowerCase();
+
+    if (p === 'instagram') {
+      if (path.includes('/stories/') || path.includes('/story/')) return 'story';
+      if (path.includes('/reel/') || path.includes('/reels/') || path.includes('/tv/')) return 'video';
+      if (path.includes('/p/')) return 'post';
+      return 'profile';
+    }
+    if (p === 'tiktok') {
+      if (path.includes('/video/') || path.includes('/v/') || host.includes('vm.tiktok.com') || host.includes('vt.tiktok.com')) return 'video';
+      return 'profile';
+    }
+    if (p === 'youtube') {
+      if (path.includes('/watch') || path.includes('/shorts/') || host.includes('youtu.be') || path.includes('/v/')) return 'video';
+      return 'profile';
+    }
+    if (p === 'twitter') {
+      if (path.includes('/status/') || path.includes('/statuses/')) return 'post';
+      return 'profile';
+    }
+    return 'invalid';
+  } catch {
+    return 'invalid';
+  }
+}
+
 /**
  * Resolves and normalizes the target for any service/platform combination with strict validation.
  */
 export function resolveAndValidateTarget(
   targetInput: string | null | undefined,
   platform: string,
-  service: string
+  service: string,
+  targetTypeHint?: string | null
 ): { success: true; target: string; targetType: string } | { success: false; code: 'MISSING_TARGET' | 'TARGET_PLATFORM_MISMATCH' | 'INVALID_CONTENT_URL'; message: string } {
   if (!targetInput || targetInput.trim().length === 0) {
     return {
@@ -166,6 +199,14 @@ export function resolveAndValidateTarget(
   // 2. Service-Specific Validation
   if (s === 'followers') {
     if (raw.startsWith('http://') || raw.startsWith('https://')) {
+      const kind = classifyTargetUrl(raw, p);
+      if (kind === 'post' || kind === 'video' || kind === 'story') {
+        return {
+          success: false,
+          code: 'INVALID_CONTENT_URL',
+          message: 'Followers requires a profile/channel target, not a content URL.',
+        };
+      }
       return { success: true, target: raw, targetType: 'profile_url' };
     }
 
@@ -199,7 +240,56 @@ export function resolveAndValidateTarget(
     };
   }
 
-  return { success: true, target: raw, targetType: 'content_url' };
+  const kind = classifyTargetUrl(raw, p);
+  if (kind === 'story') {
+    return {
+      success: false,
+      code: 'INVALID_CONTENT_URL',
+      message: 'Stories are not supported fulfillment targets.',
+    };
+  }
+
+  if (p === 'instagram' && s === 'views' && kind !== 'video') {
+    return {
+      success: false,
+      code: 'INVALID_CONTENT_URL',
+      message: 'Instagram Views accepts only video/reel targets. Photo posts and Stories are not supported.',
+    };
+  }
+
+  if (p === 'instagram' && s === 'likes' && kind !== 'post' && kind !== 'video') {
+    return {
+      success: false,
+      code: 'INVALID_CONTENT_URL',
+      message: 'Instagram Likes accepts only feed posts, videos and reels.',
+    };
+  }
+
+  if ((p === 'youtube' || p === 'tiktok') && kind !== 'video') {
+    return {
+      success: false,
+      code: 'INVALID_CONTENT_URL',
+      message: `${platform} ${service} requires a direct video target.`,
+    };
+  }
+
+  if (p === 'twitter' && kind !== 'post') {
+    return {
+      success: false,
+      code: 'INVALID_CONTENT_URL',
+      message: `X / Twitter ${service} requires a direct status URL.`,
+    };
+  }
+
+  if (p === 'twitter' && s === 'views' && targetTypeHint && targetTypeHint !== 'video') {
+    return {
+      success: false,
+      code: 'INVALID_CONTENT_URL',
+      message: 'X / Twitter Views requires a verified video post target.',
+    };
+  }
+
+  return { success: true, target: raw, targetType: targetTypeHint || (kind === 'video' ? 'video' : 'content_url') };
 }
 
 /**
