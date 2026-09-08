@@ -136,11 +136,8 @@ export async function runLifecycleWorker(limit = 10) {
            // Canonical recovery: resolve platform and service to return to the catalog
            const plat = (contextData.platform as string) || '';
            const serv = (contextData.service as string) || '';
-           const offerParam = (contextData.offerId as string) || (contextData.canonicalOfferId as string) || '';
-           if (plat && serv && offerParam) {
-             returnUrl = `${baseUrl}/order/${plat}/${serv}?offer=${offerParam}`;
-           } else if (plat && serv) {
-             returnUrl = `${baseUrl}/order/${plat}/${serv}`;
+           if (plat && serv) {
+             returnUrl = `${baseUrl}/${plat}/${serv}`;
            } else {
              returnUrl = baseUrl;
            }
