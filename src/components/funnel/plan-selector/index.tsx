@@ -107,6 +107,17 @@ export function PlanSelector({ plans, username, platform, service, hasTarget, on
      void onSelectPlan?.(id); 
   };
 
+  const scrollReviews = (direction: "left" | "right") => {
+    if (!trackRef.current) return;
+    const card = trackRef.current.firstElementChild as HTMLElement | null;
+    const gap = 10;
+    const step = card ? card.offsetWidth + gap : 240;
+    trackRef.current.scrollBy({
+      left: direction === "left" ? -step : step,
+      behavior: "smooth"
+    });
+  };
+
   return <>
     {hasTarget && (
     <section className="cf-plans-pricing cf-home-offer-pricing">
@@ -229,7 +240,7 @@ export function PlanSelector({ plans, username, platform, service, hasTarget, on
 
     <section id="reviews" className="cf-plans-reviews">
       <div className="cf-plans-section-title"><h2>Real People. <span className="cf-review-growth-gradient">Real Growth.</span> <span>♥</span></h2><p>See why creators trust CloutFlow to grow.</p></div>
-      <button className="cf-plans-carousel-arrow left" type="button" aria-label="Previous reviews" aria-disabled="true"><ArrowLeft/></button>
+      <button className="cf-plans-carousel-arrow left" type="button" aria-label="Previous reviews" onClick={()=>scrollReviews("left")}><ArrowLeft/></button>
       <div ref={trackRef} className="cf-plans-review-track">
         {reviews.map((r,i)=><article className="cf-plans-review-card" key={r.name}>
           <div className="cf-plans-review-head"><span className="cf-plans-review-avatar"><Image src={r.avatar} alt=""/></span><div><b>{r.name}</b><small>{r.handle}</small></div><BadgeCheck/></div>
@@ -237,7 +248,7 @@ export function PlanSelector({ plans, username, platform, service, hasTarget, on
           <p>{r.text}</p><span className={`cf-plans-review-tag tag-${i}`}>{r.tag}</span>
         </article>)}
       </div>
-      <button className="cf-plans-carousel-arrow right" type="button" aria-label="Next reviews" aria-disabled="true"><ArrowRight/></button>
+      <button className="cf-plans-carousel-arrow right" type="button" aria-label="Next reviews" onClick={()=>scrollReviews("right")}><ArrowRight/></button>
       <div className="cf-plans-review-summary">
         <div className="cf-trust-pill">
           <span className="cf-trust-excellent">Excellent</span>

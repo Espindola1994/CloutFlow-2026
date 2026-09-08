@@ -33523,6 +33523,68 @@ html body .cf-offer-page
         font-weight: 700 !important;
         line-height: 1 !important;
     }
+
+    /* Testimonials Carousel Desktop (>= 901px): Exatamente 4 cards visíveis, proporcionais, 5º fora e setas ativas */
+    .cf-plans-reviews {
+        position: relative !important;
+        overflow: visible !important;
+    }
+
+    .cf-plans-review-track {
+        display: grid !important;
+        grid-template-columns: none !important;
+        grid-auto-flow: column !important;
+        grid-auto-columns: calc((100% - 36px) / 4) !important;
+        gap: 12px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scroll-behavior: smooth !important;
+        scroll-snap-type: x mandatory !important;
+        scrollbar-width: none !important;
+        -ms-overflow-style: none !important;
+        padding: 14px 2px 8px !important;
+    }
+
+    .cf-plans-review-track::-webkit-scrollbar {
+        display: none !important;
+    }
+
+    .cf-plans-review-card {
+        scroll-snap-align: start !important;
+        min-width: 0 !important;
+        width: 100% !important;
+        min-height: 220px !important;
+        padding: 14px 14px 12px !important;
+        box-sizing: border-box !important;
+    }
+
+    .cf-plans-review-card p {
+        font-size: 11.5px !important;
+        line-height: 1.48 !important;
+    }
+
+    .cf-plans-review-head b {
+        font-size: 12px !important;
+    }
+
+    .cf-plans-review-head small {
+        font-size: 8.5px !important;
+    }
+
+    .cf-plans-review-tag {
+        display: inline-flex !important;
+        font-size: 8.5px !important;
+        padding: 4px 10px !important;
+    }
+
+    .cf-plans-carousel-arrow {
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        display: grid !important;
+        place-items: center !important;
+        user-select: none !important;
+    }
 }
+
 
 
