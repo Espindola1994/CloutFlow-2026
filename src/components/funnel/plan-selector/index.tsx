@@ -18,8 +18,8 @@ import avatar5 from "@/assets/plans-v124/avatar-5.png";
 import rocket25dPremium from "@/assets/plans-v124/rocket-25d-premium.png";
 
 const reviews = [
-  { name:"Sarah J.", handle:"@sarah.journey", avatar:avatar1, text:"CloutFlow took my Instagram to the next level. Gained 25K+ real followers in just 2 weeks!", tag:"Instagram" },
-  { name:"Alex M.", handle:"@alexmoneymaker", avatar:avatar2, text:"The best SMM panel I've used. Fast delivery, great support, and amazing results!", tag:"YouTube" },
+  { name:"Sarah J.", handle:"@sarahjourny", avatar:avatar1, text:"CloutFlow took my Instagram to the next level. Gained 25K+ real followers in just 2 weeks!", tag:"Instagram" },
+  { name:"Alex M.", handle:"@alexmaker", avatar:avatar2, text:"The best SMM panel I've used. Fast delivery, great support, and amazing results!", tag:"YouTube" },
   { name:"Diana R.", handle:"@diana.reels", avatar:avatar3, text:"My TikTok exploded! 1M+ views on my videos and real engagement. Highly recommended!", tag:"TikTok" },
   { name:"Mark T.", handle:"@marketalks", avatar:avatar4, text:"Finally, a service that delivers what it promises. My X account grew 10x faster!", tag:"X (Twitter)" },
   { name:"Emma L.", handle:"@emma.lifestyle", avatar:avatar5, text:"Excellent quality followers and super reliable. CloutFlow is now my go-to!", tag:"Instagram" },
