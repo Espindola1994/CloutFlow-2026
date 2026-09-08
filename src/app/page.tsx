@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Loader2 } from "lucide-react";
+import { Flame, Loader2 } from "lucide-react";
 import { useFunnelStore } from "@/stores/funnel.store";
 import GrowthPackageBuilder from "@/components/growth-package-builder";
 import { Platform, Service } from "@/config/service-sales.config";
@@ -194,9 +194,9 @@ export default function HomePage({
         <Link href="/" className="cf-plans-logo cf-plans-logo-image" aria-label="CloutFlow home">
           <Image src="/cloutflow-header-logo.png" alt="CloutFlow" width={160} height={53} priority />
         </Link>
-        <div className="cf-plans-header-tagline" aria-label="Grow. Engage. Get Noticed.">
-          <span aria-hidden="true">✦</span>
-          <b>Grow. Engage. Get Noticed.</b>
+        <div className="cf-plans-header-tagline" aria-label="Post. Engage. Grow Faster.">
+          <Flame className="cf-plans-header-flame" aria-hidden="true" />
+          <b>Post. Engage. Grow Faster.</b>
         </div>
       </header>
       <section className="cf-plans-shell">

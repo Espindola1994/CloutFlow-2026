@@ -33641,5 +33641,45 @@ html body .cf-plans-review-head > svg {
     }
 }
 
+/* Desktop top header tagline: [ícone de chama] Post. Engage. Grow Faster. */
+@media (min-width: 901px) {
+    html body .cf-plans-header-tagline {
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 7px !important;
+        white-space: nowrap !important;
+        margin-left: auto !important;
+    }
+
+    html body .cf-plans-header-tagline .cf-plans-header-flame,
+    html body .cf-plans-header-tagline > svg {
+        width: 17px !important;
+        height: 17px !important;
+        color: #ff5722 !important;
+        fill: #ff5722 !important;
+        stroke: #ff5722 !important;
+        stroke-width: 1.5 !important;
+        flex-shrink: 0 !important;
+        display: inline-block !important;
+        filter: drop-shadow(0 1px 3px rgba(255, 87, 34, 0.25)) !important;
+    }
+
+    html body .cf-plans-header-tagline > b {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        line-height: 1 !important;
+        letter-spacing: -0.1px !important;
+        color: #24334f !important;
+    }
+}
+
+@media (max-width: 900px) {
+    html body .cf-plans-header-tagline {
+        display: none !important;
+    }
+}
+
+
 
 
