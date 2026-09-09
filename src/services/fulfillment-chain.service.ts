@@ -281,11 +281,11 @@ export function resolveAndValidateTarget(
     };
   }
 
-  if (p === 'twitter' && s === 'views' && targetTypeHint && targetTypeHint !== 'video') {
+  if (p === 'twitter' && s === 'views' && targetTypeHint && !['post', 'video'].includes(targetTypeHint)) {
     return {
       success: false,
       code: 'INVALID_CONTENT_URL',
-      message: 'X / Twitter Views requires a verified video post target.',
+      message: 'X / Twitter Views requires a post/video target.',
     };
   }
 

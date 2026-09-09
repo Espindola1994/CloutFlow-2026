@@ -146,7 +146,7 @@ function validateTargetForService(params: {
 
   if (p === "twitter") {
     if (kind !== "post") return `X / Twitter ${s} requires a direct status URL.`;
-    if (s === "views" && targetType !== "video") return "X / Twitter Views requires a video post target.";
+    if (s === "views" && !["post", "video"].includes(targetType)) return "X / Twitter Views requires a post/video target.";
     if (s === "likes" && !["post", "video"].includes(targetType)) return "X / Twitter Likes requires a post/video target.";
     return null;
   }

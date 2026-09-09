@@ -36,7 +36,7 @@ function validateServiceTarget(
       return {
         ok: false,
         code: "UNSUPPORTED_URL_TYPE",
-        message: "Followers aceita somente @perfil, perfil ou canal. Links de posts e vídeos não são aceitos.",
+        message: "Followers only accepts @profile, profile or channel. Post and video links are not accepted.",
       };
     }
     return { ok: true };
