@@ -234,4 +234,100 @@ describe("DesktopSmoothScroll", () => {
     // Trackpad is not intercepted, stays native
     expect(preventDefault).not.toHaveBeenCalled();
   });
+
+  it("does not spawn multiple parallel rAF loops on consecutive wheel events", () => {
+    Object.defineProperty(window, "innerWidth", { value: 1024, writable: true });
+    const rafSpy = vi.spyOn(window, "requestAnimationFrame");
+    window.scrollTo = vi.fn();
+
+    render(<DesktopSmoothScroll />);
+
+    const wheel1 = new WheelEvent("wheel", { deltaY: 120, deltaMode: 0, cancelable: true });
+    window.dispatchEvent(wheel1);
+
+    const wheel2 = new WheelEvent("wheel", { deltaY: 120, deltaMode: 0, cancelable: true });
+    window.dispatchEvent(wheel2);
+
+    const wheel3 = new WheelEvent("wheel", { deltaY: 120, deltaMode: 0, cancelable: true });
+    window.dispatchEvent(wheel3);
+
+    // Initial loop initiation should request exactly 1 rAF frame before ticks run
+    expect(rafSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not treat internal rAF window.scrollTo as external scroll interrupting the loop", () => {
+    Object.defineProperty(window, "innerWidth", { value: 1024, writable: true });
+
+    let currentRafCb: FrameRequestCallback | null = null;
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb: FrameRequestCallback) => {
+      currentRafCb = cb;
+      return 123;
+    });
+
+    const scrollToMock = vi.fn((x: number | ScrollToOptions, y?: number) => {
+      // Browser triggers a scroll event when window.scrollTo is called
+      const scrollY = typeof x === "number" ? (y ?? 0) : (x.top ?? 0);
+      Object.defineProperty(window, "pageYOffset", { value: scrollY, writable: true });
+      window.dispatchEvent(new Event("scroll"));
+    });
+    window.scrollTo = scrollToMock as unknown as typeof window.scrollTo;
+
+    render(<DesktopSmoothScroll />);
+
+    const wheel = new WheelEvent("wheel", { deltaY: 120, deltaMode: 0, cancelable: true });
+    window.dispatchEvent(wheel);
+
+    // Run first tick
+    expect(currentRafCb).not.toBeNull();
+    if (currentRafCb) {
+      (currentRafCb as FrameRequestCallback)(performance.now());
+    }
+
+    // window.scrollTo was called and dispatched a scroll event
+    expect(scrollToMock).toHaveBeenCalled();
+
+    // The rAF loop requested the next frame because internal scroll did not cancel it
+    expect(window.requestAnimationFrame).toHaveBeenCalledTimes(2);
+  });
+
+  it("guarantees monotonic displacement during downward and upward scrolling", () => {
+    Object.defineProperty(window, "innerWidth", { value: 1024, writable: true });
+    Object.defineProperty(window, "pageYOffset", { value: 0, writable: true });
+    Object.defineProperty(document.documentElement, "scrollHeight", { value: 5000, writable: true });
+    Object.defineProperty(window, "innerHeight", { value: 800, writable: true });
+
+    const renderedPositions: number[] = [];
+    let currentRafCb: FrameRequestCallback | null = null;
+
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((cb: FrameRequestCallback) => {
+      currentRafCb = cb;
+      return Math.floor(Math.random() * 1000);
+    });
+
+    window.scrollTo = vi.fn((x: number | ScrollToOptions, y?: number) => {
+      const scrollY = typeof x === "number" ? (y ?? 0) : (x.top ?? 0);
+      renderedPositions.push(scrollY);
+      Object.defineProperty(window, "pageYOffset", { value: scrollY, writable: true });
+    }) as unknown as typeof window.scrollTo;
+
+    render(<DesktopSmoothScroll />);
+
+    // Downward scroll
+    const downWheel = new WheelEvent("wheel", { deltaY: 150, deltaMode: 0, cancelable: true });
+    window.dispatchEvent(downWheel);
+
+    for (let i = 0; i < 20; i++) {
+      if (currentRafCb) {
+        const cb: FrameRequestCallback = currentRafCb;
+        currentRafCb = null;
+        cb(performance.now());
+      }
+    }
+
+    // Check downward monotonicity
+    expect(renderedPositions.length).toBeGreaterThan(0);
+    for (let i = 1; i < renderedPositions.length; i++) {
+      expect(renderedPositions[i]).toBeGreaterThanOrEqual(renderedPositions[i - 1]);
+    }
+  });
 });

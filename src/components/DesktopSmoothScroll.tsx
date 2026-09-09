@@ -88,9 +88,10 @@ export function DesktopSmoothScroll() {
 
     let targetY = window.pageYOffset || document.documentElement.scrollTop || 0;
     let currentY = targetY;
+    let renderedY = Math.round(currentY);
     let isRunning = false;
     let animationFrameId: number | null = null;
-    let isProgrammaticOrExternalScroll = false;
+    let isInternalRafScroll = false;
     let isProgrammaticSuspended = false;
 
     const getMaxScroll = () => {
@@ -115,17 +116,35 @@ export function DesktopSmoothScroll() {
 
       if (Math.abs(diff) < EPSILON) {
         currentY = targetY;
-        isProgrammaticOrExternalScroll = true;
-        window.scrollTo(0, currentY);
-        isProgrammaticOrExternalScroll = false;
+        const finalRenderY = Math.round(currentY);
+        if (finalRenderY !== renderedY) {
+          renderedY = finalRenderY;
+          isInternalRafScroll = true;
+          window.scrollTo(0, renderedY);
+        }
         stopAnimation();
         return;
       }
 
       currentY += diff * EASING;
-      isProgrammaticOrExternalScroll = true;
-      window.scrollTo(0, currentY);
-      isProgrammaticOrExternalScroll = false;
+
+      // Monotonic step enforcement towards targetY with stable subpixel integer rendering
+      const candidateRenderY = Math.round(currentY);
+      let nextRenderY = candidateRenderY;
+
+      if (targetY > renderedY) {
+        // Moving downwards: nextRenderY must never move backwards (< renderedY)
+        nextRenderY = Math.max(renderedY, Math.min(candidateRenderY, Math.round(targetY)));
+      } else if (targetY < renderedY) {
+        // Moving upwards: nextRenderY must never move forwards (> renderedY)
+        nextRenderY = Math.min(renderedY, Math.max(candidateRenderY, Math.round(targetY)));
+      }
+
+      if (nextRenderY !== renderedY) {
+        renderedY = nextRenderY;
+        isInternalRafScroll = true;
+        window.scrollTo(0, renderedY);
+      }
 
       animationFrameId = window.requestAnimationFrame(tick);
     };
@@ -147,6 +166,7 @@ export function DesktopSmoothScroll() {
       const actualScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
       targetY = actualScrollY;
       currentY = actualScrollY;
+      renderedY = Math.round(actualScrollY);
       isProgrammaticSuspended = false;
       stopAnimation();
     };
@@ -190,8 +210,10 @@ export function DesktopSmoothScroll() {
         // Trackpads typically produce tiny deltas like 1, 2, 4, 7, 13, 23 with high frequency
         if (absDelta < 35 && !isStandardWheelStep) {
           // Sync current coordinates with native trackpad scroll and return
-          targetY = window.pageYOffset || document.documentElement.scrollTop || 0;
-          currentY = targetY;
+          const actualScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+          targetY = actualScrollY;
+          currentY = actualScrollY;
+          renderedY = Math.round(actualScrollY);
           stopAnimation();
           return;
         }
@@ -207,12 +229,7 @@ export function DesktopSmoothScroll() {
       if (!isRunning) {
         currentY = actualScrollY;
         targetY = actualScrollY;
-      } else {
-        // If current window.scrollY diverged substantially from currentY (user dragged bar or jump occurred), re-sync
-        if (Math.abs(actualScrollY - currentY) > 80) {
-          currentY = actualScrollY;
-          targetY = actualScrollY;
-        }
+        renderedY = Math.round(actualScrollY);
       }
 
       // Calculate step based on deltaMode and deltaY
@@ -239,19 +256,19 @@ export function DesktopSmoothScroll() {
 
     // Sync on scroll from other sources (scrollbar dragging, programmatic scrollTo, keyboard)
     const onScroll = () => {
-      // If the scroll was triggered by our own rAF tick, do not interrupt
-      if (isProgrammaticOrExternalScroll) {
+      // If the scroll was triggered by our own rAF tick, consume the flag and do not interrupt
+      if (isInternalRafScroll) {
+        isInternalRafScroll = false;
         return;
       }
 
-      // Scroll came from external source (scrollbar drag, keyboard, programmatic auto-scroll)
+      // Scroll came from true external source (scrollbar drag, keyboard, programmatic auto-scroll)
       const actualScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
 
-      // If we are currently running our wheel animation and an external scroll happened,
-      // stop our animation so we don't fight with programmatic auto-scroll (e.g., plan auto-scroll)
-      // or scrollbar dragging.
+      // When an external scroll occurs, immediately cancel the rAF animation and sync internal state
       targetY = actualScrollY;
       currentY = actualScrollY;
+      renderedY = Math.round(actualScrollY);
       stopAnimation();
     };
 
@@ -265,6 +282,7 @@ export function DesktopSmoothScroll() {
       const maxScroll = getMaxScroll();
       targetY = Math.min(Math.max(0, actualScrollY), maxScroll);
       currentY = targetY;
+      renderedY = Math.round(targetY);
     };
 
     // Keyboard synchronization: when navigation keys are pressed, immediately sync to prevent snap
@@ -277,6 +295,7 @@ export function DesktopSmoothScroll() {
           const actualScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
           targetY = actualScrollY;
           currentY = actualScrollY;
+          renderedY = Math.round(actualScrollY);
         }, 16);
       }
     };
