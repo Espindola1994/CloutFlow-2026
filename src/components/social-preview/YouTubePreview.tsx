@@ -7,13 +7,13 @@ import { RestrictedProfileNotice } from "./RestrictedProfileNotice";
 function formatSubscribers(num: number): string {
   if (num === undefined || num === null) return "0";
   if (num >= 1_000_000_000) {
-    return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " mi";
+    return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + "B";
   }
   if (num >= 1_000_000) {
-    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " mi";
+    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   }
   if (num >= 1_000) {
-    return (num / 1_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " mil";
+    return (num / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
   }
   return num.toLocaleString("en-US");
 }
@@ -21,10 +21,10 @@ function formatSubscribers(num: number): string {
 function formatVideos(num: number): string {
   if (num === undefined || num === null) return "0";
   if (num >= 1_000_000) {
-    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " mi";
+    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   }
   if (num >= 1_000) {
-    return (num / 1_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " mil";
+    return (num / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
   }
   return num.toLocaleString("en-US");
 }
@@ -32,13 +32,13 @@ function formatVideos(num: number): string {
 function formatViews(num: number): string {
   if (num === undefined || num === null) return "0";
   if (num >= 1_000_000_000) {
-    return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " bi";
+    return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, "") + "B";
   }
   if (num >= 1_000_000) {
-    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " mi";
+    return (num / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
   }
   if (num >= 1_000) {
-    return (num / 1_000).toFixed(1).replace(/\.0$/, "").replace(".", ",") + " mil";
+    return (num / 1_000).toFixed(1).replace(/\.0$/, "") + "K";
   }
   return num.toLocaleString("en-US");
 }
@@ -120,21 +120,11 @@ export function YouTubePreview({ profile, onClose }: { profile: YouTubeVerifiedP
 
             {/* Subscribers · Videos count line (04 Reference format) */}
             <div className="text-[13px] text-[#606060] font-normal leading-normal mt-0.5 truncate">
-              <span>{formatSubscribers(profile.followers_count)
-      .replace(/(\d+),(\d+)\s*mil/i, "$1.$2K")
-      .replace(/(\d+)\s*mil/i, "$1K")
-      .replace(/(\d+),(\d+)\s*mi/i, "$1.$2M")
-      .replace(/(\d+)\s*mi/i, "$1M")} subscribers</span>
+              <span>{formatSubscribers(profile.followers_count)} subscribers</span>
               {profile.video_count !== undefined && profile.video_count > 0 && (
                 <>
-  <span className="cf-youtube-video-count-desktop"> · {formatVideos(profile.video_count)
-    .replace(/(\d+),(\d+)\s*mil/i, "$1.$2k")
-    .replace(/(\d+)\s*mil/i, "$1k")} videos</span>
-  <span className="cf-youtube-video-count-mobile"> · {formatVideos(profile.video_count)
-    .replace(/(\d+),(\d+)\s*mil/i, "$1.$2K")
-    .replace(/(\d+)\s*mil/i, "$1K")
-    .replace(/(\d+),(\d+)\s*mi/i, "$1.$2M")
-    .replace(/(\d+)\s*mi/i, "$1M")} videos</span>
+  <span className="cf-youtube-video-count-desktop"> · {formatVideos(profile.video_count)} videos</span>
+  <span className="cf-youtube-video-count-mobile"> · {formatVideos(profile.video_count)} videos</span>
 </>
               )}
             </div>

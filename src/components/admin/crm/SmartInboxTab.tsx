@@ -944,7 +944,7 @@ export function SmartInboxTab() {
                     onClick={() => scrollToBottom(true)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0F8F8A] hover:bg-[#0a6662] text-white text-xs font-semibold shadow-lg shadow-[#0F8F8A]/30 transition-all animate-bounce"
                   >
-                    <span>1 nova mensagem</span>
+                    <span>1 new message</span>
                     <ChevronDown className="w-3.5 h-3.5" />
                   </button>
                 </div>

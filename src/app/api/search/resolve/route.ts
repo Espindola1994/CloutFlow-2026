@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           code: "PROVIDER_RATE_LIMIT",
-          message: "Muitas requisições. Aguarde um minuto e tente novamente.",
+          message: "Too many requests. Please wait a minute and try again.",
         },
         { status: 429 }
       );
@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
         {
           success: false,
           code: "INVALID_INPUT",
-          message: "Parâmetro 'input' é obrigatório.",
+          message: "The 'input' parameter is required.",
         },
         { status: 400 }
       );
@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
 
     if (service && !["followers", "likes", "views", "comments"].includes(service)) {
       return NextResponse.json(
-        { success: false, code: "INVALID_INPUT", message: "Serviço social inválido." },
+        { success: false, code: "INVALID_INPUT", message: "Invalid social service." },
         { status: 400 }
       );
     }
@@ -79,7 +79,7 @@ export async function POST(req: NextRequest) {
       {
         success: false,
         code: "PROVIDER_ERROR",
-        message: "Ocorreu um erro interno ao processar a busca.",
+        message: "An internal error occurred while processing your search.",
       },
       { status: 500 }
     );

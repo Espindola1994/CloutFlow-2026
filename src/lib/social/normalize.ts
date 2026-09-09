@@ -142,7 +142,7 @@ export function detectSearchInput(
       inputType: "invalid",
       isValid: false,
       errorCode: "INVALID_INPUT",
-      errorMessage: "Entrada vazia ou inválida.",
+      errorMessage: "Input is empty or invalid.",
     };
   }
 
@@ -154,7 +154,7 @@ export function detectSearchInput(
       inputType: "invalid",
       isValid: false,
       errorCode: "INVALID_INPUT",
-      errorMessage: "Tamanho de entrada inválido.",
+      errorMessage: "Input length is invalid.",
     };
   }
 
@@ -174,7 +174,7 @@ export function detectSearchInput(
         inputType: "email",
         isValid: false,
         errorCode: "INVALID_EMAIL",
-        errorMessage: emailRes.message || "Digite um email válido. Exemplo: nome@email.com",
+        errorMessage: emailRes.message || "Enter a valid email address. Example: name@email.com",
       };
     }
   }
@@ -190,7 +190,7 @@ export function detectSearchInput(
         inputType: "invalid",
         isValid: false,
         errorCode: "UNSUPPORTED_DOMAIN",
-        errorMessage: safeCheck.error || "Esse link não pertence a uma rede social compatível.",
+        errorMessage: safeCheck.error || "This link does not belong to a supported social network.",
       };
     }
 
@@ -215,7 +215,7 @@ export function detectSearchInput(
         inputType: "invalid",
         isValid: false,
         errorCode: "UNSUPPORTED_DOMAIN",
-        errorMessage: "Esse link não pertence a uma rede social compatível.",
+        errorMessage: "This link does not belong to a supported social network.",
       };
     }
 
@@ -238,7 +238,7 @@ export function detectSearchInput(
           platform: "instagram",
           isValid: false,
           errorCode: "INVALID_URL",
-          errorMessage: "URL do Instagram não contém perfil ou publicação.",
+          errorMessage: "Instagram URL does not contain a profile or post.",
         };
       }
 
@@ -252,7 +252,7 @@ export function detectSearchInput(
           platform: "instagram",
           isValid: false,
           errorCode: "UNSUPPORTED_URL_TYPE",
-          errorMessage: "Stories do Instagram não são aceitos para Likes ou Views.",
+          errorMessage: "Instagram Stories are not accepted for Likes or Views.",
         };
       }
 
@@ -265,7 +265,7 @@ export function detectSearchInput(
             platform: "instagram",
             isValid: false,
             errorCode: "INVALID_URL",
-            errorMessage: "Código de publicação não identificado.",
+            errorMessage: "Post code could not be identified.",
           };
         }
         return {
@@ -287,7 +287,7 @@ export function detectSearchInput(
             platform: "instagram",
             isValid: false,
             errorCode: "INVALID_HANDLE",
-            errorMessage: "Nome de usuário na URL inválido.",
+            errorMessage: "Invalid username in URL.",
           };
         }
         return {
@@ -325,7 +325,7 @@ export function detectSearchInput(
           platform: "tiktok",
           isValid: false,
           errorCode: "INVALID_URL",
-          errorMessage: "URL do TikTok inválida.",
+          errorMessage: "Invalid TikTok URL.",
         };
       }
 
@@ -352,7 +352,7 @@ export function detectSearchInput(
           platform: "tiktok",
           isValid: false,
           errorCode: "INVALID_HANDLE",
-          errorMessage: "Nome de usuário na URL inválido.",
+          errorMessage: "Invalid username in URL.",
         };
       }
 
@@ -378,7 +378,7 @@ export function detectSearchInput(
           platform: "twitter",
           isValid: false,
           errorCode: "INVALID_URL",
-          errorMessage: "URL do X/Twitter inválida.",
+          errorMessage: "Invalid X/Twitter URL.",
         };
       }
 
@@ -403,7 +403,7 @@ export function detectSearchInput(
           platform: "twitter",
           isValid: false,
           errorCode: "INVALID_HANDLE",
-          errorMessage: "Nome de usuário na URL inválido.",
+          errorMessage: "Invalid username in URL.",
         };
       }
 
@@ -520,7 +520,7 @@ export function detectSearchInput(
         platform: "youtube",
         isValid: false,
         errorCode: "INVALID_URL",
-        errorMessage: "URL do YouTube não reconhecida.",
+        errorMessage: "Unrecognized YouTube URL.",
       };
     }
   }
@@ -536,7 +536,7 @@ export function detectSearchInput(
       platform: targetPlatform,
       isValid: false,
       errorCode: handleVal.error || "INVALID_HANDLE",
-      errorMessage: "Este @ não possui um formato válido.",
+      errorMessage: "This handle does not have a valid format.",
     };
   }
 

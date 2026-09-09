@@ -41,7 +41,7 @@ export async function resolveInstagramProfileByUsername(
   username: string
 ): Promise<{ success: boolean; data?: InstagramVerifiedProfile; code?: SearchErrorCode; message?: string }> {
   if (!username) {
-    return { success: false, code: "INVALID_HANDLE", message: "Este @ não possui um formato válido." };
+    return { success: false, code: "INVALID_HANDLE", message: "This handle does not have a valid format." };
   }
 
   const cleanUsername = username.trim().replace(/^@/, "");
@@ -73,11 +73,11 @@ export async function resolveInstagramProfileByUsername(
 
     if (res.status === 404) {
       socialCache.set(`ig:neg:${cleanUsername.toLowerCase()}`, true, 60);
-      return { success: false, code: "PROFILE_NOT_FOUND", message: "Não encontramos esse perfil. Confira o @ ou link e tente novamente." };
+      return { success: false, code: "PROFILE_NOT_FOUND", message: "We couldn't find this profile. Check the @handle or link and try again." };
     }
 
     if (res.status === 429) {
-      return { success: false, code: "PROVIDER_RATE_LIMIT", message: "Limite de consultas temporariamente excedido. Aguarde alguns instantes." };
+      return { success: false, code: "PROVIDER_RATE_LIMIT", message: "Query rate limit temporarily exceeded. Please wait a moment." };
     }
 
     if (!res.ok) {
@@ -92,7 +92,7 @@ export async function resolveInstagramProfileByUsername(
       return {
         success: false,
         code: res.status === 404 ? "PROFILE_NOT_FOUND" : "PROVIDER_ERROR",
-        message: "Não encontramos esse perfil. Confira o @ ou link e tente novamente.",
+        message: "We couldn't find this profile. Check the @handle or link and try again.",
       };
     }
 
@@ -105,7 +105,7 @@ export async function resolveInstagramProfileByUsername(
       return {
         success: false,
         code: "PROFILE_NOT_FOUND",
-        message: "Não encontramos esse perfil. Confira o @ ou link e tente novamente.",
+        message: "We couldn't find this profile. Check the @handle or link and try again.",
       };
     }
 
@@ -213,10 +213,10 @@ export async function resolveInstagramProfileByUsername(
     return { success: true, data: normalized };
   } catch (err: unknown) {
     if (err instanceof Error && err.message === "PROVIDER_TIMEOUT") {
-      return { success: false, code: "PROVIDER_TIMEOUT", message: "A consulta demorou mais que o esperado. Tente novamente." };
+      return { success: false, code: "PROVIDER_TIMEOUT", message: "The search took longer than expected. Please try again." };
     }
     console.error("[HikerAPI Log] Erro não tratado:", err);
-    return { success: false, code: "PROVIDER_ERROR", message: "Erro ao consultar provedor social. Tente novamente." };
+    return { success: false, code: "PROVIDER_ERROR", message: "Error querying social provider. Please try again." };
   }
 }
 
@@ -224,7 +224,7 @@ export async function resolveInstagramContentToProfile(
   code: string
 ): Promise<{ success: boolean; data?: InstagramVerifiedProfile; code?: SearchErrorCode; message?: string }> {
   if (!code) {
-    return { success: false, code: "CONTENT_NOT_FOUND", message: "Esse conteúdo não foi encontrado ou não está mais disponível." };
+    return { success: false, code: "CONTENT_NOT_FOUND", message: "This content could not be found or is no longer available." };
   }
 
   const { apiKey } = getHikerConfig();
@@ -249,11 +249,11 @@ export async function resolveInstagramContentToProfile(
     const res = await fetchHiker(`https://api.hikerapi.com/v1/media/by/code?code=${encodeURIComponent(code)}`);
 
     if (res.status === 404) {
-      return { success: false, code: "CONTENT_NOT_FOUND", message: "Esse conteúdo não foi encontrado ou não está mais disponível." };
+      return { success: false, code: "CONTENT_NOT_FOUND", message: "This content could not be found or is no longer available." };
     }
 
     if (!res.ok) {
-      return { success: false, code: "CONTENT_NOT_FOUND", message: "Esse conteúdo não foi encontrado ou não está mais disponível." };
+      return { success: false, code: "CONTENT_NOT_FOUND", message: "This content could not be found or is no longer available." };
     }
 
     const json = await res.json();
@@ -261,12 +261,12 @@ export async function resolveInstagramContentToProfile(
     const authorUser = mediaObj.user || mediaObj.owner;
 
     if (!authorUser || (!authorUser.username && !authorUser.pk)) {
-      return { success: false, code: "CONTENT_NOT_FOUND", message: "Não foi possível identificar o autor desta publicação." };
+      return { success: false, code: "CONTENT_NOT_FOUND", message: "Unable to identify the author of this post." };
     }
 
     const authorUsername = authorUser.username;
     if (!authorUsername) {
-      return { success: false, code: "CONTENT_NOT_FOUND", message: "Autor não localizado para esta publicação." };
+      return { success: false, code: "CONTENT_NOT_FOUND", message: "Author not found for this post." };
     }
 
     // Now resolve the author's full profile
@@ -277,9 +277,9 @@ export async function resolveInstagramContentToProfile(
     return profileRes;
   } catch (err: unknown) {
     if (err instanceof Error && err.message === "PROVIDER_TIMEOUT") {
-      return { success: false, code: "PROVIDER_TIMEOUT", message: "A consulta demorou mais que o esperado. Tente novamente." };
+      return { success: false, code: "PROVIDER_TIMEOUT", message: "The search took longer than expected. Please try again." };
     }
     console.error("[HikerAPI] Erro ao resolver conteúdo:", err);
-    return { success: false, code: "PROVIDER_ERROR", message: "Erro ao consultar o conteúdo no Instagram." };
+    return { success: false, code: "PROVIDER_ERROR", message: "Error querying content on Instagram." };
   }
 }

@@ -125,7 +125,7 @@ export async function resolveYouTubeChannel(
   message?: string;
 }> {
   if (!handleOrUrl) {
-    return { success: false, code: "INVALID_HANDLE", message: "Identificador de canal inválido." };
+    return { success: false, code: "INVALID_HANDLE", message: "Invalid channel identifier." };
   }
 
   const { apiKey } = getBrightDataConfig();
@@ -155,7 +155,7 @@ export async function resolveYouTubeChannel(
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "YOUTUBE_DATA_API_KEY e BRIGHTDATA_API_KEY não configuradas no servidor.",
+      message: "We couldn't check this channel right now. Please try again.",
     };
   }
 
@@ -164,7 +164,7 @@ export async function resolveYouTubeChannel(
     return {
       success: false,
       code: "PROVIDER_RESTRICTED",
-      message: "Esta consulta está temporariamente indisponível para esta plataforma.",
+      message: "This query is temporarily unavailable for this platform.",
     };
   }
 
@@ -200,14 +200,14 @@ export async function resolveYouTubeChannel(
     return {
       success: false,
       code: "PROVIDER_RESTRICTED",
-      message: "Esta consulta está temporariamente indisponível para esta plataforma.",
+      message: "This query is temporarily unavailable for this platform.",
     };
   }
 
   return {
     success: false,
     code: "PROFILE_NOT_FOUND",
-    message: "Não encontramos esse canal no YouTube. Confira o @ ou link e tente novamente.",
+    message: "We couldn't find this YouTube channel. Check the @handle or link and try again.",
   };
 }
 
@@ -222,7 +222,7 @@ export async function resolveYouTubeVideo(
   message?: string;
 }> {
   if (!videoUrl) {
-    return { success: false, code: "CONTENT_NOT_FOUND", message: "Esse vídeo não foi encontrado ou não está mais disponível." };
+    return { success: false, code: "CONTENT_NOT_FOUND", message: "This video could not be found or is no longer available." };
   }
 
   const { apiKey } = getBrightDataConfig();
@@ -249,7 +249,7 @@ export async function resolveYouTubeVideo(
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "YOUTUBE_DATA_API_KEY e BRIGHTDATA_API_KEY não configuradas no servidor.",
+      message: "We couldn't check this video right now. Please try again.",
     };
   }
 
@@ -258,7 +258,7 @@ export async function resolveYouTubeVideo(
     return {
       success: false,
       code: "PROVIDER_RESTRICTED",
-      message: "Esta consulta está temporariamente indisponível para esta plataforma.",
+      message: "This query is temporarily unavailable for this platform.",
     };
   }
 
@@ -292,6 +292,6 @@ export async function resolveYouTubeVideo(
   return {
     success: false,
     code: "CONTENT_NOT_FOUND",
-    message: "Esse vídeo do YouTube não foi encontrado ou não está mais disponível.",
+    message: "This YouTube video could not be found or is no longer available.",
   };
 }

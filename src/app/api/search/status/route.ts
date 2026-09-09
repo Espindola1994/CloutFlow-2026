@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
     if (!requestId) {
       return NextResponse.json(
-        { success: false, status: "failed", code: "INVALID_INPUT", message: "requestId é obrigatório." },
+        { success: false, status: "failed", code: "INVALID_INPUT", message: "The 'requestId' parameter is required." },
         { status: 400 }
       );
     }
@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
             success: false,
             status: "failed",
             code: "PROVIDER_TIMEOUT",
-            message: "A consulta demorou mais que o esperado. Tente novamente.",
+            message: "The search took longer than expected. Please try again.",
           },
           { status: 410 }
         );
@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
           success: false,
           status: "failed",
           code: "INVALID_INPUT",
-          message: "Identificador de busca inválido ou adulterado.",
+          message: "Invalid or expired search identifier.",
         },
         { status: 400 }
       );
@@ -130,7 +130,7 @@ export async function GET(req: NextRequest) {
           success: false,
           status: "failed",
           code: "PROFILE_NOT_FOUND",
-          message: "Não encontramos esse canal no YouTube. Confira o @ ou link e tente novamente.",
+          message: "We couldn't find this YouTube channel. Check the @handle or link and try again.",
         });
       }
 
@@ -187,7 +187,7 @@ export async function GET(req: NextRequest) {
           success: false,
           status: "failed",
           code: "PROFILE_NOT_FOUND",
-          message: "Não encontramos esse perfil no TikTok. Confira o @ ou link e tente novamente.",
+          message: "We couldn't find this TikTok profile. Check the @handle or link and try again.",
         });
       }
 
@@ -265,7 +265,7 @@ export async function GET(req: NextRequest) {
           success: false,
           status: "failed",
           code: "PROFILE_NOT_FOUND",
-          message: "Não encontramos esse perfil no X/Twitter. Confira o @ ou link e tente novamente.",
+          message: "We couldn't find this X/Twitter profile. Check the @handle or link and try again.",
         });
       }
     }
@@ -282,7 +282,7 @@ export async function GET(req: NextRequest) {
           success: false,
           status: "failed",
           code: "PROVIDER_ERROR",
-          message: "Não foi possível concluir a busca neste momento. Tente novamente.",
+          message: "Unable to complete search at this time. Please try again.",
         },
         { status: 502 }
       );
@@ -297,7 +297,7 @@ export async function GET(req: NextRequest) {
   } catch (error: any) {
     console.error("Error in /api/search/status:", error);
     return NextResponse.json(
-      { success: false, status: "failed", code: "PROVIDER_ERROR", message: "Erro ao consultar status da busca." },
+      { success: false, status: "failed", code: "PROVIDER_ERROR", message: "Failed to check search status." },
       { status: 500 }
     );
   }

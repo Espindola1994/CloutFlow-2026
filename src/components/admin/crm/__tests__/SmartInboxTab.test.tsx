@@ -319,7 +319,7 @@ describe('SmartInboxTab Live Refresh', () => {
 
     await waitFor(() => {
       expect(screen.getAllByText('Hello').length).toBeGreaterThan(0);
-      expect(screen.getByText(/Erro de conexão ao atualizar conversa/i)).toBeInTheDocument();
+      expect(screen.getByText(/Connection error while refreshing the conversation/i)).toBeInTheDocument();
     });
   });
 });

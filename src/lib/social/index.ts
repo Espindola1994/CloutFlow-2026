@@ -47,7 +47,7 @@ function validateServiceTarget(
       return {
         ok: false,
         code: "UNSUPPORTED_URL_TYPE",
-        message: `${service.toUpperCase()} exige um link direto de conteúdo.`,
+        message: `${service.toUpperCase()} requires a direct content link.`,
       };
     }
 
@@ -58,7 +58,7 @@ function validateServiceTarget(
         return {
           ok: false,
           code: "UNSUPPORTED_URL_TYPE",
-          message: "Instagram Views aceita somente vídeos/reels públicos. Fotos e Stories não são aceitos.",
+          message: "Instagram Views accepts only public video/reels. Photo posts and Stories are not accepted.",
         };
       }
     }
@@ -78,7 +78,7 @@ export async function resolveSearchInput(
     return {
       success: false,
       code: detected.errorCode || "INVALID_INPUT",
-      message: detected.errorMessage || "Entrada inválida.",
+      message: detected.errorMessage || "Invalid input.",
     };
   }
 
@@ -89,7 +89,7 @@ export async function resolveSearchInput(
       return {
         success: false,
         code: "INVALID_EMAIL",
-        message: emailRes.message || "Digite um email válido. Exemplo: nome@email.com",
+        message: emailRes.message || "Enter a valid email address. Example: name@email.com",
       };
     }
     return {
@@ -125,7 +125,7 @@ export async function resolveSearchInput(
         return {
           success: false,
           code: res.code || "CONTENT_NOT_FOUND",
-          message: res.message || "Esse conteúdo não foi encontrado ou não está mais disponível.",
+          message: res.message || "This content could not be found or is no longer available.",
         };
       }
       return {
@@ -143,7 +143,7 @@ export async function resolveSearchInput(
         return {
           success: false,
           code: res.code || "PROFILE_NOT_FOUND",
-          message: res.message || "Não encontramos esse perfil. Confira o @ ou link e tente novamente.",
+          message: res.message || "We couldn't find this profile. Check the @handle or link and try again.",
         };
       }
       return {
@@ -175,7 +175,7 @@ export async function resolveSearchInput(
         return {
           success: false,
           code: res.code || "CONTENT_NOT_FOUND",
-          message: res.message || "Esse vídeo do TikTok não foi encontrado ou não está mais disponível.",
+          message: res.message || "This TikTok video could not be found or is no longer available.",
         };
       }
       return {
@@ -203,7 +203,7 @@ export async function resolveSearchInput(
         return {
           success: false,
           code: res.code || "PROFILE_NOT_FOUND",
-          message: res.message || "Não encontramos esse perfil no TikTok. Confira o @ ou link e tente novamente.",
+          message: res.message || "We couldn't find this TikTok profile. Check the @handle or link and try again.",
         };
       }
       return {
@@ -235,7 +235,7 @@ export async function resolveSearchInput(
         return {
           success: false,
           code: res.code || "CONTENT_NOT_FOUND",
-          message: res.message || "Esse tweet não foi encontrado ou foi removido.",
+          message: res.message || "This tweet could not be found or has been removed.",
         };
       }
       return {
@@ -263,7 +263,7 @@ export async function resolveSearchInput(
         return {
           success: false,
           code: res.code || "PROFILE_NOT_FOUND",
-          message: res.message || "Não encontramos esse perfil no X/Twitter. Confira o @ ou link e tente novamente.",
+          message: res.message || "We couldn't find this X/Twitter profile. Check the @handle or link and try again.",
         };
       }
       return {
@@ -295,7 +295,7 @@ export async function resolveSearchInput(
         return {
           success: false,
           code: res.code || "CONTENT_NOT_FOUND",
-          message: res.message || "Esse vídeo do YouTube não foi encontrado ou não está mais disponível.",
+          message: res.message || "This YouTube video could not be found or is no longer available.",
         };
       }
       return {
@@ -323,7 +323,7 @@ export async function resolveSearchInput(
         return {
           success: false,
           code: res.code || "PROFILE_NOT_FOUND",
-          message: res.message || "Não encontramos esse canal no YouTube. Confira o @ ou link e tente novamente.",
+          message: res.message || "We couldn't find this YouTube channel. Check the @handle or link and try again.",
         };
       }
       return {
@@ -340,6 +340,6 @@ export async function resolveSearchInput(
   return {
     success: false,
     code: "UNSUPPORTED_URL_TYPE",
-    message: "Plataforma não suportada.",
+    message: "Unsupported platform.",
   };
 }

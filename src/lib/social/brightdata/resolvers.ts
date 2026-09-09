@@ -187,7 +187,7 @@ export async function resolveTikTokProfileByUsername(
 }> {
   const cleanUsername = cleanTikTokUsername(username);
   if (!cleanUsername) {
-    return { success: false, code: "INVALID_HANDLE", message: "Este @ não possui um formato válido." };
+    return { success: false, code: "INVALID_HANDLE", message: "This handle does not have a valid format." };
   }
 
   const cacheKey = `tk:user:${cleanUsername.toLowerCase()}`;
@@ -212,7 +212,7 @@ export async function resolveTikTokProfileByUsername(
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "BRIGHTDATA_API_KEY não configurada no servidor.",
+      message: "We couldn't check this profile right now. Please try again.",
     };
   }
 
@@ -223,7 +223,7 @@ export async function resolveTikTokProfileByUsername(
     return {
       success: false,
       code: "PROVIDER_RESTRICTED",
-      message: "Esta consulta está temporariamente indisponível para esta plataforma.",
+      message: "This query is temporarily unavailable for this platform.",
     };
   }
 
@@ -258,14 +258,14 @@ export async function resolveTikTokProfileByUsername(
     return {
       success: false,
       code: "PROVIDER_RESTRICTED",
-      message: "Esta consulta está temporariamente indisponível para esta plataforma.",
+      message: "This query is temporarily unavailable for this platform.",
     };
   }
 
   return {
     success: false,
     code: "PROFILE_NOT_FOUND",
-    message: "Não encontramos esse perfil no TikTok. Confira o @ ou link e tente novamente.",
+    message: "We couldn't find this TikTok profile. Check the @handle or link and try again.",
   };
 }
 
@@ -280,7 +280,7 @@ export async function resolveTikTokContentToProfile(
   message?: string;
 }> {
   if (!videoUrlOrId) {
-    return { success: false, code: "CONTENT_NOT_FOUND", message: "Esse conteúdo não foi encontrado ou não está mais disponível." };
+    return { success: false, code: "CONTENT_NOT_FOUND", message: "This content could not be found or is no longer available." };
   }
 
   const targetUrl = videoUrlOrId.startsWith("http") ? videoUrlOrId : `https://www.tiktok.com/video/${videoUrlOrId}`;
@@ -323,7 +323,7 @@ export async function resolveTikTokContentToProfile(
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "BRIGHTDATA_API_KEY não configurada no servidor.",
+      message: "We couldn't check this profile right now. Please try again.",
     };
   }
 
@@ -332,7 +332,7 @@ export async function resolveTikTokContentToProfile(
     return {
       success: false,
       code: "PROVIDER_RESTRICTED",
-      message: "Esta consulta está temporariamente indisponível para esta plataforma.",
+      message: "This query is temporarily unavailable for this platform.",
     };
   }
 
@@ -372,7 +372,7 @@ export async function resolveTikTokContentToProfile(
   return {
     success: false,
     code: "CONTENT_NOT_FOUND",
-    message: "Esse vídeo do TikTok não foi encontrado ou não está mais disponível.",
+    message: "This TikTok video could not be found or is no longer available.",
   };
 }
 
@@ -421,7 +421,7 @@ export async function resolveTwitterProfileByUsername(
   message?: string;
 }> {
   if (!username) {
-    return { success: false, code: "INVALID_HANDLE", message: "Este @ não possui um formato válido." };
+    return { success: false, code: "INVALID_HANDLE", message: "This handle does not have a valid format." };
   }
 
   const { apiKey } = getBrightDataConfig();
@@ -435,7 +435,7 @@ export async function resolveTwitterProfileByUsername(
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "BRIGHTDATA_API_KEY não configurada no servidor.",
+      message: "We couldn't check this profile right now. Please try again.",
     };
   }
 
@@ -446,7 +446,7 @@ export async function resolveTwitterProfileByUsername(
     return {
       success: false,
       code: "PROVIDER_RESTRICTED",
-      message: "Esta consulta está temporariamente indisponível para esta plataforma.",
+      message: "This query is temporarily unavailable for this platform.",
     };
   }
 
@@ -481,14 +481,14 @@ export async function resolveTwitterProfileByUsername(
     return {
       success: false,
       code: "PROVIDER_RESTRICTED",
-      message: "Esta consulta está temporariamente indisponível para esta plataforma.",
+      message: "This query is temporarily unavailable for this platform.",
     };
   }
 
   return {
     success: false,
     code: "PROFILE_NOT_FOUND",
-    message: "Não encontramos esse perfil no X/Twitter. Confira o @ ou link e tente novamente.",
+    message: "We couldn't find this X/Twitter profile. Check the @handle or link and try again.",
   };
 }
 
@@ -503,7 +503,7 @@ export async function resolveTwitterContentToProfile(
   message?: string;
 }> {
   if (!tweetIdOrUrl) {
-    return { success: false, code: "CONTENT_NOT_FOUND", message: "Esse conteúdo não foi encontrado ou não está mais disponível." };
+    return { success: false, code: "CONTENT_NOT_FOUND", message: "This content could not be found or is no longer available." };
   }
 
   const { apiKey } = getBrightDataConfig();
@@ -517,7 +517,7 @@ export async function resolveTwitterContentToProfile(
     return {
       success: false,
       code: "PROVIDER_ERROR",
-      message: "BRIGHTDATA_API_KEY não configurada no servidor.",
+      message: "We couldn't check this profile right now. Please try again.",
     };
   }
 
@@ -528,7 +528,7 @@ export async function resolveTwitterContentToProfile(
     return {
       success: false,
       code: "PROVIDER_RESTRICTED",
-      message: "Esta consulta está temporariamente indisponível para esta plataforma.",
+      message: "This query is temporarily unavailable for this platform.",
     };
   }
 
@@ -564,7 +564,7 @@ export async function resolveTwitterContentToProfile(
   return {
     success: false,
     code: "CONTENT_NOT_FOUND",
-    message: "Esse tweet não foi encontrado ou foi removido.",
+    message: "This tweet could not be found or has been removed.",
   };
 }
 
