@@ -152,6 +152,7 @@ export default function GrowthPackageBuilder({
   onPlatformChange,
   onGoalChange,
   onContinue,
+  onStartAnalysis,
 }: {
   initialPlatform: PlatformId;
   initialGoal: Goal;
@@ -159,6 +160,7 @@ export default function GrowthPackageBuilder({
   onPlatformChange: (platform: PlatformId) => void;
   onGoalChange: (goal: Goal) => void;
   onContinue: () => void;
+  onStartAnalysis?: () => void;
 }) {
   const [platform, setPlatformLocal] = useState<PlatformId>(initialPlatform);
   const [goal, setGoalLocal] = useState<Goal>(initialGoal);
@@ -376,6 +378,7 @@ export default function GrowthPackageBuilder({
     // The service is a selection input, not analysis output. Re-associate it
     // only when a new analysis actually starts after a checkout return.
     const runId = ++analysisRunId.current;
+    onStartAnalysis?.();
     useFunnelStore.getState().setPlatform(platform);
     useFunnelStore.getState().setService(goal);
     polling.current = true; setStage("analyzing"); setProgress(isContent ? 12 : 18); setAnalysisPhase(isContent ? "finding_content" : "loading_profile"); setCreatorLabel(null); setProfile(null);

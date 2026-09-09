@@ -256,13 +256,18 @@ export function DesktopSmoothScroll() {
 
     // Sync on scroll from other sources (scrollbar dragging, programmatic scrollTo, keyboard)
     const onScroll = () => {
+      // If programmatic auto-scroll is active, do not sync targetY or touch state
+      if (isProgrammaticSuspended) {
+        return;
+      }
+
       // If the scroll was triggered by our own rAF tick, consume the flag and do not interrupt
       if (isInternalRafScroll) {
         isInternalRafScroll = false;
         return;
       }
 
-      // Scroll came from true external source (scrollbar drag, keyboard, programmatic auto-scroll)
+      // Scroll came from true external source (scrollbar drag, keyboard, etc.)
       const actualScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
 
       // When an external scroll occurs, immediately cancel the rAF animation and sync internal state

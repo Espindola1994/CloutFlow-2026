@@ -48,6 +48,8 @@ export default function HomePage({
   const plansSectionRef = useRef<HTMLElement | null>(null);
   const shouldAutoScrollToPlans = useRef(false);
   const autoScrollDoneForRun = useRef(false);
+  const scrollFrameIdRef = useRef<number | null>(null);
+  const pollFrameIdRef = useRef<number | null>(null);
 
   const resetAfterCheckout = useCallback(() => {
     useFunnelStore.getState().resetAnalysis();
@@ -116,34 +118,41 @@ export default function HomePage({
     void fetchOffers();
   }, [fetchOffers, funnelReadiness.canShowPlans]);
 
-  // DESKTOP ONLY (>= 901px): Smooth auto-scroll to the plans section once confirmed
-  useEffect(() => {
-    if (!funnelReadiness.canShowPlans) return;
-    if (!shouldAutoScrollToPlans.current) return;
-    if (autoScrollDoneForRun.current) return;
-
+  const executeDesktopAutoScroll = useCallback(() => {
     // Strict desktop check: innerWidth >= 901px. Mobile/tablet <= 900px must remain untouched.
     if (typeof window === "undefined" || window.innerWidth < 901) {
       shouldAutoScrollToPlans.current = false;
       return;
     }
 
-    let frameId: number | null = null;
-    let attempts = 0;
+    // Cancel any active animation frame
+    if (scrollFrameIdRef.current !== null) {
+      window.cancelAnimationFrame(scrollFrameIdRef.current);
+      scrollFrameIdRef.current = null;
+    }
+    if (pollFrameIdRef.current !== null) {
+      window.cancelAnimationFrame(pollFrameIdRef.current);
+      pollFrameIdRef.current = null;
+    }
 
-    const executeScroll = () => {
+    let attempts = 0;
+    const maxAttempts = 120; // Try for up to ~2 seconds (120 frames at 60fps)
+
+    const attemptScroll = () => {
       attempts += 1;
       const element = plansSectionRef.current || document.querySelector<HTMLElement>(".cf-plans-pricing");
-      if (!element) {
-        if (attempts < 20) {
-          frameId = window.requestAnimationFrame(executeScroll);
+      
+      // If element is not yet in DOM or has 0 height (not laid out), wait for next frame
+      if (!element || element.getBoundingClientRect().height === 0) {
+        if (attempts < maxAttempts) {
+          scrollFrameIdRef.current = window.requestAnimationFrame(attemptScroll);
         }
         return;
       }
 
-      // Mark as executed immediately so it runs strictly ONCE per confirmation
-      autoScrollDoneForRun.current = true;
+      // Element exists and has dimensions! Mark intention consumed for this run
       shouldAutoScrollToPlans.current = false;
+      autoScrollDoneForRun.current = true;
 
       const rect = element.getBoundingClientRect();
       const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
@@ -158,7 +167,6 @@ export default function HomePage({
       const usableViewportHeight = Math.max(0, viewportHeight - headerHeight);
 
       // Desired top offset gives comfortable breathing room below the header
-      // Small screen or large screen breathing room
       const breathingRoom = 24;
       const topAnchorOffset = headerHeight + breathingRoom;
 
@@ -203,36 +211,53 @@ export default function HomePage({
 
       // Poll until smooth scroll finishes (within tolerance) or fallback timeout, then dispatch end event
       let checkCount = 0;
-      let checkFrameId: number | null = null;
 
       const checkScrollFinished = () => {
         checkCount += 1;
         const currentY = window.pageYOffset || document.documentElement.scrollTop || 0;
         const reached = Math.abs(currentY - safeTargetY) <= 2;
 
-        if (reached || checkCount > 75) {
-          // Re-synchronize targetY/currentY in DesktopSmoothScroll and resume
+        if (reached || checkCount > 100) {
+          // Target reached or safety timeout elapsed: re-synchronize DesktopSmoothScroll and resume
           window.dispatchEvent(new CustomEvent(PROGRAMMATIC_SCROLL_END_EVENT));
+          pollFrameIdRef.current = null;
           return;
         }
 
-        checkFrameId = window.requestAnimationFrame(checkScrollFinished);
+        pollFrameIdRef.current = window.requestAnimationFrame(checkScrollFinished);
       };
 
       // Allow browser smooth scroll to begin moving before checking tolerance
       window.setTimeout(() => {
-        checkFrameId = window.requestAnimationFrame(checkScrollFinished);
+        pollFrameIdRef.current = window.requestAnimationFrame(checkScrollFinished);
       }, 50);
     };
 
-    frameId = window.requestAnimationFrame(executeScroll);
+    // Use double requestAnimationFrame to ensure browser commit and layout are complete
+    scrollFrameIdRef.current = window.requestAnimationFrame(() => {
+      scrollFrameIdRef.current = window.requestAnimationFrame(attemptScroll);
+    });
+  }, []);
+
+  // DESKTOP ONLY (>= 901px): Smooth auto-scroll to the plans section once confirmed
+  useEffect(() => {
+    if (!funnelReadiness.canShowPlans) return;
+    if (!shouldAutoScrollToPlans.current) return;
+    if (autoScrollDoneForRun.current) return;
+
+    executeDesktopAutoScroll();
 
     return () => {
-      if (frameId !== null) {
-        window.cancelAnimationFrame(frameId);
+      if (scrollFrameIdRef.current !== null) {
+        window.cancelAnimationFrame(scrollFrameIdRef.current);
+        scrollFrameIdRef.current = null;
+      }
+      if (pollFrameIdRef.current !== null) {
+        window.cancelAnimationFrame(pollFrameIdRef.current);
+        pollFrameIdRef.current = null;
       }
     };
-  }, [funnelReadiness.canShowPlans]);
+  }, [funnelReadiness.canShowPlans, executeDesktopAutoScroll]);
 
   const isFollowers = service === "followers";
   const username = (socialUsername || targetValue || "your profile").replace(/^@+/, "");
@@ -349,11 +374,18 @@ export default function HomePage({
           resetToken={analysisResetToken}
           onPlatformChange={changePlatform}
           onGoalChange={(goal) => changeProduct(goal)}
+          onStartAnalysis={() => {
+            // New analysis initiated: reset auto-scroll lock for this fresh run
+            autoScrollDoneForRun.current = false;
+            shouldAutoScrollToPlans.current = false;
+          }}
           onContinue={() => {
             void fetchOffers();
             if (typeof window !== "undefined" && window.innerWidth >= 901) {
               shouldAutoScrollToPlans.current = true;
               autoScrollDoneForRun.current = false;
+              // If plans section is already mounted and ready in the DOM, execute scroll directly
+              executeDesktopAutoScroll();
             } else {
               window.setTimeout(() => {
                 document.querySelector(".cf-plans-pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });

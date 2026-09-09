@@ -330,4 +330,27 @@ describe("DesktopSmoothScroll", () => {
       expect(renderedPositions[i]).toBeGreaterThanOrEqual(renderedPositions[i - 1]);
     }
   });
+
+  it("does not mutate targetY or cancel state on scroll events when programmatic auto-scroll is suspended", () => {
+    Object.defineProperty(window, "innerWidth", { value: 1024, writable: true });
+    render(<DesktopSmoothScroll />);
+
+    // Dispatch programmatic scroll start
+    window.dispatchEvent(new CustomEvent(PROGRAMMATIC_SCROLL_START_EVENT));
+
+    // Simulate scroll event during programmatic scroll animation
+    Object.defineProperty(window, "pageYOffset", { value: 450, writable: true });
+    window.dispatchEvent(new Event("scroll"));
+
+    // After end event with final target
+    Object.defineProperty(window, "pageYOffset", { value: 920, writable: true });
+    window.dispatchEvent(new CustomEvent(PROGRAMMATIC_SCROLL_END_EVENT));
+
+    // Wheel should be active and work cleanly from 920
+    const preventDefault = vi.fn();
+    const wheelEvent = new WheelEvent("wheel", { deltaY: 100, deltaMode: 0, cancelable: true });
+    Object.defineProperty(wheelEvent, "preventDefault", { value: preventDefault });
+    window.dispatchEvent(wheelEvent);
+    expect(preventDefault).toHaveBeenCalled();
+  });
 });
