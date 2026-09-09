@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { inter } from "@/lib/fonts";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { DesktopSmoothScroll } from "@/components/DesktopSmoothScroll";
 
 export const viewport: Viewport = {
   themeColor: "#080B14",
@@ -41,6 +42,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`dark ${inter.variable}`}>
       <body className={`${inter.className} font-sans antialiased bg-background text-foreground min-h-screen selection:bg-primary/30 selection:text-primary-foreground`}>
+        <DesktopSmoothScroll />
         {children}
         <Toaster theme="dark" position="top-right" />
       </body>
