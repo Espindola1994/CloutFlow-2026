@@ -76,7 +76,23 @@ function serviceLabel(service:string){
   return "Growth";
 }
 
-export function PlanSelector({ plans, username, platform, service, hasTarget, onSelectPlan }:{plans:any[];username:string;platform:string;service:string;hasTarget:boolean;onSelectPlan?:(planId:string)=>void|Promise<void>}){
+export function PlanSelector({
+  plans,
+  username,
+  platform,
+  service,
+  hasTarget,
+  onSelectPlan,
+  sectionRef,
+}: {
+  plans: any[];
+  username: string;
+  platform: string;
+  service: string;
+  hasTarget: boolean;
+  onSelectPlan?: (planId: string) => void | Promise<void>;
+  sectionRef?: React.Ref<HTMLElement>;
+}) {
   const trackRef=useRef<HTMLDivElement>(null);
   const { setPlan }=useFunnelStore();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
@@ -120,7 +136,7 @@ export function PlanSelector({ plans, username, platform, service, hasTarget, on
 
   return <>
     {hasTarget && (
-    <section className="cf-plans-pricing cf-home-offer-pricing">
+    <section ref={sectionRef} className="cf-plans-pricing cf-home-offer-pricing">
         <div className="cf-plans-section-title cf-pricing-title">
           <h2>Choose Your <span className="cf-growth-plan-accent">Growth Plan</span> <span aria-hidden="true">♥</span></h2>
           <p>Pick a plan for your goals and start growing today.</p>

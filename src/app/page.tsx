@@ -41,10 +41,15 @@ export default function HomePage({
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [analysisResetToken, setAnalysisResetToken] = useState(0);
   const offersRequestId = useRef(0);
+  const plansSectionRef = useRef<HTMLElement | null>(null);
+  const shouldAutoScrollToPlans = useRef(false);
+  const autoScrollDoneForRun = useRef(false);
 
   const resetAfterCheckout = useCallback(() => {
     useFunnelStore.getState().resetAnalysis();
     offersRequestId.current += 1;
+    shouldAutoScrollToPlans.current = false;
+    autoScrollDoneForRun.current = false;
     setPlatformState(initialPlatform);
     setSelectedService(initialService);
     setOffers([]);
@@ -100,10 +105,95 @@ export default function HomePage({
       offersRequestId.current += 1;
       setOffers([]);
       setLoadingOffers(false);
+      shouldAutoScrollToPlans.current = false;
+      autoScrollDoneForRun.current = false;
       return;
     }
     void fetchOffers();
   }, [fetchOffers, funnelReadiness.canShowPlans]);
+
+  // DESKTOP ONLY (>= 901px): Smooth auto-scroll to the plans section once confirmed
+  useEffect(() => {
+    if (!funnelReadiness.canShowPlans) return;
+    if (!shouldAutoScrollToPlans.current) return;
+    if (autoScrollDoneForRun.current) return;
+
+    // Strict desktop check: innerWidth >= 901px. Mobile/tablet <= 900px must remain untouched.
+    if (typeof window === "undefined" || window.innerWidth < 901) {
+      shouldAutoScrollToPlans.current = false;
+      return;
+    }
+
+    let frameId: number | null = null;
+    let attempts = 0;
+
+    const executeScroll = () => {
+      attempts += 1;
+      const element = plansSectionRef.current || document.querySelector<HTMLElement>(".cf-plans-pricing");
+      if (!element) {
+        if (attempts < 20) {
+          frameId = window.requestAnimationFrame(executeScroll);
+        }
+        return;
+      }
+
+      // Mark as executed immediately so it runs strictly ONCE per confirmation
+      autoScrollDoneForRun.current = true;
+      shouldAutoScrollToPlans.current = false;
+
+      const rect = element.getBoundingClientRect();
+      const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      const sectionTop = rect.top + currentScrollY;
+      const sectionHeight = rect.height;
+
+      // Header height on desktop is ~62px-72px
+      const headerElement = document.querySelector<HTMLElement>(".cf-plans-header");
+      const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 68;
+
+      const viewportHeight = window.innerHeight;
+      const usableViewportHeight = Math.max(0, viewportHeight - headerHeight);
+
+      // Desired top offset gives comfortable breathing room below the header
+      // Small screen or large screen breathing room
+      const breathingRoom = 24;
+      const topAnchorOffset = headerHeight + breathingRoom;
+
+      let targetY: number;
+
+      if (sectionHeight <= usableViewportHeight - (breathingRoom * 2)) {
+        // Section fits completely: center it visually in the usable viewport area
+        const remainingSpace = usableViewportHeight - sectionHeight;
+        targetY = sectionTop - (headerHeight + Math.round(remainingSpace / 2));
+      } else {
+        // Section taller than usable viewport: anchor top of section with proper breathing room below header
+        // Priority 1: title fully visible
+        // Priority 2: subtitle fully visible
+        // Priority 3: first row of cards and maximum possible of the rest
+        // NEVER cut title or subtitle off the top of the viewport
+        targetY = sectionTop - topAnchorOffset;
+      }
+
+      // Ensure targetY never goes negative or past document bounds
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - viewportHeight);
+      const safeTargetY = Math.min(Math.max(0, Math.round(targetY)), maxScroll);
+
+      const prefersReducedMotion = typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      window.scrollTo({
+        top: safeTargetY,
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
+    };
+
+    frameId = window.requestAnimationFrame(executeScroll);
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
+  }, [funnelReadiness.canShowPlans]);
 
   const isFollowers = service === "followers";
   const username = (socialUsername || targetValue || "your profile").replace(/^@+/, "");
@@ -222,9 +312,14 @@ export default function HomePage({
           onGoalChange={(goal) => changeProduct(goal)}
           onContinue={() => {
             void fetchOffers();
-            window.setTimeout(() => {
-              document.querySelector(".cf-plans-pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
-            }, 180);
+            if (typeof window !== "undefined" && window.innerWidth >= 901) {
+              shouldAutoScrollToPlans.current = true;
+              autoScrollDoneForRun.current = false;
+            } else {
+              window.setTimeout(() => {
+                document.querySelector(".cf-plans-pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 180);
+            }
           }}
         />
         {loadingOffers && funnelReadiness.canShowPlans && (
@@ -234,6 +329,7 @@ export default function HomePage({
           </div>
         )}
         <PlanSelector
+          sectionRef={plansSectionRef}
           plans={offers}
           username={username}
           platform={platform}
