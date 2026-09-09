@@ -23533,7 +23533,7 @@ html body .cf-o10-master.cf-o10-platform-twitter[data-stage="package"] .cf-o10-p
   }
 
   html body .cf-home-offer-card-host .cf-o10-package-ref-grid {
-    width:100%!important;
+    width: 900px !important;
     max-width:1000px!important;
     margin-left:auto!important;
     margin-right:auto!important;
