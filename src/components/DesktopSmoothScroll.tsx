@@ -25,8 +25,9 @@ import { useEffect } from "react";
  * 10. High performance: single passive:false wheel listener, refs only (no React re-renders), single rAF loop with idle shutdown.
  */
 
-export const WHEEL_MULTIPLIER = 0.95; // Sweet spot: intermediate speed (0.90 to 1.00)
-export const EASING = 0.15; // Sweet spot: gentle natural deceleration (0.14 to 0.17)
+export const MIN_WHEEL_STEP = 105; // Minimum impulse displacement (px) per notch for conventional mouse wheel
+export const WHEEL_MULTIPLIER = 1.00; // Linear multiplier per notch
+export const EASING = 0.18; // Responsive interpolation factor (0.16 to 0.20)
 const EPSILON = 0.5; // Threshold to stop animation loop
 
 export const PROGRAMMATIC_SCROLL_START_EVENT = "cf-programmatic-scroll-start";
@@ -217,14 +218,20 @@ export function DesktopSmoothScroll() {
       // Calculate step based on deltaMode and deltaY
       let rawDelta = e.deltaY;
       if (e.deltaMode === 1) {
-        // Delta in lines (Firefox default)
+        // Delta in lines (Firefox default) - normalize each line to standard line height
         rawDelta *= 33;
       } else if (e.deltaMode === 2) {
         // Delta in pages
         rawDelta *= window.innerHeight;
       }
 
-      const impulse = rawDelta * WHEEL_MULTIPLIER;
+      // Consistent minimum impulse for traditional mouse wheel notches:
+      // Guarantees that a single wheel notch produces an immediate, clearly noticeable displacement (at least MIN_WHEEL_STEP px).
+      // Each notch is completely linear without progressive acceleration or velocity buildup.
+      const sign = Math.sign(rawDelta);
+      const normalizedDelta = sign * Math.max(Math.abs(rawDelta), MIN_WHEEL_STEP);
+
+      const impulse = normalizedDelta * WHEEL_MULTIPLIER;
       targetY = Math.min(Math.max(0, targetY + impulse), maxScroll);
 
       startAnimation();
