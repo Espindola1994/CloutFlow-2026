@@ -11,6 +11,10 @@ import { PLATFORM_SERVICES, CommercialPlatform, CommercialService } from "@/serv
 import { PublicOfferItem } from "@/components/sales/OfferCard";
 import { PlanSelector } from "@/components/funnel/plan-selector";
 import { markCheckoutReturn, processCheckoutReturn } from "@/lib/checkout-return";
+import {
+  PROGRAMMATIC_SCROLL_START_EVENT,
+  PROGRAMMATIC_SCROLL_END_EVENT,
+} from "@/components/DesktopSmoothScroll";
 import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
 import tiktokIcon from "@/assets/home-icons-vector/tiktok.svg";
 import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
@@ -177,13 +181,48 @@ export default function HomePage({
       const maxScroll = Math.max(0, document.documentElement.scrollHeight - viewportHeight);
       const safeTargetY = Math.min(Math.max(0, Math.round(targetY)), maxScroll);
 
+      // Notify DesktopSmoothScroll to pause interception during programmatic auto-scroll
+      window.dispatchEvent(new CustomEvent(PROGRAMMATIC_SCROLL_START_EVENT));
+
       const prefersReducedMotion = typeof window.matchMedia === "function" &&
         window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+      if (prefersReducedMotion) {
+        window.scrollTo({
+          top: safeTargetY,
+          behavior: "auto",
+        });
+        window.dispatchEvent(new CustomEvent(PROGRAMMATIC_SCROLL_END_EVENT));
+        return;
+      }
+
       window.scrollTo({
         top: safeTargetY,
-        behavior: prefersReducedMotion ? "auto" : "smooth",
+        behavior: "smooth",
       });
+
+      // Poll until smooth scroll finishes (within tolerance) or fallback timeout, then dispatch end event
+      let checkCount = 0;
+      let checkFrameId: number | null = null;
+
+      const checkScrollFinished = () => {
+        checkCount += 1;
+        const currentY = window.pageYOffset || document.documentElement.scrollTop || 0;
+        const reached = Math.abs(currentY - safeTargetY) <= 2;
+
+        if (reached || checkCount > 75) {
+          // Re-synchronize targetY/currentY in DesktopSmoothScroll and resume
+          window.dispatchEvent(new CustomEvent(PROGRAMMATIC_SCROLL_END_EVENT));
+          return;
+        }
+
+        checkFrameId = window.requestAnimationFrame(checkScrollFinished);
+      };
+
+      // Allow browser smooth scroll to begin moving before checking tolerance
+      window.setTimeout(() => {
+        checkFrameId = window.requestAnimationFrame(checkScrollFinished);
+      }, 50);
     };
 
     frameId = window.requestAnimationFrame(executeScroll);

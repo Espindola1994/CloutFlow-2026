@@ -8,21 +8,29 @@ import { useEffect } from "react";
  *
  * Requirements:
  * 1. Desktop only: window.innerWidth >= 901px. Mobile/tablet <= 900px untouched.
- * 2. Mouse wheel vertical scrolling with multiplier (0.72) and easing (0.12).
- * 3. Trackpad safe: detects trackpad gestures (low delta with deltaMode === 0 or smooth fractional deltas)
+ * 2. Mouse wheel vertical scrolling with multiplier (0.95) and easing (0.15).
+ *    No progressive/accumulative acceleration: each wheel impulse has predictable, consistent response.
+ * 3. Explicit programmatic scroll coordination:
+ *    Listens for 'cf-programmatic-scroll-start' and 'cf-programmatic-scroll-end' (or global flag).
+ *    During programmatic auto-scroll (e.g. plans auto-scroll), wheel interception is suspended.
+ *    On end, currentY and targetY are immediately synchronized to window.scrollY.
+ * 4. Trackpad safe: detects trackpad gestures (low delta with deltaMode === 0 or smooth fractional deltas)
  *    and lets trackpads use native smooth scrolling.
- * 4. Internal scrollable elements bypass: if event target or ancestor has scrollable vertical overflow and can scroll in event direction, bypass.
- * 5. Ctrl + Wheel / Pinch Zoom bypass: if event.ctrlKey is true, bypass.
- * 6. Horizontal / Shift + Wheel bypass: if Math.abs(event.deltaX) > Math.abs(event.deltaY) or event.shiftKey, bypass.
- * 7. Scrollbar dragging & keyboard keys (PageDown, Up, Down, Space, Home, End) & programmatic window.scrollTo() / scrollIntoView:
+ * 5. Internal scrollable elements bypass: if event target or ancestor has scrollable vertical overflow and can scroll in event direction, bypass.
+ * 6. Ctrl + Wheel / Pinch Zoom bypass: if event.ctrlKey is true, bypass.
+ * 7. Horizontal / Shift + Wheel bypass: if Math.abs(event.deltaX) > Math.abs(event.deltaY) or event.shiftKey, bypass.
+ * 8. Scrollbar dragging & keyboard keys (PageDown, Up, Down, Space, Home, End) & programmatic window.scrollTo() / scrollIntoView:
  *    instantly synchronizes internal state and cancels any pending animation frame so no fighting or jumping back occurs.
- * 8. prefers-reduced-motion: if reduce, completely inactive.
- * 9. High performance: single passive:false wheel listener, refs only (no React re-renders), single rAF loop with idle shutdown.
+ * 9. prefers-reduced-motion: if reduce, completely inactive.
+ * 10. High performance: single passive:false wheel listener, refs only (no React re-renders), single rAF loop with idle shutdown.
  */
 
-const WHEEL_MULTIPLIER = 0.74; // Sweet spot between 0.65 and 0.85
-const EASING = 0.12; // Sweet spot between 0.10 and 0.16
+export const WHEEL_MULTIPLIER = 0.95; // Sweet spot: intermediate speed (0.90 to 1.00)
+export const EASING = 0.15; // Sweet spot: gentle natural deceleration (0.14 to 0.17)
 const EPSILON = 0.5; // Threshold to stop animation loop
+
+export const PROGRAMMATIC_SCROLL_START_EVENT = "cf-programmatic-scroll-start";
+export const PROGRAMMATIC_SCROLL_END_EVENT = "cf-programmatic-scroll-end";
 
 /**
  * Helper to check if an element or any of its parents up to document.body
@@ -82,6 +90,7 @@ export function DesktopSmoothScroll() {
     let isRunning = false;
     let animationFrameId: number | null = null;
     let isProgrammaticOrExternalScroll = false;
+    let isProgrammaticSuspended = false;
 
     const getMaxScroll = () => {
       return Math.max(
@@ -99,7 +108,7 @@ export function DesktopSmoothScroll() {
     };
 
     const tick = () => {
-      if (!isRunning) return;
+      if (!isRunning || isProgrammaticSuspended) return;
 
       const diff = targetY - currentY;
 
@@ -121,14 +130,33 @@ export function DesktopSmoothScroll() {
     };
 
     const startAnimation = () => {
-      if (!isRunning) {
+      if (!isRunning && !isProgrammaticSuspended) {
         isRunning = true;
         animationFrameId = window.requestAnimationFrame(tick);
       }
     };
 
+    // Programmatic scroll coordination handlers
+    const onProgrammaticScrollStart = () => {
+      isProgrammaticSuspended = true;
+      stopAnimation();
+    };
+
+    const onProgrammaticScrollEnd = () => {
+      const actualScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      targetY = actualScrollY;
+      currentY = actualScrollY;
+      isProgrammaticSuspended = false;
+      stopAnimation();
+    };
+
     // Wheel event handler
     const onWheel = (e: WheelEvent) => {
+      // If programmatic auto-scroll is active, do not intercept or fight it
+      if (isProgrammaticSuspended) {
+        return;
+      }
+
       // 1. Strict desktop check: innerWidth >= 901px
       if (window.innerWidth < 901) {
         return;
@@ -251,6 +279,8 @@ export function DesktopSmoothScroll() {
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onResize, { passive: true });
     window.addEventListener("keydown", onKeyDown, { passive: true });
+    window.addEventListener(PROGRAMMATIC_SCROLL_START_EVENT, onProgrammaticScrollStart);
+    window.addEventListener(PROGRAMMATIC_SCROLL_END_EVENT, onProgrammaticScrollEnd);
 
     return () => {
       stopAnimation();
@@ -258,6 +288,8 @@ export function DesktopSmoothScroll() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener(PROGRAMMATIC_SCROLL_START_EVENT, onProgrammaticScrollStart);
+      window.removeEventListener(PROGRAMMATIC_SCROLL_END_EVENT, onProgrammaticScrollEnd);
     };
   }, []);
 
