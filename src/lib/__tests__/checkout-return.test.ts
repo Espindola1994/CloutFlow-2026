@@ -35,4 +35,25 @@ describe("checkout return protection", () => {
     expect(reset).toHaveBeenCalledOnce();
     expect(replaceHome).toHaveBeenCalledOnce();
   });
+
+  it("handles BFCache pageshow navigation correctly with marker", () => {
+    const store = storage();
+    // Simulate departing to checkout
+    markCheckoutReturn(store);
+    expect(store.getItem(CHECKOUT_RETURN_FLAG)).toBe("1");
+
+    // Simulate returning via BFCache pageshow
+    const reset = vi.fn();
+    const replaceHome = vi.fn();
+    const handled = processCheckoutReturn({ storage: store, resetFunnel: reset, replaceHome });
+    expect(handled).toBe(true);
+    expect(reset).toHaveBeenCalledOnce();
+    expect(replaceHome).toHaveBeenCalledOnce();
+    expect(store.getItem(CHECKOUT_RETURN_FLAG)).toBeNull();
+
+    // Subsequent normal navigation does NOT trigger reset
+    const secondHandled = processCheckoutReturn({ storage: store, resetFunnel: reset, replaceHome });
+    expect(secondHandled).toBe(false);
+    expect(reset).toHaveBeenCalledOnce();
+  });
 });

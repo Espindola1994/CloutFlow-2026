@@ -53,6 +53,7 @@ export interface FunnelState {
   setNiche: (nicheId: string, custom?: string) => void;
   setSelectedMedia: (media: string[]) => void;
   setPlan: (planId: string) => void;
+  resetAfterCheckoutReturn: () => void;
   resetAnalysis: () => void;
   reset: () => void;
   getReadiness: () => FunnelReadinessResult;
@@ -154,6 +155,28 @@ export const useFunnelStore = create<FunnelState>()(
       setNiche: (nicheId, custom) => set({ nicheId, customNiche: custom || null }),
       setSelectedMedia: (media) => set({ selectedMedia: media }),
       setPlan: (planId) => set({ planId }),
+
+      // Checkout return: full funnel reset back to initial state
+      resetAfterCheckoutReturn: () => set({
+        platformSlug: null,
+        serviceSlug: null,
+        followerType: null,
+        username: null,
+        email: null,
+        draftIdentifier: null,
+        profileData: null,
+        targetType: null,
+        targetValue: null,
+        targetUrl: null,
+        socialUsername: null,
+        profileUrl: null,
+        verifiedTargetData: null,
+        verificationStatus: 'idle',
+        nicheId: null,
+        customNiche: null,
+        selectedMedia: null,
+        planId: null,
+      }),
 
       // Checkout return invalidates analysis results but keeps the customer's inputs and route context.
       resetAnalysis: () => set((state) => ({

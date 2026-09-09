@@ -226,7 +226,7 @@ export async function GET(req: NextRequest) {
                   success: false,
                   status: "failed",
                   code: "INVALID_CONTENT_URL",
-                  message: "X / Twitter Views aceita somente posts que contenham vídeo.",
+                  message: "X / Twitter Views only accepts posts that contain video.",
                 },
                 { status: 400 }
               );

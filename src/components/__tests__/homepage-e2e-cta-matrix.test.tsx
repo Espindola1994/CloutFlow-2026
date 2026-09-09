@@ -226,7 +226,7 @@ describe('HomePage E2E DOM Interaction & Checkout Flow for TikTok, Twitter, YouT
     });
   }
 
-  it('clears the analyzed profile on checkout pageshow while preserving typed inputs', async () => {
+  it('resets the full funnel on checkout pageshow: target, email, and cards reset to initial state', async () => {
     global.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes('/api/search/resolve')) {
         return Promise.resolve({
@@ -292,11 +292,19 @@ describe('HomePage E2E DOM Interaction & Checkout Flow for TikTok, Twitter, YouT
     });
 
     const reset = useFunnelStore.getState();
-    expect(reset.email).toBe('creator@example.com');
-    expect(reset.draftIdentifier).toBe('@creator');
+    expect(reset.email).toBeNull();
+    expect(reset.draftIdentifier).toBeNull();
+    expect(reset.username).toBeNull();
+    expect(reset.targetValue).toBeNull();
+    expect(reset.targetUrl).toBeNull();
     expect(reset.profileData).toBeNull();
     expect(reset.verifiedTargetData).toBeNull();
     expect(reset.planId).toBeNull();
     expect(screen.getByRole('button', { name: 'Analyze Profile' })).toBeEnabled();
+
+    // Verify input fields are empty in DOM
+    const inputs = container.querySelectorAll('.cf-pb-input input') as NodeListOf<HTMLInputElement>;
+    expect(inputs[0].value).toBe('');
+    expect(inputs[1].value).toBe('');
   });
 });

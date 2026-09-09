@@ -192,7 +192,7 @@ describe('GrowthPackageBuilder - YouTube Matrix & Normalization', () => {
     expect(state.targetUrl).not.toContain('linktr.ee');
   });
 
-  it('6. Checkout return resets the result view and preserves the typed email and target input', async () => {
+  it('6. Checkout return resets the result view and clears email and target input', async () => {
     const { useFunnelStore } = await import('@/stores/funnel.store');
     useFunnelStore.getState().reset();
 
@@ -241,7 +241,7 @@ describe('GrowthPackageBuilder - YouTube Matrix & Normalization', () => {
 
     const beforeReset = useFunnelStore.getState();
     beforeReset.setPlan('plan_starter');
-    beforeReset.resetAnalysis();
+    beforeReset.resetAfterCheckoutReturn();
 
     rerender(
       <GrowthPackageBuilder
@@ -256,10 +256,10 @@ describe('GrowthPackageBuilder - YouTube Matrix & Normalization', () => {
 
     expect(screen.queryByText(/Yes, this is my profile/i)).toBeNull();
     expect(container.querySelector('.cf-pb-result-idle')).not.toBeNull();
-    expect(usernameInput.value).toBe('@creator');
-    expect(emailInput.value).toBe('creator@example.com');
-    expect(useFunnelStore.getState().email).toBe('creator@example.com');
-    expect(useFunnelStore.getState().draftIdentifier).toBe('@creator');
+    expect(usernameInput.value).toBe('');
+    expect(emailInput.value).toBe('');
+    expect(useFunnelStore.getState().email).toBeNull();
+    expect(useFunnelStore.getState().draftIdentifier).toBeNull();
     expect(useFunnelStore.getState().profileData).toBeNull();
     expect(useFunnelStore.getState().verifiedTargetData).toBeNull();
     expect(useFunnelStore.getState().planId).toBeNull();

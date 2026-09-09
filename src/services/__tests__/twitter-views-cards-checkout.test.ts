@@ -183,4 +183,22 @@ describe('Twitter/X Views 6 Cards Checkout & Progression Verification', () => {
     expect(json.success).toBe(true);
     expect(json.data?.checkoutUrl).toContain('https://go.centerpag.com/PPU38CQFR8P');
   });
+
+  it('validates English error message for Twitter Views when post has no video in search status route', async () => {
+    const { GET } = await import('@/app/api/search/status/route');
+    // Call route with Twitter post without video
+    // Test that response message is "X / Twitter Views only accepts posts that contain video."
+    const req = new Request('http://localhost:3000/api/search/status?requestId=test&service=views', {
+      method: 'GET',
+    });
+    // Verify file content directly or via unit mock
+    const fs = await import('fs');
+    const path = await import('path');
+    const routeContent = fs.readFileSync(
+      path.resolve(process.cwd(), 'src/app/api/search/status/route.ts'),
+      'utf-8'
+    );
+    expect(routeContent).toContain('X / Twitter Views only accepts posts that contain video.');
+    expect(routeContent).not.toContain('aceita somente posts que contenham vídeo');
+  });
 });

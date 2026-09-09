@@ -52,7 +52,7 @@ export default function HomePage({
   const pollFrameIdRef = useRef<number | null>(null);
 
   const resetAfterCheckout = useCallback(() => {
-    useFunnelStore.getState().resetAnalysis();
+    useFunnelStore.getState().resetAfterCheckoutReturn();
     offersRequestId.current += 1;
     shouldAutoScrollToPlans.current = false;
     autoScrollDoneForRun.current = false;
@@ -62,6 +62,15 @@ export default function HomePage({
     setLoadingOffers(false);
     setCheckoutError(null);
     setAnalysisResetToken((token) => token + 1);
+    if (typeof window !== "undefined") {
+      try {
+        if ("scrollRestoration" in window.history) {
+          window.history.scrollRestoration = "manual";
+        }
+      } catch {}
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+      window.dispatchEvent(new CustomEvent(PROGRAMMATIC_SCROLL_END_EVENT));
+    }
   }, [initialPlatform, initialService]);
 
   useEffect(() => {
