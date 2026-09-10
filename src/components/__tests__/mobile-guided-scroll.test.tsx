@@ -230,12 +230,21 @@ describe('Mobile Guided Auto-Scroll Flow (<= 900px)', () => {
     Element.prototype.getBoundingClientRect = origGetBoundingClientRect;
   });
 
-  it('4. Search again resets flags and allows second cycle to execute identically', async () => {
+  it('4. Search again resets flags, scrolls back to start of Builder, and allows second cycle to execute identically', async () => {
     const { container } = render(<HomePage initialPlatform="instagram" initialService="followers" />);
 
     Element.prototype.getBoundingClientRect = function () {
+      if (this.id === 'growth-package-builder' || (this.classList && this.classList.contains('cf-premium-builder'))) {
+        return { top: 120, bottom: 900, left: 0, right: 390, width: 390, height: 780, x: 0, y: 120, toJSON: () => {} };
+      }
+      if (this.classList && this.classList.contains('cf-plans-header')) {
+        return { top: 0, bottom: 62, left: 0, right: 390, width: 390, height: 62, x: 0, y: 0, toJSON: () => {} };
+      }
       return { top: 500, bottom: 700, left: 0, right: 390, width: 390, height: 200, x: 0, y: 500, toJSON: () => {} };
     };
+
+    // Set pageYOffset to 0 before test
+    window.pageYOffset = 0;
 
     const inputs = container.querySelectorAll('.cf-pb-input input');
     fireEvent.change(inputs[0], { target: { value: 'cloutflow.user1' } });
@@ -245,10 +254,26 @@ describe('Mobile Guided Auto-Scroll Flow (<= 900px)', () => {
     const searchAgainBtn = await screen.findByRole('button', { name: /Search again/i });
     expect(searchAgainBtn).toBeDefined();
 
+    // In previous steps, window.scrollTo updated window.pageYOffset (424).
+    // Reset pageYOffset so builder top calculation is purely elementTop = 120.
+    Object.defineProperty(window, 'pageYOffset', { value: 0, writable: true });
+    Object.defineProperty(document.documentElement, 'scrollTop', { value: 0, writable: true });
+    const preSearchAgainCalls = scrollToCalls.length;
+
     // Click Search again
     await act(async () => {
       fireEvent.click(searchAgainBtn);
     });
+
+    // Verify it scrolled back to Growth Package Builder start
+    await waitFor(() => {
+      expect(scrollToCalls.length).toBeGreaterThan(preSearchAgainCalls);
+    });
+
+    const resetScrollCall = scrollToCalls[scrollToCalls.length - 1] as ScrollToOptions;
+    expect(resetScrollCall.behavior).toBe('smooth');
+    // top of builder (120) - headerHeight (62) - offset (14) = 44
+    expect(resetScrollCall.top).toBe(44);
 
     // Run cycle 2
     const inputs2 = container.querySelectorAll('.cf-pb-input input');

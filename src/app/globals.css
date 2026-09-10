@@ -24006,6 +24006,7 @@ html body .cf-o10-master.cf-o10-platform-twitter[data-stage="package"] .cf-o10-p
     padding: 25px 7px 25px !important;
     box-sizing: border-box !important;
     overflow: visible !important;
+    background: #ffffff !important;
   }
 
 @media (max-width: 480px) {

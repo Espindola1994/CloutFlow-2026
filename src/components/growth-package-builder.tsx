@@ -179,6 +179,7 @@ export default function GrowthPackageBuilder({
   const { setUsername, setEmail: setStoreEmail, setDraftIdentifier, setProfileData } = useFunnelStore();
 
   // Mobile guided flow refs & consumed guards (Strictly <= 900px)
+  const builderRootRef = useRef<HTMLElement>(null);
   const mobileAnalyzePanelRef = useRef<HTMLDivElement>(null);
   const mobileResultPanelRef = useRef<HTMLDivElement>(null);
   const mobileAnalyzeScrollConsumed = useRef(false);
@@ -249,7 +250,7 @@ export default function GrowthPackageBuilder({
     ] as const;
   }, [creatorLabel, displayAnalysisPhase, isContent, platform]);
 
-  const scrollMobileToElement = useCallback((targetElement: HTMLElement | null, offsetPadding: number = 16) => {
+  const scrollMobileToElement = useCallback((targetElement: HTMLElement | null, offsetPadding: number = 14) => {
     if (typeof window === "undefined" || window.innerWidth > 900 || !targetElement) {
       return;
     }
@@ -349,6 +350,17 @@ export default function GrowthPackageBuilder({
     mobileResultScrollConsumed.current = false;
     setStage("idle"); setProgress(0); setAnalysisPhase("starting"); setCreatorLabel(null); setProfile(null); setError(null); setIdentifier(""); setDraftIdentifier("");
     useFunnelStore.getState().resetTarget();
+
+    // Mobile Guided Scroll (Strictly <= 900px):
+    // When Search again is tapped, smoothly scroll back to the top of Growth Package Builder (START HERE)
+    if (typeof window !== "undefined" && window.innerWidth <= 900) {
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          const builderElement = builderRootRef.current || document.querySelector<HTMLElement>("#growth-package-builder");
+          scrollMobileToElement(builderElement, 14);
+        });
+      });
+    }
   };
 
   const persistTarget = (found: VerifiedSocialProfile, isConfirmed: boolean = false) => {
@@ -591,7 +603,7 @@ export default function GrowthPackageBuilder({
   };
 
   return (
-    <section id="growth-package-builder" className="cf-premium-builder" data-platform={platform} aria-label="Build your growth package" style={{"--pb-icon-main": meta.iconMain, "--pb-icon-alt": meta.iconAlt, "--pb-icon-soft": meta.iconSoft, "--pb-network-accent": meta.accent} as React.CSSProperties}>
+    <section ref={builderRootRef} id="growth-package-builder" className="cf-premium-builder" data-platform={platform} aria-label="Build your growth package" style={{"--pb-icon-main": meta.iconMain, "--pb-icon-alt": meta.iconAlt, "--pb-icon-soft": meta.iconSoft, "--pb-network-accent": meta.accent} as React.CSSProperties}>
       <div className="cf-premium-builder-head"><small>✦ &nbsp; START HERE &nbsp; ✦</small><h2>Build Your <em>Growth</em> Package</h2><p>Three quick steps. Analyze. Choose. Grow.</p></div>
       <div className="cf-premium-builder-grid">
         <div className="cf-premium-builder-controls">
