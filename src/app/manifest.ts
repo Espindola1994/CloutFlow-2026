@@ -12,8 +12,13 @@ export default function manifest(): MetadataRoute.Manifest {
     orientation: 'any',
     icons: [
       {
-        src: '/cloutflow-logo.png', // Fallback to logo as no square app icon was provided yet. A dedicated 512x512 maskable app icon should be provided in the future for better OS rendering.
-        sizes: 'any',
+        src: '/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+      },
+      {
+        src: '/icon-512.png',
+        sizes: '512x512',
         type: 'image/png',
       },
     ],
