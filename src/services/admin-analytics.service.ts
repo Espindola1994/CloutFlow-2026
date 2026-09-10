@@ -2,6 +2,7 @@ import { db } from '@/db';
 import { orders, lifecycleEvents, paymentLeads, plans } from '@/db/schema';
 import { funnelEvents } from '@/db/schema/analytics';
 import { sql, and, gte, lte, eq, or } from 'drizzle-orm';
+import { ensureFunnelEventsTable } from '@/lib/analytics/db-init';
 import { CLOUTFLOW_CATALOG_PACKAGES } from '@/config/financial-protection.config';
 import {
   AnalyticsDateRange,
@@ -973,6 +974,7 @@ export async function getAdminAnalyticsData(rangeInput?: string | null): Promise
   }> = [];
 
   try {
+    await ensureFunnelEventsTable();
     rawFunnelEvents = await db
       .select({
         event: funnelEvents.event,
