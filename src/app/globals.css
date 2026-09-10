@@ -33802,6 +33802,64 @@ html body .cf-pricing-subtitle-mobile {
   }
 }
 
+/* =====================================================================
+   MOBILE ONLY (<= 900px): PLAN CARD CTA VISUAL FEEDBACK & LOADING
+   STRICTLY RESTRICTED TO <= 900px. DESKTOP >= 901px IS 100% UNTOUCHED.
+   ===================================================================== */
+@media (max-width: 900px) {
+  /* Pressed state for immediate tactile feedback */
+  html body .cf-o10-package-ref-card .cf-o10-package-ref-cta:active:not(:disabled) {
+    transform: scale(0.98) !important;
+    transition: transform 0.08s ease !important;
+  }
+
+  /* Transition for smooth press/release */
+  html body .cf-o10-package-ref-card .cf-o10-package-ref-cta {
+    transition: transform 0.12s ease, opacity 0.15s ease, background 0.2s ease !important;
+  }
+
+  /* Disabled state when a mobile checkout action is processing */
+  html body .cf-o10-package-ref-card .cf-o10-package-ref-cta:disabled {
+    cursor: not-allowed !important;
+    opacity: 0.85 !important;
+  }
+
+  /* Active loading CTA indicator */
+  html body .cf-o10-package-ref-card .cf-o10-package-ref-cta.is-mobile-loading {
+    cursor: wait !important;
+    opacity: 1 !important;
+  }
+
+  html body .cf-o10-cta-mobile-loading {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    line-height: 1 !important;
+  }
+
+  html body .cf-o10-cta-mobile-loading .cf-cta-spinner {
+    width: 15px !important;
+    height: 15px !important;
+    min-width: 15px !important;
+    min-height: 15px !important;
+    animation: cf-cta-spin 0.75s linear infinite !important;
+  }
+}
+
+@keyframes cf-cta-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
 
 
 

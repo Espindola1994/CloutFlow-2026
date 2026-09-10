@@ -3,7 +3,7 @@
 import { useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import {
-  ArrowLeft, ArrowRight, BadgeCheck, Check, Star, TimerReset, TrendingUp, Zap, ChevronRight, UserRound, Plus, Minus, CircleHelp, ShieldCheck, RefreshCw, LockKeyhole, CircleDollarSign, UsersRound, Tag, Flame, Gem, Sparkles,
+  ArrowLeft, ArrowRight, BadgeCheck, Check, Star, TimerReset, TrendingUp, Zap, ChevronRight, UserRound, Plus, Minus, CircleHelp, ShieldCheck, RefreshCw, LockKeyhole, CircleDollarSign, UsersRound, Tag, Flame, Gem, Sparkles, Loader2,
 } from "lucide-react";
 import { useFunnelStore } from "@/stores/funnel.store";
 import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
@@ -96,6 +96,7 @@ export function PlanSelector({
   const trackRef=useRef<HTMLDivElement>(null);
   const { setPlan }=useFunnelStore();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [mobileLoadingId, setMobileLoadingId] = useState<string | null>(null);
   const metric=useMemo(()=>serviceLabel(service),[service]);
   const slots=useMemo(()=>offerStep2PlanNames.map((title,index)=>{
     const live=plans[index];
@@ -121,6 +122,46 @@ export function PlanSelector({
      if(!id) return; 
      setPlan(id); 
      void onSelectPlan?.(id); 
+  };
+
+  const handleCardClick = (id: string | null) => {
+    // Mobile <= 900px: card body must NOT trigger checkout or plan selection.
+    if (typeof window !== "undefined" && window.innerWidth <= 900) {
+      return;
+    }
+    select(id);
+  };
+
+  const handleCtaClick = (e: React.MouseEvent, id: string | null) => {
+    e.stopPropagation();
+    if (!id) return;
+
+    const isMobile = typeof window !== "undefined" && window.innerWidth <= 900;
+    if (isMobile) {
+      // Prevent duplicate clicks while loading on mobile
+      if (mobileLoadingId) return;
+      setMobileLoadingId(id);
+      setPlan(id);
+      try {
+        const result = onSelectPlan?.(id);
+        if (result && typeof (result as Promise<void>).then === "function") {
+          (result as Promise<void>)
+            .catch(() => {})
+            .finally(() => {
+              setMobileLoadingId(null);
+            });
+        } else {
+          setMobileLoadingId(null);
+        }
+      } catch (err) {
+        setMobileLoadingId(null);
+        throw err;
+      }
+      return;
+    }
+
+    // Desktop >= 901px: unchanged existing behavior
+    select(id);
   };
 
   const scrollReviews = (direction: "left" | "right") => {
@@ -157,11 +198,12 @@ export function PlanSelector({
             {slots.map((p:any,index:number)=>{
               const serviceUnit = metric;
               const planIconKey = p.iconKey;
+              const isThisMobileLoading = mobileLoadingId === p.id;
               return (
                 <article
                   key={p.title}
                   className={`cf-o10-package-ref-card ${p.isBestValue ? "is-best-value" : ""}`}
-                  onClick={()=>select(p.id)}
+                  onClick={()=>handleCardClick(p.id)}
                 >
                   {index === 3 && (
                     <span className="cf-o10-package-ref-best cf-o10-package-ref-best--popular">
@@ -237,19 +279,26 @@ export function PlanSelector({
                   </div>
 
                   <button
-                    className="cf-o10-package-ref-cta"
+                    className={`cf-o10-package-ref-cta ${isThisMobileLoading ? "is-mobile-loading" : ""}`}
                     type="button"
-                    onClick={(e)=>{
-                      e.stopPropagation();
-                      select(p.id);
-                    }}
+                    disabled={Boolean(mobileLoadingId)}
+                    onClick={(e)=>handleCtaClick(e, p.id)}
                   >
-                    <span className="cf-o10-cta-default">
-                      Get {p.quantity.toLocaleString("en-US")} {serviceUnit} <ArrowRight />
-                    </span>
-                    <span className="cf-o10-cta-hover">
-                      Selected <Check />
-                    </span>
+                    {isThisMobileLoading ? (
+                      <span className="cf-o10-cta-mobile-loading">
+                        <Loader2 className="cf-cta-spinner" />
+                        <span>Opening checkout...</span>
+                      </span>
+                    ) : (
+                      <>
+                        <span className="cf-o10-cta-default">
+                          Get {p.quantity.toLocaleString("en-US")} {serviceUnit} <ArrowRight />
+                        </span>
+                        <span className="cf-o10-cta-hover">
+                          Selected <Check />
+                        </span>
+                      </>
+                    )}
                   </button>
                 </article>
               );
