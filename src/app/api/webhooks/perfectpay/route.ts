@@ -84,7 +84,7 @@ export async function POST(request: Request) {
               const { evaluateRepeatPurchase } = await import('@/services/lifecycle/event.service');
               await evaluateRepeatPurchase(customerEmail, result.orderId, (orderDetails.totalCents ? orderDetails.totalCents / 100 : payload.sale_amount) as string | number);
 
-              // Phase F: Evaluate and schedule Post-Purchase Offer
+              // Phase F: Evaluate and schedule Post-Purchase Offer (Requires qualifying confirmed purchase >= $14.90)
               try {
                 const { schedulePostPurchaseOffer } = await import('@/services/lifecycle/post-purchase.service');
                 await schedulePostPurchaseOffer({
@@ -92,6 +92,7 @@ export async function POST(request: Request) {
                   sourceOrderId: result.orderId,
                   lifecycleEventId: emitRes.eventId,
                   sourceJourneyId: orderDetails.checkoutContextId || undefined,
+                  paidAmountCents: typeof orderDetails.totalCents === 'number' ? orderDetails.totalCents : undefined,
                 });
               } catch (postPurchaseErr) {
                 console.error('[PerfectPayWebhook] Error scheduling post-purchase offer:', postPurchaseErr);

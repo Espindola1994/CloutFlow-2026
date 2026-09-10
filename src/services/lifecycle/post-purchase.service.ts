@@ -17,6 +17,14 @@ export const POST_PURCHASE_OFFER_DEFAULT_VALID_HOURS = 48;
 export const POST_PURCHASE_SCHEDULE_DELAY_MINUTES = 5;
 
 /**
+ * Minimum qualifying purchase amount in cents required to earn the 25% OFF reward.
+ * Purchases strictly below 1490 cents ($14.90 USD) are ineligible.
+ * Purchases of 1490 cents ($14.90 USD) or more qualify.
+ */
+export const MINIMUM_PURCHASE_FOR_25_OFF_CENTS = 1490;
+export const MINIMUM_PURCHASE_FOR_25_OFF = 14.90;
+
+/**
  * Gets the configured validity window for the post-purchase offer in hours.
  */
 export function getPostPurchaseOfferValidHours(): number {
@@ -53,6 +61,7 @@ interface HandlePostPurchaseOfferParams {
   lifecycleEventId?: string;
   sourceJourneyId?: string;
   orderCreatedAt?: Date;
+  paidAmountCents?: number;
 }
 
 /**
@@ -83,7 +92,30 @@ export async function schedulePostPurchaseOffer(params: HandlePostPurchaseOfferP
     return { success: true, offerId: existingForOrder.id, duplicate: true };
   }
 
-  // 3. Check if customer already has an ACTIVE (unexpired, unredeemed) offer
+  // 3. Check qualifying purchase amount threshold ($14.90 / 1490 cents minimum)
+  // Derive effective qualifying cents from param or source order
+  let qualifyingPaidAmountCents: number | undefined = params.paidAmountCents;
+  if (qualifyingPaidAmountCents === undefined && params.sourceOrderId && db.query?.orders?.findFirst) {
+    const sourceOrder = await db.query.orders.findFirst({
+      where: eq(orders.id, params.sourceOrderId)
+    });
+    if (sourceOrder) {
+      // Must be a confirmed payment status
+      const pStatus = String(sourceOrder.paymentStatus || '').toUpperCase();
+      const oStatus = String(sourceOrder.status || '').toUpperCase();
+      const isConfirmed = pStatus === 'PAID' || pStatus === 'COMPLETED' || pStatus === 'APPROVED' || oStatus === 'PAID' || oStatus === 'PROCESSING' || oStatus === 'COMPLETED';
+      if (!isConfirmed) {
+        return { success: false, reason: 'PAYMENT_NOT_CONFIRMED' };
+      }
+      qualifyingPaidAmountCents = sourceOrder.totalCents;
+    }
+  }
+
+  if (qualifyingPaidAmountCents !== undefined && qualifyingPaidAmountCents < MINIMUM_PURCHASE_FOR_25_OFF_CENTS) {
+    return { success: false, reason: 'BELOW_MINIMUM_PURCHASE_THRESHOLD', qualifyingPaidAmountCents };
+  }
+
+  // 4. Check if customer already has an ACTIVE (unexpired, unredeemed) offer
   const now = new Date();
   const activeOffers = await db.query.customerOffers.findMany({
     where: and(
@@ -98,7 +130,7 @@ export async function schedulePostPurchaseOffer(params: HandlePostPurchaseOfferP
     return { success: false, reason: 'ACTIVE_OFFER_ALREADY_EXISTS' };
   }
 
-  // 4. Create the offer
+  // 5. Create the offer
   const validHours = getPostPurchaseOfferValidHours();
   const validFrom = now;
   const expiresAt = new Date(now.getTime() + validHours * 60 * 60 * 1000);

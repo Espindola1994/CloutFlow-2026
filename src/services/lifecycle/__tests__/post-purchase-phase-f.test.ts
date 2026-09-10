@@ -3,7 +3,9 @@ import {
   schedulePostPurchaseOffer, 
   getPostPurchaseOfferValidHours,
   POST_PURCHASE_OFFER_CAMPAIGN,
-  POST_PURCHASE_DISCOUNT_PERCENT
+  POST_PURCHASE_DISCOUNT_PERCENT,
+  MINIMUM_PURCHASE_FOR_25_OFF_CENTS,
+  MINIMUM_PURCHASE_FOR_25_OFF,
 } from '@/services/lifecycle/post-purchase.service';
 import { runLifecycleWorker } from '@/services/lifecycle/worker.service';
 import { evaluateRepeatPurchase } from '@/services/lifecycle/event.service';
@@ -379,5 +381,266 @@ describe('Phase F - Post-Purchase Offer Flow (Requirements Matrix A-Q)', () => {
     const campaignKey = POST_PURCHASE_OFFER_CAMPAIGN;
     expect(campaignKey).toBe('POST_PURCHASE_25_OFF');
     expect(campaignKey).not.toContain('INBOX');
+  });
+
+  // R. Mandatory Matrix Tests for 25% OFF minimum qualifying purchase threshold ($14.90 / 1490 cents)
+  describe('R: Mandatory Minimum Qualifying Purchase Threshold ($14.90 / 1490 cents)', () => {
+    it('enforces MINIMUM_PURCHASE_FOR_25_OFF_CENTS constant exactly equal to 1490', () => {
+      expect(MINIMUM_PURCHASE_FOR_25_OFF_CENTS).toBe(1490);
+      expect(MINIMUM_PURCHASE_FOR_25_OFF).toBe(14.90);
+    });
+
+    it('rejects purchases under 1490 cents ($4.99 / 499 cents) -> INELIGIBLE', async () => {
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'customer@example.com',
+        sourceOrderId: 'ord_499',
+        paidAmountCents: 499,
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(false);
+      expect(res.reason).toBe('BELOW_MINIMUM_PURCHASE_THRESHOLD');
+      expect((res as any).qualifyingPaidAmountCents).toBe(499);
+      expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it('rejects purchases under 1490 cents ($5.00 / 500 cents) -> INELIGIBLE', async () => {
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'customer@example.com',
+        sourceOrderId: 'ord_500',
+        paidAmountCents: 500,
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(false);
+      expect(res.reason).toBe('BELOW_MINIMUM_PURCHASE_THRESHOLD');
+      expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it('rejects purchases under 1490 cents ($7.90 / 790 cents) -> INELIGIBLE', async () => {
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'customer@example.com',
+        sourceOrderId: 'ord_790',
+        paidAmountCents: 790,
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(false);
+      expect(res.reason).toBe('BELOW_MINIMUM_PURCHASE_THRESHOLD');
+      expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it('rejects purchases under 1490 cents ($9.90 / 990 cents) -> INELIGIBLE', async () => {
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'customer@example.com',
+        sourceOrderId: 'ord_990',
+        paidAmountCents: 990,
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(false);
+      expect(res.reason).toBe('BELOW_MINIMUM_PURCHASE_THRESHOLD');
+      expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it('critical boundary: $14.89 (1489 cents) -> INELIGIBLE', async () => {
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'customer@example.com',
+        sourceOrderId: 'ord_1489',
+        paidAmountCents: 1489,
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(false);
+      expect(res.reason).toBe('BELOW_MINIMUM_PURCHASE_THRESHOLD');
+      expect((res as any).qualifyingPaidAmountCents).toBe(1489);
+      expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it('critical boundary: EXACTLY $14.90 (1490 cents) -> ELIGIBLE', async () => {
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+      (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]);
+      (db.query.lifecycleEvents.findFirst as any).mockResolvedValueOnce({ id: 'evt_1490' });
+      (db.query.lifecycleAutomations.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'customer@example.com',
+        sourceOrderId: 'ord_1490',
+        paidAmountCents: 1490,
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.offer).toBeDefined();
+      expect(db.insert).toHaveBeenCalled();
+    });
+
+    it('critical boundary: $14.91 (1491 cents) -> ELIGIBLE', async () => {
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+      (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]);
+      (db.query.lifecycleEvents.findFirst as any).mockResolvedValueOnce({ id: 'evt_1491' });
+      (db.query.lifecycleAutomations.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'customer@example.com',
+        sourceOrderId: 'ord_1491',
+        paidAmountCents: 1491,
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.offer).toBeDefined();
+      expect(db.insert).toHaveBeenCalled();
+    });
+
+    it('higher tier: $19.90 (1990 cents) -> ELIGIBLE', async () => {
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+      (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]);
+      (db.query.lifecycleEvents.findFirst as any).mockResolvedValueOnce({ id: 'evt_1990' });
+      (db.query.lifecycleAutomations.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'customer@example.com',
+        sourceOrderId: 'ord_1990',
+        paidAmountCents: 1990,
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.offer).toBeDefined();
+    });
+
+    it('higher tier: $29.90 (2990 cents) -> ELIGIBLE', async () => {
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+      (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]);
+      (db.query.lifecycleEvents.findFirst as any).mockResolvedValueOnce({ id: 'evt_2990' });
+      (db.query.lifecycleAutomations.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'customer@example.com',
+        sourceOrderId: 'ord_2990',
+        paidAmountCents: 2990,
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.offer).toBeDefined();
+    });
+
+    it('higher tier: $49.90 (4990 cents) -> ELIGIBLE', async () => {
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+      (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]);
+      (db.query.lifecycleEvents.findFirst as any).mockResolvedValueOnce({ id: 'evt_4990' });
+      (db.query.lifecycleAutomations.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'customer@example.com',
+        sourceOrderId: 'ord_4990',
+        paidAmountCents: 4990,
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.offer).toBeDefined();
+    });
+
+    it('server-side order lookup: unconfirmed payment status rejects offer grant', async () => {
+      (db.query as any).orders = {
+        findFirst: vi.fn().mockResolvedValueOnce({
+          id: 'ord_unconfirmed',
+          paymentStatus: 'PENDING',
+          status: 'PENDING_PAYMENT',
+          totalCents: 2990,
+        })
+      };
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'pending_user@example.com',
+        sourceOrderId: 'ord_unconfirmed',
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(false);
+      expect(res.reason).toBe('PAYMENT_NOT_CONFIRMED');
+      expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it('server-side order lookup: confirmed payment with < 1490 cents rejects offer grant', async () => {
+      (db.query as any).orders = {
+        findFirst: vi.fn().mockResolvedValueOnce({
+          id: 'ord_confirmed_low',
+          paymentStatus: 'PAID',
+          status: 'PAID',
+          totalCents: 990,
+        })
+      };
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'low_buyer@example.com',
+        sourceOrderId: 'ord_confirmed_low',
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(false);
+      expect(res.reason).toBe('BELOW_MINIMUM_PURCHASE_THRESHOLD');
+      expect(db.insert).not.toHaveBeenCalled();
+    });
+
+    it('server-side order lookup: confirmed payment with >= 1490 cents grants offer', async () => {
+      (db.query as any).orders = {
+        findFirst: vi.fn().mockResolvedValueOnce({
+          id: 'ord_confirmed_qualifying',
+          paymentStatus: 'PAID',
+          status: 'PAID',
+          totalCents: 1490,
+        })
+      };
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce(null);
+      (db.query.customerOffers.findMany as any).mockResolvedValueOnce([]);
+      (db.query.lifecycleEvents.findFirst as any).mockResolvedValueOnce({ id: 'evt_qualifying' });
+      (db.query.lifecycleAutomations.findFirst as any).mockResolvedValueOnce(null);
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'qualifying_buyer@example.com',
+        sourceOrderId: 'ord_confirmed_qualifying',
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.offer).toBeDefined();
+      expect(db.insert).toHaveBeenCalled();
+    });
+
+    it('idempotency: duplicate webhook does not duplicate offer on qualifying order', async () => {
+      // First call: offer already exists
+      (db.query.customerOffers.findFirst as any).mockResolvedValueOnce({
+        id: 'existing_offer_dup',
+        sourceOrderId: 'ord_1490_dup',
+      });
+
+      const res = await schedulePostPurchaseOffer({
+        customerEmail: 'qualifying_buyer@example.com',
+        sourceOrderId: 'ord_1490_dup',
+        paidAmountCents: 1490,
+        orderCreatedAt: new Date('2026-06-01T12:00:00Z'),
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.duplicate).toBe(true);
+      expect(res.offerId).toBe('existing_offer_dup');
+      expect(db.insert).not.toHaveBeenCalled();
+    });
   });
 });
