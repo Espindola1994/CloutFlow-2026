@@ -23601,10 +23601,9 @@ html body .cf-o10-master.cf-o10-platform-twitter[data-stage="package"] .cf-o10-p
     margin:0!important;
     padding:0!important;
     display:grid!important;
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-columns:minmax(0,1fr)!important;
     grid-auto-flow:row!important;
-    grid-auto-rows:1fr!important;
-    gap:14px 10px!important;
+    gap:14px!important;
     align-items:stretch!important;
     box-sizing:border-box!important;
     overflow:visible!important;
@@ -23944,7 +23943,7 @@ html body .cf-o10-master.cf-o10-platform-twitter[data-stage="package"] .cf-o10-p
   }
 
   html body .cf-home-offer-card-host .cf-o10-package-ref-grid {
-    gap:12px 8px!important;
+    gap:12px!important;
   }
 
   html body .cf-home-offer-card-host .cf-o10-package-ref-card {
@@ -24028,9 +24027,9 @@ html body .cf-o10-master.cf-o10-platform-twitter[data-stage="package"] .cf-o10-p
     margin:0 auto!important;
     padding:0!important;
     display:grid!important;
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    grid-template-columns:minmax(0,1fr)!important;
     grid-auto-flow:row!important;
-    gap:12px 10px!important;
+    gap:12px!important;
     align-items:stretch!important;
     box-sizing:border-box!important;
     overflow:visible!important;
@@ -24458,7 +24457,7 @@ html body .cf-o10-master.cf-o10-platform-twitter[data-stage="package"] .cf-o10-p
     padding-right:4px!important;
   }
   html body .cf-home-offer-card-host .cf-o10-package-ref-grid {
-    gap:10px 8px!important;
+    gap:10px!important;
   }
   html body .cf-home-offer-card-host .cf-o10-package-ref-card {
     min-height:398px!important;
@@ -29802,8 +29801,8 @@ html body .cf-o10-email-required {
 
   html body .cf-o10-package-ref-grid {
     display: grid !important;
-    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
-    gap: 14px 10px !important;
+    grid-template-columns: minmax(0,1fr) !important;
+    gap: 14px !important;
     align-items: stretch !important;
   }
 
@@ -29942,7 +29941,7 @@ html body .cf-o10-email-required {
   }
 
   html body .cf-o10-package-ref-grid {
-    gap: 12px 8px !important;
+    gap: 12px !important;
   }
 
   html body .cf-o10-package-ref-card {
@@ -30070,17 +30069,16 @@ html body .cf-o10-email-required {
     border-radius:7px !important;
   }
 
-  /* 6 cards: responsive 2 columns x 3 rows */
+  /* 6 cards: responsive 1 column x 6 rows */
   html body .cf-o10-package-ref-grid {
     width:100% !important;
     max-width:100% !important;
     margin:0 !important;
     padding:0 !important;
     display:grid !important;
-    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+    grid-template-columns:minmax(0,1fr) !important;
     grid-auto-flow:row !important;
-    grid-auto-rows:1fr !important;
-    gap:14px 10px !important;
+    gap:14px !important;
     align-items:stretch !important;
     box-sizing:border-box !important;
     overflow:visible !important;
@@ -30479,7 +30477,7 @@ html body .cf-o10-email-required {
   }
 
   html body .cf-o10-package-ref-grid {
-    gap:13px 7px !important;
+    gap:13px !important;
   }
 
   html body .cf-o10-package-ref-card {
@@ -32175,11 +32173,10 @@ html body .cf-final-copy-mobile {
 @media (max-width: 900px) {
   html body .cf-o10-package-ref-grid {
     box-sizing: border-box !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    grid-auto-rows: 1fr !important;
+    grid-template-columns: minmax(0, 1fr) !important;
     grid-auto-flow: row !important;
     align-items: stretch !important;
-    gap: 10px 5px !important;
+    gap: 12px !important;
   }
 }
 
