@@ -122,10 +122,59 @@ export default function HomePage({
       setLoadingOffers(false);
       shouldAutoScrollToPlans.current = false;
       autoScrollDoneForRun.current = false;
+      mobilePricingScrollConsumed.current = false;
       return;
     }
     void fetchOffers();
   }, [fetchOffers, funnelReadiness.canShowPlans]);
+
+  const mobilePricingScrollConsumed = useRef(false);
+
+  const executeMobilePricingAutoScroll = useCallback(() => {
+    if (typeof window === "undefined" || window.innerWidth > 900) {
+      return;
+    }
+
+    let attempts = 0;
+    const maxAttempts = 60;
+
+    const attemptScrollToPricing = () => {
+      attempts += 1;
+      const element = plansSectionRef.current || document.querySelector<HTMLElement>(".cf-plans-pricing");
+      if (!element || element.getBoundingClientRect().height === 0) {
+        if (attempts < maxAttempts) {
+          window.requestAnimationFrame(attemptScrollToPricing);
+        }
+        return;
+      }
+
+      const rect = element.getBoundingClientRect();
+      const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+      const elementTop = rect.top + currentScrollY;
+
+      const headerElement = document.querySelector<HTMLElement>(".cf-plans-header");
+      const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 62;
+
+      // Position right at the beginning of Choose Your Growth Plan with comfortable breathing room
+      const offsetPadding = 14;
+      const targetY = Math.max(0, elementTop - headerHeight - offsetPadding);
+      const viewportHeight = window.innerHeight;
+      const maxScroll = Math.max(0, document.documentElement.scrollHeight - viewportHeight);
+      const safeTargetY = Math.min(Math.round(targetY), maxScroll);
+
+      const prefersReducedMotion = typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      window.scrollTo({
+        top: safeTargetY,
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
+    };
+
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(attemptScrollToPricing);
+    });
+  }, []);
 
   const executeDesktopAutoScroll = useCallback(() => {
     // Strict desktop check: innerWidth >= 901px. Mobile/tablet <= 900px must remain untouched.
@@ -384,9 +433,10 @@ export default function HomePage({
           onPlatformChange={changePlatform}
           onGoalChange={(goal) => changeProduct(goal)}
           onStartAnalysis={() => {
-            // New analysis initiated: reset auto-scroll lock for this fresh run
+            // New analysis initiated: reset auto-scroll locks for this fresh run
             autoScrollDoneForRun.current = false;
             shouldAutoScrollToPlans.current = false;
+            mobilePricingScrollConsumed.current = false;
           }}
           onContinue={() => {
             void fetchOffers();
@@ -396,9 +446,11 @@ export default function HomePage({
               // If plans section is already mounted and ready in the DOM, execute scroll directly
               executeDesktopAutoScroll();
             } else {
-              window.setTimeout(() => {
-                document.querySelector(".cf-plans-pricing")?.scrollIntoView({ behavior: "smooth", block: "start" });
-              }, 180);
+              // TRIGGER C (Mobile <= 900px): Confirmation clicked -> scrollToPricing()
+              if (!mobilePricingScrollConsumed.current) {
+                mobilePricingScrollConsumed.current = true;
+                executeMobilePricingAutoScroll();
+              }
             }
           }}
         />

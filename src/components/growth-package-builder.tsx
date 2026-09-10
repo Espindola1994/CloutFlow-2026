@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowRight, Check, CheckCircle2, Loader2, Mail, RotateCcw, Search, ScanSearch } from "lucide-react";
 import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
@@ -178,6 +178,12 @@ export default function GrowthPackageBuilder({
   const [devScene, setDevScene] = useState<1 | 2 | 3 | null>(null);
   const { setUsername, setEmail: setStoreEmail, setDraftIdentifier, setProfileData } = useFunnelStore();
 
+  // Mobile guided flow refs & consumed guards (Strictly <= 900px)
+  const mobileAnalyzePanelRef = useRef<HTMLDivElement>(null);
+  const mobileResultPanelRef = useRef<HTMLDivElement>(null);
+  const mobileAnalyzeScrollConsumed = useRef(false);
+  const mobileResultScrollConsumed = useRef(false);
+
   useEffect(() => setPlatformLocal(initialPlatform), [initialPlatform]);
   useEffect(() => setGoalLocal(initialGoal), [initialGoal]);
   useEffect(() => {
@@ -186,6 +192,8 @@ export default function GrowthPackageBuilder({
     analysisRunId.current += 1;
     previewTimers.current.forEach(window.clearTimeout);
     previewTimers.current = [];
+    mobileAnalyzeScrollConsumed.current = false;
+    mobileResultScrollConsumed.current = false;
     const funnel = useFunnelStore.getState();
     setStage("idle");
     setProgress(0);
@@ -241,9 +249,73 @@ export default function GrowthPackageBuilder({
     ] as const;
   }, [creatorLabel, displayAnalysisPhase, isContent, platform]);
 
+  const scrollMobileToElement = useCallback((targetElement: HTMLElement | null, offsetPadding: number = 16) => {
+    if (typeof window === "undefined" || window.innerWidth > 900 || !targetElement) {
+      return;
+    }
+
+    const rect = targetElement.getBoundingClientRect();
+    const currentScrollY = window.pageYOffset || document.documentElement.scrollTop || 0;
+    const elementTop = rect.top + currentScrollY;
+
+    // Detect header height if sticky/fixed
+    const headerElement = document.querySelector<HTMLElement>(".cf-plans-header");
+    const headerHeight = headerElement ? headerElement.getBoundingClientRect().height : 62;
+
+    const targetY = Math.max(0, elementTop - headerHeight - offsetPadding);
+    const viewportHeight = window.innerHeight;
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - viewportHeight);
+    const safeTargetY = Math.min(Math.round(targetY), maxScroll);
+
+    const prefersReducedMotion = typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    window.scrollTo({
+      top: safeTargetY,
+      behavior: prefersReducedMotion ? "auto" : "smooth",
+    });
+  }, []);
+
+  // TRIGGER B: Analysis completed + valid result + result DOM mounted -> scrollToResult()
+  useEffect(() => {
+    if (typeof window === "undefined" || window.innerWidth > 900) return;
+    if (stage !== "result" || !profile) return;
+    if (mobileResultScrollConsumed.current) return;
+
+    let frameId: number | null = null;
+    let attempts = 0;
+    const maxAttempts = 60;
+
+    const attemptScrollToResult = () => {
+      attempts += 1;
+      const element = mobileResultPanelRef.current || document.querySelector<HTMLElement>(".cf-premium-builder-result");
+      if (!element || element.getBoundingClientRect().height === 0) {
+        if (attempts < maxAttempts) {
+          frameId = window.requestAnimationFrame(attemptScrollToResult);
+        }
+        return;
+      }
+
+      mobileResultScrollConsumed.current = true;
+      scrollMobileToElement(element, 14);
+    };
+
+    frameId = window.requestAnimationFrame(() => {
+      frameId = window.requestAnimationFrame(attemptScrollToResult);
+    });
+
+    return () => {
+      if (frameId !== null) {
+        window.cancelAnimationFrame(frameId);
+      }
+    };
+  }, [stage, profile, scrollMobileToElement]);
+
   const choosePlatform = (next: PlatformId) => {
     if (stage === "analyzing") return;
     analysisRunId.current += 1;
+    mobileAnalyzeScrollConsumed.current = false;
+    mobileResultScrollConsumed.current = false;
     setPlatformLocal(next); setProfile(null); setStage("idle"); setError(null); setIdentifier(""); setDraftIdentifier("");
     useFunnelStore.getState().setPlatform(next);
     const validServices = PLATFORM_SERVICES[next] || ['followers'];
@@ -259,6 +331,8 @@ export default function GrowthPackageBuilder({
   const chooseGoal = (next: Goal) => {
     if (stage === "analyzing") return;
     analysisRunId.current += 1;
+    mobileAnalyzeScrollConsumed.current = false;
+    mobileResultScrollConsumed.current = false;
     const validServices = PLATFORM_SERVICES[platform] || ['followers'];
     if (!validServices.includes(next)) return;
     setGoalLocal(next); setProfile(null); setStage("idle"); setError(null); setIdentifier(""); setDraftIdentifier("");
@@ -271,6 +345,8 @@ export default function GrowthPackageBuilder({
     analysisRunId.current += 1;
     previewTimers.current.forEach(window.clearTimeout);
     previewTimers.current = [];
+    mobileAnalyzeScrollConsumed.current = false;
+    mobileResultScrollConsumed.current = false;
     setStage("idle"); setProgress(0); setAnalysisPhase("starting"); setCreatorLabel(null); setProfile(null); setError(null); setIdentifier(""); setDraftIdentifier("");
     useFunnelStore.getState().resetTarget();
   };
@@ -378,7 +454,21 @@ export default function GrowthPackageBuilder({
     // The service is a selection input, not analysis output. Re-associate it
     // only when a new analysis actually starts after a checkout return.
     const runId = ++analysisRunId.current;
+    mobileAnalyzeScrollConsumed.current = false;
+    mobileResultScrollConsumed.current = false;
     onStartAnalysis?.();
+
+    // TRIGGER A (Mobile <= 900px): Immediately scroll to the Analyze profile section
+    if (typeof window !== "undefined" && window.innerWidth <= 900) {
+      mobileAnalyzeScrollConsumed.current = true;
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(() => {
+          const analyzeEl = mobileAnalyzePanelRef.current || document.querySelector<HTMLElement>(".cf-pb-analyze");
+          scrollMobileToElement(analyzeEl, 14);
+        });
+      });
+    }
+
     useFunnelStore.getState().setPlatform(platform);
     useFunnelStore.getState().setService(goal);
     polling.current = true; setStage("analyzing"); setProgress(isContent ? 12 : 18); setAnalysisPhase(isContent ? "finding_content" : "loading_profile"); setCreatorLabel(null); setProfile(null);
@@ -510,10 +600,10 @@ export default function GrowthPackageBuilder({
             <label className="cf-pb-field-label">{getInputLabel()}</label><div className="cf-pb-input"><ScanSearch/><input value={identifier} onChange={e=>{setIdentifier(e.target.value);setDraftIdentifier(e.target.value);}} placeholder={getInputPlaceholder()}/></div>
             <label className="cf-pb-field-label">Email <strong>(required)</strong></label><div className="cf-pb-input"><Mail/><input type="email" value={email} onChange={e=>{setEmail(e.target.value);setStoreEmail(e.target.value);}} placeholder="Enter your email address"/></div><p className="cf-pb-privacy"><span className="cf-pb-privacy-text-desktop">We safely store your searches, orders and updates.</span><span className="cf-pb-privacy-text-mobile">We use this email to safely save your search and orders.</span></p>
           </div>
-          <div className="cf-pb-step cf-pb-analyze"><div className="cf-pb-label"><i>3</i><div><b>Analyze profile</b><small>We'll fetch public data and confirm your profile.</small></div></div>{error&&<div className="cf-pb-error">{error}</div>}<button className="cf-pb-analyze-btn" disabled={stage==="analyzing"} onClick={analyze}>{stage==="analyzing"?<Loader2 className="spin"/>:<ScanSearch/>}{stage==="analyzing"?"Analyzing...":"Analyze Profile"}</button></div>
+          <div ref={mobileAnalyzePanelRef} className="cf-pb-step cf-pb-analyze"><div className="cf-pb-label"><i>3</i><div><b>Analyze profile</b><small>We'll fetch public data and confirm your profile.</small></div></div>{error&&<div className="cf-pb-error">{error}</div>}<button className="cf-pb-analyze-btn" disabled={stage==="analyzing"} onClick={analyze}>{stage==="analyzing"?<Loader2 className="spin"/>:<ScanSearch/>}{stage==="analyzing"?"Analyzing...":"Analyze Profile"}</button></div>
         </div>
 
-        <div className={`cf-premium-builder-result cf-pb-result-${displayStage}`} aria-busy={displayStage === "analyzing"}>
+        <div ref={mobileResultPanelRef} className={`cf-premium-builder-result cf-pb-result-${displayStage}`} aria-busy={displayStage === "analyzing"}>
           <div className="cf-pb-package-head"><b><ServiceIcon type="setup" compact/>Your Growth Setup</b><span className={`state-${displayStage}`}>{displayStage==="analyzing"?"Analyzing...":displayStage==="result"?"✓ Analyzed":"Ready"}</span></div>
           <div className="cf-pb-summary"><div><PlatformIcon src={meta.icon}/><span><b>{meta.label}</b><small>Platform</small></span></div><div><GoalIcon goal={goal} premium/><span><b>{goal[0].toUpperCase()+goal.slice(1)}</b><small>Goal</small></span></div><div><ServiceIcon type="email"/><span><b>{email.trim() || "Email required"}</b><small>Email</small></span></div></div>
 
