@@ -14,11 +14,12 @@ import {
   X,
   PackageOpen,
   Radio,
-  Sliders
+  Sliders,
+  BarChart3
 } from "lucide-react";
 import { BUILD_INFO } from "@/lib/build-info";
 
-export type AdminTab = "dashboard" | "orders" | "supplier-routing" | "dropshield" | "fulfillment" | "growth" | "crm" | "blacklist" | "infra";
+export type AdminTab = "dashboard" | "analytics" | "orders" | "supplier-routing" | "dropshield" | "fulfillment" | "growth" | "crm" | "blacklist" | "infra";
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -37,6 +38,7 @@ export function AdminSidebar({
 }: AdminSidebarProps) {
   const menuItems = [
     { id: "dashboard" as const, label: "Dashboard", icon: LayoutDashboard },
+    { id: "analytics" as const, label: "Analytics", icon: BarChart3 },
     { id: "orders" as const, label: "Orders & Margins", icon: ShoppingBag },
     { id: "supplier-routing" as const, label: "Supplier Routing", icon: Sliders },
     { id: "dropshield" as const, label: "Drop Shield 24/7", icon: ShieldCheck },

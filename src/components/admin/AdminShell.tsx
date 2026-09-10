@@ -7,6 +7,7 @@ import { Menu } from "lucide-react";
 
 import { AdminSidebar, AdminTab } from "./AdminSidebar";
 import { DashboardOverview } from "./dashboard/DashboardOverview";
+import { AnalyticsModule } from "./analytics/AnalyticsModule";
 import { OrdersModule } from "./orders/OrdersModule";
 import { SupplierRoutingControlCenter } from "./supplier-routing/SupplierRoutingControlCenter";
 import { DropShieldModule } from "./dropshield/DropShieldModule";
@@ -33,6 +34,7 @@ import {
 
 const VALID_TABS: AdminTab[] = [
   "dashboard",
+  "analytics",
   "orders",
   "supplier-routing",
   "dropshield",
@@ -97,6 +99,8 @@ function AdminShellContent() {
     switch (activeTab) {
       case "dashboard":
         return <DashboardOverview onNavigateToOrders={() => handleSelectTab("orders")} />;
+      case "analytics":
+        return <AnalyticsModule onNavigateToAttribution={() => handleSelectTab("orders")} />;
       case "orders":
         return <OrdersModule />;
       case "supplier-routing":
