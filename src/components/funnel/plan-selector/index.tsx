@@ -140,7 +140,7 @@ export function PlanSelector({
         <div className="cf-plans-section-title cf-pricing-title">
           <h2>
             <span className="cf-pricing-title-desktop">Choose Your <span className="cf-growth-plan-accent">Growth Plan</span> <span aria-hidden="true">♥</span></span>
-            <span className="cf-pricing-title-mobile">Choose Your Perfect Plan <span aria-hidden="true">♥</span></span>
+            <span className="cf-pricing-title-mobile">Choose Your <span className="cf-growth-plan-accent">Growth Plan</span> <span aria-hidden="true">♥</span></span>
           </h2>
           <p>
             <span className="cf-pricing-subtitle-desktop">Pick a plan for your goals and start growing today.</span>
