@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, varchar, jsonb } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, varchar, jsonb, index } from 'drizzle-orm/pg-core';
 import { platforms, services, plans } from './catalog';
 
 export const funnelEvents = pgTable('funnel_events', {
@@ -10,4 +10,12 @@ export const funnelEvents = pgTable('funnel_events', {
   planId: text('plan_id').references(() => plans.id),
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => {
+  return {
+    createdAtIdx: index('idx_funnel_events_created_at').on(table.createdAt),
+    sessionIdIdx: index('idx_funnel_events_session_id').on(table.sessionId),
+    eventIdx: index('idx_funnel_events_event').on(table.event),
+    planIdIdx: index('idx_funnel_events_plan_id').on(table.planId),
+  };
 });
+

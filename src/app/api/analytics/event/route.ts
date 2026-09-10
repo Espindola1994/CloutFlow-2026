@@ -5,7 +5,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/db';
 import { funnelEvents } from '@/db/schema/analytics';
 import { isAllowedFunnelEvent } from '@/lib/analytics/taxonomy';
-import { ensureFunnelEventsTable } from '@/lib/analytics/db-init';
+
 
 // Rate Limiting per IP or Session (in-memory sliding window)
 // Collector only: Does not affect checkout or normal site endpoints
@@ -200,10 +200,7 @@ export async function POST(request: Request) {
     const safeService = typeof service === 'string' ? service.slice(0, 50).toLowerCase() : null;
     const safePlanId = typeof planId === 'string' ? planId.slice(0, 100) : null;
 
-    // Ensure table exists (idempotent, fail-open)
-    await ensureFunnelEventsTable();
-
-    // Persist to existing funnel_events table
+    // Persist to funnel_events table (fail-open, zero runtime DDL)
     // event column is varchar(100), session_id is text, metadata is jsonb, created_at is timestamp
     await db.insert(funnelEvents).values({
       sessionId: sessionId.slice(0, 100),
@@ -222,8 +219,8 @@ export async function POST(request: Request) {
 
     return new NextResponse(null, { status: 204 });
   } catch (error) {
-    // Fail-open logging: Do not crash, return 204 or 500 without stack traces to client
+    // Fail-open logging: Do not crash frontend, return 204 or fail-open status
     console.error('[AnalyticsCollector] Error processing event:', error);
-    return new NextResponse(null, { status: 500 });
+    return new NextResponse(null, { status: 204 });
   }
 }
