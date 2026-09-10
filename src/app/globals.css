@@ -24003,7 +24003,7 @@ html body .cf-o10-master.cf-o10-platform-twitter[data-stage="package"] .cf-o10-p
     width: min(100% - 20px, 620px) !important;
     max-width: 620px !important;
     margin: 0 auto !important;
-    padding: 14px 7px 40px !important;
+    padding: 14px 7px 25px !important;
     box-sizing: border-box !important;
     overflow: visible !important;
   }
@@ -33737,6 +33737,62 @@ html body .cf-plans-review-head > svg {
         height: 12px !important;
     }
 }
+
+/* =====================================================================
+   PRICING TITLE & SUBTITLE MOBILE / DESKTOP TEXT SEPARATION
+   Preserves 100% typography/font-size while displaying mobile-optimized
+   single-line copy on <= 900px and desktop copy on >= 901px.
+   ===================================================================== */
+html body .cf-pricing-title-desktop,
+html body .cf-pricing-subtitle-desktop {
+  display: inline !important;
+}
+
+html body .cf-pricing-title-mobile,
+html body .cf-pricing-subtitle-mobile {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  html body .cf-pricing-title-desktop,
+  html body .cf-pricing-subtitle-desktop {
+    display: none !important;
+  }
+
+  html body .cf-pricing-title-mobile,
+  html body .cf-pricing-subtitle-mobile {
+    display: inline !important;
+    white-space: nowrap !important;
+  }
+
+  html body .cf-plans-pricing .cf-plans-section-title.cf-pricing-title {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  html body .cf-plans-pricing .cf-plans-section-title.cf-pricing-title h2 {
+    white-space: nowrap !important;
+    overflow: visible !important;
+  }
+
+  html body .cf-plans-pricing .cf-plans-section-title.cf-pricing-title p {
+    white-space: nowrap !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
+@media (max-width: 390px) {
+  html body .cf-plans-pricing .cf-plans-section-title.cf-pricing-title {
+    margin-left: -60px !important;
+    margin-right: -60px !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+}
+
 
 
 
