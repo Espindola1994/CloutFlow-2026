@@ -33759,7 +33759,16 @@ html body .cf-pricing-subtitle-mobile {
     display: none !important;
   }
 
-  html body .cf-pricing-title-mobile,
+  html body .cf-pricing-title-mobile {
+    display: inline !important;
+    white-space: nowrap !important;
+    color: #111827 !important;
+  }
+
+  html body .cf-pricing-title-mobile [aria-hidden="true"] {
+    color: #ff2f72 !important;
+  }
+
   html body .cf-pricing-subtitle-mobile {
     display: inline !important;
     white-space: nowrap !important;
