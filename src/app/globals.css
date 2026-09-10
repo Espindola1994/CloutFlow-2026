@@ -24000,13 +24000,21 @@ html body .cf-o10-master.cf-o10-platform-twitter[data-stage="package"] .cf-o10-p
    Same content, icons, badges, borders, CTA treatments and platform colors as desktop. */
 @media (max-width: 900px) {
   html body .cf-home-offer-pricing {
-    width:100%!important;
-    max-width:100%!important;
-    margin:0 auto!important;
+    width: min(100% - 20px, 620px) !important;
+    max-width: 620px !important;
+    margin: 0 auto !important;
     padding: 14px 7px 40px !important;
-    box-sizing:border-box!important;
-    overflow:visible!important;
+    box-sizing: border-box !important;
+    overflow: visible !important;
   }
+
+@media (max-width: 480px) {
+  html body .cf-home-offer-pricing {
+    width: calc(100% - 14px) !important;
+    max-width: none !important;
+    margin: 0 auto !important;
+  }
+}
 
   html body .cf-home-offer-card-host.cf-o10-master[data-stage="package"] {
     width:100%!important;
