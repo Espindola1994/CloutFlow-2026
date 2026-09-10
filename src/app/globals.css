@@ -24003,7 +24003,7 @@ html body .cf-o10-master.cf-o10-platform-twitter[data-stage="package"] .cf-o10-p
     width:100%!important;
     max-width:100%!important;
     margin:0 auto!important;
-    padding:16px 5px 24px!important;
+    padding: 14px 7px 40px !important;
     box-sizing:border-box!important;
     overflow:visible!important;
   }
@@ -24453,8 +24453,8 @@ html body .cf-o10-master.cf-o10-platform-twitter[data-stage="package"] .cf-o10-p
 /* Narrow iPhone/Android sizes: same complete card, only small proportional text tightening. */
 @media (max-width: 390px) {
   html body .cf-home-offer-pricing {
-    padding-left:4px!important;
-    padding-right:4px!important;
+    padding-left: 65px !important;
+    padding-right: 65px !important;
   }
   html body .cf-home-offer-card-host .cf-o10-package-ref-grid {
     gap:10px!important;
