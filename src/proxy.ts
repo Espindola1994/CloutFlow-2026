@@ -10,11 +10,39 @@ export default function proxy(request: NextRequest) {
      return NextResponse.next();
   }
   
+  // Protect all /admin pages (except login)
   if (path.startsWith('/admin') && !path.startsWith('/admin/login')) {
     const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
     
     if (!sessionCookie?.value || !verifyAdminToken(sessionCookie.value)) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
+    }
+  }
+
+  // Protect all /api/admin routes directly at proxy level
+  if (path.startsWith('/api/admin')) {
+    // Check Authorization header first
+    const authHeader = request.headers.get('authorization');
+    const hasBearer = authHeader?.startsWith('Bearer ') && verifyAdminToken(authHeader.substring(7).trim());
+    
+    // Check session cookie
+    const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
+    const hasValidCookie = sessionCookie?.value && verifyAdminToken(sessionCookie.value);
+
+    // Check custom job secrets
+    const customSecret = request.headers.get('x-admin-key') || request.headers.get('x-admin-secret');
+    const expectedJobSecret = process.env.SEARCH_JOB_SECRET;
+    const expectedAdminPass = process.env.ADMIN_PASSWORD;
+    const hasValidKey = customSecret && (
+      (expectedJobSecret && customSecret === expectedJobSecret) ||
+      (expectedAdminPass && customSecret === expectedAdminPass)
+    );
+
+    if (!hasBearer && !hasValidCookie && !hasValidKey) {
+      return NextResponse.json(
+        { success: false, error: { message: 'Unauthorized - MFA verification required' } },
+        { status: 401 }
+      );
     }
   }
 

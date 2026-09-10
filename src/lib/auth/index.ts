@@ -8,11 +8,14 @@ export interface AdminSessionUser {
   name: string;
   email: string;
   role: string;
+  passwordVerified?: boolean;
+  mfaVerified?: boolean;
 }
 
 export interface AdminSession {
   user: AdminSessionUser;
   expiresAt: Date;
+  mfaVerified: boolean;
 }
 
 function getAdminSessionSecret(): string | null {
@@ -24,7 +27,7 @@ function getAdminSessionSecret(): string | null {
   return secret;
 }
 
-export function createAdminToken(ttlDays = 7): { token: string; expiresAt: Date } | null {
+export function createAdminToken(ttlDays = 7, mfaVerified = true): { token: string; expiresAt: Date } | null {
   const secret = getAdminSessionSecret();
   if (!secret) {
     return null;
@@ -35,6 +38,8 @@ export function createAdminToken(ttlDays = 7): { token: string; expiresAt: Date 
   
   const payload = {
     role: 'SUPER_ADMIN',
+    passwordVerified: true,
+    mfaVerified: !!mfaVerified,
     exp: expiresAt.getTime(),
   };
 
@@ -81,6 +86,10 @@ export function verifyAdminToken(token: string): boolean {
     if (!payload.exp || Date.now() > payload.exp) {
       return false;
     }
+    // Strict requirement: mfaVerified must be true for full admin session token
+    if (payload.mfaVerified !== true) {
+      return false;
+    }
     return true;
   } catch {
     return false;
@@ -122,8 +131,11 @@ export async function getSession(request?: Request): Promise<AdminSession | null
           name: 'Administrator',
           email: 'admin@cloutflow.co',
           role: 'SUPER_ADMIN',
+          passwordVerified: true,
+          mfaVerified: true,
         },
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        mfaVerified: true,
       };
     }
   }
@@ -143,14 +155,17 @@ export async function getSession(request?: Request): Promise<AdminSession | null
       name: 'Administrator',
       email: 'admin@cloutflow.co',
       role: 'SUPER_ADMIN',
+      passwordVerified: true,
+      mfaVerified: true,
     },
     expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    mfaVerified: true,
   };
 }
 
 export async function requireUser(request?: Request): Promise<AdminSessionUser> {
   const result = await getSession(request);
-  if (!result) {
+  if (!result || !result.mfaVerified) {
     throw new Error('Unauthorized');
   }
   return result.user;
