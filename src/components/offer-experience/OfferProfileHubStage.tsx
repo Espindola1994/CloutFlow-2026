@@ -191,6 +191,8 @@ export function OfferProfileHubStage({
             <div className="cf-o10-input">
               <Search />
               <input
+                data-clarity-mask="true"
+                className="clarity-mask"
                 value={lookupInput}
                 disabled={mode === 'LOADING'}
                 onChange={(e) => setLookupInput(e.target.value)}

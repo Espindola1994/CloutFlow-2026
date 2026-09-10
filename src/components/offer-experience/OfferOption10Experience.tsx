@@ -541,6 +541,8 @@ export function OfferOption10Experience(props: Props) {
                       <input
                         id="cf-o10-repurchase-email"
                         type="email"
+                        data-clarity-mask="true"
+                        className="clarity-mask"
                         value={emailValue}
                         onChange={(e) => setEmailValue(e.target.value)}
                         placeholder={previousTarget?.maskedEmail || 'Enter your email'}
@@ -660,7 +662,7 @@ export function OfferOption10Experience(props: Props) {
                       </button>
                     ))}
                   </div>
-                  <div className="cf-o10-search-input"><Search /><input value={lookupInput} disabled={flowStep === 'LOADING'} onChange={(e) => setLookupInput(e.target.value)} placeholder="@username or profile link" onKeyDown={(e) => e.key === 'Enter' && flowStep !== 'LOADING' && onSearch(lookupInput, targetPlatform)} /></div>
+                  <div className="cf-o10-search-input"><Search /><input data-clarity-mask="true" className="clarity-mask" value={lookupInput} disabled={flowStep === 'LOADING'} onChange={(e) => setLookupInput(e.target.value)} placeholder="@username or profile link" onKeyDown={(e) => e.key === 'Enter' && flowStep !== 'LOADING' && onSearch(lookupInput, targetPlatform)} /></div>
                   {lookupError && <div className="cf-o10-error">{lookupError}</div>}
                   <small className="cf-o10-public-note"><ShieldCheck /> Public data only. No password required.</small>
                 </>

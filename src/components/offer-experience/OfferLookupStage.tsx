@@ -59,7 +59,7 @@ export function OfferLookupStage({ targetPlatform, setTargetPlatform, lookupInpu
         <label className="cf-offer-input-label">{theme.name} username or profile link</label>
         <div className="cf-offer-search-input">
           <Search />
-          <input value={lookupInput} onChange={(e) => setLookupInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && onSearch(lookupInput, targetPlatform)} placeholder="@username or profile link" />
+          <input data-clarity-mask="true" className="clarity-mask" value={lookupInput} onChange={(e) => setLookupInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && onSearch(lookupInput, targetPlatform)} placeholder="@username or profile link" />
         </div>
         {lookupError && <div className="cf-offer-error">{lookupError}</div>}
 

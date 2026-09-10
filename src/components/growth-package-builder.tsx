@@ -643,7 +643,7 @@ export default function GrowthPackageBuilder({
         <div className="cf-premium-builder-controls">
           <div className="cf-pb-step"><div className="cf-pb-label"><i>1</i><div><b>Choose your goal</b><small>What do you want to achieve?</small></div></div><div className="cf-pb-goals">{((PLATFORM_SERVICES[platform] || ["followers", "likes", "views"]) as Goal[]).map(g => <button key={g} className={goal===g?"active":""} onClick={()=>chooseGoal(g)}><GoalIcon goal={g} premium/><b>{g[0].toUpperCase()+g.slice(1)}</b>{goal===g&&<Check/>}</button>)}</div></div>
           <div className="cf-pb-step"><div className="cf-pb-label"><i>2</i><div><b>Choose the network</b><small>We support all 4 platforms below</small></div></div><div className="cf-pb-platforms">{(Object.entries(META) as [PlatformId, typeof META[PlatformId]][]).map(([id,item]) => <button key={id} className={platform===id?"active":""} style={{"--pb-accent":item.accent} as React.CSSProperties} onClick={()=>choosePlatform(id)}><PlatformIcon src={item.icon}/><b>{item.label}</b>{platform===id&&<Check/>}</button>)}</div>
-            <label className="cf-pb-field-label">{getInputLabel()}</label><div className="cf-pb-input"><ScanSearch/><input value={identifier} onFocus={()=>{
+            <label className="cf-pb-field-label">{getInputLabel()}</label><div className="cf-pb-input"><ScanSearch/><input data-clarity-mask="true" className="clarity-mask" value={identifier} onFocus={()=>{
               if (!identifierStartedEmitted.current) {
                 identifierStartedEmitted.current = true;
                 trackAnalyticsEvent("identifier_started", { platform, service: goal });
@@ -661,7 +661,7 @@ export default function GrowthPackageBuilder({
                 trackAnalyticsEvent("identifier_completed", { platform, service: goal });
               }
             }} placeholder={getInputPlaceholder()}/></div>
-            <label className="cf-pb-field-label">Email <strong>(required)</strong></label><div className="cf-pb-input"><Mail/><input type="email" value={email} onFocus={()=>{
+            <label className="cf-pb-field-label">Email <strong>(required)</strong></label><div className="cf-pb-input"><Mail/><input data-clarity-mask="true" className="clarity-mask" type="email" value={email} onFocus={()=>{
               if (!emailStartedEmitted.current) {
                 emailStartedEmitted.current = true;
                 trackAnalyticsEvent("email_started", { platform, service: goal });
