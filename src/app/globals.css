@@ -24461,8 +24461,8 @@ html body .cf-o10-master.cf-o10-platform-twitter[data-stage="package"] .cf-o10-p
 /* Narrow iPhone/Android sizes: same complete card, only small proportional text tightening. */
 @media (max-width: 390px) {
   html body .cf-home-offer-pricing {
-    padding-left: 65px !important;
-    padding-right: 65px !important;
+    padding-left: 60px !important;
+    padding-right: 60px !important;
   }
   html body .cf-home-offer-card-host .cf-o10-package-ref-grid {
     gap:10px!important;
