@@ -87,10 +87,9 @@ function AdminShellContent() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       toast.success("Signed out securely");
-      router.push("/admin/login");
-      router.refresh();
+      window.location.href = "/admin/login";
     } catch {
-      router.push("/admin/login");
+      window.location.href = "/admin/login";
     }
   };
 

@@ -22,10 +22,9 @@ export function AdminSidebar() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       toast.success("Logged out successfully");
-      router.push("/admin/login");
-      router.refresh();
+      window.location.href = "/admin/login";
     } catch {
-      router.push("/admin/login");
+      window.location.href = "/admin/login";
     }
   };
 

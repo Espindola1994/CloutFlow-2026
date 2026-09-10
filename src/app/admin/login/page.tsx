@@ -130,8 +130,7 @@ export default function AdminLogin() {
           toast.success("Two-Factor Authentication activated successfully!");
         } else {
           toast.success("Login successful");
-          router.push("/admin/dashboard");
-          router.refresh();
+          window.location.href = "/admin/dashboard";
         }
       } else {
         const msg = data.error?.message || "Invalid verification code. Please try again.";
@@ -169,8 +168,7 @@ export default function AdminLogin() {
 
       if (res.ok && data.success) {
         toast.success(`Logged in with recovery code. ${data.data.remainingCount} codes remaining.`);
-        router.push("/admin/dashboard");
-        router.refresh();
+        window.location.href = "/admin/dashboard";
       } else {
         const msg = data.error?.message || "Invalid or used recovery code.";
         setErrorMessage(msg);
@@ -204,8 +202,7 @@ export default function AdminLogin() {
   };
 
   const finishEnrollmentAndEnter = () => {
-    router.push("/admin/dashboard");
-    router.refresh();
+    window.location.href = "/admin/dashboard";
   };
 
   return (
