@@ -13,6 +13,7 @@ import { validateEmailFormat, buildCanonicalProfileUrl } from "@/lib/social/norm
 import type { VerifiedSocialProfile } from "@/lib/social/types";
 import { useFunnelStore } from "@/stores/funnel.store";
 import { InstagramPreview, TikTokPreview, TwitterPreview, YouTubePreview } from "./social-preview";
+import { trackAnalyticsEvent } from "@/lib/analytics/tracker";
 
 type PlatformId = CommercialPlatform;
 type Goal = CommercialService;
@@ -184,6 +185,11 @@ export default function GrowthPackageBuilder({
   const mobileResultPanelRef = useRef<HTMLDivElement>(null);
   const mobileAnalyzeScrollConsumed = useRef(false);
   const mobileResultScrollConsumed = useRef(false);
+  const identifierStartedEmitted = useRef(false);
+  const emailStartedEmitted = useRef(false);
+  const identifierCompletedEmitted = useRef(false);
+  const emailCompletedEmitted = useRef(false);
+  const resultViewedEmitted = useRef(false);
 
   useEffect(() => setPlatformLocal(initialPlatform), [initialPlatform]);
   useEffect(() => setGoalLocal(initialGoal), [initialGoal]);
@@ -314,6 +320,9 @@ export default function GrowthPackageBuilder({
 
   const choosePlatform = (next: PlatformId) => {
     if (stage === "analyzing") return;
+    if (next !== platform) {
+      trackAnalyticsEvent("platform_selected", { platform: next, service: goal });
+    }
     analysisRunId.current += 1;
     mobileAnalyzeScrollConsumed.current = false;
     mobileResultScrollConsumed.current = false;
@@ -331,6 +340,9 @@ export default function GrowthPackageBuilder({
   };
   const chooseGoal = (next: Goal) => {
     if (stage === "analyzing") return;
+    if (next !== goal) {
+      trackAnalyticsEvent("service_selected", { platform, service: next });
+    }
     analysisRunId.current += 1;
     mobileAnalyzeScrollConsumed.current = false;
     mobileResultScrollConsumed.current = false;
@@ -342,6 +354,7 @@ export default function GrowthPackageBuilder({
   };
 
   const resetSearch = () => {
+    trackAnalyticsEvent("search_again_clicked", { platform, service: goal });
     polling.current = false;
     analysisRunId.current += 1;
     previewTimers.current.forEach(window.clearTimeout);
@@ -390,15 +403,22 @@ export default function GrowthPackageBuilder({
   const finish = (found: VerifiedSocialProfile, runId: number) => {
     if (!polling.current || analysisRunId.current !== runId) return;
     // Stage 1: Result found. Target is valid, but NOT yet verified until user explicitly confirms!
+    trackAnalyticsEvent("analysis_completed", {
+      platform,
+      service: goal,
+      metadata: { targetType: found.platform },
+    });
     persistTarget(found, false);
     setProfile(found); setProgress(100);
     setStage("result");
     polling.current = false;
+    trackAnalyticsEvent("result_viewed", { platform, service: goal });
   };
 
   const confirmDisplayedProfile = () => {
     // Stage 2: User explicitly clicked "Yes, this is my profile".
     // ONLY THIS ACTION promotes targetVerified to true and unlocks the plans!
+    trackAnalyticsEvent("profile_confirmed", { platform, service: goal });
     if (displayProfile) {
       persistTarget(displayProfile, true);
     }
@@ -462,6 +482,13 @@ export default function GrowthPackageBuilder({
         return;
       }
     }
+
+    // Fire-and-forget: Analyze clicked
+    trackAnalyticsEvent("analyze_clicked", {
+      platform,
+      service: goal,
+      metadata: { targetType: isContent ? "content" : "profile" },
+    });
 
     // The service is a selection input, not analysis output. Re-associate it
     // only when a new analysis actually starts after a checkout return.
@@ -561,6 +588,13 @@ export default function GrowthPackageBuilder({
     } catch (e) {
       if (polling.current) {
         polling.current = false;
+        trackAnalyticsEvent("analysis_failed", {
+          platform,
+          service: goal,
+          metadata: {
+            errorCategory: e instanceof Error ? e.message.slice(0, 100) : "Search failed",
+          },
+        });
         setStage("idle"); setProgress(0); setError(e instanceof Error ? e.message : "Search failed. Please try again.");
       }
     } finally { previewTimers.current.forEach(window.clearTimeout); previewTimers.current = []; }
@@ -609,8 +643,42 @@ export default function GrowthPackageBuilder({
         <div className="cf-premium-builder-controls">
           <div className="cf-pb-step"><div className="cf-pb-label"><i>1</i><div><b>Choose your goal</b><small>What do you want to achieve?</small></div></div><div className="cf-pb-goals">{((PLATFORM_SERVICES[platform] || ["followers", "likes", "views"]) as Goal[]).map(g => <button key={g} className={goal===g?"active":""} onClick={()=>chooseGoal(g)}><GoalIcon goal={g} premium/><b>{g[0].toUpperCase()+g.slice(1)}</b>{goal===g&&<Check/>}</button>)}</div></div>
           <div className="cf-pb-step"><div className="cf-pb-label"><i>2</i><div><b>Choose the network</b><small>We support all 4 platforms below</small></div></div><div className="cf-pb-platforms">{(Object.entries(META) as [PlatformId, typeof META[PlatformId]][]).map(([id,item]) => <button key={id} className={platform===id?"active":""} style={{"--pb-accent":item.accent} as React.CSSProperties} onClick={()=>choosePlatform(id)}><PlatformIcon src={item.icon}/><b>{item.label}</b>{platform===id&&<Check/>}</button>)}</div>
-            <label className="cf-pb-field-label">{getInputLabel()}</label><div className="cf-pb-input"><ScanSearch/><input value={identifier} onChange={e=>{setIdentifier(e.target.value);setDraftIdentifier(e.target.value);}} placeholder={getInputPlaceholder()}/></div>
-            <label className="cf-pb-field-label">Email <strong>(required)</strong></label><div className="cf-pb-input"><Mail/><input type="email" value={email} onChange={e=>{setEmail(e.target.value);setStoreEmail(e.target.value);}} placeholder="Enter your email address"/></div><p className="cf-pb-privacy"><span className="cf-pb-privacy-text-desktop">We safely store your searches, orders and updates.</span><span className="cf-pb-privacy-text-mobile">We use this email to safely save your search and orders.</span></p>
+            <label className="cf-pb-field-label">{getInputLabel()}</label><div className="cf-pb-input"><ScanSearch/><input value={identifier} onFocus={()=>{
+              if (!identifierStartedEmitted.current) {
+                identifierStartedEmitted.current = true;
+                trackAnalyticsEvent("identifier_started", { platform, service: goal });
+              }
+            }} onChange={e=>{
+              const val = e.target.value;
+              setIdentifier(val);
+              setDraftIdentifier(val);
+              if (!identifierStartedEmitted.current && val.trim().length > 0) {
+                identifierStartedEmitted.current = true;
+                trackAnalyticsEvent("identifier_started", { platform, service: goal });
+              }
+              if (!identifierCompletedEmitted.current && val.trim().length >= 3) {
+                identifierCompletedEmitted.current = true;
+                trackAnalyticsEvent("identifier_completed", { platform, service: goal });
+              }
+            }} placeholder={getInputPlaceholder()}/></div>
+            <label className="cf-pb-field-label">Email <strong>(required)</strong></label><div className="cf-pb-input"><Mail/><input type="email" value={email} onFocus={()=>{
+              if (!emailStartedEmitted.current) {
+                emailStartedEmitted.current = true;
+                trackAnalyticsEvent("email_started", { platform, service: goal });
+              }
+            }} onChange={e=>{
+              const val = e.target.value;
+              setEmail(val);
+              setStoreEmail(val);
+              if (!emailStartedEmitted.current && val.trim().length > 0) {
+                emailStartedEmitted.current = true;
+                trackAnalyticsEvent("email_started", { platform, service: goal });
+              }
+              if (!emailCompletedEmitted.current && validateEmailFormat(val).isValid) {
+                emailCompletedEmitted.current = true;
+                trackAnalyticsEvent("email_completed", { platform, service: goal });
+              }
+            }} placeholder="Enter your email address"/></div><p className="cf-pb-privacy"><span className="cf-pb-privacy-text-desktop">We safely store your searches, orders and updates.</span><span className="cf-pb-privacy-text-mobile">We use this email to safely save your search and orders.</span></p>
           </div>
           <div ref={mobileAnalyzePanelRef} className="cf-pb-step cf-pb-analyze"><div className="cf-pb-label"><i>3</i><div><b>Analyze profile</b><small>We'll fetch public data and confirm your profile.</small></div></div>{error&&<div className="cf-pb-error">{error}</div>}<button className="cf-pb-analyze-btn" disabled={stage==="analyzing"} onClick={analyze}>{stage==="analyzing"?<Loader2 className="spin"/>:<ScanSearch/>}{stage==="analyzing"?"Analyzing...":"Analyze Profile"}</button></div>
         </div>

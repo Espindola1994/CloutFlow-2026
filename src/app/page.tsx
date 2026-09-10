@@ -19,6 +19,7 @@ import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
 import tiktokIcon from "@/assets/home-icons-vector/tiktok.svg";
 import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
 import youtubeIcon from "@/assets/home-icons-vector/youtube.svg";
+import { trackAnalyticsEvent } from "@/lib/analytics/tracker";
 
 type PlatformId = "instagram" | "tiktok" | "twitter" | "youtube";
 const PLATFORM_META: Record<PlatformId, { label: string; icon: any; accent: string; accent2: string }> = {
@@ -77,6 +78,7 @@ export default function HomePage({
     const state = useFunnelStore.getState();
     state.setPlatform(initialPlatform);
     state.setService(initialService);
+    trackAnalyticsEvent("page_view", { platform: initialPlatform, service: initialService });
   }, [initialPlatform, initialService]);
 
   useEffect(() => {
@@ -373,6 +375,14 @@ export default function HomePage({
       });
       const json = await res.json();
       if (res.ok && json.success && json.data?.checkoutUrl) {
+        trackAnalyticsEvent("checkout_started_linked", {
+          platform,
+          service,
+          planId: offerId,
+          metadata: {
+            checkoutContextId: json.data?.contextId,
+          },
+        });
         markCheckoutReturn();
         window.history.replaceState(null, "", "/");
         window.location.href = json.data.checkoutUrl;

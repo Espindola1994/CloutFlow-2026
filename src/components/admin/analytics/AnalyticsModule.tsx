@@ -16,7 +16,11 @@ import { ServicePerformanceCard } from "./ServicePerformanceCard";
 import { TopPlansCard } from "./TopPlansCard";
 import { AbandonmentAnalyticsCard } from "./AbandonmentAnalyticsCard";
 import { AttributionCompactCard } from "./AttributionCompactCard";
-import { FutureTrackingNoticeCard } from "./FutureTrackingNoticeCard";
+import { FullFunnelCard } from "./FullFunnelCard";
+import { PreCheckoutInterestsCard } from "./PreCheckoutInterestsCard";
+import { PreCheckoutPlanInterestCard } from "./PreCheckoutPlanInterestCard";
+import { AnalyzePerformanceCard } from "./AnalyzePerformanceCard";
+import { TrafficAndDevicesCard } from "./TrafficAndDevicesCard";
 
 interface AnalyticsModuleProps {
   onNavigateToAttribution?: () => void;
@@ -71,9 +75,9 @@ export function AnalyticsModule({ onNavigateToAttribution }: AnalyticsModuleProp
             <BarChart3 className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-[18px] font-bold text-[#142126] tracking-tight">Commerce Analytics</h1>
+            <h1 className="text-[18px] font-bold text-[#142126] tracking-tight">Commerce & Funnel Analytics</h1>
             <p className="text-[12px] text-[#65737A]">
-              Phase A — Real commerce, checkout, and order performance metrics
+              Phase A & B — Full funnel tracking, pre-checkout discovery, and commerce performance
             </p>
           </div>
         </div>
@@ -142,22 +146,42 @@ export function AnalyticsModule({ onNavigateToAttribution }: AnalyticsModuleProp
           {/* Row 1: Main KPIs */}
           <AnalyticsKpis kpis={data.kpis} />
 
-          {/* Row 2: Checkout Funnel & Temporal Performance */}
+          {/* Row 2: Phase B Full Funnel (Pre-Checkout to Payment) */}
+          <FullFunnelCard fullFunnel={data.fullFunnel} />
+
+          {/* Row 3: Pre-Checkout Network & Service Interest */}
+          <PreCheckoutInterestsCard
+            networks={data.preCheckoutNetworkInterest}
+            services={data.preCheckoutServiceInterest}
+          />
+
+          {/* Row 4: Plan Interest & Analyze Performance */}
+          <PreCheckoutPlanInterestCard plans={data.preCheckoutPlanInterest} />
+          <AnalyzePerformanceCard performance={data.analyzePerformance} />
+
+          {/* Row 5: Traffic Sources & Device Breakdowns */}
+          <TrafficAndDevicesCard
+            sources={data.trafficSources}
+            devices={data.deviceBreakdown}
+            browsers={data.browserBreakdown}
+          />
+
+          {/* Row 6: Checkout Funnel & Temporal Performance */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <CheckoutFunnelCard funnel={data.funnel} />
             <PerformanceTimeSeriesChart data={data.performanceOverTime} />
           </div>
 
-          {/* Row 3: Network & Service Breakdown */}
+          {/* Row 7: Network & Service Breakdown */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <NetworkPerformanceCard networks={data.networkPerformance} />
             <ServicePerformanceCard services={data.servicePerformance} />
           </div>
 
-          {/* Row 4: Top Plans & Rankings */}
+          {/* Row 8: Top Plans & Rankings */}
           <TopPlansCard plans={data.topPlans} rankings={data.rankings} />
 
-          {/* Row 5: Checkout Abandonment & Compact Attribution */}
+          {/* Row 9: Checkout Abandonment & Compact Attribution */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2">
               <AbandonmentAnalyticsCard abandonment={data.abandonment} />
@@ -176,9 +200,6 @@ export function AnalyticsModule({ onNavigateToAttribution }: AnalyticsModuleProp
               />
             </div>
           </div>
-
-          {/* Row 6: Future Tracking Notice (Discrete) */}
-          <FutureTrackingNoticeCard />
         </div>
       )}
     </div>

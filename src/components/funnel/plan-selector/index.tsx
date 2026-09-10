@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import {
   ArrowLeft, ArrowRight, BadgeCheck, Check, Star, TimerReset, TrendingUp, Zap, ChevronRight, UserRound, Plus, Minus, CircleHelp, ShieldCheck, RefreshCw, LockKeyhole, CircleDollarSign, UsersRound, Tag, Flame, Gem, Sparkles, Loader2,
 } from "lucide-react";
 import { useFunnelStore } from "@/stores/funnel.store";
+import { trackAnalyticsEvent } from "@/lib/analytics/tracker";
 import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
 import tiktokIcon from "@/assets/home-icons-vector/tiktok.svg";
 import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
@@ -118,8 +119,74 @@ export function PlanSelector({
       isBestValue: index === 3 || index === 5,
     };
   }),[plans]);
+  const viewedPlansRef = useRef<Set<string>>(new Set());
+  const sectionObservedRef = useRef(false);
+
+  useEffect(() => {
+    if (!hasTarget || slots.length === 0 || typeof IntersectionObserver === "undefined") return;
+
+    const cards = document.querySelectorAll<HTMLElement>(".cf-o10-package-ref-card");
+    if (cards.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const planId = entry.target.getAttribute("data-plan-id");
+            const planName = entry.target.getAttribute("data-plan-name");
+            if (planId && !viewedPlansRef.current.has(planId)) {
+              viewedPlansRef.current.add(planId);
+              trackAnalyticsEvent("plan_card_viewed", {
+                platform,
+                service,
+                planId,
+                metadata: { planName: planName || undefined },
+              });
+            }
+          }
+        });
+      },
+      { threshold: 0.4 }
+    );
+
+    cards.forEach((card) => observer.observe(card));
+    return () => observer.disconnect();
+  }, [hasTarget, slots, platform, service]);
+  const containerRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!hasTarget || sectionObservedRef.current) return;
+    const el = containerRef.current || document.querySelector<HTMLElement>(".cf-plans-pricing");
+    if (!el || typeof IntersectionObserver === "undefined") return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry && entry.isIntersecting && !sectionObservedRef.current) {
+          sectionObservedRef.current = true;
+          trackAnalyticsEvent("pricing_viewed", { platform, service });
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.35 }
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasTarget, platform, service]);
+
   const select=(id:string|null)=>{ 
      if(!id) return; 
+     const matchedSlot = slots.find((s) => s.id === id);
+     trackAnalyticsEvent("plan_selected", {
+       platform,
+       service,
+       planId: id,
+       metadata: {
+         planName: matchedSlot?.title,
+         packageQuantity: matchedSlot?.quantity,
+       },
+     });
      setPlan(id); 
      void onSelectPlan?.(id); 
   };
@@ -135,6 +202,17 @@ export function PlanSelector({
   const handleCtaClick = (e: React.MouseEvent, id: string | null) => {
     e.stopPropagation();
     if (!id) return;
+
+    const matchedSlot = slots.find((s) => s.id === id);
+    trackAnalyticsEvent("plan_cta_clicked", {
+      platform,
+      service,
+      planId: id,
+      metadata: {
+        planName: matchedSlot?.title,
+        packageQuantity: matchedSlot?.quantity,
+      },
+    });
 
     const isMobile = typeof window !== "undefined" && window.innerWidth <= 900;
     if (isMobile) {
@@ -202,6 +280,8 @@ export function PlanSelector({
               return (
                 <article
                   key={p.title}
+                  data-plan-id={p.id || undefined}
+                  data-plan-name={p.title}
                   className={`cf-o10-package-ref-card ${p.isBestValue ? "is-best-value" : ""}`}
                   onClick={()=>handleCardClick(p.id)}
                 >

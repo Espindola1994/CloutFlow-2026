@@ -11,9 +11,26 @@ export interface AnalyticsKpiSummary {
 }
 
 export interface AnalyticsFunnelStep {
+  stage: string;
   label: string;
   count: number;
-  percentage: number;
+  conversionFromPrevious: number; // percentage e.g. 82.5
+  conversionFromVisitor: number;  // percentage e.g. 100.0
+  lostSessions: number;           // drop-off count
+  dropOffRate: number;            // percentage e.g. 17.5
+}
+
+export interface FullFunnelData {
+  trackingActive: boolean;
+  activationDate: string; // ISO date
+  hasHistoricalWarning: boolean;
+  steps: AnalyticsFunnelStep[];
+  biggestDropOff: {
+    fromStage: string;
+    toStage: string;
+    lostSessions: number;
+    dropOffRate: number;
+  } | null;
 }
 
 export interface AnalyticsFunnel {
@@ -45,6 +62,15 @@ export interface AnalyticsNetworkPerformance {
   quantitySold: number;
 }
 
+export interface PreCheckoutNetworkInterest {
+  network: string;
+  platformKey: string;
+  selectedSessions: number;
+  checkoutSessions: number;
+  paidOrders: number;
+  conversionRate: number; // percentage paid / selected
+}
+
 export interface AnalyticsServicePerformance {
   service: string;
   serviceKey: string;
@@ -53,6 +79,62 @@ export interface AnalyticsServicePerformance {
   revenueShare: number; // percentage
   aov: number;
   quantitySold: number;
+}
+
+export interface PreCheckoutServiceInterest {
+  service: string;
+  serviceKey: string;
+  selectedSessions: number;
+  analyzedSessions: number;
+  checkoutSessions: number;
+  paidOrders: number;
+  conversionRate: number;
+}
+
+export interface PreCheckoutPlanInterest {
+  planId: string;
+  planName: string;
+  network: string;
+  service: string;
+  viewedSessions: number;
+  selectedSessions: number;
+  ctaClickedSessions: number;
+  checkoutSessions: number;
+  paidOrders: number;
+}
+
+export interface AnalyzePerformanceSummary {
+  totalAttempts: number;
+  successful: number;
+  failed: number;
+  successRate: number; // percentage
+  byNetwork: Array<{
+    network: string;
+    platformKey: string;
+    attempts: number;
+    successful: number;
+    failed: number;
+    successRate: number;
+  }>;
+}
+
+export interface TrafficSourceItem {
+  source: string;
+  sessions: number;
+  share: number; // percentage
+  paidOrders: number;
+}
+
+export interface DeviceBreakdownItem {
+  device: string;
+  sessions: number;
+  share: number;
+}
+
+export interface BrowserBreakdownItem {
+  browser: string;
+  sessions: number;
+  share: number;
 }
 
 export interface AnalyticsTopPlan {
@@ -93,8 +175,7 @@ export interface AnalyticsAbandonmentMetrics {
   paid: number;
   abandonmentRate: number;
   conversionRate: number;
-  // If reliably recoverable journeys are tracked:
-  abandonedCartValueEstimated: number; // sum of priceCents/100 from abandoned leads
+  abandonedCartValueEstimated: number;
   recoveredOrders: number;
   recoveredRevenue: number;
 }
@@ -112,6 +193,14 @@ export interface AnalyticsResponseData {
   rangeEnd: string;   // ISO date
   kpis: AnalyticsKpiSummary;
   funnel: AnalyticsFunnel;
+  fullFunnel: FullFunnelData; // Phase B Full Funnel
+  preCheckoutNetworkInterest: PreCheckoutNetworkInterest[];
+  preCheckoutServiceInterest: PreCheckoutServiceInterest[];
+  preCheckoutPlanInterest: PreCheckoutPlanInterest[];
+  analyzePerformance: AnalyzePerformanceSummary;
+  trafficSources: TrafficSourceItem[];
+  deviceBreakdown: DeviceBreakdownItem[];
+  browserBreakdown: BrowserBreakdownItem[];
   performanceOverTime: AnalyticsTimeSeriesPoint[];
   networkPerformance: AnalyticsNetworkPerformance[];
   servicePerformance: AnalyticsServicePerformance[];

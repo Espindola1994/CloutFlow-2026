@@ -1,5 +1,6 @@
 import { db } from '@/db';
 import { orders, lifecycleEvents, paymentLeads, plans } from '@/db/schema';
+import { funnelEvents } from '@/db/schema/analytics';
 import { sql, and, gte, lte, eq, or } from 'drizzle-orm';
 import { CLOUTFLOW_CATALOG_PACKAGES } from '@/config/financial-protection.config';
 import {
@@ -7,6 +8,15 @@ import {
   AnalyticsResponseData,
   AnalyticsKpiSummary,
   AnalyticsFunnel,
+  AnalyticsFunnelStep,
+  FullFunnelData,
+  PreCheckoutNetworkInterest,
+  PreCheckoutServiceInterest,
+  PreCheckoutPlanInterest,
+  AnalyzePerformanceSummary,
+  TrafficSourceItem,
+  DeviceBreakdownItem,
+  BrowserBreakdownItem,
   AnalyticsTimeSeriesPoint,
   AnalyticsNetworkPerformance,
   AnalyticsServicePerformance,
@@ -15,6 +25,8 @@ import {
   AnalyticsAbandonmentMetrics,
   AnalyticsAttributionSummary,
 } from '@/types/admin-analytics';
+
+export const PHASE_B_ACTIVATION_DATE = '2026-09-10T00:00:00.000Z';
 
 export function resolveDateRangeBounds(range: AnalyticsDateRange): { startDate: Date; endDate: Date } {
   const endDate = new Date();
@@ -46,7 +58,6 @@ export function resolveDateRangeBounds(range: AnalyticsDateRange): { startDate: 
 
 /**
  * Resolves a human-readable plan name given planId, canonicalOfferId, platform, service, and quantity.
- * Cross-references CLOUTFLOW_CATALOG_PACKAGES and database plans table.
  */
 export function resolveCanonicalPlanName(
   platform: string | null | undefined,
@@ -59,7 +70,6 @@ export function resolveCanonicalPlanName(
     return dbPlanName.trim();
   }
 
-  // If canonicalOfferId exists: canonical-{platform}-{service}-{plan}
   if (canonicalOfferId && canonicalOfferId.startsWith('canonical-')) {
     const parts = canonicalOfferId.split('-');
     if (parts.length >= 4) {
@@ -69,7 +79,6 @@ export function resolveCanonicalPlanName(
     }
   }
 
-  // Look up in CLOUTFLOW_CATALOG_PACKAGES by platform, service, and quantity
   if (platform && service && quantity) {
     const matched = CLOUTFLOW_CATALOG_PACKAGES.find(
       (pkg) =>
@@ -120,6 +129,15 @@ export function computeAnalyticsMetrics(params: {
   recoveredOrdersCount: number;
   recoveredRevenueCents: number;
   dbPlansMap?: Map<string, string>; // planId -> planName
+
+  // Phase B Pre-checkout Data
+  rawFunnelEvents?: Array<{
+    event: string;
+    sessionId: string | null;
+    planId: string | null;
+    metadata: any;
+    createdAt: Date;
+  }>;
 }): AnalyticsResponseData {
   const {
     range,
@@ -134,6 +152,7 @@ export function computeAnalyticsMetrics(params: {
     recoveredOrdersCount,
     recoveredRevenueCents,
     dbPlansMap,
+    rawFunnelEvents = [],
   } = params;
 
   // 1. Filter Paid Orders according to canonical status
@@ -147,9 +166,6 @@ export function computeAnalyticsMetrics(params: {
   const revenueDollars = Math.round(totalRevenueCents) / 100;
   const aovDollars = paidOrdersCount > 0 ? Math.round((revenueDollars / paidOrdersCount) * 100) / 100 : 0;
 
-  // Checkout conversion rate:
-  // If checkoutsStartedJourneys > 0: (paidOrdersCount / checkoutsStartedJourneys) * 100
-  // Capped at 100% in case historical orders arrived via alternative/direct flows
   const conversionRate =
     checkoutsStartedJourneys > 0
       ? Math.min(100, Math.round((paidOrdersCount / checkoutsStartedJourneys) * 1000) / 10)
@@ -182,10 +198,368 @@ export function computeAnalyticsMetrics(params: {
     },
   };
 
-  // 2. Time-Series Construction: Group by day
+  // 2. Full Funnel Construction (Phase B)
+  // Ordered sequence:
+  // Visitors -> Network Selected -> Identifier Completed -> Email Completed -> Analyze Clicked -> Analysis Completed -> Result Viewed -> Profile Confirmed -> Pricing Viewed -> Plan CTA Clicked -> Checkout Started -> Paid
+  const sessionStagesMap = new Map<string, Set<string>>(); // sessionId -> Set of events
+  const networkSessionsMap = new Map<string, Set<string>>(); // platform -> Set of sessionIds
+  const serviceSessionsMap = new Map<string, Set<string>>(); // service -> Set of sessionIds
+  const serviceAnalyzedSessionsMap = new Map<string, Set<string>>();
+  const planViewedSessionsMap = new Map<string, Set<string>>();
+  const planSelectedSessionsMap = new Map<string, Set<string>>();
+  const planCtaSessionsMap = new Map<string, Set<string>>();
+  const analyzeAttemptsMap = new Map<string, { total: number; success: number; failed: number }>();
+  const trafficSourcesMap = new Map<string, Set<string>>();
+  const deviceMap = new Map<string, Set<string>>();
+  const browserMap = new Map<string, Set<string>>();
+
+  const canonicalPlatforms = ['instagram', 'tiktok', 'twitter', 'youtube'] as const;
+  for (const p of canonicalPlatforms) {
+    analyzeAttemptsMap.set(p, { total: 0, success: 0, failed: 0 });
+    networkSessionsMap.set(p, new Set());
+  }
+
+  const canonicalServices = ['followers', 'likes', 'views'] as const;
+  for (const s of canonicalServices) {
+    serviceSessionsMap.set(s, new Set());
+    serviceAnalyzedSessionsMap.set(s, new Set());
+  }
+
+  for (const ev of rawFunnelEvents) {
+    const sid = ev.sessionId;
+    if (!sid) continue;
+
+    if (!sessionStagesMap.has(sid)) {
+      sessionStagesMap.set(sid, new Set());
+    }
+    const currentStages = sessionStagesMap.get(sid)!;
+    currentStages.add(ev.event);
+
+    const meta = ev.metadata || {};
+    const platformKey = (meta.platform || '').toLowerCase();
+    const serviceKey = (meta.service || '').toLowerCase();
+
+    if (platformKey && networkSessionsMap.has(platformKey)) {
+      networkSessionsMap.get(platformKey)!.add(sid);
+    }
+    if (serviceKey && serviceSessionsMap.has(serviceKey)) {
+      serviceSessionsMap.get(serviceKey)!.add(sid);
+    }
+
+    if (ev.event === 'analyze_clicked' && platformKey && analyzeAttemptsMap.has(platformKey)) {
+      const stats = analyzeAttemptsMap.get(platformKey)!;
+      stats.total += 1;
+      if (serviceKey && serviceAnalyzedSessionsMap.has(serviceKey)) {
+        serviceAnalyzedSessionsMap.get(serviceKey)!.add(sid);
+      }
+    } else if (ev.event === 'analysis_completed' && platformKey && analyzeAttemptsMap.has(platformKey)) {
+      const stats = analyzeAttemptsMap.get(platformKey)!;
+      stats.success += 1;
+    } else if (ev.event === 'analysis_failed' && platformKey && analyzeAttemptsMap.has(platformKey)) {
+      const stats = analyzeAttemptsMap.get(platformKey)!;
+      stats.failed += 1;
+    }
+
+    const planIdKey = ev.planId || meta.planId;
+    if (planIdKey) {
+      if (ev.event === 'plan_card_viewed') {
+        if (!planViewedSessionsMap.has(planIdKey)) planViewedSessionsMap.set(planIdKey, new Set());
+        planViewedSessionsMap.get(planIdKey)!.add(sid);
+      } else if (ev.event === 'plan_selected') {
+        if (!planSelectedSessionsMap.has(planIdKey)) planSelectedSessionsMap.set(planIdKey, new Set());
+        planSelectedSessionsMap.get(planIdKey)!.add(sid);
+      } else if (ev.event === 'plan_cta_clicked') {
+        if (!planCtaSessionsMap.has(planIdKey)) planCtaSessionsMap.set(planIdKey, new Set());
+        planCtaSessionsMap.get(planIdKey)!.add(sid);
+      }
+    }
+
+    // Traffic Source Attribution
+    let src = meta.utm_source;
+    if (!src && meta.referrer) {
+      src = meta.referrer;
+    }
+    if (!src) {
+      src = 'Direct / Organic';
+    }
+    if (!trafficSourcesMap.has(src)) {
+      trafficSourcesMap.set(src, new Set());
+    }
+    trafficSourcesMap.get(src)!.add(sid);
+
+    // Device Category
+    const dev = meta.deviceCategory || 'desktop';
+    if (!deviceMap.has(dev)) deviceMap.set(dev, new Set());
+    deviceMap.get(dev)!.add(sid);
+
+    // Browser Family
+    const browser = meta.browserFamily || 'Other';
+    if (!browserMap.has(browser)) browserMap.set(browser, new Set());
+    browserMap.get(browser)!.add(sid);
+  }
+
+  // Count distinct sessions per funnel stage
+  const countUniqueSessionsFor = (events: string[]) => {
+    let count = 0;
+    for (const stages of sessionStagesMap.values()) {
+      if (events.some((e) => stages.has(e))) {
+        count += 1;
+      }
+    }
+    return count;
+  };
+
+  const visitorsCount = countUniqueSessionsFor(['page_view', 'platform_selected', 'service_selected', 'identifier_started', 'identifier_completed', 'email_started', 'email_completed', 'analyze_clicked']);
+  const networkSelectedCount = countUniqueSessionsFor(['platform_selected', 'identifier_started', 'identifier_completed', 'analyze_clicked']);
+  const identifierCompletedCount = countUniqueSessionsFor(['identifier_completed', 'analyze_clicked']);
+  const emailCompletedCount = countUniqueSessionsFor(['email_completed', 'analyze_clicked']);
+  const analyzeClickedCount = countUniqueSessionsFor(['analyze_clicked']);
+  const analysisCompletedCount = countUniqueSessionsFor(['analysis_completed', 'result_viewed', 'profile_confirmed']);
+  const resultViewedCount = countUniqueSessionsFor(['result_viewed', 'profile_confirmed']);
+  const profileConfirmedCount = countUniqueSessionsFor(['profile_confirmed', 'pricing_viewed', 'plan_cta_clicked']);
+  const pricingViewedCount = countUniqueSessionsFor(['pricing_viewed', 'plan_cta_clicked', 'plan_selected']);
+  const planCtaClickedCount = countUniqueSessionsFor(['plan_cta_clicked', 'checkout_started_linked']);
+  
+  // Checkout started and paid orders from server-side canonical truth
+  const checkoutStartedCount = Math.max(checkoutsStartedJourneys, countUniqueSessionsFor(['checkout_started_linked']));
+  const paidCount = paidOrdersCount;
+
+  // Build funnel sequence definitions
+  const rawStages = [
+    { stage: 'visitors', label: 'Visitors', count: visitorsCount },
+    { stage: 'network_selected', label: 'Network Selected', count: Math.min(visitorsCount || networkSelectedCount, networkSelectedCount) },
+    { stage: 'identifier_completed', label: 'Identifier Complete', count: identifierCompletedCount },
+    { stage: 'email_completed', label: 'Email Complete', count: emailCompletedCount },
+    { stage: 'analyze_clicked', label: 'Analyze Clicked', count: analyzeClickedCount },
+    { stage: 'analysis_completed', label: 'Analysis Complete', count: analysisCompletedCount },
+    { stage: 'result_viewed', label: 'Result Viewed', count: resultViewedCount },
+    { stage: 'profile_confirmed', label: 'Profile Confirmed', count: profileConfirmedCount },
+    { stage: 'pricing_viewed', label: 'Pricing Viewed', count: pricingViewedCount },
+    { stage: 'plan_cta_clicked', label: 'Plan CTA Clicked', count: planCtaClickedCount },
+    { stage: 'checkout_started', label: 'Checkout Started', count: checkoutStartedCount },
+    { stage: 'paid', label: 'Paid', count: paidCount },
+  ];
+
+  const fullFunnelSteps: AnalyticsFunnelStep[] = [];
+  const baseVisitors = rawStages[0].count || (rawStages[1].count > 0 ? rawStages[1].count : 1);
+
+  for (let i = 0; i < rawStages.length; i++) {
+    const cur = rawStages[i];
+    const prev = i > 0 ? rawStages[i - 1] : null;
+
+    const conversionFromVisitor =
+      baseVisitors > 0 ? Math.min(100, Math.round((cur.count / baseVisitors) * 1000) / 10) : 0;
+
+    const conversionFromPrevious =
+      prev && prev.count > 0
+        ? Math.min(100, Math.round((cur.count / prev.count) * 1000) / 10)
+        : i === 0
+        ? 100
+        : 0;
+
+    const lostSessions = prev ? Math.max(0, prev.count - cur.count) : 0;
+    const dropOffRate =
+      prev && prev.count > 0 ? Math.min(100, Math.round((lostSessions / prev.count) * 1000) / 10) : 0;
+
+    fullFunnelSteps.push({
+      stage: cur.stage,
+      label: cur.label,
+      count: cur.count,
+      conversionFromPrevious,
+      conversionFromVisitor,
+      lostSessions,
+      dropOffRate,
+    });
+  }
+
+  // Find biggest drop-off
+  let biggestDropOff: FullFunnelData['biggestDropOff'] = null;
+  let maxLost = -1;
+  for (let i = 1; i < fullFunnelSteps.length; i++) {
+    const step = fullFunnelSteps[i];
+    const prev = fullFunnelSteps[i - 1];
+    if (step.lostSessions > maxLost) {
+      maxLost = step.lostSessions;
+      biggestDropOff = {
+        fromStage: prev.label,
+        toStage: step.label,
+        lostSessions: step.lostSessions,
+        dropOffRate: step.dropOffRate,
+      };
+    }
+  }
+
+  const hasHistoricalWarning = startDate < new Date(PHASE_B_ACTIVATION_DATE);
+  const fullFunnel: FullFunnelData = {
+    trackingActive: true,
+    activationDate: PHASE_B_ACTIVATION_DATE,
+    hasHistoricalWarning,
+    steps: fullFunnelSteps,
+    biggestDropOff,
+  };
+
+  // 3. Pre-checkout Network Interest vs Conversion
+  const platformDisplayNameMap: Record<string, string> = {
+    instagram: 'Instagram',
+    tiktok: 'TikTok',
+    twitter: 'X / Twitter',
+    youtube: 'YouTube',
+  };
+
+  const preCheckoutNetworkInterest: PreCheckoutNetworkInterest[] = canonicalPlatforms.map((plat) => {
+    const selectedSessions = networkSessionsMap.get(plat)?.size || 0;
+    const paidForPlat = paidOrdersList.filter(
+      (o) => (o.platform || 'instagram').toLowerCase() === plat
+    ).length;
+    const checkoutForPlat = ordersRows.filter(
+      (o) => (o.platform || 'instagram').toLowerCase() === plat
+    ).length;
+
+    const conv =
+      selectedSessions > 0 ? Math.round((paidForPlat / selectedSessions) * 1000) / 10 : 0;
+
+    return {
+      network: platformDisplayNameMap[plat] || plat,
+      platformKey: plat,
+      selectedSessions,
+      checkoutSessions: checkoutForPlat,
+      paidOrders: paidForPlat,
+      conversionRate: conv,
+    };
+  });
+
+  // 4. Pre-checkout Service Interest
+  const serviceDisplayNameMap: Record<string, string> = {
+    followers: 'Followers',
+    likes: 'Likes',
+    views: 'Views',
+  };
+
+  const preCheckoutServiceInterest: PreCheckoutServiceInterest[] = canonicalServices.map((serv) => {
+    const selectedSessions = serviceSessionsMap.get(serv)?.size || 0;
+    const analyzedSessions = serviceAnalyzedSessionsMap.get(serv)?.size || 0;
+    const paidForServ = paidOrdersList.filter(
+      (o) => (o.service || 'followers').toLowerCase() === serv
+    ).length;
+    const checkoutForServ = ordersRows.filter(
+      (o) => (o.service || 'followers').toLowerCase() === serv
+    ).length;
+    const conv =
+      selectedSessions > 0 ? Math.round((paidForServ / selectedSessions) * 1000) / 10 : 0;
+
+    return {
+      service: serviceDisplayNameMap[serv] || serv,
+      serviceKey: serv,
+      selectedSessions,
+      analyzedSessions,
+      checkoutSessions: checkoutForServ,
+      paidOrders: paidForServ,
+      conversionRate: conv,
+    };
+  });
+
+  // 5. Pre-checkout Plan Interest
+  // Gather distinct plans from funnel events and database
+  const allPlanIds = new Set<string>();
+  for (const p of planViewedSessionsMap.keys()) allPlanIds.add(p);
+  for (const p of planSelectedSessionsMap.keys()) allPlanIds.add(p);
+  for (const p of planCtaSessionsMap.keys()) allPlanIds.add(p);
+
+  const preCheckoutPlanInterest: PreCheckoutPlanInterest[] = Array.from(allPlanIds).map((pid) => {
+    const viewed = planViewedSessionsMap.get(pid)?.size || 0;
+    const selected = planSelectedSessionsMap.get(pid)?.size || 0;
+    const cta = planCtaSessionsMap.get(pid)?.size || 0;
+    const matchingOrders = paidOrdersList.filter((o) => o.planId === pid || o.canonicalOfferId === pid);
+    const paidCount = matchingOrders.length;
+    const matchingCheckouts = ordersRows.filter((o) => o.planId === pid || o.canonicalOfferId === pid).length;
+
+    const sampleOrder = matchingOrders[0] || ordersRows.find((o) => o.planId === pid || o.canonicalOfferId === pid);
+    const plat = sampleOrder?.platform || 'instagram';
+    const serv = sampleOrder?.service || 'followers';
+    const qty = sampleOrder?.quantity || 1000;
+    const dbName = dbPlansMap?.get(pid);
+    const resolvedName = resolveCanonicalPlanName(plat, serv, qty, sampleOrder?.canonicalOfferId, dbName);
+
+    return {
+      planId: pid,
+      planName: resolvedName,
+      network: platformDisplayNameMap[plat.toLowerCase()] || plat,
+      service: serviceDisplayNameMap[serv.toLowerCase()] || serv,
+      viewedSessions: viewed,
+      selectedSessions: selected,
+      ctaClickedSessions: cta,
+      checkoutSessions: matchingCheckouts,
+      paidOrders: paidCount,
+    };
+  }).sort((a, b) => b.ctaClickedSessions - a.ctaClickedSessions || b.viewedSessions - a.viewedSessions);
+
+  // 6. Analyze Performance
+  let totalAttempts = 0;
+  let totalSuccess = 0;
+  let totalFailed = 0;
+
+  const byNetwork = canonicalPlatforms.map((plat) => {
+    const stats = analyzeAttemptsMap.get(plat) || { total: 0, success: 0, failed: 0 };
+    totalAttempts += stats.total;
+    totalSuccess += stats.success;
+    totalFailed += stats.failed;
+
+    const successRate =
+      stats.total > 0 ? Math.round((stats.success / stats.total) * 1000) / 10 : 100;
+
+    return {
+      network: platformDisplayNameMap[plat] || plat,
+      platformKey: plat,
+      attempts: stats.total,
+      successful: stats.success,
+      failed: stats.failed,
+      successRate,
+    };
+  });
+
+  const overallAnalyzeSuccessRate =
+    totalAttempts > 0 ? Math.round((totalSuccess / totalAttempts) * 1000) / 10 : 100;
+
+  const analyzePerformance: AnalyzePerformanceSummary = {
+    totalAttempts,
+    successful: totalSuccess,
+    failed: totalFailed,
+    successRate: overallAnalyzeSuccessRate,
+    byNetwork,
+  };
+
+  // 7. Traffic Sources Breakdown
+  const totalTrackedSessions = sessionStagesMap.size || 1;
+  const trafficSources: TrafficSourceItem[] = Array.from(trafficSourcesMap.entries())
+    .map(([source, sids]) => {
+      const sessions = sids.size;
+      const share = Math.round((sessions / totalTrackedSessions) * 1000) / 10;
+      const paid = paidOrdersList.filter((o) => (o.utmSource || 'Direct / Organic') === source).length;
+      return { source, sessions, share, paidOrders: paid };
+    })
+    .sort((a, b) => b.sessions - a.sessions);
+
+  // 8. Device Breakdown
+  const deviceBreakdown: DeviceBreakdownItem[] = Array.from(deviceMap.entries())
+    .map(([device, sids]) => {
+      const sessions = sids.size;
+      const share = Math.round((sessions / totalTrackedSessions) * 1000) / 10;
+      return { device: device.charAt(0).toUpperCase() + device.slice(1), sessions, share };
+    })
+    .sort((a, b) => b.sessions - a.sessions);
+
+  // 9. Browser Breakdown
+  const browserBreakdown: BrowserBreakdownItem[] = Array.from(browserMap.entries())
+    .map(([browser, sids]) => {
+      const sessions = sids.size;
+      const share = Math.round((sessions / totalTrackedSessions) * 1000) / 10;
+      return { browser, sessions, share };
+    })
+    .sort((a, b) => b.sessions - a.sessions);
+
+  // 10. Time-Series Construction: Group by day
   const daysMap = new Map<string, { started: number; paid: number; abandoned: number }>();
 
-  // Prepopulate days in range so chart is continuous
   const cur = new Date(startDate);
   const maxDay = new Date(endDate);
   while (cur <= maxDay) {
@@ -216,15 +590,7 @@ export function computeAnalyticsMetrics(params: {
       abandoned: data.abandoned,
     }));
 
-  // 3. Network Performance
-  const canonicalPlatforms = ['instagram', 'tiktok', 'twitter', 'youtube'] as const;
-  const platformDisplayNameMap: Record<string, string> = {
-    instagram: 'Instagram',
-    tiktok: 'TikTok',
-    twitter: 'X / Twitter',
-    youtube: 'YouTube',
-  };
-
+  // 11. Network Performance (Orders & Revenue)
   const networkStatsMap = new Map<
     string,
     { paidOrders: number; revenueCents: number; quantitySold: number }
@@ -260,14 +626,7 @@ export function computeAnalyticsMetrics(params: {
     };
   });
 
-  // 4. Service Performance
-  const serviceDisplayNameMap: Record<string, string> = {
-    followers: 'Followers',
-    likes: 'Likes',
-    views: 'Views',
-  };
-  const canonicalServices = ['followers', 'likes', 'views'] as const;
-
+  // 12. Service Performance (Orders & Revenue)
   const serviceStatsMap = new Map<
     string,
     { paidOrders: number; revenueCents: number; quantitySold: number }
@@ -303,8 +662,7 @@ export function computeAnalyticsMetrics(params: {
     };
   });
 
-  // 5. Top Plans
-  // Group by (platform, service, quantity, canonicalOfferId, planId)
+  // 13. Top Plans
   const plansAggMap = new Map<
     string,
     {
@@ -360,7 +718,7 @@ export function computeAnalyticsMetrics(params: {
     })
     .sort((a, b) => b.revenue - a.revenue || b.paidOrders - a.paidOrders);
 
-  // 6. Rankings Summary
+  // 14. Rankings Summary
   const bestSellingPlan = topPlans.length > 0 ? {
     name: topPlans[0].planName,
     network: topPlans[0].network,
@@ -389,7 +747,7 @@ export function computeAnalyticsMetrics(params: {
     topService,
   };
 
-  // 7. Abandonment Analytics
+  // 15. Abandonment Analytics
   const abandonment: AnalyticsAbandonmentMetrics = {
     started: checkoutsStartedJourneys,
     abandoned: checkoutsAbandonedJourneys,
@@ -401,7 +759,7 @@ export function computeAnalyticsMetrics(params: {
     recoveredRevenue: Math.round(recoveredRevenueCents) / 100,
   };
 
-  // 8. Compact Attribution
+  // 16. Compact Attribution
   const sourceCountMap = new Map<string, number>();
   const campaignCountMap = new Map<string, number>();
   let attributedPaidCount = 0;
@@ -451,6 +809,14 @@ export function computeAnalyticsMetrics(params: {
     rangeEnd: endDate.toISOString(),
     kpis,
     funnel,
+    fullFunnel,
+    preCheckoutNetworkInterest,
+    preCheckoutServiceInterest,
+    preCheckoutPlanInterest,
+    analyzePerformance,
+    trafficSources,
+    deviceBreakdown,
+    browserBreakdown,
     performanceOverTime,
     networkPerformance,
     servicePerformance,
@@ -472,7 +838,6 @@ export async function getAdminAnalyticsData(rangeInput?: string | null): Promise
   const { startDate, endDate } = resolveDateRangeBounds(range);
 
   // 1. Fetch unique initiated journeys (CHECKOUT_STARTED)
-  // Extract contextId or fallback to idempotencyKey or event ID
   const startedJourneysResult = await db
     .select({
       count: sql<number>`COUNT(DISTINCT COALESCE(
@@ -573,7 +938,6 @@ export async function getAdminAnalyticsData(rangeInput?: string | null): Promise
   }));
 
   // 6. Abandoned cart value estimate & recovery correlation
-  // In payment_leads: converted_order_id is set when a lead converts into an order
   const leadRecoveryResult = await db
     .select({
       abandonedValueCents: sql<number>`COALESCE(SUM(CASE WHEN ${paymentLeads.inferredStatus} = 'possible_abandonment' OR ${paymentLeads.normalizedStatus} = 'possible_abandonment' THEN ${paymentLeads.amountCents} ELSE 0 END), 0)`,
@@ -599,6 +963,31 @@ export async function getAdminAnalyticsData(rangeInput?: string | null): Promise
     }
   }
 
+  // 8. Fetch Raw Funnel Events for Phase B
+  let rawFunnelEvents: Array<{
+    event: string;
+    sessionId: string | null;
+    planId: string | null;
+    metadata: any;
+    createdAt: Date;
+  }> = [];
+
+  try {
+    rawFunnelEvents = await db
+      .select({
+        event: funnelEvents.event,
+        sessionId: funnelEvents.sessionId,
+        planId: funnelEvents.planId,
+        metadata: funnelEvents.metadata,
+        createdAt: funnelEvents.createdAt,
+      })
+      .from(funnelEvents)
+      .where(and(gte(funnelEvents.createdAt, startDate), lte(funnelEvents.createdAt, endDate)));
+  } catch (err) {
+    console.error('[AdminAnalyticsService] Could not fetch funnel_events:', err);
+    // Fail-open: Proceed with empty funnel events rather than failing the whole dashboard
+  }
+
   return computeAnalyticsMetrics({
     range,
     startDate,
@@ -612,5 +1001,6 @@ export async function getAdminAnalyticsData(rangeInput?: string | null): Promise
     recoveredOrdersCount,
     recoveredRevenueCents,
     dbPlansMap,
+    rawFunnelEvents,
   });
 }
