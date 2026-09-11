@@ -1,8 +1,13 @@
 import { db } from '@/db';
-import { orders, lifecycleEvents, paymentLeads, plans } from '@/db/schema';
+import { orders, lifecycleEvents, paymentLeads, plans, orderEvents } from '@/db/schema';
 import { funnelEvents } from '@/db/schema/analytics';
 import { sql, and, gte, lte, eq, or } from 'drizzle-orm';
 import { CLOUTFLOW_CATALOG_PACKAGES } from '@/config/financial-protection.config';
+import {
+  PRODUCTION_LAUNCH_CLEANUP_EXACT_ADMIN_NOTES,
+  PRODUCTION_LAUNCH_CLEANUP_EVENT_ACTION,
+  getNonCleanupOrderSqlCondition,
+} from '@/services/admin-order-cleanup.helper';
 
 import {
   AnalyticsDateRange,
@@ -879,7 +884,9 @@ export async function getAdminAnalyticsData(rangeInput?: string | null): Promise
 
   const checkoutsAbandonedJourneys = Number(abandonedJourneysResult[0]?.count || 0);
 
-  // 3. Fetch orders within the date range
+  // 3. Fetch orders within the date range (excluding production launch cleanup test orders)
+  const nonCleanupCondition = getNonCleanupOrderSqlCondition();
+
   const ordersRows = await db
     .select({
       id: orders.id,
@@ -895,7 +902,13 @@ export async function getAdminAnalyticsData(rangeInput?: string | null): Promise
       utmCampaign: orders.utmCampaign,
     })
     .from(orders)
-    .where(and(gte(orders.createdAt, startDate), lte(orders.createdAt, endDate)));
+    .where(
+      and(
+        gte(orders.createdAt, startDate),
+        lte(orders.createdAt, endDate),
+        nonCleanupCondition
+      )
+    );
 
   // 4. Daily time series for lifecycle events
   const dailyLifecycleResult = await db
@@ -923,14 +936,20 @@ export async function getAdminAnalyticsData(rangeInput?: string | null): Promise
     abandoned: Number(r.abandoned) || 0,
   }));
 
-  // 5. Daily paid orders
+  // 5. Daily paid orders (excluding production launch cleanup test orders)
   const dailyPaidResult = await db
     .select({
       day: sql<string>`TO_CHAR(${orders.createdAt}, 'YYYY-MM-DD')`,
       paid: sql<number>`COALESCE(COUNT(DISTINCT CASE WHEN ${orders.paymentStatus} IN ('PAID', 'COMPLETED', 'APPROVED') THEN ${orders.id} END), 0)`,
     })
     .from(orders)
-    .where(and(gte(orders.createdAt, startDate), lte(orders.createdAt, endDate)))
+    .where(
+      and(
+        gte(orders.createdAt, startDate),
+        lte(orders.createdAt, endDate),
+        nonCleanupCondition
+      )
+    )
     .groupBy(sql`TO_CHAR(${orders.createdAt}, 'YYYY-MM-DD')`);
 
   const dailyPaidOrders = dailyPaidResult.map((r) => ({
@@ -938,14 +957,21 @@ export async function getAdminAnalyticsData(rangeInput?: string | null): Promise
     paid: Number(r.paid) || 0,
   }));
 
-  // 6. Abandoned cart value estimate & recovery correlation
+  // 6. Abandoned cart value estimate & recovery correlation (excluding production launch cleanup test orders)
   const leadRecoveryResult = await db
     .select({
       abandonedValueCents: sql<number>`COALESCE(SUM(CASE WHEN ${paymentLeads.inferredStatus} = 'possible_abandonment' OR ${paymentLeads.normalizedStatus} = 'possible_abandonment' THEN ${paymentLeads.amountCents} ELSE 0 END), 0)`,
-      recoveredCount: sql<number>`COALESCE(COUNT(DISTINCT CASE WHEN ${paymentLeads.convertedOrderId} IS NOT NULL THEN ${paymentLeads.id} END), 0)`,
-      recoveredRevenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${paymentLeads.convertedOrderId} IS NOT NULL THEN ${paymentLeads.amountCents} ELSE 0 END), 0)`,
+      recoveredCount: sql<number>`COALESCE(COUNT(DISTINCT CASE WHEN ${paymentLeads.convertedOrderId} IS NOT NULL AND ${orders.id} IS NOT NULL THEN ${paymentLeads.id} END), 0)`,
+      recoveredRevenueCents: sql<number>`COALESCE(SUM(CASE WHEN ${paymentLeads.convertedOrderId} IS NOT NULL AND ${orders.id} IS NOT NULL THEN ${paymentLeads.amountCents} ELSE 0 END), 0)`,
     })
     .from(paymentLeads)
+    .leftJoin(
+      orders,
+      and(
+        eq(paymentLeads.convertedOrderId, orders.id),
+        nonCleanupCondition
+      )
+    )
     .where(and(gte(paymentLeads.createdAt, startDate), lte(paymentLeads.createdAt, endDate)));
 
   const abandonedCartEstimateCents = Number(leadRecoveryResult[0]?.abandonedValueCents || 0);
