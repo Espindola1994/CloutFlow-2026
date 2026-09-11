@@ -34006,9 +34006,9 @@ html body .cf-pricing-subtitle-mobile {
   html body .cf-home-offer-card-host .cf-o10-package-ref-grid {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
-    width: min(76%, 320px) !important;
+    width: min(66%, 320px) !important;
     max-width: 320px !important;
-    inline-size: min(76%, 320px) !important;
+    inline-size: min(66%, 320px) !important;
     max-inline-size: 320px !important;
     gap: 12px !important;
     margin: 0 auto !important;
