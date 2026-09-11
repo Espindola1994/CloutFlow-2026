@@ -1,6 +1,7 @@
 import React, { forwardRef } from "react";
 import { Search, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AdminNeonIcon } from "./AdminNeonIcon";
 
 export interface AdminSearchInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -11,7 +12,7 @@ export const AdminSearchInput = forwardRef<HTMLInputElement, AdminSearchInputPro
   ({ className, value, onChange, onClear, placeholder = "Search...", ...props }, ref) => {
     return (
       <div className="relative flex items-center w-full max-w-sm">
-        <Search className="absolute left-3 w-4 h-4 text-[#8A979D] pointer-events-none" />
+        <AdminNeonIcon color="cyan" icon={Search} className="absolute left-3 w-4 h-4 pointer-events-none opacity-80" />
         <input
           ref={ref}
           type="text"
@@ -30,7 +31,7 @@ export const AdminSearchInput = forwardRef<HTMLInputElement, AdminSearchInputPro
             onClick={onClear}
             className="absolute right-2.5 p-0.5 rounded text-[#8A979D] hover:text-[#142126] transition-colors"
           >
-            <X className="w-3.5 h-3.5" />
+            <AdminNeonIcon color="amber" icon={X} className="w-3.5 h-3.5" />
           </button>
         )}
       </div>

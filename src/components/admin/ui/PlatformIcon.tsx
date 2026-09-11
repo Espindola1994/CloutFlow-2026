@@ -1,19 +1,46 @@
 import React from "react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { 
-  FaInstagram, 
-  FaTiktok, 
-  FaXTwitter, 
-  FaYoutube 
-} from "react-icons/fa6";
+import instagramIcon from "@/assets/home-icons-vector/instagram.svg";
+import tiktokIcon from "@/assets/home-icons-vector/tiktok.svg";
+import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
+import youtubeIcon from "@/assets/home-icons-vector/youtube.svg";
 
-export type PlatformType = "instagram" | "tiktok" | "x" | "youtube" | string;
+export type PlatformType = "instagram" | "tiktok" | "x" | "twitter" | "youtube" | string;
 
 export interface PlatformIconProps extends React.HTMLAttributes<HTMLDivElement> {
   platform: PlatformType;
   size?: number;
   showBackground?: boolean;
 }
+
+const HOME_PLATFORMS = {
+  instagram: {
+    icon: instagramIcon,
+    label: "Instagram",
+    fallbackColor: "#E1306C",
+  },
+  tiktok: {
+    icon: tiktokIcon,
+    label: "TikTok",
+    fallbackColor: "#050608",
+  },
+  twitter: {
+    icon: twitterIcon,
+    label: "X (Twitter)",
+    fallbackColor: "#11161D",
+  },
+  x: {
+    icon: twitterIcon,
+    label: "X (Twitter)",
+    fallbackColor: "#11161D",
+  },
+  youtube: {
+    icon: youtubeIcon,
+    label: "YouTube",
+    fallbackColor: "#CC0000",
+  },
+} as const;
 
 export function PlatformIcon({
   platform,
@@ -23,58 +50,13 @@ export function PlatformIcon({
   ...props
 }: PlatformIconProps) {
   const normalized = platform.toLowerCase();
-  
-  const getPlatformConfig = () => {
-    switch (normalized) {
-      case "instagram":
-        return {
-          icon: FaInstagram,
-          bgClass: "bg-gradient-to-tr from-[#FCAF45] via-[#E1306C] to-[#833AB4]",
-          iconColor: "text-white",
-          fallbackColor: "#E1306C",
-        };
-      case "tiktok":
-        return {
-          icon: FaTiktok,
-          bgClass: "bg-black",
-          iconColor: "text-white drop-shadow-[1px_1px_0_#FE2C55] drop-shadow-[-1px_-1px_0_#25F4EE]",
-          fallbackColor: "#000000",
-        };
-      case "x":
-      case "twitter":
-        return {
-          icon: FaXTwitter,
-          bgClass: "bg-black",
-          iconColor: "text-white",
-          fallbackColor: "#000000",
-        };
-      case "youtube":
-        return {
-          icon: FaYoutube,
-          bgClass: "bg-[#FF0000]",
-          iconColor: "text-white",
-          fallbackColor: "#FF0000",
-        };
-      default:
-        return {
-          icon: null,
-          bgClass: "bg-[#E3E8EA]",
-          iconColor: "text-[#65737A]",
-          fallbackColor: "#65737A",
-        };
-    }
-  };
+  const config = HOME_PLATFORMS[normalized as keyof typeof HOME_PLATFORMS];
 
-  const config = getPlatformConfig();
-  const IconComponent = config.icon;
-
-  if (!IconComponent) {
+  if (!config) {
     return (
-      <div 
+      <div
         className={cn(
-          "flex items-center justify-center font-bold text-[10px] uppercase rounded-md", 
-          config.bgClass,
-          config.iconColor,
+          "inline-flex items-center justify-center font-bold text-[10px] uppercase rounded-full bg-[#E3E8EA] text-[#65737A] select-none",
           className
         )}
         style={{ width: size, height: size }}
@@ -85,33 +67,21 @@ export function PlatformIcon({
     );
   }
 
-  if (showBackground) {
-    return (
-      <div
-        className={cn(
-          "flex items-center justify-center rounded-[25%]",
-          config.bgClass,
-          className
-        )}
-        style={{ width: size, height: size }}
-        {...props}
-      >
-        <IconComponent
-          className={cn(config.iconColor)}
-          style={{ width: size * 0.58, height: size * 0.58 }}
-        />
-      </div>
-    );
-  }
-
   return (
     <div
-      className={cn("flex items-center justify-center", className)}
-      style={{ width: size, height: size, color: config.fallbackColor }}
+      className={cn(
+        "inline-flex items-center justify-center shrink-0 select-none",
+        className
+      )}
+      style={{ width: size, height: size }}
       {...props}
     >
-      <IconComponent
-        style={{ width: size, height: size }}
+      <Image
+        src={config.icon}
+        alt={config.label}
+        width={size}
+        height={size}
+        className="w-full h-full object-contain pointer-events-none"
       />
     </div>
   );
@@ -128,18 +98,19 @@ export function PlatformBadge({
   ...props
 }: PlatformBadgeProps) {
   const normalized = platform.toLowerCase();
-  const displayLabel = label || normalized.charAt(0).toUpperCase() + normalized.slice(1);
+  const displayLabel = label || (normalized === "twitter" ? "X (Twitter)" : normalized === "x" ? "X" : normalized.charAt(0).toUpperCase() + normalized.slice(1));
   
   return (
     <div 
       className={cn(
-        "inline-flex items-center gap-1.5 px-2 py-1 rounded-[6px] bg-[#FFFFFF] border border-[#E3E8EA] text-[12px] font-medium text-[#142126] shadow-sm select-none",
+        "inline-flex items-center gap-1.5 px-2 py-1 rounded-[6px] bg-[#FFFFFF] border border-[#E3E8EA] text-[12px] font-medium text-[#142126] shadow-xs select-none",
         className
       )}
       {...props}
     >
-      <PlatformIcon platform={normalized} size={14} showBackground={false} />
+      <PlatformIcon platform={normalized} size={16} />
       <span>{displayLabel}</span>
     </div>
   );
 }
+

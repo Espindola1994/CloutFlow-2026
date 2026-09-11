@@ -34,6 +34,7 @@ import {
   AdminTableRow,
   AdminTableHead,
   AdminTableCell,
+  AdminNeonIcon,
 } from "../ui";
 
 interface ChainConfig {
@@ -609,13 +610,13 @@ export function PeakerrChainsModule() {
               key={p}
               type="button"
               onClick={() => setSelectedPlatform(p)}
-              className={`w-[48px] h-[48px] rounded-[8px] border flex items-center justify-center transition-colors cursor-pointer ${
+              className={`w-[48px] h-[48px] rounded-[8px] border flex items-center justify-center transition-colors cursor-pointer p-2 ${
                 selectedPlatform === p
-                  ? "border-[#0F8F8A] bg-[#FFFFFF] text-[#0F8F8A] shadow-[0_1px_4px_rgba(15,143,138,0.2)] ring-1 ring-[#0F8F8A]"
-                  : "bg-[#FFFFFF] border-[#D9E2E3] text-[#65737A] hover:border-[#CBD6D8] hover:bg-[#F8FAFA]"
+                  ? "border-[#0F8F8A] bg-[#FFFFFF] shadow-[0_1px_4px_rgba(15,143,138,0.2)] ring-1 ring-[#0F8F8A]"
+                  : "bg-[#FFFFFF] border-[#D9E2E3] hover:border-[#CBD6D8] hover:bg-[#F8FAFA]"
               }`}
             >
-              <PlatformIcon platform={p === "twitter" ? "x" : p} size={22} showBackground={false} />
+              <PlatformIcon platform={p === "twitter" ? "x" : p} size={30} />
             </button>
           ))}
         </div>
@@ -626,8 +627,8 @@ export function PeakerrChainsModule() {
         <div className="flex flex-wrap items-center gap-6 divide-y md:divide-y-0 md:divide-x divide-[#E7ECEC]">
           {/* Item 1: Provider Name & Routing */}
           <div className="flex items-center gap-3 pr-4">
-            <div className="w-[34px] h-[34px] rounded-[7px] bg-[#E7F5F4] text-[#0F8F8A] flex items-center justify-center shrink-0">
-              <Server className="w-4 h-4" />
+            <div className="w-[34px] h-[34px] rounded-[7px] bg-transparent flex items-center justify-center shrink-0">
+              <AdminNeonIcon color="teal" icon={Server} className="w-5 h-5" />
             </div>
             <div>
               <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
@@ -703,7 +704,9 @@ export function PeakerrChainsModule() {
             {inspectLoading ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : (
-              <RotateCcw className="w-3.5 h-3.5 text-[#0F8F8A]" />
+              <AdminNeonIcon color="teal" className="w-3.5 h-3.5">
+                <RotateCcw className="w-3.5 h-3.5" />
+              </AdminNeonIcon>
             )}
             <span>Refresh</span>
           </button>
@@ -743,8 +746,8 @@ export function PeakerrChainsModule() {
         <div className={`${isSimulatorOpen ? "lg:col-span-12" : "lg:col-span-9"} bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] shadow-[0_1px_2px_rgba(10,35,42,0.02)] overflow-hidden transition-all`}>
           <div className="h-[58px] px-[20px] flex items-center border-b border-[#E7ECEC]">
             <div className="flex items-center gap-2.5">
-              <div className="w-[32px] h-[32px] rounded-[7px] bg-[#E7F5F4] text-[#0F8F8A] flex items-center justify-center shrink-0">
-                <Settings2 className="w-4 h-4" />
+              <div className="w-[32px] h-[32px] rounded-[7px] bg-transparent flex items-center justify-center shrink-0">
+                <AdminNeonIcon color="blue" icon={Settings2} className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="text-[14px] font-[650] uppercase tracking-wider text-[#142126]">
@@ -803,7 +806,6 @@ export function PeakerrChainsModule() {
                           <PlatformIcon
                             platform={selectedPlatform === "twitter" ? "x" : selectedPlatform}
                             size={18}
-                            showBackground={false}
                           />
                           <span className="capitalize font-[600] text-[#142126] text-[13px]">
                             {selectedPlatform === "twitter" ? "X" : selectedPlatform}
@@ -857,7 +859,7 @@ export function PeakerrChainsModule() {
                           onClick={() => setEditingService(svc)}
                           className="h-[30px] inline-flex items-center gap-1.5 px-2.5 text-[12px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[6px] hover:bg-[#F8FAFA] transition-colors cursor-pointer shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
                         >
-                          <Settings2 className="w-[13px] h-[13px] text-[#0F8F8A]" />
+                          <AdminNeonIcon color="blue" icon={Settings2} className="w-[13px] h-[13px]" />
                           <span>Configure</span>
                         </button>
                       </AdminTableCell>
@@ -891,7 +893,6 @@ export function PeakerrChainsModule() {
                       <PlatformIcon
                         platform={selectedPlatform === "twitter" ? "x" : selectedPlatform}
                         size={18}
-                        showBackground={false}
                       />
                       <span className="capitalize font-bold text-[#142126] text-[13px]">
                         {selectedPlatform} {svc}
@@ -923,7 +924,7 @@ export function PeakerrChainsModule() {
                       onClick={() => setEditingService(svc)}
                       className="w-full h-[34px] text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                     >
-                      <Settings2 className="w-3.5 h-3.5 text-[#0F8F8A]" />
+                      <AdminNeonIcon color="blue" icon={Settings2} className="w-3.5 h-3.5" />
                       <span>Configure</span>
                     </button>
                   }
@@ -938,8 +939,8 @@ export function PeakerrChainsModule() {
           <div className="p-4 flex flex-col justify-between min-h-[160px]">
             <div>
               <div className="flex items-center gap-2">
-                <div className="w-[30px] h-[30px] rounded-[6px] bg-[#E7F5F4] text-[#0F8F8A] flex items-center justify-center shrink-0">
-                  <Sliders className="w-4 h-4" />
+                <div className="w-[30px] h-[30px] rounded-[6px] bg-transparent flex items-center justify-center shrink-0">
+                  <AdminNeonIcon color="cyan" icon={Sliders} className="w-4 h-4" />
                 </div>
                 <h3 className="text-[13px] font-[650] text-[#142126] tracking-tight">
                   Simulator & Dry Run

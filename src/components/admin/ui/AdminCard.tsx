@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { AdminNeonIcon, type AdminNeonColor } from "./AdminNeonIcon";
 
 export interface AdminCardProps extends React.HTMLAttributes<HTMLDivElement> {
   hover?: boolean;
@@ -37,6 +38,7 @@ export interface AdminStatCardProps {
     isPositive?: boolean;
   };
   icon?: React.ComponentType<{ className?: string }>;
+  iconColor?: AdminNeonColor;
   className?: string;
 }
 
@@ -46,6 +48,7 @@ export function AdminStatCard({
   subValue,
   change,
   icon: Icon,
+  iconColor = "teal",
   className,
 }: AdminStatCardProps) {
   return (
@@ -55,8 +58,8 @@ export function AdminStatCard({
           {title}
         </span>
         {Icon && (
-          <div className="p-1.5 rounded-lg bg-[#E7F5F4] text-[#0F8F8A]">
-            <Icon className="w-3.5 h-3.5" />
+          <div className="p-1 rounded-lg bg-transparent">
+            <AdminNeonIcon color={iconColor} icon={Icon} className="w-4 h-4" />
           </div>
         )}
       </div>

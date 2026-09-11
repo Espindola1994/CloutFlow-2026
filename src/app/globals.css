@@ -33851,13 +33851,66 @@ html body .cf-pricing-subtitle-mobile {
   }
 }
 
-@keyframes cf-cta-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+/* ==========================================================================
+   CLOUTFLOW ADMIN NEON OUTLINE ICONS
+   Discreet, modern SaaS outline icon styles with subtle glow and transparent bg
+   ========================================================================== */
+
+.admin-neon-icon {
+  stroke-width: 1.75;
+  stroke: currentColor;
+  fill: none;
+  background: transparent;
+  filter: drop-shadow(0 0 2.5px currentColor);
+  transition: filter 0.2s ease, stroke 0.2s ease, color 0.2s ease;
+}
+
+/* Category-specific subtle neon tones */
+.admin-neon-violet {
+  color: #8B5CF6;
+  filter: drop-shadow(0 0 2.5px rgba(139, 92, 246, 0.55));
+}
+
+.admin-neon-purple {
+  color: #A855F7;
+  filter: drop-shadow(0 0 2.5px rgba(168, 85, 247, 0.55));
+}
+
+.admin-neon-green,
+.admin-neon-emerald {
+  color: #10B981;
+  filter: drop-shadow(0 0 2.5px rgba(16, 185, 129, 0.55));
+}
+
+.admin-neon-blue {
+  color: #3B82F6;
+  filter: drop-shadow(0 0 2.5px rgba(59, 130, 246, 0.55));
+}
+
+.admin-neon-cyan {
+  color: #06B6D4;
+  filter: drop-shadow(0 0 2.5px rgba(6, 182, 212, 0.55));
+}
+
+.admin-neon-teal {
+  color: #0F8F8A;
+  filter: drop-shadow(0 0 2.5px rgba(15, 143, 138, 0.55));
+}
+
+.admin-neon-pink,
+.admin-neon-magenta {
+  color: #EC4899;
+  filter: drop-shadow(0 0 2.5px rgba(236, 72, 153, 0.55));
+}
+
+.admin-neon-amber {
+  color: #F59E0B;
+  filter: drop-shadow(0 0 2.5px rgba(245, 158, 11, 0.55));
+}
+
+.admin-neon-red {
+  color: #EF4444;
+  filter: drop-shadow(0 0 2.5px rgba(239, 68, 68, 0.55));
 }
 
 

@@ -27,6 +27,7 @@ import {
   AdminTableRow,
   AdminTableHead,
   AdminTableCell,
+  AdminNeonIcon,
 } from "../ui";
 
 export function OrdersModule() {
@@ -315,7 +316,9 @@ export function OrdersModule() {
                 onClick={() => fetchOrders(false)}
                 disabled={loadingOrders || isRefreshingOrders}
               >
-                <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${(loadingOrders || isRefreshingOrders) ? "animate-spin" : ""}`} />
+                <AdminNeonIcon color="teal" className="w-3.5 h-3.5 mr-1.5">
+                  <RefreshCw className={`w-3.5 h-3.5 ${(loadingOrders || isRefreshingOrders) ? "animate-spin" : ""}`} />
+                </AdminNeonIcon>
                 Refresh
               </AdminButton>
             </div>
@@ -338,8 +341,8 @@ export function OrdersModule() {
           <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
             {orders.length === 0 ? (
               <div className="py-16 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
-                <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
-                  <ShoppingBag className="w-5 h-5" />
+                <div className="w-10 h-10 rounded-full bg-transparent flex items-center justify-center mx-auto mb-2">
+                  <AdminNeonIcon color="blue" icon={ShoppingBag} className="w-6 h-6" />
                 </div>
                 <p className="text-[13px] font-semibold text-[#142126]">No orders found</p>
                 <span className="text-[11px] text-[#65737A] mt-1 block">
@@ -496,8 +499,8 @@ export function OrdersModule() {
                 <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
                   Gross Sales
                 </span>
-                <div className="w-7 h-7 rounded-lg bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center">
-                  <DollarSign className="w-3.5 h-3.5" />
+                <div className="w-7 h-7 rounded-lg bg-transparent flex items-center justify-center">
+                  <AdminNeonIcon color="teal" icon={DollarSign} className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2.5">
@@ -513,8 +516,8 @@ export function OrdersModule() {
                 <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
                   Net Revenue
                 </span>
-                <div className="w-7 h-7 rounded-lg bg-[#E8F8F2] text-[#16B77A] flex items-center justify-center">
-                  <DollarSign className="w-3.5 h-3.5" />
+                <div className="w-7 h-7 rounded-lg bg-transparent flex items-center justify-center">
+                  <AdminNeonIcon color="emerald" icon={DollarSign} className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2.5">
@@ -530,8 +533,8 @@ export function OrdersModule() {
                 <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
                   Refunds
                 </span>
-                <div className="w-7 h-7 rounded-lg bg-[#FEECEB] text-[#EF4444] flex items-center justify-center">
-                  <RotateCcw className="w-3.5 h-3.5" />
+                <div className="w-7 h-7 rounded-lg bg-transparent flex items-center justify-center">
+                  <AdminNeonIcon color="red" icon={RotateCcw} className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2.5">
@@ -547,8 +550,8 @@ export function OrdersModule() {
                 <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
                   PerfectPay Fees
                 </span>
-                <div className="w-7 h-7 rounded-lg bg-[#FEF3C7] text-[#D97706] flex items-center justify-center">
-                  <Coins className="w-3.5 h-3.5" />
+                <div className="w-7 h-7 rounded-lg bg-transparent flex items-center justify-center">
+                  <AdminNeonIcon color="amber" icon={Coins} className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2.5">
@@ -564,8 +567,8 @@ export function OrdersModule() {
                 <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
                   Provider Cost
                 </span>
-                <div className="w-7 h-7 rounded-lg bg-[#F1F5F5] text-[#65737A] flex items-center justify-center">
-                  <Receipt className="w-3.5 h-3.5" />
+                <div className="w-7 h-7 rounded-lg bg-transparent flex items-center justify-center">
+                  <AdminNeonIcon color="blue" icon={Receipt} className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2.5">
@@ -581,8 +584,12 @@ export function OrdersModule() {
                 <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
                   Net Profit
                 </span>
-                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${(margins.netProfit ?? 0) >= 0 ? "bg-[#E8F8F2] text-[#16B77A]" : "bg-[#FEECEB] text-[#EF4444]"}`}>
-                  <DollarSign className="w-3.5 h-3.5" />
+                <div className="w-7 h-7 rounded-lg bg-transparent flex items-center justify-center">
+                  <AdminNeonIcon
+                    color={(margins.netProfit ?? 0) >= 0 ? "green" : "red"}
+                    icon={DollarSign}
+                    className="w-4 h-4"
+                  />
                 </div>
               </div>
               <div className="mt-2.5">
@@ -595,8 +602,8 @@ export function OrdersModule() {
           </div>
 
           <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-8 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] text-center">
-            <div className="w-12 h-12 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-3">
-              <PieChart className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-full bg-transparent flex items-center justify-center mx-auto mb-3">
+              <AdminNeonIcon color="violet" icon={PieChart} className="w-7 h-7" />
             </div>
             <h4 className="text-[14px] font-bold text-[#142126]">CloutFlow USD Margin Ledger</h4>
             <p className="text-[12px] text-[#65737A] mt-1 max-w-md mx-auto">
@@ -624,15 +631,17 @@ export function OrdersModule() {
               onClick={() => fetchAttribution(false)}
               disabled={loadingAttribution}
             >
-              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+              <AdminNeonIcon color="teal" className="w-3.5 h-3.5 mr-1.5">
+                <RefreshCw className="w-3.5 h-3.5" />
+              </AdminNeonIcon>
               Refresh
             </AdminButton>
           </div>
 
           {campaigns.length === 0 ? (
             <div className="py-16 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
-              <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
-                <Tag className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-full bg-transparent flex items-center justify-center mx-auto mb-2">
+                <AdminNeonIcon color="cyan" icon={Tag} className="w-6 h-6" />
               </div>
               <h4 className="text-[13px] font-semibold text-[#142126]">No attribution records captured yet</h4>
               <p className="text-[11px] text-[#65737A] mt-1 max-w-sm mx-auto">

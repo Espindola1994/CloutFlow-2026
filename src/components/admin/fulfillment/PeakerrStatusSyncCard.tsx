@@ -2,6 +2,7 @@
 
 import React from "react";
 import { RefreshCw, Loader2, Clock, CheckCircle, ArrowRightCircle, AlertTriangle, XCircle, AlertOctagon, RotateCw, ListOrdered, CheckCheck, ShieldAlert } from "lucide-react";
+import { AdminNeonIcon, type AdminNeonColor } from "../ui";
 
 export interface StatusSyncMetrics {
   checked: number;
@@ -41,54 +42,54 @@ export function PeakerrStatusSyncCard({
   error,
   targetQueueAutoReleaseEnabled,
 }: PeakerrStatusSyncCardProps) {
-  const syncItems = [
+  const syncItems: { label: string; value: string; icon: React.ComponentType<{ className?: string }>; color: AdminNeonColor; valueColor: string }[] = [
     {
       label: "Last Run",
       value: metrics?.lastRun || "—",
       icon: Clock,
-      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      color: "violet",
       valueColor: "text-[#142126]",
     },
     {
       label: "Checked",
       value: metrics?.checked !== undefined ? String(metrics.checked) : "—",
       icon: RotateCw,
-      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      color: "blue",
       valueColor: "text-[#142126]",
     },
     {
       label: "Updated",
       value: metrics?.updated !== undefined ? String(metrics.updated) : "—",
       icon: ArrowRightCircle,
-      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      color: "teal",
       valueColor: "text-[#0F8F8A]",
     },
     {
       label: "Completed",
       value: metrics?.completed !== undefined ? String(metrics.completed) : "—",
       icon: CheckCircle,
-      iconBg: "bg-[#E8F8F2] text-[#16B77A]",
+      color: "green",
       valueColor: (metrics?.completed ?? 0) > 0 ? "text-[#16B77A]" : "text-[#142126]",
     },
     {
       label: "Queue Released",
       value: metrics?.queueReleaseSuccess !== undefined ? String(metrics.queueReleaseSuccess) : "—",
       icon: CheckCheck,
-      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      color: "cyan",
       valueColor: (metrics?.queueReleaseSuccess ?? 0) > 0 ? "text-[#0F8F8A]" : "text-[#142126]",
     },
     {
       label: "Queue Blocked",
       value: metrics?.queueReleaseBlocked !== undefined ? String(metrics.queueReleaseBlocked) : "—",
       icon: ShieldAlert,
-      iconBg: "bg-[#FEF3C7] text-[#D97706]",
+      color: "amber",
       valueColor: (metrics?.queueReleaseBlocked ?? 0) > 0 ? "text-[#D97706]" : "text-[#142126]",
     },
     {
       label: "Errors",
       value: metrics?.errors !== undefined ? String(metrics.errors) : "—",
       icon: AlertOctagon,
-      iconBg: "bg-[#FEECEB] text-[#EF4444]",
+      color: "red",
       valueColor: (metrics?.errors ?? 0) > 0 ? "text-[#EF4444]" : "text-[#142126]",
     },
   ];
@@ -140,7 +141,7 @@ export function PeakerrStatusSyncCard({
           {loading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <RefreshCw className="w-3.5 h-3.5" />
+            <AdminNeonIcon color="teal" icon={RefreshCw} className="w-3.5 h-3.5" />
           )}
           <span>Sync Now</span>
         </button>
@@ -165,8 +166,8 @@ export function PeakerrStatusSyncCard({
                 <span className="text-[10px] font-semibold uppercase tracking-wider text-[#65737A] truncate">
                   {item.label}
                 </span>
-                <div className={`w-[26px] h-[26px] rounded-full flex items-center justify-center shrink-0 ${item.iconBg}`}>
-                  <Icon className="w-3 h-3" />
+                <div className="w-[26px] h-[26px] rounded-full flex items-center justify-center shrink-0 bg-transparent">
+                  <AdminNeonIcon color={item.color} icon={Icon} className="w-3.5 h-3.5" />
                 </div>
               </div>
               <span

@@ -11,11 +11,13 @@ import { AnalyticsModule } from "./analytics/AnalyticsModule";
 import { OrdersModule } from "./orders/OrdersModule";
 import { SupplierRoutingControlCenter } from "./supplier-routing/SupplierRoutingControlCenter";
 import { DropShieldModule } from "./dropshield/DropShieldModule";
-import { GrowthModule } from "./growth/GrowthModule";
 import { PeakerrChainsModule } from "./fulfillment/PeakerrChainsModule";
+import { GrowthModule } from "./growth/GrowthModule";
 import { CrmModule } from "./crm/CrmModule";
 import { BlacklistModule } from "./blacklist/BlacklistModule";
 import { InfrastructureModule } from "./infrastructure/InfrastructureModule";
+import { AdminNeonIcon } from "./ui";
+
 
 import { 
   MonitoredProfile, 
@@ -167,7 +169,7 @@ function AdminShellContent() {
             onClick={() => setIsMobileMenuOpen(true)}
             className="text-[#8A979D] hover:text-white p-2 rounded-lg hover:bg-[#0A2630] transition-colors"
           >
-            <Menu className="w-5 h-5" />
+            <AdminNeonIcon color="cyan" icon={Menu} className="w-5 h-5" />
           </button>
         </header>
 

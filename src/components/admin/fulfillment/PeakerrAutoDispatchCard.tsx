@@ -13,7 +13,7 @@ import {
   Activity,
   Info,
 } from "lucide-react";
-import { AdminBadge, AdminButton, AdminModal } from "../ui";
+import { AdminBadge, AdminButton, AdminModal, AdminNeonIcon } from "../ui";
 import {
   BarChart,
   Bar,
@@ -351,8 +351,8 @@ export function PeakerrAutoDispatchCard() {
             {/* Module Card Header (height 56px-60px, 32x32 soft teal icon container) */}
             <div className="h-[58px] px-[18px] border-b border-[#E7ECEC] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-[32px] h-[32px] rounded-[7px] bg-[#E7F5F4] text-[#0F8F8A] flex items-center justify-center shrink-0">
-                  <Activity className="w-4 h-4" />
+                <div className="w-[32px] h-[32px] rounded-[7px] bg-transparent flex items-center justify-center shrink-0">
+                  <AdminNeonIcon color="purple" icon={Activity} className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-[14px] font-[650] text-[#142126] tracking-tight">
@@ -369,7 +369,7 @@ export function PeakerrAutoDispatchCard() {
                 disabled={loading}
                 className="h-[32px] text-[12px] text-[#65737A] hover:text-[#142126] font-medium flex items-center gap-1.5 cursor-pointer disabled:opacity-50 px-2.5 rounded-[6px] border border-[#D9E2E3] bg-[#FFFFFF] hover:bg-[#F8FAFA]"
               >
-                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                {loading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <AdminNeonIcon color="teal" icon={RefreshCw} className="w-3.5 h-3.5" />}
                 <span>Refresh</span>
               </button>
             </div>
@@ -568,8 +568,8 @@ export function PeakerrAutoDispatchCard() {
             {/* Module Card Header (height 56px-60px, 32x32 soft teal icon container) */}
             <div className="h-[58px] px-[18px] border-b border-[#E7ECEC] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-[32px] h-[32px] rounded-[7px] bg-[#E7F5F4] text-[#0F8F8A] flex items-center justify-center shrink-0">
-                  <Zap className="w-4 h-4" />
+                <div className="w-[32px] h-[32px] rounded-[7px] bg-transparent flex items-center justify-center shrink-0">
+                  <AdminNeonIcon color="amber" icon={Zap} className="w-4 h-4" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">

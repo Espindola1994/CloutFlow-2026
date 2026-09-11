@@ -28,6 +28,8 @@ import {
   AdminTableRow,
   AdminTableHead,
   AdminTableCell,
+  AdminNeonIcon,
+  type AdminNeonColor,
 } from "../ui";
 
 interface DashboardOverviewProps {
@@ -133,7 +135,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       value: `$${(stats.grossSales ?? stats.totalRevenue ?? 0).toFixed(2)}`,
       description: "Total checkout volume",
       icon: DollarSign,
-      iconBg: "bg-[#EAF6F5] text-[#0F8F8A]",
+      color: "teal" as AdminNeonColor,
       valueColor: "text-[#142126]",
     },
     {
@@ -141,7 +143,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       value: `$${(stats.netRevenue ?? stats.totalRevenue ?? 0).toFixed(2)}`,
       description: "Excludes refunds/chargebacks",
       icon: CheckCircle2,
-      iconBg: "bg-[#E8F8F2] text-[#16B77A]",
+      color: "emerald" as AdminNeonColor,
       valueColor: (stats.netRevenue ?? stats.totalRevenue ?? 0) > 0 ? "text-[#16B77A]" : "text-[#142126]",
     },
     {
@@ -149,7 +151,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       value: `$${(stats.refunds ?? 0).toFixed(2)}`,
       description: `${stats.refundedOrders ?? 0} refunded orders (${stats.refundRate ?? '0.0'}%)`,
       icon: RotateCcw,
-      iconBg: "bg-[#FEECEB] text-[#EF4444]",
+      color: "red" as AdminNeonColor,
       valueColor: (stats.refunds ?? 0) > 0 ? "text-[#EF4444]" : "text-[#142126]",
     },
     {
@@ -157,7 +159,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       value: `$${(stats.perfectPayFees ?? 0).toFixed(2)}`,
       description: "8.9% + $1.00 USD / transaction",
       icon: Coins,
-      iconBg: "bg-[#FEF3C7] text-[#D97706]",
+      color: "amber" as AdminNeonColor,
       valueColor: "text-[#D97706]",
     },
     {
@@ -165,7 +167,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       value: `$${(stats.providerCosts ?? 0).toFixed(2)}`,
       description: "Incurred fulfillment cost",
       icon: Receipt,
-      iconBg: "bg-[#F1F5F5] text-[#65737A]",
+      color: "blue" as AdminNeonColor,
       valueColor: "text-[#142126]",
     },
     {
@@ -173,7 +175,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       value: (stats.netProfit ?? 0) < 0 ? `-$${Math.abs(stats.netProfit ?? 0).toFixed(2)}` : `$${(stats.netProfit ?? 0).toFixed(2)}`,
       description: `Margin: ${stats.netMarginPercent ?? '0.0'}%`,
       icon: TrendingUp,
-      iconBg: (stats.netProfit ?? 0) >= 0 ? "bg-[#E8F8F2] text-[#16B77A]" : "bg-[#FEECEB] text-[#EF4444]",
+      color: ((stats.netProfit ?? 0) >= 0 ? "green" : "red") as AdminNeonColor,
       valueColor: (stats.netProfit ?? 0) >= 0 ? "text-[#16B77A]" : "text-[#EF4444]",
     },
   ];
@@ -185,24 +187,28 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       value: `${stats.netMarginPercent ?? '0.0'}%`,
       description: "Profit / Net Revenue",
       icon: Percent,
+      color: "violet" as AdminNeonColor,
     },
     {
       label: "AOV (Average Order)",
       value: `$${stats.averageOrderValue ?? '0.00'}`,
       description: "Average per paid order",
       icon: Layers,
+      color: "cyan" as AdminNeonColor,
     },
     {
       label: "Refund Rate",
       value: `${stats.refundRate ?? '0.0'}%`,
       description: "Refunds / Gross Sales",
       icon: RotateCcw,
+      color: "amber" as AdminNeonColor,
     },
     {
       label: "Chargeback Rate",
       value: `${stats.chargebackRate ?? '0.0'}%`,
       description: "Disputes / Gross Sales",
       icon: RotateCcw,
+      color: "red" as AdminNeonColor,
     },
   ];
 
@@ -231,7 +237,9 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
             onClick={() => fetchDashboardData(false)}
             disabled={loading || isUpdating}
           >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${(loading || isUpdating) ? "animate-spin" : ""}`} />
+            <AdminNeonIcon color="teal" className="w-3.5 h-3.5 mr-1.5">
+              <RefreshCw className={`w-3.5 h-3.5 ${(loading || isUpdating) ? "animate-spin" : ""}`} />
+            </AdminNeonIcon>
             Refresh
           </AdminButton>
         </div>
@@ -250,8 +258,8 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
                 <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
                   {kpi.label}
                 </span>
-                <div className={`w-7 h-7 rounded-lg ${kpi.iconBg} flex items-center justify-center`}>
-                  <Icon className="w-3.5 h-3.5" />
+                <div className="w-7 h-7 rounded-lg bg-transparent flex items-center justify-center">
+                  <AdminNeonIcon color={kpi.color} icon={Icon} className="w-4 h-4" />
                 </div>
               </div>
               <div className="mt-2.5">
@@ -273,8 +281,8 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
           const Icon = kpi.icon;
           return (
             <div key={kpi.label} className="flex items-center gap-3 px-2">
-              <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] border border-[#D9E2E3] flex items-center justify-center text-[#0F8F8A] shrink-0">
-                <Icon className="w-4 h-4" />
+              <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] border border-[#D9E2E3] flex items-center justify-center shrink-0">
+                <AdminNeonIcon color={kpi.color} icon={Icon} className="w-4 h-4" />
               </div>
               <div>
                 <span className="text-[10.5px] text-[#65737A] block font-medium uppercase tracking-wider">{kpi.label}</span>
@@ -339,8 +347,8 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
 
           {/* Empty Chart State (Zero Mocks) */}
           <div className="h-60 rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3] flex flex-col items-center justify-center text-center p-6 my-2">
-            <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mb-3">
-              <Clock className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-full bg-transparent flex items-center justify-center mb-3">
+              <AdminNeonIcon color="violet" icon={Clock} className="w-6 h-6" />
             </div>
             <p className="text-[13px] font-semibold text-[#142126]">
               {stats.paidOrders === 0 ? "No chart data available for this timeframe" : "Live timeline active"}
@@ -426,14 +434,14 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
             onClick={onNavigateToOrders}
             className="text-[12px] font-semibold text-[#0F8F8A] hover:text-[#0C736F] flex items-center gap-1 cursor-pointer transition-colors"
           >
-            View all orders <ArrowUpRight className="w-3.5 h-3.5" />
+            View all orders <AdminNeonIcon color="teal" className="w-3.5 h-3.5"><ArrowUpRight className="w-3.5 h-3.5" /></AdminNeonIcon>
           </button>
         </div>
 
         {stats.recentOrders.length === 0 ? (
           <div className="py-12 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
-            <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
-              <ShoppingBag className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-full bg-transparent flex items-center justify-center mx-auto mb-2">
+              <AdminNeonIcon color="blue" icon={ShoppingBag} className="w-6 h-6" />
             </div>
             <p className="text-[13px] font-semibold text-[#142126]">No orders registered yet</p>
             <span className="text-[11px] text-[#65737A] mt-1 block">

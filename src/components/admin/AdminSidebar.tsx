@@ -18,6 +18,7 @@ import {
   BarChart3
 } from "lucide-react";
 import { BUILD_INFO } from "@/lib/build-info";
+import { AdminNeonIcon, AdminNeonColor } from "./ui";
 
 export type AdminTab = "dashboard" | "analytics" | "orders" | "supplier-routing" | "dropshield" | "fulfillment" | "growth" | "crm" | "blacklist" | "infra";
 
@@ -36,17 +37,17 @@ export function AdminSidebar({
   isOpenMobile = false,
   onCloseMobile,
 }: AdminSidebarProps) {
-  const menuItems = [
-    { id: "dashboard" as const, label: "Dashboard", icon: LayoutDashboard },
-    { id: "analytics" as const, label: "Analytics", icon: BarChart3 },
-    { id: "orders" as const, label: "Orders & Margins", icon: ShoppingBag },
-    { id: "supplier-routing" as const, label: "Supplier Routing", icon: Sliders },
-    { id: "dropshield" as const, label: "Drop Shield 24/7", icon: ShieldCheck },
-    { id: "fulfillment" as const, label: "Fulfillment & Providers", icon: PackageOpen },
-    { id: "growth" as const, label: "Growth / Offers", icon: Sparkles },
-    { id: "crm" as const, label: "CRM & Communication", icon: Users },
-    { id: "blacklist" as const, label: "Anti-Fraud Blacklist", icon: ShieldBan },
-    { id: "infra" as const, label: "Integrations & APIs", icon: Server },
+  const menuItems: { id: AdminTab; label: string; icon: React.ComponentType<{ className?: string }>; color: AdminNeonColor }[] = [
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, color: "teal" },
+    { id: "analytics", label: "Analytics", icon: BarChart3, color: "violet" },
+    { id: "orders", label: "Orders & Margins", icon: ShoppingBag, color: "blue" },
+    { id: "supplier-routing", label: "Supplier Routing", icon: Sliders, color: "cyan" },
+    { id: "dropshield", label: "Drop Shield 24/7", icon: ShieldCheck, color: "green" },
+    { id: "fulfillment", label: "Fulfillment & Providers", icon: PackageOpen, color: "teal" },
+    { id: "growth", label: "Growth / Offers", icon: Sparkles, color: "magenta" },
+    { id: "crm", label: "CRM & Communication", icon: Users, color: "cyan" },
+    { id: "blacklist", label: "Anti-Fraud Blacklist", icon: ShieldBan, color: "red" },
+    { id: "infra", label: "Integrations & APIs", icon: Server, color: "purple" },
   ];
 
   const sidebarContent = (
@@ -97,7 +98,11 @@ export function AdminSidebar({
                 {isActive && (
                   <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-[#0F8F8A] rounded-r-full" />
                 )}
-                <Icon className={`w-[18px] h-[18px] shrink-0 ${isActive ? "text-[#0F8F8A]" : "text-[#8A979D]"}`} />
+                <AdminNeonIcon
+                  color={item.color}
+                  icon={Icon}
+                  className={`w-[18px] h-[18px] ${isActive ? "opacity-100" : "opacity-75"}`}
+                />
                 <span className="truncate">{item.label}</span>
               </button>
             );

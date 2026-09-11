@@ -14,6 +14,7 @@ import {
   AdminTableCell,
 } from "./AdminTable";
 import { PlatformIcon, PlatformBadge } from "./PlatformIcon";
+import { AdminNeonIcon, type AdminNeonColor } from "./AdminNeonIcon";
 
 export {
   AdminCard,
@@ -34,4 +35,6 @@ export {
   AdminTableCell,
   PlatformIcon,
   PlatformBadge,
+  AdminNeonIcon,
+  type AdminNeonColor,
 };
