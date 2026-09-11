@@ -9,6 +9,10 @@ import ClarityProvider from "@/components/analytics/ClarityProvider";
 export const viewport: Viewport = {
   themeColor: "#080B14",
   colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
