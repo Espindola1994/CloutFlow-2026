@@ -33999,12 +33999,14 @@ html body .cf-pricing-subtitle-mobile {
   }
 
   /* 6. Plan Cards Grid:
-        Exact 1-column layout, centered with balanced lateral breathing room matching reference */
+        Exact 1-column layout, centered with balanced lateral breathing room matching reference:
+        Cards are narrower (~74% to 78% of available space), leaving ample symmetrical white space
+        between the pricing container edges and the card edges. */
   html body .cf-home-offer-card-host .cf-o10-package-ref-grid {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
-    width: min(100% - 18px, 460px) !important;
-    max-width: 460px !important;
+    width: min(76%, 320px) !important;
+    max-width: 320px !important;
     gap: 12px !important;
     margin: 0 auto !important;
     padding: 0 !important;
