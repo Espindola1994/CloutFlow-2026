@@ -35,6 +35,7 @@ import {
   AdminTableHead,
   AdminTableCell,
   AdminNeonIcon,
+  AdminTooltip,
 } from "../ui";
 
 interface ChainConfig {
@@ -170,6 +171,11 @@ export function PeakerrChainsModule() {
 
   // Edit Chain Modal State
   const [editingService, setEditingService] = useState<string | null>(null);
+
+  // Sub-Navigation Tabs: "overview" | "eligible-orders" | "queue" | "providers" | "automation" | "tools"
+  const [activeFulfillmentTab, setActiveFulfillmentTab] = useState<
+    "overview" | "eligible-orders" | "queue" | "providers" | "automation" | "tools"
+  >("overview");
 
   // Peakerr Connection & Runtime Inspection State
   const [connectionInfo, setConnectionInfo] = useState<{
@@ -622,6 +628,67 @@ export function PeakerrChainsModule() {
         </div>
       </div>
 
+      {/* Sub-Navigation Tabs */}
+      <div className="flex border-b border-[#E3E8EA] gap-6 text-[13px] font-semibold text-[#65737A] overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => setActiveFulfillmentTab("overview")}
+          className={`pb-3 relative transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+            activeFulfillmentTab === "overview" ? "text-[#0F8F8A]" : "hover:text-[#142126]"
+          }`}
+        >
+          <span>Command Center</span>
+          {activeFulfillmentTab === "overview" && (
+            <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0F8F8A]" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveFulfillmentTab("providers")}
+          className={`pb-3 relative transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+            activeFulfillmentTab === "providers" ? "text-[#0F8F8A]" : "hover:text-[#142126]"
+          }`}
+        >
+          <span>Routing & Chains</span>
+          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-[#EBF4F4] text-[#0F8F8A] font-bold">
+            {Object.keys(chains).length || 11}
+          </span>
+          {activeFulfillmentTab === "providers" && (
+            <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0F8F8A]" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveFulfillmentTab("automation")}
+          className={`pb-3 relative transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+            activeFulfillmentTab === "automation" ? "text-[#0F8F8A]" : "hover:text-[#142126]"
+          }`}
+        >
+          <span>Sync & Automation</span>
+          {runtimeFlags.liveFulfillment && (
+            <span className="w-1.5 h-1.5 rounded-full bg-[#16B77A]" />
+          )}
+          {activeFulfillmentTab === "automation" && (
+            <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0F8F8A]" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveFulfillmentTab("tools")}
+          className={`pb-3 relative transition-colors whitespace-nowrap flex items-center gap-1.5 ${
+            activeFulfillmentTab === "tools" ? "text-[#0F8F8A]" : "hover:text-[#142126]"
+          }`}
+        >
+          <span>Simulator & Dry Run</span>
+          {activeFulfillmentTab === "tools" && (
+            <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0F8F8A]" />
+          )}
+        </button>
+      </div>
+
       {/* 2. PROVIDER STATUS — MASTER STRIP (Single large horizontal card, height ~82px–92px, border #D9E2E3, radius 8px–10px) */}
       <div className="min-h-[84px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_1px_2px_rgba(10,35,42,0.02)]">
         <div className="flex flex-wrap items-center gap-6 divide-y md:divide-y-0 md:divide-x divide-[#E7ECEC]">
@@ -631,9 +698,12 @@ export function PeakerrChainsModule() {
               <AdminNeonIcon color="teal" icon={Server} className="w-5 h-5" />
             </div>
             <div>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] block">
-                PEAKERR PROVIDER
-              </span>
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A]">
+                  PEAKERR PROVIDER
+                </span>
+                <AdminTooltip content="Primary operational fulfillment provider integrated with real-time API credentials." />
+              </div>
               <span className="text-[14px] font-[650] text-[#142126] leading-tight block mt-0.5">
                 Provider Routing
               </span>
@@ -642,9 +712,12 @@ export function PeakerrChainsModule() {
 
           {/* Item 2: Connection */}
           <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] block">
-              CONNECTION
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">
+                CONNECTION
+              </span>
+              <AdminTooltip content="Live handshake status with Peakerr SMM API." />
+            </div>
             <span
               className={`text-[14px] font-semibold mt-0.5 flex items-center gap-1.5 ${
                 connectionInfo?.connected ? "text-[#16B77A]" : "text-[#EF4444]"
@@ -657,9 +730,12 @@ export function PeakerrChainsModule() {
 
           {/* Item 3: Live Fulfillment */}
           <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] block">
-              LIVE FULFILLMENT
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">
+                LIVE FULFILLMENT
+              </span>
+              <AdminTooltip content="Master operational switch. When Active, orders are dispatched live to Peakerr." />
+            </div>
             <span
               className={`text-[14px] font-semibold mt-0.5 flex items-center gap-1.5 ${
                 runtimeFlags.liveFulfillment ? "text-[#16B77A]" : "text-[#F59E0B]"
@@ -672,9 +748,12 @@ export function PeakerrChainsModule() {
 
           {/* Item 4: Balance */}
           <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] block">
-              BALANCE
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">
+                BALANCE
+              </span>
+              <AdminTooltip content="Live available balance on the Peakerr account in USD." />
+            </div>
             <span className="text-[17px] font-[650] font-mono text-[#142126] mt-0.5">
               {connectionInfo?.balance !== null && connectionInfo?.balance !== undefined
                 ? `$${Number(connectionInfo.balance).toFixed(2)}`
@@ -684,9 +763,12 @@ export function PeakerrChainsModule() {
 
           {/* Item 5: Services Loaded */}
           <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] block">
-              SERVICES
-            </span>
+            <div className="flex items-center gap-1">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">
+                SERVICES
+              </span>
+              <AdminTooltip content="Number of active catalog services available from Peakerr API." />
+            </div>
             <span className="text-[17px] font-[650] font-mono text-[#142126] mt-0.5">
               {connectionInfo?.servicesCount ? Number(connectionInfo.servicesCount).toLocaleString() : "0"}
             </span>
@@ -713,18 +795,22 @@ export function PeakerrChainsModule() {
         </div>
       </div>
 
-      {/* 3. AUTOMATIC STATUS SYNC */}
-      <PeakerrStatusSyncCard
-        enabled={autoSyncEnabled}
-        loading={autoSyncLoading}
-        metrics={autoSyncResult}
-        onRunSync={handleRunStatusSyncNow}
-        error={errorMessage}
-        targetQueueAutoReleaseEnabled={runtimeFlags.targetQueueAutoReleaseEnabled}
-      />
+      {/* 3. SUBTAB: AUTOMATION & STATUS SYNC */}
+      {(activeFulfillmentTab === "overview" || activeFulfillmentTab === "automation") && (
+        <PeakerrStatusSyncCard
+          enabled={autoSyncEnabled}
+          loading={autoSyncLoading}
+          metrics={autoSyncResult}
+          onRunSync={handleRunStatusSyncNow}
+          error={errorMessage}
+          targetQueueAutoReleaseEnabled={runtimeFlags.targetQueueAutoReleaseEnabled}
+        />
+      )}
 
-      {/* 4. MAIN GRID (FULFILLMENT OVERVIEW + AUTO DISPATCH) */}
-      <PeakerrAutoDispatchCard />
+      {/* 4. SUBTAB: MAIN GRID (FULFILLMENT OVERVIEW + AUTO DISPATCH) */}
+      {(activeFulfillmentTab === "overview" || activeFulfillmentTab === "automation") && (
+        <PeakerrAutoDispatchCard />
+      )}
 
       {savedStatus && (
         <div className="p-3 rounded-[6px] bg-[#E8F8F2] border border-[#B6ECD7] text-[#16B77A] text-xs font-semibold flex items-center gap-2">
@@ -740,10 +826,12 @@ export function PeakerrChainsModule() {
         </div>
       )}
 
-      {/* 5. PROVIDER CHAINS & FALLBACKS + SIMULATOR SIDE CARD (75% / 25% on desktop large) */}
+      {/* 5. SUBTAB: PROVIDERS & CHAINS + SIMULATOR */}
+      {(activeFulfillmentTab === "overview" || activeFulfillmentTab === "providers" || activeFulfillmentTab === "tools") && (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-[16px] items-start">
         {/* PROVIDER CHAINS CARD (lg:col-span-8 or lg:col-span-9, approx 72%-75%) */}
-        <div className={`${isSimulatorOpen ? "lg:col-span-12" : "lg:col-span-9"} bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] shadow-[0_1px_2px_rgba(10,35,42,0.02)] overflow-hidden transition-all`}>
+        {(activeFulfillmentTab === "overview" || activeFulfillmentTab === "providers") && (
+        <div className={`${activeFulfillmentTab === "providers" ? "lg:col-span-12" : isSimulatorOpen ? "lg:col-span-12" : "lg:col-span-9"} bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] shadow-[0_1px_2px_rgba(10,35,42,0.02)] overflow-hidden transition-all`}>
           <div className="h-[58px] px-[20px] flex items-center border-b border-[#E7ECEC]">
             <div className="flex items-center gap-2.5">
               <div className="w-[32px] h-[32px] rounded-[7px] bg-transparent flex items-center justify-center shrink-0">
@@ -933,9 +1021,11 @@ export function PeakerrChainsModule() {
             })}
           </div>
         </div>
+        )}
 
         {/* 6. SIMULATOR SIDE CARD (lg:col-span-3, approx 25%-28% when closed, expandable) */}
-        <div className={`${isSimulatorOpen ? "lg:col-span-12" : "lg:col-span-3"} bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] shadow-[0_1px_2px_rgba(10,35,42,0.02)] overflow-hidden transition-all`}>
+        {(activeFulfillmentTab === "overview" || activeFulfillmentTab === "tools") && (
+        <div className={`${activeFulfillmentTab === "tools" ? "lg:col-span-12" : isSimulatorOpen ? "lg:col-span-12" : "lg:col-span-3"} bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] shadow-[0_1px_2px_rgba(10,35,42,0.02)] overflow-hidden transition-all`}>
           <div className="p-4 flex flex-col justify-between min-h-[160px]">
             <div>
               <div className="flex items-center gap-2">
@@ -947,7 +1037,7 @@ export function PeakerrChainsModule() {
                 </h3>
               </div>
               <p className="text-[11px] text-[#65737A] mt-2 leading-relaxed">
-                Safely test provider routing without submitting a real order.
+                Safely test provider routing without submitting a real order. Isolated preview environment.
               </p>
             </div>
 
@@ -1207,7 +1297,9 @@ export function PeakerrChainsModule() {
             </div>
           )}
         </div>
+        )}
       </div>
+      )}
 
       {/* MODAL: EDIT CHAIN CONFIGURATION */}
       <AdminModal

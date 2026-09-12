@@ -13,7 +13,7 @@ import {
   Activity,
   Info,
 } from "lucide-react";
-import { AdminBadge, AdminButton, AdminModal, AdminNeonIcon } from "../ui";
+import { AdminBadge, AdminButton, AdminModal, AdminNeonIcon, AdminTooltip } from "../ui";
 import {
   BarChart,
   Bar,
@@ -588,10 +588,13 @@ export function PeakerrAutoDispatchCard() {
             </div>
 
             <div className="p-[18px] space-y-3.5">
-              {/* Row 1: 3 Operational Status Cards (Payment Trigger, Auto Dispatch, Live Fulfillment) */}
+              {/* Row 1: 3 Operational Status Cards (Payment Trigger, Auto Dispatch, Live Fulfillment, Target Queue) */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-                <div className="h-[92px] p-[10px_10px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] flex flex-col justify-between group relative">
-                  <span className="text-[10px] font-semibold text-[#65737A] uppercase tracking-wider">Payment Trigger</span>
+                <div className="h-[92px] p-[10px_10px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-[#65737A] uppercase tracking-wider">Payment Trigger</span>
+                    <AdminTooltip content="Webhook and checkout listener status connecting payment completion directly to the fulfillment engine." />
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <span className={`w-[6px] h-[6px] rounded-full shrink-0 ${autoDispatchStats?.paymentTriggerConnected ? "bg-[#16B77A]" : "bg-[#65737A]"}`} />
                     <span className={`text-[12px] font-semibold ${autoDispatchStats?.paymentTriggerConnected ? "text-[#16B77A]" : "text-[#65737A]"}`}>
@@ -600,8 +603,11 @@ export function PeakerrAutoDispatchCard() {
                   </div>
                 </div>
 
-                <div className="h-[92px] p-[10px_10px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] flex flex-col justify-between group relative">
-                  <span className="text-[10px] font-semibold text-[#65737A] uppercase tracking-wider">Auto Dispatch</span>
+                <div className="h-[92px] p-[10px_10px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-[#65737A] uppercase tracking-wider">Auto Dispatch</span>
+                    <AdminTooltip content="Automated background order submission flag. Evaluates candidate orders against safety criteria." />
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <span className={`w-[6px] h-[6px] rounded-full shrink-0 ${autoDispatchStats?.autoDispatchEnabled ? "bg-[#16B77A]" : "bg-[#65737A]"}`} />
                     <span className={`text-[12px] font-semibold ${autoDispatchStats?.autoDispatchEnabled ? "text-[#16B77A]" : "text-[#65737A]"}`}>
@@ -610,8 +616,11 @@ export function PeakerrAutoDispatchCard() {
                   </div>
                 </div>
 
-                <div className="h-[92px] p-[10px_10px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] flex flex-col justify-between group relative">
-                  <span className="text-[10px] font-semibold text-[#65737A] uppercase tracking-wider">Live Fulfillment</span>
+                <div className="h-[92px] p-[10px_10px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-[#65737A] uppercase tracking-wider">Live Fulfillment</span>
+                    <AdminTooltip content="Master operational switch. When Enabled, authorizes real API calls that consume provider balance." />
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <span className={`w-[6px] h-[6px] rounded-full shrink-0 ${autoDispatchStats?.liveFulfillmentEnabled ? "bg-[#16B77A]" : "bg-[#65737A]"}`} />
                     <span className={`text-[12px] font-semibold ${autoDispatchStats?.liveFulfillmentEnabled ? "text-[#16B77A]" : "text-[#65737A]"}`}>
@@ -620,20 +629,16 @@ export function PeakerrAutoDispatchCard() {
                   </div>
                 </div>
 
-                <div className="h-[92px] p-[10px_10px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] flex flex-col justify-between group relative">
-                  <span className="text-[10px] font-semibold text-[#65737A] uppercase tracking-wider leading-tight">Target Queue<br/>Auto Release</span>
+                <div className="h-[92px] p-[10px_10px] bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-semibold text-[#65737A] uppercase tracking-wider leading-tight">Target Queue<br/>Auto Release</span>
+                    <AdminTooltip content="FIFO queue release automation. When Enabled, releases the next order for a target once active delivery reaches a terminal state." />
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <span className={`w-[6px] h-[6px] rounded-full shrink-0 ${autoDispatchStats?.targetQueueAutoReleaseEnabled ? "bg-[#16B77A]" : "bg-[#65737A]"}`} />
                     <span className={`text-[12px] font-semibold ${autoDispatchStats?.targetQueueAutoReleaseEnabled ? "text-[#16B77A]" : "text-[#65737A]"}`}>
                       {autoDispatchStats?.targetQueueAutoReleaseEnabled ? "Enabled" : "Disabled"}
                     </span>
-                  </div>
-                  {/* Tooltip for Target Queue Auto Release */}
-                  <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 w-[240px] p-2 bg-[#142126] text-white text-[11px] rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-10 text-center pointer-events-none">
-                    {autoDispatchStats?.targetQueueAutoReleaseEnabled
-                      ? "Next queued order may be released automatically after the active target delivery reaches a terminal state."
-                      : "Queued orders will not be released automatically."}
-                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-[4px] border-transparent border-t-[#142126]" />
                   </div>
                 </div>
               </div>

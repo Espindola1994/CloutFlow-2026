@@ -18,7 +18,11 @@ import {
   TrendingUp,
   DollarSign,
   Activity,
-  ArrowRight
+  ArrowRight,
+  ChevronDown,
+  ChevronRight,
+  ShieldCheck,
+  Check
 } from "lucide-react";
 
 import { AdminCard, AdminStatCard } from "../ui/AdminCard";
@@ -26,7 +30,8 @@ import { AdminTable, AdminTableHeader, AdminTableBody, AdminTableRow, AdminTable
 import { AdminBadge, AdminStatusBadge } from "../ui/AdminBadge";
 import { AdminButton } from "../ui/AdminButton";
 import { AdminModal } from "../ui/AdminModal";
-import { PlatformBadge } from "../ui/PlatformIcon";
+import { PlatformBadge, PlatformIcon } from "../ui/PlatformIcon";
+import { AdminTooltip } from "../ui/AdminTooltip";
 
 export function SupplierRoutingControlCenter() {
   const [activeSubTab, setActiveSubTab] = useState<"catalog" | "manual-review" | "alerts" | "history">("catalog");
@@ -41,6 +46,9 @@ export function SupplierRoutingControlCenter() {
   const [searchFilter, setSearchFilter] = useState("");
   const [platformFilter, setPlatformFilter] = useState<string>("all");
   const [healthFilter, setHealthFilter] = useState<string>("all");
+  const [serviceCategoryFilter, setServiceCategoryFilter] = useState<string>("all");
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [activeCatalogPlatform, setActiveCatalogPlatform] = useState<string>("all");
 
   // Manual Review Queue
   const [queue, setQueue] = useState<any[]>([]);
@@ -202,14 +210,77 @@ export function SupplierRoutingControlCenter() {
         p.platform.toLowerCase().includes(searchFilter.toLowerCase()) ||
         p.service.toLowerCase().includes(searchFilter.toLowerCase()) ||
         p.plan.toLowerCase().includes(searchFilter.toLowerCase()) ||
-        String(p.priorityServiceId || "").includes(searchFilter);
+        String(p.priorityServiceId || "").includes(searchFilter) ||
+        String(p.fallback1ServiceId || "").includes(searchFilter) ||
+        String(p.fallback2ServiceId || "").includes(searchFilter);
 
-      const matchPlatform = platformFilter === "all" || p.platform === platformFilter;
+      const effectivePlatform = activeCatalogPlatform !== "all" ? activeCatalogPlatform : platformFilter;
+      const matchPlatform = effectivePlatform === "all" || p.platform === effectivePlatform;
       const matchHealth = healthFilter === "all" || p.routingHealth === healthFilter;
+      const matchCategory = serviceCategoryFilter === "all" || p.service.toLowerCase() === serviceCategoryFilter.toLowerCase();
 
-      return matchSearch && matchPlatform && matchHealth;
+      return matchSearch && matchPlatform && matchHealth && matchCategory;
     });
-  }, [products, searchFilter, platformFilter, healthFilter]);
+  }, [products, searchFilter, platformFilter, activeCatalogPlatform, healthFilter, serviceCategoryFilter]);
+
+  // Group filtered products by Platform and Service Category
+  const groupedProducts = useMemo(() => {
+    const groups: Record<string, {
+      platform: string;
+      service: string;
+      key: string;
+      items: any[];
+      healthyCount: number;
+      warningCount: number;
+      unsafeCount: number;
+      avgMargin: number;
+    }> = {};
+
+    filteredProducts.forEach((p) => {
+      const key = `${p.platform}:${p.service}`;
+      if (!groups[key]) {
+        groups[key] = {
+          platform: p.platform,
+          service: p.service,
+          key,
+          items: [],
+          healthyCount: 0,
+          warningCount: 0,
+          unsafeCount: 0,
+          avgMargin: 0,
+        };
+      }
+      groups[key].items.push(p);
+      if (p.routingHealth === "GREEN") groups[key].healthyCount++;
+      else if (p.routingHealth === "YELLOW") groups[key].warningCount++;
+      else if (p.routingHealth === "RED") groups[key].unsafeCount++;
+    });
+
+    // Calculate avg margin per group
+    Object.values(groups).forEach((g) => {
+      const totalMargin = g.items.reduce((acc, item) => acc + (item.minimumGrossMarginPercent || 0), 0);
+      g.avgMargin = g.items.length > 0 ? Math.round(totalMargin / g.items.length) : 0;
+    });
+
+    return Object.values(groups);
+  }, [filteredProducts]);
+
+  const toggleGroupCollapse = (key: string) => {
+    setCollapsedGroups((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
+
+  const collapseAllGroups = () => {
+    const next: Record<string, boolean> = {};
+    groupedProducts.forEach((g) => { next[g.key] = true; });
+    setCollapsedGroups(next);
+  };
+
+  const expandAllGroups = () => {
+    setCollapsedGroups({});
+  };
 
   // Retry Routing
   const handleRetryOrder = async (orderId: string) => {
@@ -434,15 +505,18 @@ export function SupplierRoutingControlCenter() {
       </div>
 
       {/* Sub-Navigation Tabs */}
-      <div className="flex border-b border-[#E3E8EA] gap-6 text-[13px] font-semibold text-[#65737A]">
+      <div className="flex border-b border-[#E3E8EA] gap-6 text-[13px] font-semibold text-[#65737A] overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveSubTab("catalog")}
-          className={`pb-3 relative transition-colors ${
+          className={`pb-3 relative transition-colors whitespace-nowrap flex items-center gap-1.5 ${
             activeSubTab === "catalog" ? "text-[#0F8F8A]" : "hover:text-[#142126]"
           }`}
         >
-          Product Routing Catalog (66)
+          <span>Product Routing Catalog</span>
+          <span className="text-[11px] px-1.5 py-0.2 rounded-full bg-[#EBF4F4] text-[#0F8F8A] font-bold">
+            {products.length || 66}
+          </span>
           {activeSubTab === "catalog" && (
             <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0F8F8A]" />
           )}
@@ -451,15 +525,17 @@ export function SupplierRoutingControlCenter() {
         <button
           type="button"
           onClick={() => setActiveSubTab("manual-review")}
-          className={`pb-3 relative transition-colors flex items-center gap-1.5 ${
+          className={`pb-3 relative transition-colors whitespace-nowrap flex items-center gap-1.5 ${
             activeSubTab === "manual-review" ? "text-[#0F8F8A]" : "hover:text-[#142126]"
           }`}
         >
-          Manual Review Queue
-          {queue.length > 0 && (
+          <span>Manual Review Queue</span>
+          {queue.length > 0 ? (
             <span className="bg-[#EF4444] text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
               {queue.length}
             </span>
+          ) : (
+            <span className="text-[11px] px-1.5 py-0.2 rounded-full bg-[#EBF4F4] text-[#65737A]">0</span>
           )}
           {activeSubTab === "manual-review" && (
             <span className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#0F8F8A]" />
@@ -469,11 +545,11 @@ export function SupplierRoutingControlCenter() {
         <button
           type="button"
           onClick={() => setActiveSubTab("alerts")}
-          className={`pb-3 relative transition-colors flex items-center gap-1.5 ${
+          className={`pb-3 relative transition-colors whitespace-nowrap flex items-center gap-1.5 ${
             activeSubTab === "alerts" ? "text-[#0F8F8A]" : "hover:text-[#142126]"
           }`}
         >
-          Rate & Margin Alerts
+          <span>Rate & Margin Alerts</span>
           {alerts.filter((a) => !a.resolved).length > 0 && (
             <span className="bg-[#F59E0B] text-white text-[10px] px-1.5 py-0.2 rounded-full font-bold">
               {alerts.filter((a) => !a.resolved).length}
@@ -487,7 +563,7 @@ export function SupplierRoutingControlCenter() {
         <button
           type="button"
           onClick={() => setActiveSubTab("history")}
-          className={`pb-3 relative transition-colors ${
+          className={`pb-3 relative transition-colors whitespace-nowrap ${
             activeSubTab === "history" ? "text-[#0F8F8A]" : "hover:text-[#142126]"
           }`}
         >
@@ -500,206 +576,416 @@ export function SupplierRoutingControlCenter() {
 
       {/* 1. PRODUCT CATALOG VIEW */}
       {activeSubTab === "catalog" && (
-        <AdminCard padded={false}>
-          {/* Filter Bar */}
-          <div className="p-4 border-b border-[#E3E8EA] flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#F7F9FA]">
-            <div className="flex items-center gap-2 flex-1 max-w-md">
-              <div className="relative w-full">
-                <Search className="w-4 h-4 text-[#8A979D] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  placeholder="Search platform, service, plan or supplier ID..."
-                  value={searchFilter}
-                  onChange={(e) => setSearchFilter(e.target.value)}
-                  className="w-full pl-9 pr-3 py-1.5 text-[13px] bg-white border border-[#D1D9DC] rounded-[6px] focus:outline-none focus:border-[#0F8F8A]"
-                />
-              </div>
+        <div className="space-y-4">
+          {/* Platform Quick Selector Bar */}
+          <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-[#D9E2E3] rounded-[9px] p-3 shadow-[0_1px_2px_rgba(10,35,42,0.02)]">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-[#65737A] mr-2">Platform:</span>
+              <button
+                type="button"
+                onClick={() => setActiveCatalogPlatform("all")}
+                className={`px-3 py-1.5 rounded-[7px] text-[12px] font-semibold transition-all cursor-pointer ${
+                  activeCatalogPlatform === "all"
+                    ? "bg-[#0F8F8A] text-white shadow-sm"
+                    : "bg-[#F7F9FA] text-[#65737A] hover:text-[#142126] hover:bg-[#EDF1F2]"
+                }`}
+              >
+                All Platforms ({products.length})
+              </button>
+              {(["instagram", "tiktok", "twitter", "youtube"] as const).map((plat) => {
+                const count = products.filter((p) => p.platform === plat).length;
+                return (
+                  <button
+                    key={plat}
+                    type="button"
+                    onClick={() => setActiveCatalogPlatform(plat)}
+                    className={`px-3 py-1.5 rounded-[7px] text-[12px] font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      activeCatalogPlatform === plat
+                        ? "bg-[#0F8F8A] text-white shadow-sm"
+                        : "bg-[#F7F9FA] text-[#65737A] hover:text-[#142126] hover:bg-[#EDF1F2]"
+                    }`}
+                  >
+                    <PlatformIcon platform={plat === "twitter" ? "x" : plat} size={15} />
+                    <span className="capitalize">{plat === "twitter" ? "X" : plat}</span>
+                    <span className={`text-[10px] px-1 rounded ${activeCatalogPlatform === plat ? "bg-white/20 text-white" : "bg-[#E3E8EA] text-[#65737A]"}`}>
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <select
-                value={platformFilter}
-                onChange={(e) => setPlatformFilter(e.target.value)}
-                className="text-[12px] bg-white border border-[#D1D9DC] rounded-[6px] px-2.5 py-1.5 text-[#142126]"
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={expandAllGroups}
+                className="text-[11px] font-semibold text-[#0F8F8A] hover:underline cursor-pointer"
               >
-                <option value="all">All Platforms</option>
-                <option value="instagram">Instagram</option>
-                <option value="tiktok">TikTok</option>
-                <option value="twitter">X (Twitter)</option>
-                <option value="youtube">YouTube</option>
-              </select>
-
-              <select
-                value={healthFilter}
-                onChange={(e) => setHealthFilter(e.target.value)}
-                className="text-[12px] bg-white border border-[#D1D9DC] rounded-[6px] px-2.5 py-1.5 text-[#142126]"
+                Expand All
+              </button>
+              <span className="text-[#D9E2E3]">•</span>
+              <button
+                type="button"
+                onClick={collapseAllGroups}
+                className="text-[11px] font-semibold text-[#65737A] hover:text-[#142126] cursor-pointer"
               >
-                <option value="all">All Health Statuses</option>
-                <option value="GREEN">GREEN (Healthy)</option>
-                <option value="YELLOW">YELLOW (Fallback)</option>
-                <option value="RED">RED (Unsafe)</option>
-                <option value="UNKNOWN">UNKNOWN (No Rate)</option>
-              </select>
+                Collapse All
+              </button>
             </div>
           </div>
 
-          {/* Table */}
-          <AdminTable>
-            <AdminTableHeader>
-              <AdminTableRow>
-                <AdminTableHead>Card / Plan</AdminTableHead>
-                <AdminTableHead>Qty</AdminTableHead>
-                <AdminTableHead>Selling Price</AdminTableHead>
-                <AdminTableHead>Priority (Rate / Est)</AdminTableHead>
-                <AdminTableHead>Fallback 1 (Rate / Est)</AdminTableHead>
-                <AdminTableHead>Fallback 2 (Rate / Est)</AdminTableHead>
-                <AdminTableHead>Max Cost Allowed</AdminTableHead>
-                <AdminTableHead>Min Margin / Profit</AdminTableHead>
-                <AdminTableHead>Routing Health</AdminTableHead>
-                <AdminTableHead className="text-right">Actions</AdminTableHead>
-              </AdminTableRow>
-            </AdminTableHeader>
-            <AdminTableBody>
-              {loadingProducts ? (
-                <AdminTableRow>
-                  <AdminTableCell colSpan={10} className="text-center py-8 text-[#65737A]">
-                    Loading 66 commercial cards and current supplier rates...
-                  </AdminTableCell>
-                </AdminTableRow>
-              ) : filteredProducts.length === 0 ? (
-                <AdminTableRow>
-                  <AdminTableCell colSpan={10} className="text-center py-8 text-[#65737A]">
-                    No cards found matching filters.
-                  </AdminTableCell>
-                </AdminTableRow>
-              ) : (
-                filteredProducts.map((p) => (
-                  <AdminTableRow key={p.id} onClick={() => handleOpenEdit(p)} className="cursor-pointer hover:bg-[#F0F5F5]">
-                    <AdminTableCell>
-                      <div className="flex items-center gap-2">
-                        <PlatformBadge platform={p.platform} />
-                        <div>
-                          <div className="font-semibold text-[#142126] text-[13px]">
-                            {p.service} - {p.plan}
-                          </div>
-                          <div className="text-[11px] text-[#65737A] uppercase">{p.platform}</div>
-                        </div>
-                      </div>
-                    </AdminTableCell>
-                    <AdminTableCell className="font-mono text-[12px]">
-                      {p.quantity.toLocaleString()}
-                    </AdminTableCell>
-                    <AdminTableCell className="font-semibold text-[#142126] text-[13px]">
-                      ${p.sellingPrice.toFixed(2)}
-                    </AdminTableCell>
-                    <AdminTableCell>
-                      {p.priorityServiceId ? (
-                        <div className="text-[12px]">
-                          <div className="font-mono font-medium text-[#142126] flex items-center gap-1">
-                            ID: {p.priorityServiceId}{" "}
-                            {p.priorityRate !== null ? (
-                              <span className="text-[#65737A]">(${p.priorityRate.toFixed(3)}/K)</span>
-                            ) : (
-                              <span className="text-gray-400">(no rate)</span>
-                            )}
-                            {p.isSplitRoute ? (
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 flex items-center gap-1">
-                                <span>⚡ SPLIT ROUTE AVAILABLE ({p.splitChunkCount}x {(p.splitChunkSize ? p.splitChunkSize / 1000 : 5)}K)</span>
-                              </span>
-                            ) : p.priorityCompatibilityStatus === 'INCOMPATIBLE_QUANTITY' ? (
-                              <span className="text-[10px] px-1 py-0.2 rounded bg-amber-100 text-amber-800 font-semibold">
-                                INCOMPATIBLE_QUANTITY
-                              </span>
-                            ) : null}
-                          </div>
-                          <div className="text-[11px] text-[#0F8F8A]">
-                            Est: {p.priorityEstimatedCost !== null ? `$${p.priorityEstimatedCost.toFixed(2)}` : "--"}
-                            {p.effectiveEligibleSupplier === 'priority' && (
-                              <span className="ml-1 text-[10px] font-bold text-[#16B77A]">(ACTIVE ROUTE)</span>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-[11px] text-gray-400">Not configured</span>
-                      )}
-                    </AdminTableCell>
-                    <AdminTableCell>
-                      {p.fallback1ServiceId ? (
-                        <div className="text-[12px]">
-                          <div className="font-mono text-[#142126] flex items-center gap-1">
-                            ID: {p.fallback1ServiceId}{" "}
-                            {p.fallback1Rate !== null && (
-                              <span className="text-[#65737A]">(${p.fallback1Rate.toFixed(3)})</span>
-                            )}
-                            {p.fallback1CompatibilityStatus === 'AVAILABLE' && p.effectiveEligibleSupplier === 'fallback1' && (
-                              <span className="text-[10px] px-1 py-0.2 rounded bg-emerald-100 text-emerald-800 font-semibold">
-                                AVAILABLE / SAFE
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[11px] text-[#65737A]">
-                            Est: {p.fallback1EstimatedCost !== null ? `$${p.fallback1EstimatedCost.toFixed(2)}` : "--"}
-                            {p.effectiveEligibleSupplier === 'fallback1' && (
-                              <span className="ml-1 text-[10px] font-bold text-[#16B77A]">(ACTIVE ROUTE)</span>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-[11px] text-gray-400">--</span>
-                      )}
-                    </AdminTableCell>
-                    <AdminTableCell>
-                      {p.fallback2ServiceId ? (
-                        <div className="text-[12px]">
-                          <div className="font-mono text-[#142126] flex items-center gap-1">
-                            ID: {p.fallback2ServiceId}{" "}
-                            {p.fallback2Rate !== null && (
-                              <span className="text-[#65737A]">(${p.fallback2Rate.toFixed(3)})</span>
-                            )}
-                            {p.fallback2CompatibilityStatus === 'AVAILABLE' && p.effectiveEligibleSupplier === 'fallback2' && (
-                              <span className="text-[10px] px-1 py-0.2 rounded bg-emerald-100 text-emerald-800 font-semibold">
-                                AVAILABLE / SAFE
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-[11px] text-[#65737A]">
-                            Est: {p.fallback2EstimatedCost !== null ? `$${p.fallback2EstimatedCost.toFixed(2)}` : "--"}
-                            {p.effectiveEligibleSupplier === 'fallback2' && (
-                              <span className="ml-1 text-[10px] font-bold text-[#16B77A]">(ACTIVE ROUTE)</span>
-                            )}
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-[11px] text-gray-400">--</span>
-                      )}
-                    </AdminTableCell>
-                    <AdminTableCell className="font-mono text-[12px] font-semibold text-[#142126]">
-                      ${p.allowedSupplierCost.toFixed(2)}
-                    </AdminTableCell>
-                    <AdminTableCell className="text-[12px] text-[#65737A]">
-                      {p.minimumGrossMarginPercent}% / ${p.minimumGrossProfit.toFixed(2)}
-                    </AdminTableCell>
-                    <AdminTableCell>
-                      {renderHealthBadge(p.routingHealth)}
-                    </AdminTableCell>
-                    <AdminTableCell className="text-right">
-                      <AdminButton
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenEdit(p);
-                        }}
+          {/* Search & Filter Toolbar */}
+          <AdminCard padded={false}>
+            <div className="p-3.5 border-b border-[#E3E8EA] flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#F7F9FA]">
+              <div className="flex items-center gap-2 flex-1 max-w-md">
+                <div className="relative w-full">
+                  <Search className="w-4 h-4 text-[#8A979D] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Search service, package, SKU, supplier ID (e.g. 31714)..."
+                    value={searchFilter}
+                    onChange={(e) => setSearchFilter(e.target.value)}
+                    className="w-full pl-9 pr-3 py-1.5 text-[13px] bg-white border border-[#D1D9DC] rounded-[6px] focus:outline-none focus:border-[#0F8F8A]"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <select
+                  value={serviceCategoryFilter}
+                  onChange={(e) => setServiceCategoryFilter(e.target.value)}
+                  className="text-[12px] bg-white border border-[#D1D9DC] rounded-[6px] px-2.5 py-1.5 text-[#142126]"
+                >
+                  <option value="all">All Services (Followers, Likes, Views)</option>
+                  <option value="followers">Followers</option>
+                  <option value="likes">Likes</option>
+                  <option value="views">Views</option>
+                </select>
+
+                <select
+                  value={healthFilter}
+                  onChange={(e) => setHealthFilter(e.target.value)}
+                  className="text-[12px] bg-white border border-[#D1D9DC] rounded-[6px] px-2.5 py-1.5 text-[#142126]"
+                >
+                  <option value="all">All Health Statuses</option>
+                  <option value="GREEN">GREEN (Healthy)</option>
+                  <option value="YELLOW">YELLOW (Fallback)</option>
+                  <option value="RED">RED (Unsafe)</option>
+                  <option value="UNKNOWN">UNKNOWN (No Rate)</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Platform & Service Grouped Catalog */}
+            {loadingProducts ? (
+              <div className="py-16 text-center text-[#65737A] text-[13px]">
+                <div className="w-6 h-6 border-2 border-[#0F8F8A] border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                Loading 66 commercial cards and current supplier rates...
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="py-12 text-center text-[#65737A] text-[13px]">
+                No cards found matching current filters.
+              </div>
+            ) : (
+              <div className="divide-y divide-[#E3E8EA]">
+                {groupedProducts.map((group) => {
+                  const isCollapsed = collapsedGroups[group.key];
+                  return (
+                    <div key={group.key} className="transition-colors">
+                      {/* Group Header Bar */}
+                      <button
+                        type="button"
+                        onClick={() => toggleGroupCollapse(group.key)}
+                        className="w-full px-4 py-3 bg-[#FCFDFD] hover:bg-[#F3F7F7] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-left transition-colors cursor-pointer border-b border-[#F0F4F4]"
                       >
-                        Inspect
-                      </AdminButton>
-                    </AdminTableCell>
-                  </AdminTableRow>
-                ))
-              )}
-            </AdminTableBody>
-          </AdminTable>
-        </AdminCard>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[#0F8F8A] transition-transform duration-150">
+                            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                          </span>
+                          <PlatformBadge platform={group.platform} />
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-[14px] text-[#142126] capitalize">
+                                {group.platform === "twitter" ? "X" : group.platform} {group.service}
+                              </span>
+                              <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-[#EBF4F4] text-[#0F8F8A]">
+                                {group.items.length} {group.items.length === 1 ? "tier" : "tiers"}
+                              </span>
+                            </div>
+                            <span className="text-[11px] text-[#65737A]">
+                              Target Margin: ~{group.avgMargin}% • Primary Provider: Peakerr
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2.5 self-end sm:self-center">
+                          {group.healthyCount > 0 && (
+                            <span className="text-[11px] px-2 py-0.5 rounded font-semibold bg-[#E8F8F2] text-[#16B77A] border border-[#B6ECD7] flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#16B77A]" />
+                              {group.healthyCount} Healthy
+                            </span>
+                          )}
+                          {group.warningCount > 0 && (
+                            <span className="text-[11px] px-2 py-0.5 rounded font-semibold bg-[#FFFBEB] text-[#D97706] border border-[#FDE68A] flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
+                              {group.warningCount} Fallback
+                            </span>
+                          )}
+                          {group.unsafeCount > 0 && (
+                            <span className="text-[11px] px-2 py-0.5 rounded font-semibold bg-[#FEF2F2] text-[#EF4444] border border-[#FCA5A5] flex items-center gap-1">
+                              <span className="w-1.5 h-1.5 rounded-full bg-[#EF4444]" />
+                              {group.unsafeCount} Unsafe
+                            </span>
+                          )}
+                        </div>
+                      </button>
+
+                      {/* Group Table (Desktop) / Cards (Mobile) */}
+                      {!isCollapsed && (
+                        <div>
+                          {/* Desktop Table */}
+                          <div className="hidden md:block overflow-x-auto">
+                            <AdminTable>
+                              <AdminTableHeader>
+                                <AdminTableRow className="bg-[#FAFCFC]">
+                                  <AdminTableHead className="w-[180px]">Package / Plan</AdminTableHead>
+                                  <AdminTableHead className="w-[90px]">Qty</AdminTableHead>
+                                  <AdminTableHead className="w-[100px]">Selling Price</AdminTableHead>
+                                  <AdminTableHead>
+                                    <div className="flex items-center gap-1">
+                                      <span>Primary Provider</span>
+                                      <AdminTooltip content="Supplier service routed as priority tier. Shows rate per 1,000 and estimated package fulfillment cost." />
+                                    </div>
+                                  </AdminTableHead>
+                                  <AdminTableHead>
+                                    <div className="flex items-center gap-1">
+                                      <span>Fallback 1</span>
+                                      <AdminTooltip content="First fallback supplier if priority provider is offline, rate violates ceiling, or capacity is exceeded." />
+                                    </div>
+                                  </AdminTableHead>
+                                  <AdminTableHead>
+                                    <div className="flex items-center gap-1">
+                                      <span>Fallback 2</span>
+                                      <AdminTooltip content="Secondary fallback supplier ensuring uninterrupted order fulfillment." />
+                                    </div>
+                                  </AdminTableHead>
+                                  <AdminTableHead>
+                                    <div className="flex items-center gap-1">
+                                      <span>Cost Ceiling</span>
+                                      <AdminTooltip content="Strict maximum provider cost allowed for this tier before automatically holding orders for manual review." />
+                                    </div>
+                                  </AdminTableHead>
+                                  <AdminTableHead>
+                                    <div className="flex items-center gap-1">
+                                      <span>Min Margin</span>
+                                      <AdminTooltip content="Target minimum gross margin percentage and gross profit dollar threshold." />
+                                    </div>
+                                  </AdminTableHead>
+                                  <AdminTableHead>Status</AdminTableHead>
+                                  <AdminTableHead className="text-right">Actions</AdminTableHead>
+                                </AdminTableRow>
+                              </AdminTableHeader>
+                              <AdminTableBody>
+                                {group.items.map((p) => (
+                                  <AdminTableRow
+                                    key={p.id}
+                                    onClick={() => handleOpenEdit(p)}
+                                    className="cursor-pointer hover:bg-[#F0F5F5] transition-colors"
+                                  >
+                                    <AdminTableCell>
+                                      <div className="font-semibold text-[#142126] text-[13px]">
+                                        {p.plan}
+                                      </div>
+                                      <div className="text-[11px] text-[#65737A]">
+                                        SKU #{p.id.slice(0, 8)}
+                                      </div>
+                                    </AdminTableCell>
+                                    <AdminTableCell className="font-mono text-[12px] font-semibold text-[#142126]">
+                                      {p.quantity.toLocaleString()}
+                                    </AdminTableCell>
+                                    <AdminTableCell className="font-semibold text-[#142126] text-[13px]">
+                                      ${p.sellingPrice.toFixed(2)}
+                                    </AdminTableCell>
+                                    <AdminTableCell>
+                                      {p.priorityServiceId ? (
+                                        <div className="text-[12px] space-y-0.5">
+                                          <div className="font-mono font-medium text-[#142126] flex items-center gap-1 flex-wrap">
+                                            <span className="text-[10px] uppercase font-bold text-[#0F8F8A] bg-[#EBF4F4] px-1 py-0.2 rounded">Primary</span>
+                                            <span>#{p.priorityServiceId}</span>
+                                            {p.priorityRate !== null ? (
+                                              <span className="text-[#65737A] font-normal">(${p.priorityRate.toFixed(3)}/k)</span>
+                                            ) : (
+                                              <span className="text-gray-400 font-normal">(no rate)</span>
+                                            )}
+                                          </div>
+                                          <div className="text-[11px] text-[#0F8F8A] font-medium flex items-center gap-1.5">
+                                            <span>Est: {p.priorityEstimatedCost !== null ? `$${p.priorityEstimatedCost.toFixed(2)}` : "--"}</span>
+                                            {p.effectiveEligibleSupplier === "priority" && (
+                                              <span className="text-[9.5px] px-1.5 py-0.2 rounded bg-[#E8F8F2] text-[#16B77A] font-bold border border-[#B6ECD7]">
+                                                ACTIVE
+                                              </span>
+                                            )}
+                                          </div>
+                                          {p.isSplitRoute && (
+                                            <div className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold border border-emerald-300 inline-flex items-center gap-1 mt-0.5">
+                                              <span>⚡ SPLIT ROUTE ({p.splitChunkCount}x {(p.splitChunkSize ? p.splitChunkSize / 1000 : 5)}K)</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      ) : (
+                                        <span className="text-[11px] text-gray-400">Not configured</span>
+                                      )}
+                                    </AdminTableCell>
+                                    <AdminTableCell>
+                                      {p.fallback1ServiceId ? (
+                                        <div className="text-[12px] space-y-0.5">
+                                          <div className="font-mono text-[#142126] flex items-center gap-1 flex-wrap">
+                                            <span className="text-[10px] uppercase font-bold text-[#D97706] bg-[#FFFBEB] px-1 py-0.2 rounded">FB 1</span>
+                                            <span>#{p.fallback1ServiceId}</span>
+                                            {p.fallback1Rate !== null && (
+                                              <span className="text-[#65737A] font-normal">(${p.fallback1Rate.toFixed(3)}/k)</span>
+                                            )}
+                                          </div>
+                                          <div className="text-[11px] text-[#65737A]">
+                                            Est: {p.fallback1EstimatedCost !== null ? `$${p.fallback1EstimatedCost.toFixed(2)}` : "--"}
+                                            {p.effectiveEligibleSupplier === "fallback1" && (
+                                              <span className="ml-1 text-[9.5px] px-1.5 py-0.2 rounded bg-[#E8F8F2] text-[#16B77A] font-bold border border-[#B6ECD7]">
+                                                ACTIVE
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <span className="text-[11px] text-gray-400">--</span>
+                                      )}
+                                    </AdminTableCell>
+                                    <AdminTableCell>
+                                      {p.fallback2ServiceId ? (
+                                        <div className="text-[12px] space-y-0.5">
+                                          <div className="font-mono text-[#142126] flex items-center gap-1 flex-wrap">
+                                            <span className="text-[10px] uppercase font-bold text-[#65737A] bg-[#F1F5F5] px-1 py-0.2 rounded">FB 2</span>
+                                            <span>#{p.fallback2ServiceId}</span>
+                                            {p.fallback2Rate !== null && (
+                                              <span className="text-[#65737A] font-normal">(${p.fallback2Rate.toFixed(3)}/k)</span>
+                                            )}
+                                          </div>
+                                          <div className="text-[11px] text-[#65737A]">
+                                            Est: {p.fallback2EstimatedCost !== null ? `$${p.fallback2EstimatedCost.toFixed(2)}` : "--"}
+                                            {p.effectiveEligibleSupplier === "fallback2" && (
+                                              <span className="ml-1 text-[9.5px] px-1.5 py-0.2 rounded bg-[#E8F8F2] text-[#16B77A] font-bold border border-[#B6ECD7]">
+                                                ACTIVE
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ) : (
+                                        <span className="text-[11px] text-gray-400">--</span>
+                                      )}
+                                    </AdminTableCell>
+                                    <AdminTableCell className="font-mono text-[12px] font-semibold text-[#142126]">
+                                      ${p.allowedSupplierCost.toFixed(2)}
+                                    </AdminTableCell>
+                                    <AdminTableCell className="text-[12px] text-[#65737A]">
+                                      {p.minimumGrossMarginPercent}% / ${p.minimumGrossProfit.toFixed(2)}
+                                    </AdminTableCell>
+                                    <AdminTableCell>
+                                      {renderHealthBadge(p.routingHealth)}
+                                    </AdminTableCell>
+                                    <AdminTableCell className="text-right">
+                                      <AdminButton
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleOpenEdit(p);
+                                        }}
+                                      >
+                                        Inspect
+                                      </AdminButton>
+                                    </AdminTableCell>
+                                  </AdminTableRow>
+                                ))}
+                              </AdminTableBody>
+                            </AdminTable>
+                          </div>
+
+                          {/* Mobile Cards View (viewport < 768px) */}
+                          <div className="block md:hidden p-3 space-y-2.5 bg-[#F7F9FA]">
+                            {group.items.map((p) => (
+                              <div
+                                key={p.id}
+                                onClick={() => handleOpenEdit(p)}
+                                className="p-3.5 bg-white border border-[#D9E2E3] rounded-[8px] space-y-2.5 shadow-sm active:bg-[#F3F7F7] cursor-pointer"
+                              >
+                                <div className="flex items-center justify-between gap-2">
+                                  <div>
+                                    <div className="font-bold text-[13.5px] text-[#142126]">
+                                      {p.plan} ({p.quantity.toLocaleString()} units)
+                                    </div>
+                                    <div className="text-[11px] text-[#65737A]">
+                                      Selling Price: <strong className="text-[#142126] font-mono">${p.sellingPrice.toFixed(2)}</strong>
+                                    </div>
+                                  </div>
+                                  {renderHealthBadge(p.routingHealth)}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 text-[11.5px] bg-[#F7F9FA] p-2 rounded-[6px] border border-[#E3E8EA]">
+                                  <div>
+                                    <span className="text-[#65737A] text-[10px] uppercase font-bold block">Primary ID</span>
+                                    <span className="font-mono font-bold text-[#0F8F8A]">
+                                      {p.priorityServiceId ? `#${p.priorityServiceId}` : "None"}
+                                    </span>
+                                    {p.priorityEstimatedCost !== null && (
+                                      <span className="text-[10px] text-[#65737A] block font-mono">
+                                        Est: ${p.priorityEstimatedCost.toFixed(2)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <span className="text-[#65737A] text-[10px] uppercase font-bold block">Fallback 1</span>
+                                    <span className="font-mono text-[#142126]">
+                                      {p.fallback1ServiceId ? `#${p.fallback1ServiceId}` : "—"}
+                                    </span>
+                                    {p.fallback1EstimatedCost !== null && (
+                                      <span className="text-[10px] text-[#65737A] block font-mono">
+                                        Est: ${p.fallback1EstimatedCost.toFixed(2)}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div>
+                                    <span className="text-[#65737A] text-[10px] uppercase font-bold block">Max Cost</span>
+                                    <span className="font-mono font-bold text-[#142126]">
+                                      ${p.allowedSupplierCost.toFixed(2)}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-[#65737A] text-[10px] uppercase font-bold block">Target Margin</span>
+                                    <span className="text-[#142126]">
+                                      {p.minimumGrossMarginPercent}% (${p.minimumGrossProfit.toFixed(2)})
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center justify-between pt-1">
+                                  <span className="text-[10px] font-mono text-[#8A979D]">
+                                    ID: {p.id.slice(0, 8)}
+                                  </span>
+                                  <span className="text-[12px] font-semibold text-[#0F8F8A] hover:underline">
+                                    Configure Rules &rarr;
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </AdminCard>
+        </div>
       )}
 
       {/* 2. MANUAL REVIEW QUEUE */}
