@@ -162,13 +162,13 @@
 }
 
 .cloutflow-admin {
-  --admin-bg: #F7F9FA;
-  --admin-sidebar: #071D26;
-  --admin-sidebar-secondary: #0A2630;
-  --admin-sidebar-border: #11313B;
+  --admin-bg: #F1F5F5;
+  --admin-sidebar: #FFFFFF;
+  --admin-sidebar-secondary: #FAFCFC;
+  --admin-sidebar-border: #E3E8EA;
   --admin-card: #FFFFFF;
   --admin-card-hover: #FBFCFC;
-  --admin-border: #E3E8EA;
+  --admin-border: #D9E2E3;
   --admin-divider: #EDF1F2;
   --admin-primary: #0F8F8A;
   --admin-primary-hover: #0B7A76;

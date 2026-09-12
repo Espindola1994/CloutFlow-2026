@@ -31,18 +31,18 @@ export function CheckoutFunnelCard({ funnel }: CheckoutFunnelCardProps) {
       <div className="pt-6 pb-2 space-y-6">
         {/* Top Node: Checkout Started */}
         <div className="max-w-md mx-auto">
-          <div className="bg-[#071D26] text-white rounded-[8px] p-4 shadow-sm border border-[#11313B]">
+          <div className="bg-[#FFFFFF] text-[#142126] rounded-[8px] p-4 shadow-xs border border-[#D9E2E3]">
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-bold tracking-wider uppercase text-[#8A979D]">
+              <span className="text-[12px] font-bold tracking-wider uppercase text-[#65737A]">
                 Stage 1 — Checkout Started
               </span>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-white/10 text-white">
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-[#E7F5F4] text-[#0F8F8A] border border-[#BFE5E2]">
                 100% Baseline
               </span>
             </div>
-            <div className="text-[26px] font-bold tracking-tight text-white mt-1">
+            <div className="text-[26px] font-bold tracking-tight text-[#142126] mt-1">
               {started.toLocaleString()}{" "}
-              <span className="text-[13px] font-normal text-[#8A979D]">journeys</span>
+              <span className="text-[13px] font-normal text-[#65737A]">journeys</span>
             </div>
           </div>
         </div>

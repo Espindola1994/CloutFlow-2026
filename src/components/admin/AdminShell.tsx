@@ -163,12 +163,12 @@ function AdminShellContent() {
       <div className="flex-1 flex flex-col min-w-0 md:ml-[248px] relative z-10 min-h-screen">
         
         {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between h-14 px-4 bg-[#071D26] border-b border-[#11313B] sticky top-0 z-30">
+        <header className="md:hidden flex items-center justify-between h-14 px-4 bg-[#FFFFFF] border-b border-[#E3E8EA] sticky top-0 z-30 shadow-xs">
           <div className="flex items-center gap-2">
-            <span className="text-base font-bold tracking-tight text-white flex items-center gap-1">
+            <span className="text-base font-bold tracking-tight text-[#142126] flex items-center gap-1">
               <span>Clout</span>
               <span className="text-[#0F8F8A]">Flow</span>
-              <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-[#0F8F8A]/20 text-[#0F8F8A] border border-[#0F8F8A]/30 ml-1">
+              <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-[#0F8F8A]/10 text-[#0F8F8A] border border-[#0F8F8A]/25 ml-1">
                 Admin
               </span>
             </span>
@@ -176,7 +176,7 @@ function AdminShellContent() {
           <button 
             type="button" 
             onClick={() => setIsMobileMenuOpen(true)}
-            className="text-[#8A979D] hover:text-white p-2 rounded-lg hover:bg-[#0A2630] transition-colors"
+            className="text-[#65737A] hover:text-[#142126] p-2 rounded-lg hover:bg-[#F1F5F5] transition-colors"
           >
             <AdminNeonIcon color="cyan" icon={Menu} className="w-5 h-5" />
           </button>

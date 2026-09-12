@@ -65,14 +65,14 @@ export function PerformanceTimeSeriesChart({ data }: PerformanceTimeSeriesChartP
               />
               <RechartsTooltip
                 contentStyle={{
-                  backgroundColor: "#071D26",
-                  borderColor: "#11313B",
+                  backgroundColor: "#FFFFFF",
+                  borderColor: "#D9E2E3",
                   borderRadius: "8px",
-                  color: "#FFFFFF",
+                  color: "#142126",
                   fontSize: "12px",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+                  boxShadow: "0 4px 16px rgba(10,35,42,0.08)",
                 }}
-                labelStyle={{ color: "#8A979D", fontWeight: "bold", marginBottom: "4px" }}
+                labelStyle={{ color: "#65737A", fontWeight: "bold", marginBottom: "4px" }}
                 itemStyle={{ padding: "2px 0" }}
               />
               <Legend

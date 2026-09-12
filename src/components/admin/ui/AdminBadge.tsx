@@ -16,7 +16,7 @@ export function AdminBadge({
   const variantStyles = {
     default: "bg-[#F7F9FA] text-[#65737A] border-[#E3E8EA]",
     primary: "bg-[#E7F5F4] text-[#0F8F8A] border-[#BFE5E2]",
-    secondary: "bg-[#0A2630] text-[#E7F5F4] border-[#11313B]",
+    secondary: "bg-[#F1F5F5] text-[#142126] border-[#D9E2E3]",
     success: "bg-[#E8F8F2] text-[#16B77A] border-[#B6ECD7]",
     warning: "bg-[#FEF6E7] text-[#D97706] border-[#FDE68A]",
     danger: "bg-[#FEECEB] text-[#EF4444] border-[#FCA5A5]",

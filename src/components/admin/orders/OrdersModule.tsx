@@ -227,7 +227,7 @@ export function OrdersModule() {
             onClick={() => setActiveTab("orders")}
             className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer ${
               activeTab === "orders"
-                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
                 : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
@@ -238,7 +238,7 @@ export function OrdersModule() {
             onClick={() => setActiveTab("margins")}
             className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer ${
               activeTab === "margins"
-                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
                 : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
@@ -249,7 +249,7 @@ export function OrdersModule() {
             onClick={() => setActiveTab("attribution")}
             className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer ${
               activeTab === "attribution"
-                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
                 : "text-[#65737A] hover:text-[#142126]"
             }`}
           >

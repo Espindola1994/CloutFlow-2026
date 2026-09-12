@@ -53,15 +53,15 @@ export function AdminSidebar({
   ];
 
   const sidebarContent = (
-    <aside className="w-[248px] h-full bg-[#071D26] border-r border-[#11313B] flex flex-col justify-between text-[#8A979D] select-none">
+    <aside className="w-[248px] h-full bg-[#FFFFFF] border-r border-[#E3E8EA] flex flex-col justify-between text-[#65737A] select-none shadow-[1px_0_4px_rgba(10,35,42,0.02)]">
       <div className="flex flex-col flex-1 overflow-y-auto">
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-[#11313B] shrink-0">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-[#E3E8EA] shrink-0 bg-[#FFFFFF]">
           <Link href="/admin/dashboard" className="flex items-center gap-2">
-            <span className="text-[20px] font-bold tracking-tight text-white flex items-center gap-1.5">
+            <span className="text-[20px] font-bold tracking-tight text-[#142126] flex items-center gap-1.5">
               <span>Clout</span>
               <span className="text-[#0F8F8A]">Flow</span>
-              <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#0F8F8A]/20 text-[#0F8F8A] border border-[#0F8F8A]/30 ml-1">
+              <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#0F8F8A]/10 text-[#0F8F8A] border border-[#0F8F8A]/25 ml-1">
                 Admin
               </span>
             </span>
@@ -71,7 +71,7 @@ export function AdminSidebar({
             <button
               type="button"
               onClick={onCloseMobile}
-              className="md:hidden text-[#8A979D] hover:text-white p-1 rounded hover:bg-[#0A2630]"
+              className="md:hidden text-[#65737A] hover:text-[#142126] p-1 rounded hover:bg-[#F1F5F5] transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -93,8 +93,8 @@ export function AdminSidebar({
                 }}
                 className={`relative w-full min-h-[42px] flex items-center gap-3 px-3.5 rounded-[8px] text-[13px] font-medium transition-all cursor-pointer ${
                   isActive
-                    ? "bg-[rgba(15,143,138,0.18)] text-white font-semibold"
-                    : "text-[#8A979D] hover:text-white hover:bg-[#0A2630]"
+                    ? "bg-[#E7F5F4] text-[#0F8F8A] font-semibold shadow-xs"
+                    : "text-[#65737A] hover:text-[#142126] hover:bg-[#F7F9FA]"
                 }`}
               >
                 {isActive && (
@@ -113,8 +113,8 @@ export function AdminSidebar({
       </div>
 
       {/* Connection & Footer Area */}
-      <div className="p-4 border-t border-[#11313B] bg-[#071D26] space-y-3 shrink-0">
-        <div className="bg-[#0A2630] border border-[#11313B] rounded-[8px] p-2.5 space-y-1.5">
+      <div className="p-4 border-t border-[#E3E8EA] bg-[#FAFCFC] space-y-3 shrink-0">
+        <div className="bg-[#FFFFFF] border border-[#E3E8EA] rounded-[8px] p-2.5 space-y-1.5 shadow-[0_1px_2px_rgba(10,35,42,0.02)]">
           <div className="flex items-center justify-between text-[10px] font-bold text-[#65737A] uppercase tracking-wider">
             <span>Connection</span>
             <div className="flex items-center gap-1 text-[#16B77A]">
@@ -122,23 +122,23 @@ export function AdminSidebar({
               <span>LIVE</span>
             </div>
           </div>
-          <div className="text-[11px] text-[#8A979D] flex items-center justify-between">
+          <div className="text-[11px] text-[#65737A] flex items-center justify-between">
             <span>Peakerr Provider</span>
-            <span className="text-white font-medium">Ready</span>
+            <span className="text-[#142126] font-semibold">Ready</span>
           </div>
         </div>
 
         <button
           type="button"
           onClick={onLogout}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[12px] font-medium text-[#EF4444] hover:bg-[#EF4444]/10 hover:text-red-300 transition-colors cursor-pointer"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[12px] font-medium text-[#EF4444] hover:bg-[#FEECEB] hover:text-[#DC2626] transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4 shrink-0" />
           <span>Sign Out</span>
         </button>
 
-        <div className="text-[10px] font-mono text-[#65737A] text-center select-none pt-0.5">
-          Build: <span className="text-[#8A979D] font-semibold">{BUILD_INFO.shortSha}</span>
+        <div className="text-[10px] font-mono text-[#8A979D] text-center select-none pt-0.5">
+          Build: <span className="text-[#65737A] font-semibold">{BUILD_INFO.shortSha}</span>
         </div>
       </div>
     </aside>

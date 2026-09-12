@@ -533,7 +533,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
             onClick={() => setActiveTab("plans")}
             className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
               activeTab === "plans"
-                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
                 : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
@@ -544,7 +544,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
             onClick={() => setActiveTab("offers")}
             className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
               activeTab === "offers"
-                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
                 : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
@@ -555,7 +555,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
             onClick={() => setActiveTab("coupons")}
             className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
               activeTab === "coupons"
-                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
                 : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
@@ -566,7 +566,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
             onClick={() => setActiveTab("ab")}
             className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
               activeTab === "ab"
-                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
                 : "text-[#65737A] hover:text-[#142126]"
             }`}
           >
@@ -577,7 +577,7 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
             onClick={() => setActiveTab("test_offers")}
             className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
               activeTab === "test_offers"
-                ? "bg-[#071D26] text-white shadow-xs font-semibold"
+                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
                 : "text-[#65737A] hover:text-[#142126]"
             }`}
           >

@@ -376,27 +376,27 @@ export function LiveWorldModule() {
   return (
     <div className="space-y-6 select-none">
       {/* 1. Module Header with Live Now / History Navigation Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#071D26] border border-[#11313B] rounded-[10px] p-4 text-white shadow-lg">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#D9E2E3] rounded-[10px] p-4 text-[#142126] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)]">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-[8px] bg-[#0F8F8A]/20 text-[#0F8F8A] border border-[#0F8F8A]/30">
+          <div className="p-2.5 rounded-[8px] bg-[#0F8F8A]/10 text-[#0F8F8A] border border-[#0F8F8A]/20">
             <Globe2 className="w-5 h-5 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-[18px] font-bold text-white tracking-tight">Live World</h1>
+              <h1 className="text-[18px] font-bold text-[#142126] tracking-tight">Live World</h1>
               {activeView === "live" ? (
-                <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-[#16B77A]/20 text-[#16B77A] border border-[#16B77A]/30">
+                <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-[#E8F8F2] text-[#16B77A] border border-[#B6ECD7]">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#16B77A] animate-ping" />
                   Live 8s
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-[#3B82F6]/20 text-[#3B82F6] border border-[#3B82F6]/30">
+                <span className="inline-flex items-center gap-1 text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-[#EBF3FE] text-[#3B82F6] border border-[#BFDBFE]">
                   <History className="w-3 h-3" />
                   Historical Analytics
                 </span>
               )}
             </div>
-            <p className="text-[12px] text-[#8A979D]">
+            <p className="text-[12px] text-[#65737A]">
               {activeView === "live"
                 ? "Real-time global activity, active visitor clusters, and recent purchase events"
                 : "Aggregated historical revenue, top countries, cities, networks, and catalog performance"}
@@ -406,15 +406,15 @@ export function LiveWorldModule() {
 
         <div className="flex items-center gap-3 self-start sm:self-auto">
           {/* Sub-view switcher: Live Now vs History */}
-          <div className="inline-flex p-1 bg-[#0A2630] border border-[#11313B] rounded-[8px]">
+          <div className="inline-flex p-1 bg-[#FAFCFC] border border-[#D9E2E3] rounded-[8px]">
             <button
               type="button"
               onClick={() => handleSelectView("live")}
               data-testid="tab-live-now"
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-[12px] font-semibold transition-colors cursor-pointer ${
                 activeView === "live"
-                  ? "bg-[#0F8F8A] text-white shadow-sm"
-                  : "text-[#8A979D] hover:text-white"
+                  ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
+                  : "text-[#65737A] hover:text-[#142126]"
               }`}
             >
               <Activity className="w-3.5 h-3.5" />
@@ -426,8 +426,8 @@ export function LiveWorldModule() {
               data-testid="tab-history"
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-[12px] font-semibold transition-colors cursor-pointer ${
                 activeView === "history"
-                  ? "bg-[#0F8F8A] text-white shadow-sm"
-                  : "text-[#8A979D] hover:text-white"
+                  ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
+                  : "text-[#65737A] hover:text-[#142126]"
               }`}
             >
               <History className="w-3.5 h-3.5" />
@@ -438,7 +438,7 @@ export function LiveWorldModule() {
           {activeView === "live" && (
             <>
               <div className="text-right hidden sm:block">
-                <div className="text-[11px] text-[#8A979D]">Active Now</div>
+                <div className="text-[11px] text-[#65737A]">Active Now</div>
                 <div className="text-[16px] font-bold text-[#16B77A]" data-testid="active-now-count">
                   {liveData?.activeVisitorsTotal ?? 0}
                 </div>
@@ -447,7 +447,7 @@ export function LiveWorldModule() {
                 type="button"
                 onClick={() => void fetchLiveWorld(true)}
                 disabled={liveLoading || isRefreshing}
-                className="p-2.5 rounded-[8px] border border-[#11313B] bg-[#0A2630] text-[#8A979D] hover:text-white hover:bg-[#11313B] transition-colors cursor-pointer disabled:opacity-50"
+                className="p-2.5 rounded-[8px] border border-[#D9E2E3] bg-[#FFFFFF] text-[#65737A] hover:text-[#142126] hover:bg-[#F1F5F5] transition-colors cursor-pointer disabled:opacity-50 shadow-xs"
                 title="Refresh Live Data"
               >
                 <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[#0F8F8A]" : ""}`} />
@@ -578,17 +578,17 @@ export function LiveWorldModule() {
           {/* 4. Phase 4C — Globe Visualization Stage with Mode Selector */}
           <div className="space-y-3">
             {/* Mode Selector & Filter Toolbar */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#071D26] border border-[#11313B] rounded-[10px] p-3 text-white">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white border border-[#D9E2E3] rounded-[10px] p-3 text-[#142126] shadow-xs">
               {/* Globe Mode Selector: Live Activity | Revenue Map | Purchase Map */}
-              <div className="flex items-center gap-1.5 bg-[#0A2630] border border-[#11313B] rounded-[8px] p-1 self-start sm:self-auto">
+              <div className="flex items-center gap-1.5 bg-[#FAFCFC] border border-[#D9E2E3] rounded-[8px] p-1 self-start sm:self-auto">
                 <button
                   type="button"
                   onClick={() => handleSelectGlobeMode("live")}
                   data-testid="globe-mode-live"
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-[12px] font-semibold transition-all cursor-pointer ${
                     globeMode === "live"
-                      ? "bg-[#0F8F8A] text-white shadow-sm"
-                      : "text-[#8A979D] hover:text-white"
+                      ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
+                      : "text-[#65737A] hover:text-[#142126]"
                   }`}
                 >
                   <Activity className="w-3.5 h-3.5" />
@@ -601,8 +601,8 @@ export function LiveWorldModule() {
                   data-testid="globe-mode-revenue"
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-[12px] font-semibold transition-all cursor-pointer ${
                     globeMode === "revenue"
-                      ? "bg-amber-500 text-black shadow-sm font-bold"
-                      : "text-[#8A979D] hover:text-white"
+                      ? "bg-[#FEF3C7] text-[#D97706] shadow-xs font-semibold"
+                      : "text-[#65737A] hover:text-[#142126]"
                   }`}
                 >
                   <DollarSign className="w-3.5 h-3.5" />
@@ -615,8 +615,8 @@ export function LiveWorldModule() {
                   data-testid="globe-mode-purchase"
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-[6px] text-[12px] font-semibold transition-all cursor-pointer ${
                     globeMode === "purchase"
-                      ? "bg-sky-500 text-white shadow-sm font-bold"
-                      : "text-[#8A979D] hover:text-white"
+                      ? "bg-[#E0F2FE] text-[#0284C7] shadow-xs font-semibold"
+                      : "text-[#65737A] hover:text-[#142126]"
                   }`}
                 >
                   <ShoppingBag className="w-3.5 h-3.5" />
@@ -634,10 +634,10 @@ export function LiveWorldModule() {
                     data-testid="map-filter-range"
                     value={histRange}
                     onChange={(e) => setHistRange(e.target.value as LiveWorldHistoryRange)}
-                    className="bg-[#0A2630] border border-[#11313B] rounded-[6px] px-2 py-1 text-[11px] text-white focus:outline-none focus:border-[#0F8F8A]"
+                    className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[6px] px-2 py-1 text-[11px] text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A]"
                   >
                     {RANGE_OPTIONS.map((opt) => (
-                      <option key={opt.id} value={opt.id} className="bg-[#071D26]">
+                      <option key={opt.id} value={opt.id} className="bg-white text-[#142126]">
                         {opt.label}
                       </option>
                     ))}
@@ -650,10 +650,10 @@ export function LiveWorldModule() {
                     data-testid="map-filter-platform"
                     value={histPlatform}
                     onChange={(e) => handleMapPlatformChange(e.target.value)}
-                    className="bg-[#0A2630] border border-[#11313B] rounded-[6px] px-2 py-1 text-[11px] text-white focus:outline-none focus:border-[#0F8F8A]"
+                    className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[6px] px-2 py-1 text-[11px] text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A]"
                   >
                     {PLATFORM_OPTIONS.map((opt) => (
-                      <option key={opt.id} value={opt.id} className="bg-[#071D26]">
+                      <option key={opt.id} value={opt.id} className="bg-white text-[#142126]">
                         {opt.label}
                       </option>
                     ))}
@@ -666,12 +666,12 @@ export function LiveWorldModule() {
                     data-testid="map-filter-service"
                     value={histService}
                     onChange={(e) => handleMapServiceChange(e.target.value)}
-                    className="bg-[#0A2630] border border-[#11313B] rounded-[6px] px-2 py-1 text-[11px] text-white focus:outline-none focus:border-[#0F8F8A]"
+                    className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[6px] px-2 py-1 text-[11px] text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A]"
                   >
                     {SERVICE_OPTIONS.map((opt) => {
                       const disabled = histPlatform === "youtube" && opt.id === "followers";
                       return (
-                        <option key={opt.id} value={opt.id} disabled={disabled} className="bg-[#071D26]">
+                        <option key={opt.id} value={opt.id} disabled={disabled} className="bg-white text-[#142126]">
                           {opt.label} {disabled ? "(N/A)" : ""}
                         </option>
                       );
@@ -685,11 +685,11 @@ export function LiveWorldModule() {
                     data-testid="map-filter-country"
                     value={histCountry}
                     onChange={(e) => setHistCountry(e.target.value)}
-                    className="bg-[#0A2630] border border-[#11313B] rounded-[6px] px-2 py-1 text-[11px] text-white focus:outline-none focus:border-[#0F8F8A]"
+                    className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[6px] px-2 py-1 text-[11px] text-[#142126] font-medium focus:outline-none focus:border-[#0F8F8A]"
                   >
-                    <option value="all" className="bg-[#071D26]">All Countries</option>
+                    <option value="all" className="bg-white text-[#142126]">All Countries</option>
                     {availableCountries.map((c) => (
-                      <option key={c} value={c} className="bg-[#071D26]">{c}</option>
+                      <option key={c} value={c} className="bg-white text-[#142126]">{c}</option>
                     ))}
                   </select>
 
@@ -949,45 +949,45 @@ export function LiveWorldModule() {
             {globeMode !== "live" && selectedCity && (
               <div 
                 data-testid="selected-location-panel"
-                className="bg-[#071D26] border border-[#0F8F8A]/40 rounded-[10px] p-4 text-white shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in duration-200"
+                className="bg-white border border-[#D9E2E3] rounded-[10px] p-4 text-[#142126] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in fade-in duration-200"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-full bg-[#0F8F8A]/20 text-[#0F8F8A] border border-[#0F8F8A]/30 shrink-0">
+                  <div className="p-2.5 rounded-full bg-[#0F8F8A]/10 text-[#0F8F8A] border border-[#0F8F8A]/20 shrink-0">
                     <Crosshair className="w-5 h-5" />
                   </div>
                   <div>
                     <div className="text-[11px] font-bold text-[#0F8F8A] uppercase tracking-wider">
                       Selected Location
                     </div>
-                    <div className="text-[16px] font-bold text-white flex items-center gap-2">
+                    <div className="text-[16px] font-bold text-[#142126] flex items-center gap-2">
                       <span data-testid="selected-location-title">
                         {selectedCity.city}
                         {selectedCity.region ? `, ${selectedCity.region}` : ""}
                         {selectedCity.countryCode ? ` (${selectedCity.countryCode})` : ""}
                       </span>
                     </div>
-                    <div className="text-[11px] text-[#8A979D] font-mono mt-0.5">
+                    <div className="text-[11px] text-[#65737A] font-mono mt-0.5">
                       Coordinates: {selectedCity.latitude.toFixed(2)}&deg;, {selectedCity.longitude.toFixed(2)}&deg;
                     </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-3 md:gap-6 border-t md:border-t-0 md:border-l border-[#11313B] pt-3 md:pt-0 md:pl-6">
+                <div className="grid grid-cols-3 gap-3 md:gap-6 border-t md:border-t-0 md:border-l border-[#D9E2E3] pt-3 md:pt-0 md:pl-6">
                   <div>
-                    <div className="text-[11px] text-[#8A979D]">Revenue (USD)</div>
-                    <div className="text-[15px] font-bold text-amber-400" data-testid="selected-location-revenue">
+                    <div className="text-[11px] text-[#65737A]">Revenue (USD)</div>
+                    <div className="text-[15px] font-bold text-[#D97706]" data-testid="selected-location-revenue">
                       {formatUSD(selectedCity.revenueCents)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[11px] text-[#8A979D]">Purchases</div>
-                    <div className="text-[15px] font-bold text-sky-400" data-testid="selected-location-purchases">
+                    <div className="text-[11px] text-[#65737A]">Purchases</div>
+                    <div className="text-[15px] font-bold text-[#0284C7]" data-testid="selected-location-purchases">
                       {formatNumber(selectedCity.purchaseCount)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-[11px] text-[#8A979D]">Average Order</div>
-                    <div className="text-[15px] font-bold text-white font-mono" data-testid="selected-location-aov">
+                    <div className="text-[11px] text-[#65737A]">Average Order</div>
+                    <div className="text-[15px] font-bold text-[#142126] font-mono" data-testid="selected-location-aov">
                       {formatUSD(selectedCity.averageOrderValueCents)}
                     </div>
                   </div>
@@ -997,7 +997,7 @@ export function LiveWorldModule() {
                   type="button"
                   onClick={() => setSelectedCity(null)}
                   data-testid="selected-location-close"
-                  className="p-1.5 rounded-[6px] text-[#8A979D] hover:text-white hover:bg-[#11313B] transition self-start md:self-auto cursor-pointer"
+                  className="p-1.5 rounded-[6px] text-[#65737A] hover:text-[#142126] hover:bg-[#F1F5F5] transition self-start md:self-auto cursor-pointer"
                   title="Close panel"
                 >
                   <X className="w-4 h-4" />

@@ -13,15 +13,15 @@ export function TopPlansCard({ plans, rankings }: TopPlansCardProps) {
       {/* 1. Rankings Highlight Banners */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
         {/* #1 Plan */}
-        <div className="bg-gradient-to-br from-[#071D26] to-[#0A2D3A] text-white border border-[#11313B] rounded-[10px] p-4 flex items-center gap-3.5 shadow-sm">
-          <div className="p-2.5 rounded-[8px] bg-[#0F8F8A]/20 text-[#0F8F8A] border border-[#0F8F8A]/30 shrink-0">
+        <div className="bg-white border border-[#D9E2E3] rounded-[10px] p-4 flex items-center gap-3.5 shadow-[0_1px_2px_rgba(10,35,42,0.03)]">
+          <div className="p-2.5 rounded-[8px] bg-[#0F8F8A]/10 text-[#0F8F8A] border border-[#0F8F8A]/20 shrink-0">
             <Trophy className="w-5 h-5" />
           </div>
           <div className="min-w-0">
-            <div className="text-[11px] font-bold text-[#8A979D] uppercase tracking-wider">
+            <div className="text-[11px] font-bold text-[#65737A] uppercase tracking-wider">
               #1 Best Selling Plan
             </div>
-            <div className="text-[15px] font-bold text-white truncate mt-0.5">
+            <div className="text-[15px] font-bold text-[#142126] truncate mt-0.5">
               {rankings.bestSellingPlan
                 ? `${rankings.bestSellingPlan.name} (${rankings.bestSellingPlan.network})`
                 : "No sales recorded"}
