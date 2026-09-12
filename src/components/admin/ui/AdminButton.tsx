@@ -22,15 +22,15 @@ export const AdminButton = forwardRef<HTMLButtonElement, AdminButtonProps>(
   ) => {
     const variantStyles = {
       primary:
-        "bg-[#0F8F8A] text-white border border-[#0B7A76] hover:bg-[#0B7A76] shadow-sm",
+        "bg-[var(--admin-primary)] text-white border border-[var(--admin-primary-hover)] hover:bg-[var(--admin-primary-hover)] shadow-xs",
       secondary:
-        "bg-[#FFFFFF] text-[#142126] border border-[#E3E8EA] hover:bg-[#FBFCFC] hover:border-[#D1D9DC] shadow-sm",
+        "bg-[var(--admin-card)] text-[var(--admin-text)] border border-[var(--admin-border)] hover:bg-[var(--admin-card-hover)] hover:border-[var(--admin-border)] shadow-xs",
       outline:
-        "bg-transparent text-[#0F8F8A] border border-[#0F8F8A] hover:bg-[#E7F5F4]",
+        "bg-transparent text-[var(--admin-primary)] border border-[var(--admin-primary)] hover:bg-[var(--admin-primary-soft)]",
       ghost:
-        "bg-transparent text-[#65737A] border border-transparent hover:bg-[#F7F9FA] hover:text-[#142126]",
+        "bg-transparent text-[var(--admin-text-secondary)] border border-transparent hover:bg-[var(--admin-card-hover)] hover:text-[var(--admin-text)]",
       danger:
-        "bg-[#EF4444] text-white border border-[#DC2626] hover:bg-[#DC2626] shadow-sm",
+        "bg-[var(--admin-danger)] text-white border border-[var(--admin-danger)] hover:opacity-90 shadow-xs",
     };
 
     const sizeStyles = {
@@ -45,7 +45,7 @@ export const AdminButton = forwardRef<HTMLButtonElement, AdminButtonProps>(
         ref={ref}
         disabled={disabled || isLoading}
         className={cn(
-          "inline-flex items-center justify-center gap-2 rounded-[8px] font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-[#0F8F8A]/20 disabled:opacity-50 disabled:pointer-events-none select-none",
+          "inline-flex items-center justify-center gap-2 rounded-[8px] font-semibold transition-all focus:outline-none focus:ring-2 focus:ring-[var(--admin-primary)]/20 disabled:opacity-50 disabled:pointer-events-none select-none cursor-pointer",
           variantStyles[variant],
           sizeStyles[size],
           className

@@ -17,7 +17,7 @@ import { GrowthModule } from "./growth/GrowthModule";
 import { CrmModule } from "./crm/CrmModule";
 import { BlacklistModule } from "./blacklist/BlacklistModule";
 import { InfrastructureModule } from "./infrastructure/InfrastructureModule";
-import { AdminNeonIcon } from "./ui";
+import { AdminNeonIcon, AdminThemeProvider, AdminThemeToggle } from "./ui";
 
 
 import { 
@@ -141,63 +141,68 @@ function AdminShellContent() {
   };
 
   return (
-    <div className="cloutflow-admin min-h-screen bg-[#F1F5F5] text-[#142126] font-sans antialiased flex flex-col md:flex-row relative">
-      
-      {/* Background subtle radial gradient */}
-      <div 
-        className="fixed inset-0 pointer-events-none z-0"
-        style={{
-          background: "radial-gradient(circle at 100% 0%, rgba(15,143,138,0.045), transparent 32%)"
-        }}
-      />
-
-      <AdminSidebar 
-        activeTab={activeTab} 
-        onSelectTab={handleSelectTab} 
-        onLogout={handleLogout}
-        isOpenMobile={isMobileMenuOpen}
-        onCloseMobile={() => setIsMobileMenuOpen(false)}
-      />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 md:ml-[248px] relative z-10 min-h-screen">
+    <AdminThemeProvider>
+      <div className="min-h-screen bg-[var(--admin-bg)] text-[var(--admin-text)] font-sans antialiased flex flex-col md:flex-row relative">
         
-        {/* Mobile Header */}
-        <header className="md:hidden flex items-center justify-between h-14 px-4 bg-[#FFFFFF] border-b border-[#E3E8EA] sticky top-0 z-30 shadow-xs">
-          <div className="flex items-center gap-2">
-            <span className="text-base font-bold tracking-tight text-[#142126] flex items-center gap-1">
-              <span>Clout</span>
-              <span className="text-[#0F8F8A]">Flow</span>
-              <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-[#0F8F8A]/10 text-[#0F8F8A] border border-[#0F8F8A]/25 ml-1">
-                Admin
+        {/* Background subtle radial gradient */}
+        <div 
+          className="fixed inset-0 pointer-events-none z-0"
+          style={{
+            background: "radial-gradient(circle at 100% 0%, rgba(20,184,166,0.05), transparent 36%)"
+          }}
+        />
+
+        <AdminSidebar 
+          activeTab={activeTab} 
+          onSelectTab={handleSelectTab} 
+          onLogout={handleLogout}
+          isOpenMobile={isMobileMenuOpen}
+          onCloseMobile={() => setIsMobileMenuOpen(false)}
+        />
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 md:ml-[248px] relative z-10 min-h-screen">
+          
+          {/* Mobile Header */}
+          <header className="md:hidden flex items-center justify-between h-14 px-4 bg-[var(--admin-sidebar)] border-b border-[var(--admin-sidebar-border)] sticky top-0 z-30 shadow-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-base font-bold tracking-tight text-[var(--admin-text)] flex items-center gap-1">
+                <span>Clout</span>
+                <span className="text-[var(--admin-primary)]">Flow</span>
+                <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-[var(--admin-primary)]/10 text-[var(--admin-primary)] border border-[var(--admin-primary)]/25 ml-1">
+                  Admin
+                </span>
               </span>
-            </span>
-          </div>
-          <button 
-            type="button" 
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="text-[#65737A] hover:text-[#142126] p-2 rounded-lg hover:bg-[#F1F5F5] transition-colors"
-          >
-            <AdminNeonIcon color="cyan" icon={Menu} className="w-5 h-5" />
-          </button>
-        </header>
+            </div>
+            <div className="flex items-center gap-2">
+              <AdminThemeToggle />
+              <button 
+                type="button" 
+                onClick={() => setIsMobileMenuOpen(true)}
+                className="text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)] p-2 rounded-lg hover:bg-[var(--admin-card-hover)] transition-colors cursor-pointer"
+              >
+                <AdminNeonIcon color="cyan" icon={Menu} className="w-5 h-5" />
+              </button>
+            </div>
+          </header>
 
-        {/* Scrollable Content View */}
-        <main className="flex-1 p-4 md:p-[24px_32px_36px] overflow-y-auto">
-          <div className="w-full max-w-[1720px] mr-auto">
-            {renderModule()}
-          </div>
-        </main>
-        
+          {/* Scrollable Content View */}
+          <main className="flex-1 p-4 md:p-[24px_32px_36px] overflow-y-auto">
+            <div className="w-full max-w-[1720px] mr-auto">
+              {renderModule()}
+            </div>
+          </main>
+          
+        </div>
       </div>
-    </div>
+    </AdminThemeProvider>
   );
 }
 
 export function AdminShell() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#F1F5F5] flex items-center justify-center">
+      <div className="cloutflow-admin min-h-screen bg-[#F1F5F5] flex items-center justify-center">
         <div className="w-8 h-8 rounded-full border-2 border-[#0F8F8A] border-t-transparent animate-spin" />
       </div>
     }>

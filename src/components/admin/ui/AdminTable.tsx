@@ -14,7 +14,7 @@ export function AdminTable({
   return (
     <div
       className={cn(
-        "w-full overflow-x-auto rounded-[10px] border border-[#E3E8EA] bg-[#FFFFFF]",
+        "w-full overflow-x-auto rounded-[10px] border border-[var(--admin-border)] bg-[var(--admin-card)] shadow-xs",
         wrapperClassName
       )}
     >
@@ -36,7 +36,7 @@ export function AdminTableHeader({
   return (
     <thead
       className={cn(
-        "bg-[#F7F9FA] border-b border-[#E3E8EA] text-[#65737A] text-[11px] font-semibold uppercase tracking-wider",
+        "bg-[var(--admin-card-hover)] border-b border-[var(--admin-border)] text-[var(--admin-text-muted)] text-[11px] font-semibold uppercase tracking-wider",
         className
       )}
       {...props}
@@ -53,7 +53,7 @@ export function AdminTableBody({
 }: React.HTMLAttributes<HTMLTableSectionElement>) {
   return (
     <tbody
-      className={cn("divide-y divide-[#EDF1F2] text-[#142126]", className)}
+      className={cn("divide-y divide-[var(--admin-divider)] text-[var(--admin-text)]", className)}
       {...props}
     >
       {children}
@@ -75,7 +75,7 @@ export function AdminTableRow({
     <tr
       className={cn(
         "transition-colors",
-        clickable ? "cursor-pointer hover:bg-[#FBFCFC]" : "hover:bg-[#F7F9FA]/50",
+        clickable ? "cursor-pointer hover:bg-[var(--admin-card-hover)]" : "hover:bg-[var(--admin-card-hover)]/60",
         className
       )}
       {...props}
@@ -92,7 +92,7 @@ export function AdminTableHead({
 }: React.ThHTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
-      className={cn("px-4 py-3 font-semibold text-[#65737A] whitespace-nowrap", className)}
+      className={cn("px-4 py-3 font-semibold text-[var(--admin-text-secondary)] whitespace-nowrap", className)}
       {...props}
     >
       {children}
@@ -107,7 +107,7 @@ export function AdminTableCell({
 }: React.TdHTMLAttributes<HTMLTableCellElement>) {
   return (
     <td
-      className={cn("px-4 py-3 align-middle text-[#142126]", className)}
+      className={cn("px-4 py-3 align-middle text-[var(--admin-text)]", className)}
       {...props}
     >
       {children}

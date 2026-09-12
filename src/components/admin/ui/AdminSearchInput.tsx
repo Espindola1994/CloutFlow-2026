@@ -20,7 +20,7 @@ export const AdminSearchInput = forwardRef<HTMLInputElement, AdminSearchInputPro
           onChange={onChange}
           placeholder={placeholder}
           className={cn(
-            "w-full h-9 pl-9 pr-8 rounded-[8px] bg-[#FFFFFF] border border-[#E3E8EA] text-[#142126] text-[13px] placeholder:text-[#8A979D] focus:outline-none focus:border-[#0F8F8A] focus:ring-2 focus:ring-[#0F8F8A]/10 transition-all",
+            "w-full h-9 pl-9 pr-8 rounded-[8px] bg-[var(--admin-card)] border border-[var(--admin-border)] text-[var(--admin-text)] text-[13px] placeholder:text-[var(--admin-text-muted)] focus:outline-none focus:border-[var(--admin-primary)] focus:ring-2 focus:ring-[var(--admin-primary)]/10 transition-all",
             className
           )}
           {...props}
@@ -29,7 +29,7 @@ export const AdminSearchInput = forwardRef<HTMLInputElement, AdminSearchInputPro
           <button
             type="button"
             onClick={onClear}
-            className="absolute right-2.5 p-0.5 rounded text-[#8A979D] hover:text-[#142126] transition-colors"
+            className="absolute right-2.5 p-0.5 rounded text-[var(--admin-text-muted)] hover:text-[var(--admin-text)] transition-colors cursor-pointer"
           >
             <AdminNeonIcon color="amber" icon={X} className="w-3.5 h-3.5" />
           </button>

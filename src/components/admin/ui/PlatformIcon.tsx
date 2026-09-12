@@ -103,7 +103,7 @@ export function PlatformBadge({
   return (
     <div 
       className={cn(
-        "inline-flex items-center gap-1.5 px-2 py-1 rounded-[6px] bg-[#FFFFFF] border border-[#E3E8EA] text-[12px] font-medium text-[#142126] shadow-xs select-none",
+        "inline-flex items-center gap-1.5 px-2 py-1 rounded-[6px] bg-[var(--admin-card)] border border-[var(--admin-border)] text-[12px] font-medium text-[var(--admin-text)] shadow-xs select-none",
         className
       )}
       {...props}

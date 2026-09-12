@@ -19,19 +19,19 @@ export function AdminSectionHeader({
   return (
     <div
       className={cn(
-        "flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#E3E8EA]",
+        "flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[var(--admin-border)]",
         className
       )}
     >
       <div className="space-y-1">
         <div className="flex items-center gap-2.5">
-          <h1 className="text-[23px] font-bold text-[#142126] tracking-tight">
+          <h1 className="text-[23px] font-bold text-[var(--admin-text)] tracking-tight">
             {title}
           </h1>
           {badge}
         </div>
         {description && (
-          <p className="text-[13px] text-[#65737A] max-w-3xl leading-relaxed">
+          <p className="text-[13px] text-[var(--admin-text-secondary)] max-w-3xl leading-relaxed">
             {description}
           </p>
         )}

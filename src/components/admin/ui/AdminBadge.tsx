@@ -14,14 +14,14 @@ export function AdminBadge({
   ...props
 }: AdminBadgeProps) {
   const variantStyles = {
-    default: "bg-[#F7F9FA] text-[#65737A] border-[#E3E8EA]",
-    primary: "bg-[#E7F5F4] text-[#0F8F8A] border-[#BFE5E2]",
-    secondary: "bg-[#F1F5F5] text-[#142126] border-[#D9E2E3]",
-    success: "bg-[#E8F8F2] text-[#16B77A] border-[#B6ECD7]",
-    warning: "bg-[#FEF6E7] text-[#D97706] border-[#FDE68A]",
-    danger: "bg-[#FEECEB] text-[#EF4444] border-[#FCA5A5]",
-    info: "bg-[#E8F5FB] text-[#169BD5] border-[#BAE6FD]",
-    outline: "bg-transparent text-[#65737A] border-[#E3E8EA]",
+    default: "bg-[var(--admin-card-hover)] text-[var(--admin-text-secondary)] border-[var(--admin-border)]",
+    primary: "bg-[var(--admin-primary-soft)] text-[var(--admin-primary)] border-[var(--admin-primary-border)]",
+    secondary: "bg-[var(--admin-bg)] text-[var(--admin-text)] border-[var(--admin-border)]",
+    success: "bg-[#16B77A]/10 text-[#16B77A] border-[#16B77A]/25",
+    warning: "bg-[#F59E0B]/10 text-[#F59E0B] border-[#F59E0B]/25",
+    danger: "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/25",
+    info: "bg-[#06B6D4]/10 text-[#06B6D4] border-[#06B6D4]/25",
+    outline: "bg-transparent text-[var(--admin-text-secondary)] border-[var(--admin-border)]",
   };
 
   const sizeStyles = {

@@ -161,8 +161,10 @@
   --radius: 0.5rem;
 }
 
-.cloutflow-admin {
+.cloutflow-admin,
+.cloutflow-admin[data-admin-theme="light"] {
   --admin-bg: #F1F5F5;
+  --admin-bg-secondary: #FAFCFC;
   --admin-sidebar: #FFFFFF;
   --admin-sidebar-secondary: #FAFCFC;
   --admin-sidebar-border: #E3E8EA;
@@ -196,6 +198,49 @@
   --muted-foreground: var(--admin-text-muted);
   --accent: var(--admin-primary-soft);
   --accent-foreground: var(--admin-primary-hover);
+  --destructive: var(--admin-danger);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--admin-border);
+  --input: var(--admin-border);
+  --ring: var(--admin-primary);
+}
+
+.cloutflow-admin[data-admin-theme="dark"] {
+  --admin-bg: #090D14;
+  --admin-bg-secondary: #0D1321;
+  --admin-sidebar: #0C111C;
+  --admin-sidebar-secondary: #101726;
+  --admin-sidebar-border: #1B2438;
+  --admin-card: #0F1626;
+  --admin-card-hover: #141D32;
+  --admin-border: #1E293B;
+  --admin-divider: #182235;
+  --admin-primary: #14B8A6;
+  --admin-primary-hover: #0D9488;
+  --admin-primary-soft: #11292B;
+  --admin-primary-border: #1E4D4E;
+  --admin-text: #F1F5F9;
+  --admin-text-secondary: #94A3B8;
+  --admin-text-muted: #64748B;
+  --admin-success: #22C55E;
+  --admin-warning: #F59E0B;
+  --admin-danger: #EF4444;
+  --admin-info: #38BDF8;
+  
+  --background: var(--admin-bg);
+  --foreground: var(--admin-text);
+  --card: var(--admin-card);
+  --card-foreground: var(--admin-text);
+  --popover: var(--admin-card);
+  --popover-foreground: var(--admin-text);
+  --primary: var(--admin-primary);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--admin-primary-soft);
+  --secondary-foreground: var(--admin-primary);
+  --muted: var(--admin-bg-secondary);
+  --muted-foreground: var(--admin-text-muted);
+  --accent: var(--admin-primary-soft);
+  --accent-foreground: var(--admin-primary);
   --destructive: var(--admin-danger);
   --destructive-foreground: #FFFFFF;
   --border: var(--admin-border);

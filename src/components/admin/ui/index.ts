@@ -16,6 +16,8 @@ import {
 import { PlatformIcon, PlatformBadge } from "./PlatformIcon";
 import { AdminNeonIcon, type AdminNeonColor } from "./AdminNeonIcon";
 import { AdminTooltip } from "./AdminTooltip";
+import { AdminThemeToggle } from "../theme/AdminThemeToggle";
+import { AdminThemeProvider, useAdminTheme } from "../theme/AdminThemeProvider";
 
 export {
   AdminCard,
@@ -39,4 +41,7 @@ export {
   AdminNeonIcon,
   type AdminNeonColor,
   AdminTooltip,
+  AdminThemeToggle,
+  AdminThemeProvider,
+  useAdminTheme,
 };

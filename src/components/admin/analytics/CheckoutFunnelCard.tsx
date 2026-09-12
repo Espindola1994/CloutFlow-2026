@@ -31,25 +31,25 @@ export function CheckoutFunnelCard({ funnel }: CheckoutFunnelCardProps) {
       <div className="pt-6 pb-2 space-y-6">
         {/* Top Node: Checkout Started */}
         <div className="max-w-md mx-auto">
-          <div className="bg-[#FFFFFF] text-[#142126] rounded-[8px] p-4 shadow-xs border border-[#D9E2E3]">
+          <div className="bg-[var(--admin-card)] text-[var(--admin-text)] rounded-[8px] p-4 shadow-xs border border-[var(--admin-border)]">
             <div className="flex items-center justify-between">
-              <span className="text-[12px] font-bold tracking-wider uppercase text-[#65737A]">
+              <span className="text-[12px] font-bold tracking-wider uppercase text-[var(--admin-text-secondary)]">
                 Stage 1 — Checkout Started
               </span>
-              <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-[#E7F5F4] text-[#0F8F8A] border border-[#BFE5E2]">
+              <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-[var(--admin-primary-soft)] text-[var(--admin-primary)] border border-[var(--admin-primary-border)]">
                 100% Baseline
               </span>
             </div>
-            <div className="text-[26px] font-bold tracking-tight text-[#142126] mt-1">
+            <div className="text-[26px] font-bold tracking-tight text-[var(--admin-text)] mt-1">
               {started.toLocaleString()}{" "}
-              <span className="text-[13px] font-normal text-[#65737A]">journeys</span>
+              <span className="text-[13px] font-normal text-[var(--admin-text-secondary)]">journeys</span>
             </div>
           </div>
         </div>
 
         {/* Branching indicator */}
-        <div className="flex justify-center items-center text-[#8A979D]">
-          <div className="w-px h-6 bg-[#D9E2E3]" />
+        <div className="flex justify-center items-center text-[var(--admin-text-muted)]">
+          <div className="w-px h-6 bg-[var(--admin-border)]" />
         </div>
 
         {/* Split Nodes: Converted vs Lost */}

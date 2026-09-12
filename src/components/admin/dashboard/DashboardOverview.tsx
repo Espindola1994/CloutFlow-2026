@@ -217,17 +217,17 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-[26px] font-[650] text-[#142126] tracking-tight">
+          <h1 className="text-[26px] font-[650] text-[var(--admin-text)] tracking-tight">
             Dashboard
           </h1>
-          <p className="text-[13px] text-[#65737A] mt-0.5">
+          <p className="text-[13px] text-[var(--admin-text-secondary)] mt-0.5">
             USD Financial KPIs, orders and fulfillment performance.
           </p>
         </div>
         <div className="flex items-center gap-2">
           {isUpdating && (
-            <span className="text-[11px] text-[#0F8F8A] font-medium animate-pulse flex items-center gap-1 bg-[#EAF6F5] px-2 py-0.5 rounded-full border border-[#0F8F8A]/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0F8F8A] animate-ping" />
+            <span className="text-[11px] text-[var(--admin-primary)] font-medium animate-pulse flex items-center gap-1 bg-[var(--admin-primary-soft)] px-2 py-0.5 rounded-full border border-[var(--admin-primary-border)]">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--admin-primary)] animate-ping" />
               Updating...
             </span>
           )}
@@ -252,10 +252,10 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
           return (
             <div
               key={kpi.label}
-              className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] flex flex-col justify-between"
+              className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[9px] p-4 shadow-xs flex flex-col justify-between transition-all hover:border-[var(--admin-primary-border)]"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10.5px] font-semibold text-[#65737A] uppercase tracking-wider">
+                <span className="text-[10.5px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
                   {kpi.label}
                 </span>
                 <div className="w-7 h-7 rounded-lg bg-transparent flex items-center justify-center">
@@ -266,7 +266,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
                 <div className={`text-[20px] font-bold tracking-tight font-mono ${kpi.valueColor}`}>
                   {kpi.value}
                 </div>
-                <p className="text-[10.5px] text-[#8A979D] mt-0.5 truncate">
+                <p className="text-[10.5px] text-[var(--admin-text-muted)] mt-0.5 truncate">
                   {kpi.description}
                 </p>
               </div>
@@ -276,17 +276,17 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       </div>
 
       {/* Secondary Financial Health Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[#F8FAFA] border border-[#D9E2E3] rounded-[9px] p-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[9px] p-3 shadow-xs">
         {secondaryKpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
             <div key={kpi.label} className="flex items-center gap-3 px-2">
-              <div className="w-8 h-8 rounded-lg bg-[#FFFFFF] border border-[#D9E2E3] flex items-center justify-center shrink-0">
+              <div className="w-8 h-8 rounded-lg bg-[var(--admin-card-hover)] border border-[var(--admin-border)] flex items-center justify-center shrink-0">
                 <AdminNeonIcon color={kpi.color} icon={Icon} className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-[10.5px] text-[#65737A] block font-medium uppercase tracking-wider">{kpi.label}</span>
-                <span className="text-[15px] font-bold text-[#142126] font-mono">{kpi.value}</span>
+                <span className="text-[10.5px] text-[var(--admin-text-muted)] block font-medium uppercase tracking-wider">{kpi.label}</span>
+                <span className="text-[15px] font-bold text-[var(--admin-text)] font-mono">{kpi.value}</span>
               </div>
             </div>
           );
@@ -294,7 +294,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       </div>
 
       {error && (
-        <div className="p-3.5 rounded-[8px] bg-[#FEECEB] border border-[#FCA5A5] text-[#EF4444] text-[12px] flex items-center justify-between">
+        <div className="p-3.5 rounded-[8px] bg-[var(--admin-danger)]/10 border border-[var(--admin-danger)]/30 text-[var(--admin-danger)] text-[12px] flex items-center justify-between">
           <span>{error}</span>
           <button
             type="button"
@@ -309,24 +309,24 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       {/* Main Grid: Revenue Overview & Platform Share (2fr / 1fr) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue Overview Chart Area */}
-        <div className="lg:col-span-2 bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between">
+        <div className="lg:col-span-2 bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-5 md:p-6 shadow-xs flex flex-col justify-between">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
-              <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+              <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[var(--admin-text)]">
                 REVENUE OVERVIEW (USD)
               </h3>
-              <p className="text-[12px] text-[#65737A] mt-0.5">
+              <p className="text-[12px] text-[var(--admin-text-secondary)] mt-0.5">
                 Real-time USD sales and performance analytics.
               </p>
             </div>
-            <div className="flex items-center bg-[#F1F5F5] border border-[#D9E2E3] rounded-[7px] p-0.5 text-[12px] font-medium self-start sm:self-auto">
+            <div className="flex items-center bg-[var(--admin-card-hover)] border border-[var(--admin-border)] rounded-[7px] p-0.5 text-[12px] font-medium self-start sm:self-auto">
               <button
                 type="button"
                 onClick={() => setPeriod("7d")}
-                className={`px-3 py-1 rounded-[5px] text-[12px] font-medium transition-colors ${
+                className={`px-3 py-1 rounded-[5px] text-[12px] font-medium transition-colors cursor-pointer ${
                   period === "7d"
-                    ? "bg-[#FFFFFF] text-[#142126] shadow-xs font-semibold"
-                    : "text-[#65737A] hover:text-[#142126]"
+                    ? "bg-[var(--admin-card)] text-[var(--admin-text)] shadow-xs font-semibold"
+                    : "text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)]"
                 }`}
               >
                 7 Days
@@ -334,10 +334,10 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
               <button
                 type="button"
                 onClick={() => setPeriod("30d")}
-                className={`px-3 py-1 rounded-[5px] text-[12px] font-medium transition-colors ${
+                className={`px-3 py-1 rounded-[5px] text-[12px] font-medium transition-colors cursor-pointer ${
                   period === "30d"
-                    ? "bg-[#FFFFFF] text-[#142126] shadow-xs font-semibold"
-                    : "text-[#65737A] hover:text-[#142126]"
+                    ? "bg-[var(--admin-card)] text-[var(--admin-text)] shadow-xs font-semibold"
+                    : "text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)]"
                 }`}
               >
                 30 Days
@@ -346,35 +346,35 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
           </div>
 
           {/* Empty Chart State (Zero Mocks) */}
-          <div className="h-60 rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3] flex flex-col items-center justify-center text-center p-6 my-2">
+          <div className="h-60 rounded-[8px] bg-[var(--admin-card-hover)]/40 border border-[var(--admin-border)] flex flex-col items-center justify-center text-center p-6 my-2">
             <div className="w-10 h-10 rounded-full bg-transparent flex items-center justify-center mb-3">
               <AdminNeonIcon color="violet" icon={Clock} className="w-6 h-6" />
             </div>
-            <p className="text-[13px] font-semibold text-[#142126]">
+            <p className="text-[13px] font-semibold text-[var(--admin-text)]">
               {stats.paidOrders === 0 ? "No chart data available for this timeframe" : "Live timeline active"}
             </p>
-            <span className="text-[11px] text-[#65737A] mt-1 max-w-sm">
+            <span className="text-[11px] text-[var(--admin-text-secondary)] mt-1 max-w-sm">
               Real-time daily USD graphs automatically aggregate as transactions are completed.
             </span>
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-[#65737A] pt-3 mt-2 border-t border-[#D9E2E3]">
+          <div className="flex items-center justify-between text-[11px] text-[var(--admin-text-secondary)] pt-3 mt-2 border-t border-[var(--admin-divider)]">
             <span>Period: {period === "7d" ? "Last 7 Days" : "Last 30 Days"}</span>
-            <span className="text-[#16B77A] font-medium flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#16B77A]" />
+            <span className="text-[var(--admin-success)] font-medium flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--admin-success)]" />
               USD Live sync active
             </span>
           </div>
         </div>
 
         {/* Platform Share */}
-        <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between">
+        <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-5 md:p-6 shadow-xs flex flex-col justify-between">
           <div>
             <div className="mb-4">
-              <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+              <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[var(--admin-text)]">
                 PLATFORM SHARE
               </h3>
-              <p className="text-[12px] text-[#65737A] mt-0.5">
+              <p className="text-[12px] text-[var(--admin-text-secondary)] mt-0.5">
                 Distribution of USD net revenue across networks
               </p>
             </div>
@@ -392,16 +392,16 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
                     <div className="flex items-center justify-between text-[12px]">
                       <div className="flex items-center gap-2">
                         <PlatformIcon platform={pKey} size={18} />
-                        <span className="font-semibold text-[#142126]">{label}</span>
+                        <span className="font-semibold text-[var(--admin-text)]">{label}</span>
                       </div>
-                      <span className="text-[#65737A] font-medium font-mono">
+                      <span className="text-[var(--admin-text-secondary)] font-medium font-mono">
                         ${item.revenue.toFixed(2)}{" "}
-                        <span className="text-[#8A979D]">({item.percentage}%)</span>
+                        <span className="text-[var(--admin-text-muted)]">({item.percentage}%)</span>
                       </span>
                     </div>
-                    <div className="w-full h-2 rounded-full bg-[#F1F5F5] overflow-hidden border border-[#E5ECEC]">
+                    <div className="w-full h-2 rounded-full bg-[var(--admin-card-hover)] overflow-hidden border border-[var(--admin-border)]">
                       <div
-                        className="h-full rounded-full bg-[#0F8F8A] transition-all duration-500"
+                        className="h-full rounded-full bg-[var(--admin-primary)] transition-all duration-500"
                         style={{ width: `${Math.max(0, Math.min(100, item.percentage))}%` }}
                       />
                     </div>
@@ -411,40 +411,40 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
             </div>
           </div>
 
-          <div className="pt-4 mt-4 border-t border-[#D9E2E3] text-[11px] text-[#65737A] flex items-center justify-between">
+          <div className="pt-4 mt-4 border-t border-[var(--admin-divider)] text-[11px] text-[var(--admin-text-secondary)] flex items-center justify-between">
             <span>Supported: 4 Networks</span>
-            <span className="text-[#142126] font-medium">CloutFlow Engine (USD)</span>
+            <span className="text-[var(--admin-text)] font-medium">CloutFlow Engine (USD)</span>
           </div>
         </div>
       </div>
 
       {/* Latest Orders Section - Full width table & mobile cards */}
-      <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
+      <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-5 md:p-6 shadow-xs">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+            <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[var(--admin-text)]">
               RECENT ORDERS
             </h3>
-            <p className="text-[12px] text-[#65737A] mt-0.5">
+            <p className="text-[12px] text-[var(--admin-text-secondary)] mt-0.5">
               Real-time incoming customer transactions (USD)
             </p>
           </div>
           <button
             type="button"
             onClick={onNavigateToOrders}
-            className="text-[12px] font-semibold text-[#0F8F8A] hover:text-[#0C736F] flex items-center gap-1 cursor-pointer transition-colors"
+            className="text-[12px] font-semibold text-[var(--admin-primary)] hover:text-[var(--admin-primary-hover)] flex items-center gap-1 cursor-pointer transition-colors"
           >
             View all orders <AdminNeonIcon color="teal" className="w-3.5 h-3.5"><ArrowUpRight className="w-3.5 h-3.5" /></AdminNeonIcon>
           </button>
         </div>
 
         {stats.recentOrders.length === 0 ? (
-          <div className="py-12 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+          <div className="py-12 text-center rounded-[8px] bg-[var(--admin-card-hover)]/40 border border-[var(--admin-border)]">
             <div className="w-10 h-10 rounded-full bg-transparent flex items-center justify-center mx-auto mb-2">
               <AdminNeonIcon color="blue" icon={ShoppingBag} className="w-6 h-6" />
             </div>
-            <p className="text-[13px] font-semibold text-[#142126]">No orders registered yet</p>
-            <span className="text-[11px] text-[#65737A] mt-1 block">
+            <p className="text-[13px] font-semibold text-[var(--admin-text)]">No orders registered yet</p>
+            <span className="text-[11px] text-[var(--admin-text-secondary)] mt-1 block">
               Completed gateway webhooks will register transactions here in real-time.
             </span>
           </div>
@@ -478,44 +478,44 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
 
                     return (
                       <AdminTableRow key={order.id}>
-                        <AdminTableCell className="font-mono text-[#65737A] font-semibold">
+                        <AdminTableCell className="font-mono text-[var(--admin-text-secondary)] font-semibold">
                           #{orderPublicId}
                         </AdminTableCell>
                         <AdminTableCell>
                           <div className="flex items-center gap-2">
                             <PlatformIcon platform={order.platform} size={18} />
-                            <span className="capitalize text-[#142126] font-medium">{order.platform}</span>
+                            <span className="capitalize text-[var(--admin-text)] font-medium">{order.platform}</span>
                           </div>
                         </AdminTableCell>
-                        <AdminTableCell className="font-medium text-[#142126]">
+                        <AdminTableCell className="font-medium text-[var(--admin-text)]">
                           @{order.target || order.username}
                         </AdminTableCell>
-                        <AdminTableCell className="text-[#65737A]">
+                        <AdminTableCell className="text-[var(--admin-text-secondary)]">
                           {order.product || `${order.service} • ${order.plan}`}
                         </AdminTableCell>
-                        <AdminTableCell className="text-right font-bold text-[#142126] font-mono">
+                        <AdminTableCell className="text-right font-bold text-[var(--admin-text)] font-mono">
                           ${gross.toFixed(2)}
                         </AdminTableCell>
-                        <AdminTableCell className="text-right text-[#D97706] font-mono text-[12px]">
+                        <AdminTableCell className="text-right text-[var(--admin-warning)] font-mono text-[12px]">
                           ${ppFee.toFixed(2)}
                         </AdminTableCell>
-                        <AdminTableCell className="text-right text-[#65737A] font-mono text-[12px]" title={order.providerCostSource || undefined}>
+                        <AdminTableCell className="text-right text-[var(--admin-text-secondary)] font-mono text-[12px]" title={order.providerCostSource || undefined}>
                           {order.providerCost !== null && order.providerCost !== undefined
                             ? `$${order.providerCost.toFixed(2)}`
                             : order.providerCostSource === 'UNKNOWN'
                             ? "—"
                             : `$${cost.toFixed(2)}`}
                         </AdminTableCell>
-                        <AdminTableCell className={`text-right font-bold font-mono text-[12px] ${profit >= 0 ? "text-[#16B77A]" : "text-[#EF4444]"}`}>
+                        <AdminTableCell className={`text-right font-bold font-mono text-[12px] ${profit >= 0 ? "text-[var(--admin-success)]" : "text-[var(--admin-danger)]"}`}>
                           {profit < 0 ? `-$${Math.abs(profit).toFixed(2)}` : `$${profit.toFixed(2)}`}
                         </AdminTableCell>
                         <AdminTableCell className="text-center">
                           <AdminStatusBadge status={order.status} />
                         </AdminTableCell>
-                        <AdminTableCell className="text-center text-[11px] font-mono text-[#65737A]">
+                        <AdminTableCell className="text-center text-[11px] font-mono text-[var(--admin-text-secondary)]">
                           {order.fulfillmentStatus || order.providerStatus || 'NOT_DISPATCHED'}
                         </AdminTableCell>
-                        <AdminTableCell className="text-right text-[#8A979D] text-[11px]">
+                        <AdminTableCell className="text-right text-[var(--admin-text-muted)] text-[11px]">
                           {order.date}
                         </AdminTableCell>
                       </AdminTableRow>

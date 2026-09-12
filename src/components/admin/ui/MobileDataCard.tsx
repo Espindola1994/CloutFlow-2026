@@ -24,7 +24,7 @@ export function MobileDataCard({
   return (
     <div
       className={cn(
-        "bg-[#FFFFFF] border border-[#E3E8EA] rounded-[10px] p-4 flex flex-col gap-3 shadow-sm",
+        "bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-4 flex flex-col gap-3 shadow-xs text-[var(--admin-text)]",
         className
       )}
       {...props}
@@ -37,11 +37,11 @@ export function MobileDataCard({
             </div>
           )}
           <div className="min-w-0">
-            <div className="font-semibold text-[14px] text-[#142126] truncate">
+            <div className="font-semibold text-[14px] text-[var(--admin-text)] truncate">
               {title}
             </div>
             {subtitle && (
-              <div className="text-[12px] text-[#65737A] mt-0.5 truncate">
+              <div className="text-[12px] text-[var(--admin-text-secondary)] mt-0.5 truncate">
                 {subtitle}
               </div>
             )}
@@ -52,13 +52,13 @@ export function MobileDataCard({
       </div>
 
       {metrics && metrics.length > 0 && (
-        <div className="grid grid-cols-2 gap-2 py-2 border-y border-[#EDF1F2] mt-1">
+        <div className="grid grid-cols-2 gap-2 py-2 border-y border-[var(--admin-divider)] mt-1">
           {metrics.map((m, i) => (
             <div key={i} className="flex flex-col">
-              <span className="text-[10px] font-medium text-[#8A979D] uppercase tracking-wider">
+              <span className="text-[10px] font-medium text-[var(--admin-text-muted)] uppercase tracking-wider">
                 {m.label}
               </span>
-              <span className="text-[13px] font-semibold text-[#142126] mt-0.5">
+              <span className="text-[13px] font-semibold text-[var(--admin-text)] mt-0.5">
                 {m.value}
               </span>
             </div>

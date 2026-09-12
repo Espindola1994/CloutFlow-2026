@@ -32,29 +32,29 @@ export function AdminModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          "bg-[#FFFFFF] border-[#E3E8EA] text-[#142126] sm:max-w-lg rounded-[12px] p-6 shadow-xl",
+          "bg-[var(--admin-card)] border-[var(--admin-border)] text-[var(--admin-text)] sm:max-w-lg rounded-[12px] p-6 shadow-2xl",
           className
         )}
       >
         {(title || description) && (
           <DialogHeader className="space-y-1.5 pb-2">
             {title && (
-              <DialogTitle className="text-[18px] font-bold text-[#142126] tracking-tight">
+              <DialogTitle className="text-[18px] font-bold text-[var(--admin-text)] tracking-tight">
                 {title}
               </DialogTitle>
             )}
             {description && (
-              <DialogDescription className="text-[13px] text-[#65737A]">
+              <DialogDescription className="text-[13px] text-[var(--admin-text-secondary)]">
                 {description}
               </DialogDescription>
             )}
           </DialogHeader>
         )}
 
-        <div className="py-2 text-[13px]">{children}</div>
+        <div className="py-2 text-[13px] text-[var(--admin-text)]">{children}</div>
 
         {footer && (
-          <DialogFooter className="pt-3 border-t border-[#EDF1F2] sm:justify-end gap-2">
+          <DialogFooter className="pt-3 border-t border-[var(--admin-divider)] sm:justify-end gap-2">
             {footer}
           </DialogFooter>
         )}

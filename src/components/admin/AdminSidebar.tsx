@@ -19,7 +19,7 @@ import {
   Globe2
 } from "lucide-react";
 import { BUILD_INFO } from "@/lib/build-info";
-import { AdminNeonIcon, AdminNeonColor } from "./ui";
+import { AdminNeonIcon, AdminNeonColor, AdminThemeToggle } from "./ui";
 
 export type AdminTab = "dashboard" | "analytics" | "live-world" | "orders" | "supplier-routing" | "dropshield" | "fulfillment" | "growth" | "crm" | "blacklist" | "infra";
 
@@ -53,15 +53,15 @@ export function AdminSidebar({
   ];
 
   const sidebarContent = (
-    <aside className="w-[248px] h-full bg-[#FFFFFF] border-r border-[#E3E8EA] flex flex-col justify-between text-[#65737A] select-none shadow-[1px_0_4px_rgba(10,35,42,0.02)]">
+    <aside className="w-[248px] h-full bg-[var(--admin-sidebar)] border-r border-[var(--admin-sidebar-border)] flex flex-col justify-between text-[var(--admin-text-secondary)] select-none shadow-[1px_0_4px_rgba(0,0,0,0.03)]">
       <div className="flex flex-col flex-1 overflow-y-auto">
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-5 border-b border-[#E3E8EA] shrink-0 bg-[#FFFFFF]">
+        <div className="h-16 flex items-center justify-between px-5 border-b border-[var(--admin-sidebar-border)] shrink-0 bg-[var(--admin-sidebar)]">
           <Link href="/admin/dashboard" className="flex items-center gap-2">
-            <span className="text-[20px] font-bold tracking-tight text-[#142126] flex items-center gap-1.5">
+            <span className="text-[20px] font-bold tracking-tight text-[var(--admin-text)] flex items-center gap-1.5">
               <span>Clout</span>
-              <span className="text-[#0F8F8A]">Flow</span>
-              <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[#0F8F8A]/10 text-[#0F8F8A] border border-[#0F8F8A]/25 ml-1">
+              <span className="text-[var(--admin-primary)]">Flow</span>
+              <span className="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-[4px] bg-[var(--admin-primary)]/10 text-[var(--admin-primary)] border border-[var(--admin-primary)]/25 ml-1">
                 Admin
               </span>
             </span>
@@ -71,7 +71,7 @@ export function AdminSidebar({
             <button
               type="button"
               onClick={onCloseMobile}
-              className="md:hidden text-[#65737A] hover:text-[#142126] p-1 rounded hover:bg-[#F1F5F5] transition-colors"
+              className="md:hidden text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)] p-1 rounded hover:bg-[var(--admin-card-hover)] transition-colors cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -93,12 +93,12 @@ export function AdminSidebar({
                 }}
                 className={`relative w-full min-h-[42px] flex items-center gap-3 px-3.5 rounded-[8px] text-[13px] font-medium transition-all cursor-pointer ${
                   isActive
-                    ? "bg-[#E7F5F4] text-[#0F8F8A] font-semibold shadow-xs"
-                    : "text-[#65737A] hover:text-[#142126] hover:bg-[#F7F9FA]"
+                    ? "bg-[var(--admin-primary-soft)] text-[var(--admin-primary)] font-semibold shadow-xs"
+                    : "text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)] hover:bg-[var(--admin-card-hover)]"
                 }`}
               >
                 {isActive && (
-                  <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-[#0F8F8A] rounded-r-full" />
+                  <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] bg-[var(--admin-primary)] rounded-r-full" />
                 )}
                 <AdminNeonIcon
                   color={item.color}
@@ -113,32 +113,40 @@ export function AdminSidebar({
       </div>
 
       {/* Connection & Footer Area */}
-      <div className="p-4 border-t border-[#E3E8EA] bg-[#FAFCFC] space-y-3 shrink-0">
-        <div className="bg-[#FFFFFF] border border-[#E3E8EA] rounded-[8px] p-2.5 space-y-1.5 shadow-[0_1px_2px_rgba(10,35,42,0.02)]">
-          <div className="flex items-center justify-between text-[10px] font-bold text-[#65737A] uppercase tracking-wider">
+      <div className="p-4 border-t border-[var(--admin-sidebar-border)] bg-[var(--admin-sidebar-secondary)] space-y-3 shrink-0">
+        {/* Theme Toggle Button */}
+        <div className="flex items-center justify-between">
+          <span className="text-[11px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
+            Appearance
+          </span>
+          <AdminThemeToggle />
+        </div>
+
+        <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[8px] p-2.5 space-y-1.5 shadow-xs">
+          <div className="flex items-center justify-between text-[10px] font-bold text-[var(--admin-text-muted)] uppercase tracking-wider">
             <span>Connection</span>
-            <div className="flex items-center gap-1 text-[#16B77A]">
+            <div className="flex items-center gap-1 text-[var(--admin-success)]">
               <Radio className="w-3 h-3 animate-pulse" />
               <span>LIVE</span>
             </div>
           </div>
-          <div className="text-[11px] text-[#65737A] flex items-center justify-between">
+          <div className="text-[11px] text-[var(--admin-text-secondary)] flex items-center justify-between">
             <span>Peakerr Provider</span>
-            <span className="text-[#142126] font-semibold">Ready</span>
+            <span className="text-[var(--admin-text)] font-semibold">Ready</span>
           </div>
         </div>
 
         <button
           type="button"
           onClick={onLogout}
-          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[12px] font-medium text-[#EF4444] hover:bg-[#FEECEB] hover:text-[#DC2626] transition-colors cursor-pointer"
+          className="w-full flex items-center gap-2.5 px-3 py-2 rounded-[8px] text-[12px] font-medium text-[var(--admin-danger)] hover:bg-[var(--admin-danger)]/10 hover:text-[var(--admin-danger)] transition-colors cursor-pointer"
         >
           <LogOut className="w-4 h-4 shrink-0" />
           <span>Sign Out</span>
         </button>
 
-        <div className="text-[10px] font-mono text-[#8A979D] text-center select-none pt-0.5">
-          Build: <span className="text-[#65737A] font-semibold">{BUILD_INFO.shortSha}</span>
+        <div className="text-[10px] font-mono text-[var(--admin-text-muted)] text-center select-none pt-0.5">
+          Build: <span className="text-[var(--admin-text-secondary)] font-semibold">{BUILD_INFO.shortSha}</span>
         </div>
       </div>
     </aside>

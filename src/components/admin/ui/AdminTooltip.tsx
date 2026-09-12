@@ -54,12 +54,12 @@ export function AdminTooltip({
         <div
           role="tooltip"
           className={cn(
-            "absolute z-50 pointer-events-none w-max max-w-[260px] px-3 py-2 text-[11.5px] leading-relaxed text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[8px] shadow-[0_4px_16px_rgba(10,35,42,0.12)] animate-in fade-in zoom-in-95 duration-150",
+            "absolute z-50 pointer-events-none w-max max-w-[260px] px-3 py-2 text-[11.5px] leading-relaxed text-[var(--admin-text)] bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[8px] shadow-2xl animate-in fade-in zoom-in-95 duration-150",
             sideClasses[side]
           )}
         >
           {content}
-          <div className={cn("absolute w-0 h-0 border-solid drop-shadow-[0_1px_1px_rgba(10,35,42,0.08)]", arrowClasses[side])} />
+          <div className={cn("absolute w-0 h-0 border-solid drop-shadow-xs", arrowClasses[side])} />
         </div>
       )}
     </div>
