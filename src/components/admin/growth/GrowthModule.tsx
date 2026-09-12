@@ -39,6 +39,9 @@ import {
   AdminTableRow,
   AdminTableHead,
   AdminTableCell,
+  AdminTooltip,
+  AdminSectionHeader,
+  AdminCard,
 } from "../ui";
 import { 
   CANONICAL_PLANS, 
@@ -517,128 +520,144 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
   return (
     <div className="space-y-6">
       {/* Module Navigation & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-[26px] font-[650] text-[#142126] tracking-tight">
-            Growth / Offers
-          </h1>
-          <p className="text-[13px] text-[#65737A] mt-0.5">
-            Centralized commercial control & real-time sync for all 66 CloutFlow cards.
-          </p>
-        </div>
-
-        <div className="flex items-center bg-[#FFFFFF] border border-[#D9E2E3] rounded-[8px] p-1 text-[12px] font-semibold shadow-[0_1px_2px_rgba(10,35,42,0.03)] self-start sm:self-auto overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => setActiveTab("plans")}
-            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "plans"
-                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
-                : "text-[#65737A] hover:text-[#142126]"
-            }`}
-          >
-            Commercial Cards ({offersList.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("offers")}
-            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "offers"
-                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
-                : "text-[#65737A] hover:text-[#142126]"
-            }`}
-          >
-            Bumps & Upsells
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("coupons")}
-            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "coupons"
-                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
-                : "text-[#65737A] hover:text-[#142126]"
-            }`}
-          >
-            Coupons ({coupons.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("ab")}
-            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "ab"
-                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
-                : "text-[#65737A] hover:text-[#142126]"
-            }`}
-          >
-            A/B Tests ({abTests.length})
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab("test_offers")}
-            className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
-              activeTab === "test_offers"
-                ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
-                : "text-[#65737A] hover:text-[#142126]"
-            }`}
-          >
-            Test Offers
-          </button>
-        </div>
-      </div>
+      <AdminSectionHeader
+        title="Growth & Commercial Offers"
+        description="Centralized commercial control, checkout routing, promotional campaigns, and real-time sync for all 66 catalog packages."
+        actions={
+          <div className="flex items-center bg-[#FFFFFF] border border-[#D9E2E3] rounded-[8px] p-1 text-[12px] font-semibold shadow-[0_1px_2px_rgba(10,35,42,0.03)] overflow-x-auto max-w-full">
+            <button
+              type="button"
+              onClick={() => setActiveTab("plans")}
+              className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "plans"
+                  ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
+                  : "text-[#65737A] hover:text-[#142126]"
+              }`}
+            >
+              Plans & Packages ({offersList.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("offers")}
+              className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "offers"
+                  ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
+                  : "text-[#65737A] hover:text-[#142126]"
+              }`}
+            >
+              Bumps & Upsells
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("coupons")}
+              className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "coupons"
+                  ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
+                  : "text-[#65737A] hover:text-[#142126]"
+              }`}
+            >
+              Coupons ({coupons.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("ab")}
+              className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "ab"
+                  ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
+                  : "text-[#65737A] hover:text-[#142126]"
+              }`}
+            >
+              Experiments ({abTests.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab("test_offers")}
+              className={`px-3.5 py-1.5 rounded-[6px] transition-all cursor-pointer whitespace-nowrap ${
+                activeTab === "test_offers"
+                  ? "bg-[#E7F5F4] text-[#0F8F8A] shadow-xs font-semibold"
+                  : "text-[#65737A] hover:text-[#142126]"
+              }`}
+            >
+              Sandbox / Tools
+            </button>
+          </div>
+        }
+      />
 
       {/* 1. PLANS / OFFERS TAB */}
       {activeTab === "plans" && (
         <div className="space-y-4">
           {/* Diagnostic Progress Summary for all 66 Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-3 shadow-xs">
-              <div className="text-[11px] font-medium text-[#65737A]">Total Cards</div>
-              <div className="text-[18px] font-bold text-[#142126] mt-0.5">{diagnostics.counters.totalCards} / 66</div>
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-3 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-[#65737A]">Total Cards</span>
+                <AdminTooltip content="All commercial package offerings defined in the system catalog across Instagram, TikTok, X, and YouTube." />
+              </div>
+              <div className="text-[18px] font-bold text-[#142126] mt-1">{diagnostics.counters.totalCards} / 66</div>
               <div className="text-[10px] text-[#0F8F8A] font-semibold mt-0.5">Commercial Catalog</div>
             </div>
 
-            <div className="bg-[#FFFFFF] border border-[#B9E9D7] rounded-[9px] p-3 shadow-xs bg-[#E8F8F2]/30">
-              <div className="text-[11px] font-medium text-[#16B77A] flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-[#16B77A]" />
-                Checkout Ready
+            <div className="bg-[#FFFFFF] border border-[#B9E9D7] rounded-[9px] p-3 shadow-xs bg-[#E8F8F2]/30 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-[#16B77A] flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-[#16B77A]" />
+                  Checkout Ready
+                </span>
+                <AdminTooltip content="Packages fully configured with PerfectPay Product Code, Plan Code, and valid checkout URL." />
               </div>
-              <div className="text-[18px] font-bold text-[#16B77A] mt-0.5">{diagnostics.counters.checkoutReady}</div>
+              <div className="text-[18px] font-bold text-[#16B77A] mt-1">{diagnostics.counters.checkoutReady}</div>
               <div className="text-[10px] text-[#65737A] mt-0.5">Prod + Plan + URL</div>
             </div>
 
-            <div className="bg-[#FFFFFF] border border-[#FED7AA] rounded-[9px] p-3 shadow-xs bg-[#FFFBEB]/50">
-              <div className="text-[11px] font-medium text-[#D97706] flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-[#D97706]" />
-                Incomplete
+            <div className="bg-[#FFFFFF] border border-[#FED7AA] rounded-[9px] p-3 shadow-xs bg-[#FFFBEB]/50 flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-[#D97706] flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-[#D97706]" />
+                  Incomplete
+                </span>
+                <AdminTooltip content="Packages missing one or more required checkout attributes (Product code, Plan code, or checkout URL)." />
               </div>
-              <div className="text-[18px] font-bold text-[#D97706] mt-0.5">{diagnostics.counters.checkoutIncomplete}</div>
+              <div className="text-[18px] font-bold text-[#D97706] mt-1">{diagnostics.counters.checkoutIncomplete}</div>
               <div className="text-[10px] text-[#65737A] mt-0.5">Partial config</div>
             </div>
 
-            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-3 shadow-xs bg-[#F8FAFC]">
-              <div className="text-[11px] font-medium text-[#65737A] flex items-center gap-1">
-                <span className="w-2 h-2 rounded-full bg-[#8A979D]" />
-                Missing
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-3 shadow-xs bg-[#F8FAFC] flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-[#65737A] flex items-center gap-1">
+                  <span className="w-2 h-2 rounded-full bg-[#8A979D]" />
+                  Missing
+                </span>
+                <AdminTooltip content="Packages with no checkout configuration attached." />
               </div>
-              <div className="text-[18px] font-bold text-[#65737A] mt-0.5">{diagnostics.counters.checkoutMissing}</div>
+              <div className="text-[18px] font-bold text-[#65737A] mt-1">{diagnostics.counters.checkoutMissing}</div>
               <div className="text-[10px] text-[#65737A] mt-0.5">Not configured</div>
             </div>
 
-            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-3 shadow-xs">
-              <div className="text-[11px] font-medium text-[#65737A]">Product Codes</div>
-              <div className="text-[18px] font-bold text-[#142126] mt-0.5">{diagnostics.counters.productCodeConfigured}</div>
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-3 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-[#65737A]">Product Codes</span>
+                <AdminTooltip content="Packages with PerfectPay product identifier assigned." />
+              </div>
+              <div className="text-[18px] font-bold text-[#142126] mt-1">{diagnostics.counters.productCodeConfigured}</div>
               <div className="text-[10px] text-[#65737A] mt-0.5">PerfectPay Prod</div>
             </div>
 
-            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-3 shadow-xs">
-              <div className="text-[11px] font-medium text-[#65737A]">Plan Codes</div>
-              <div className="text-[18px] font-bold text-[#142126] mt-0.5">{diagnostics.counters.planCodeConfigured}</div>
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-3 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-[#65737A]">Plan Codes</span>
+                <AdminTooltip content="Packages with PerfectPay plan identifier assigned." />
+              </div>
+              <div className="text-[18px] font-bold text-[#142126] mt-1">{diagnostics.counters.planCodeConfigured}</div>
               <div className="text-[10px] text-[#65737A] mt-0.5">PerfectPay Plan</div>
             </div>
 
-            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-3 shadow-xs">
-              <div className="text-[11px] font-medium text-[#65737A]">Checkout URLs</div>
-              <div className="text-[18px] font-bold text-[#142126] mt-0.5">{diagnostics.counters.checkoutUrlConfigured}</div>
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] p-3 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-medium text-[#65737A]">Checkout URLs</span>
+                <AdminTooltip content="Packages with Centerpag/PerfectPay HTTPS destination URL configured." />
+              </div>
+              <div className="text-[18px] font-bold text-[#142126] mt-1">{diagnostics.counters.checkoutUrlConfigured}</div>
               <div className="text-[10px] text-[#65737A] mt-0.5">Centerpag HTTPS</div>
             </div>
           </div>
@@ -784,11 +803,36 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
                   <AdminTable>
                     <AdminTableHeader>
                       <AdminTableRow>
-                        <AdminTableHead>Identity</AdminTableHead>
-                        <AdminTableHead className="text-right">Quantity</AdminTableHead>
-                        <AdminTableHead className="text-right">Price</AdminTableHead>
-                        <AdminTableHead className="text-center">Sync Surfaces</AdminTableHead>
-                        <AdminTableHead>Checkout & PerfectPay</AdminTableHead>
+                        <AdminTableHead>
+                          <div className="flex items-center gap-1">
+                            <span>Identity</span>
+                            <AdminTooltip content="Platform, service type, plan name, and optional marketing badge." />
+                          </div>
+                        </AdminTableHead>
+                        <AdminTableHead className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <span>Quantity</span>
+                            <AdminTooltip content="Delivered units plus bonus tier units." />
+                          </div>
+                        </AdminTableHead>
+                        <AdminTableHead className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <span>Price</span>
+                            <AdminTooltip content="Commercial sale price and compare-at anchor in USD." />
+                          </div>
+                        </AdminTableHead>
+                        <AdminTableHead className="text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <span>Sync Surfaces</span>
+                            <AdminTooltip content="Active storefront touchpoints receiving automatic pricing updates (Home page and Step 3)." />
+                          </div>
+                        </AdminTableHead>
+                        <AdminTableHead>
+                          <div className="flex items-center gap-1">
+                            <span>Checkout & PerfectPay</span>
+                            <AdminTooltip content="PerfectPay Product Code, Plan Code, and target checkout URL link." />
+                          </div>
+                        </AdminTableHead>
                         <AdminTableHead className="text-center">Status</AdminTableHead>
                         <AdminTableHead className="text-right">Actions</AdminTableHead>
                       </AdminTableRow>
@@ -1016,42 +1060,122 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
 
       {/* 2. ORDER BUMPS & UPSELLS */}
       {activeTab === "offers" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
-                  ORDER BUMPS (CHECKOUT)
-                </h3>
-                <span className="text-[12px] font-semibold text-[#65737A]">{bumps.length} Configured</span>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-3.5 rounded-[9px] bg-white border border-[#D9E2E3] shadow-xs flex flex-col justify-between min-h-[76px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider">Active Bumps</span>
+                <AdminTooltip content="Pre-purchase complementary micro-offers integrated directly into the 1-step checkout flow." />
               </div>
-              <p className="text-[12px] text-[#65737A] mb-6">Micro-offers rendered in the 1-click checkout flow</p>
+              <span className="text-[22px] font-bold text-[#142126] mt-1 leading-none">{bumps.length}</span>
+              <span className="text-[10px] text-[#0F8F8A] font-semibold mt-1">Pre-purchase Addons</span>
             </div>
 
-            <div className="py-12 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
-              <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
-                <Tag className="w-5 h-5" />
+            <div className="p-3.5 rounded-[9px] bg-white border border-[#D9E2E3] shadow-xs flex flex-col justify-between min-h-[76px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider">Active Upsells</span>
+                <AdminTooltip content="Post-purchase high-ticket 1-click offers shown immediately after successful customer payment." />
               </div>
-              <p className="text-[12px] font-semibold text-[#65737A]">No active order bump offers</p>
+              <span className="text-[22px] font-bold text-[#142126] mt-1 leading-none">{upsells.length}</span>
+              <span className="text-[10px] text-[#0F8F8A] font-semibold mt-1">Post-purchase Funnels</span>
+            </div>
+
+            <div className="p-3.5 rounded-[9px] bg-white border border-[#D9E2E3] shadow-xs flex flex-col justify-between min-h-[76px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider">Catalog Integration</span>
+                <AdminTooltip content="PerfectPay 1-click tokenization compatibility status for checkout micro-offers." />
+              </div>
+              <span className="text-[14px] font-bold text-[#16B77A] mt-2 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#16B77A]" />
+                PERFECTPAY READY
+              </span>
+              <span className="text-[10px] text-[#65737A] mt-1">Tokenized Flow</span>
             </div>
           </div>
 
-          <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
-                  POST-PURCHASE UPSELLS
-                </h3>
-                <span className="text-[12px] font-semibold text-[#65737A]">{upsells.length} Configured</span>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+                      ORDER BUMPS (CHECKOUT)
+                    </h3>
+                    <AdminTooltip content="Checkout checkbox addons configured to increase average order value before card authorization." />
+                  </div>
+                  <span className="text-[12px] font-semibold text-[#65737A]">{bumps.length} Configured</span>
+                </div>
+                <p className="text-[12px] text-[#65737A] mb-6">Micro-offers rendered in the 1-click checkout flow</p>
               </div>
-              <p className="text-[12px] text-[#65737A] mb-6">One-click post payment high-ticket offers</p>
+
+              {bumps.length === 0 ? (
+                <div className="py-12 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+                  <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
+                    <Tag className="w-5 h-5" />
+                  </div>
+                  <p className="text-[12px] font-semibold text-[#65737A]">No active order bump offers</p>
+                  <p className="text-[11px] text-[#8A979D] mt-1">Configured bumps will render alongside product checkouts</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {bumps.map((b) => (
+                    <div key={b.id} className="p-3.5 rounded-[8px] border border-[#D9E2E3] bg-[#FAFCFC] flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-xs text-[#142126]">{b.name}</div>
+                        <div className="text-[11px] text-[#65737A] capitalize">{b.platform} • {b.service} ({b.quantity})</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-xs text-[#142126]">${b.price.toFixed(2)}</div>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${b.active ? 'bg-[#E8F8F2] text-[#16B77A]' : 'bg-[#F1F5F5] text-[#65737A]'}`}>
+                          {b.active ? 'ACTIVE' : 'INACTIVE'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div className="py-12 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
-              <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
-                <Percent className="w-5 h-5" />
+            <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)] flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-1.5">
+                    <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+                      POST-PURCHASE UPSELLS
+                    </h3>
+                    <AdminTooltip content="Immediate high-converting offers displayed between payment success and the order confirmation receipt." />
+                  </div>
+                  <span className="text-[12px] font-semibold text-[#65737A]">{upsells.length} Configured</span>
+                </div>
+                <p className="text-[12px] text-[#65737A] mb-6">One-click post payment high-ticket offers</p>
               </div>
-              <p className="text-[12px] font-semibold text-[#65737A]">No post-purchase upsells active</p>
+
+              {upsells.length === 0 ? (
+                <div className="py-12 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+                  <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
+                    <Percent className="w-5 h-5" />
+                  </div>
+                  <p className="text-[12px] font-semibold text-[#65737A]">No post-purchase upsells active</p>
+                  <p className="text-[11px] text-[#8A979D] mt-1">Tokenized post-purchase offers trigger automatically after payment</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {upsells.map((u) => (
+                    <div key={u.id} className="p-3.5 rounded-[8px] border border-[#D9E2E3] bg-[#FAFCFC] flex items-center justify-between">
+                      <div>
+                        <div className="font-semibold text-xs text-[#142126]">{u.title}</div>
+                        <div className="text-[11px] text-[#65737A] capitalize">{u.platform} • {u.description}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-xs text-[#142126]">${u.price.toFixed(2)}</div>
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${u.active ? 'bg-[#E8F8F2] text-[#16B77A]' : 'bg-[#F1F5F5] text-[#65737A]'}`}>
+                          {u.active ? 'ACTIVE' : 'INACTIVE'}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1059,48 +1183,170 @@ export function GrowthModule({ bumps, upsells, coupons, abTests }: GrowthModuleP
 
       {/* 3. COUPONS TAB */}
       {activeTab === "coupons" && (
-        <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
-                PROMOTIONAL COUPONS
-              </h3>
-              <p className="text-[12px] text-[#65737A] mt-0.5">Discount vouchers for marketing and cart recovery</p>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-3.5 rounded-[9px] bg-white border border-[#D9E2E3] shadow-xs flex flex-col justify-between min-h-[76px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider">Total Coupons</span>
+                <AdminTooltip content="All promotional vouchers registered for cart discount validation." />
+              </div>
+              <span className="text-[22px] font-bold text-[#142126] mt-1 leading-none">{coupons.length}</span>
+              <span className="text-[10px] text-[#0F8F8A] font-semibold mt-1">Voucher Registry</span>
+            </div>
+
+            <div className="p-3.5 rounded-[9px] bg-white border border-[#D9E2E3] shadow-xs flex flex-col justify-between min-h-[76px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider">Active Coupons</span>
+                <AdminTooltip content="Vouchers currently valid and accepting redemption during checkout." />
+              </div>
+              <span className="text-[22px] font-bold text-[#142126] mt-1 leading-none">{coupons.filter(c => c.active).length}</span>
+              <span className="text-[10px] text-[#16B77A] font-semibold mt-1">Live Redemptions</span>
+            </div>
+
+            <div className="p-3.5 rounded-[9px] bg-white border border-[#D9E2E3] shadow-xs flex flex-col justify-between min-h-[76px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider">Database Source</span>
+                <AdminTooltip content="Coupons are safely persisted and validated against the database table `coupons`." />
+              </div>
+              <span className="text-[14px] font-bold text-[#142126] mt-2 font-mono">public.coupons</span>
+              <span className="text-[10px] text-[#65737A] mt-1">Drizzle Managed</span>
             </div>
           </div>
 
-          <div className="py-16 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
-            <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
-              <Tag className="w-5 h-5" />
+          <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+                    PROMOTIONAL COUPONS
+                  </h3>
+                  <AdminTooltip content="Percentage or fixed discount voucher codes for cart marketing and email recovery." />
+                </div>
+                <p className="text-[12px] text-[#65737A] mt-0.5">Discount vouchers for marketing and cart recovery</p>
+              </div>
             </div>
-            <h4 className="text-[13px] font-semibold text-[#142126]">No coupons active</h4>
-            <p className="text-[11px] text-[#65737A] mt-1 max-w-sm mx-auto">
-              Promotional codes will be persisted in database table `coupons` when configured.
-            </p>
+
+            {coupons.length === 0 ? (
+              <div className="py-16 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+                <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
+                  <Tag className="w-5 h-5" />
+                </div>
+                <h4 className="text-[13px] font-semibold text-[#142126]">No coupons active</h4>
+                <p className="text-[11px] text-[#65737A] mt-1 max-w-sm mx-auto">
+                  Promotional codes will be persisted in database table `coupons` when configured.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <AdminTable>
+                  <AdminTableHeader>
+                    <AdminTableRow>
+                      <AdminTableHead>Code</AdminTableHead>
+                      <AdminTableHead>Discount</AdminTableHead>
+                      <AdminTableHead>Type</AdminTableHead>
+                      <AdminTableHead>Usage</AdminTableHead>
+                      <AdminTableHead>Min Order</AdminTableHead>
+                      <AdminTableHead>Status</AdminTableHead>
+                    </AdminTableRow>
+                  </AdminTableHeader>
+                  <AdminTableBody>
+                    {coupons.map((c) => (
+                      <AdminTableRow key={c.id}>
+                        <AdminTableCell className="font-mono font-bold text-[#142126]">{c.code}</AdminTableCell>
+                        <AdminTableCell>{c.type === 'percent' ? `${c.discount}%` : `$${c.discount.toFixed(2)}`}</AdminTableCell>
+                        <AdminTableCell className="capitalize text-xs text-[#65737A]">{c.type}</AdminTableCell>
+                        <AdminTableCell className="text-xs">{c.usedCount} / {c.maxUses || '∞'}</AdminTableCell>
+                        <AdminTableCell className="text-xs">${c.minOrder ? c.minOrder.toFixed(2) : '0.00'}</AdminTableCell>
+                        <AdminTableCell>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${c.active ? 'bg-[#E8F8F2] text-[#16B77A]' : 'bg-[#F1F5F5] text-[#65737A]'}`}>
+                            {c.active ? 'ACTIVE' : 'INACTIVE'}
+                          </span>
+                        </AdminTableCell>
+                      </AdminTableRow>
+                    ))}
+                  </AdminTableBody>
+                </AdminTable>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* 4. A/B TESTS TAB */}
       {activeTab === "ab" && (
-        <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
-                SPLIT PRICING & FUNNEL TESTS
-              </h3>
-              <p className="text-[12px] text-[#65737A] mt-0.5">Automated conversion rate optimization experiments</p>
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="p-3.5 rounded-[9px] bg-white border border-[#D9E2E3] shadow-xs flex flex-col justify-between min-h-[76px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider">Active Experiments</span>
+                <AdminTooltip content="Active split test experiments comparing price elasticity and copy variations." />
+              </div>
+              <span className="text-[22px] font-bold text-[#142126] mt-1 leading-none">{abTests.length}</span>
+              <span className="text-[10px] text-[#0F8F8A] font-semibold mt-1">CRO Engine</span>
+            </div>
+
+            <div className="p-3.5 rounded-[9px] bg-white border border-[#D9E2E3] shadow-xs flex flex-col justify-between min-h-[76px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider">Traffic Split</span>
+                <AdminTooltip content="Deterministic hash allocation dividing visitor traffic evenly across variants." />
+              </div>
+              <span className="text-[18px] font-bold text-[#142126] mt-1">50% / 50%</span>
+              <span className="text-[10px] text-[#65737A] mt-0.5">Deterministic Allocation</span>
+            </div>
+
+            <div className="p-3.5 rounded-[9px] bg-white border border-[#D9E2E3] shadow-xs flex flex-col justify-between min-h-[76px]">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider">Production Isolation</span>
+                <AdminTooltip content="A/B experiment configuration is visually and logically isolated from live catalog base pricing." />
+              </div>
+              <span className="text-[14px] font-bold text-[#16B77A] mt-2 flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-[#16B77A]" />
+                SAFE / ISOLATED
+              </span>
+              <span className="text-[10px] text-[#65737A] mt-1">Zero Side-Effects</span>
             </div>
           </div>
 
-          <div className="py-16 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
-            <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
-              <Split className="w-5 h-5" />
+          <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 md:p-6 shadow-[0_1px_2px_rgba(10,35,42,0.03),0_5px_16px_rgba(10,35,42,0.035)]">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">
+                    SPLIT PRICING & FUNNEL TESTS
+                  </h3>
+                  <AdminTooltip content="Automated conversion rate optimization experiments measuring visitor conversion and gross profit delta." />
+                </div>
+                <p className="text-[12px] text-[#65737A] mt-0.5">Automated conversion rate optimization experiments</p>
+              </div>
             </div>
-            <h4 className="text-[13px] font-semibold text-[#142126]">No active A/B experiments</h4>
-            <p className="text-[11px] text-[#65737A] mt-1 max-w-sm mx-auto">
-              Launch split-testing between price points to discover conversion sweet spots.
-            </p>
+
+            {abTests.length === 0 ? (
+              <div className="py-16 text-center rounded-[8px] bg-[#FAFCFC] border border-[#D9E2E3]">
+                <div className="w-10 h-10 rounded-full bg-[#EAF6F5] text-[#0F8F8A] flex items-center justify-center mx-auto mb-2">
+                  <Split className="w-5 h-5" />
+                </div>
+                <h4 className="text-[13px] font-semibold text-[#142126]">No active A/B experiments</h4>
+                <p className="text-[11px] text-[#65737A] mt-1 max-w-sm mx-auto">
+                  Launch split-testing between price points to discover conversion sweet spots.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {abTests.map((t) => (
+                  <div key={t.id} className="p-4 rounded-xl border border-[#D9E2E3] bg-[#FAFCFC] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-bold text-[#142126]">{t.name}</h4>
+                        <span className="text-xs text-[#65737A] capitalize">{t.platform} • {t.planName}</span>
+                      </div>
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${t.status === 'RUNNING' ? 'bg-[#E8F8F2] text-[#16B77A]' : 'bg-[#F1F5F5] text-[#65737A]'}`}>
+                        {t.status}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       )}

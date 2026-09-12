@@ -14,6 +14,7 @@ import {
   ArrowUpRight,
   ShieldAlert,
 } from "lucide-react";
+import { AdminTooltip } from "../ui";
 
 interface EmailHistoryItem {
   id: string;
@@ -76,28 +77,40 @@ export function SentEmailHistoryTab() {
     <div className="space-y-3.5">
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-          <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
-            Total Dispatched
-          </span>
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+              Total Dispatched
+            </span>
+            <AdminTooltip content="All outgoing email communications initiated via automated workflows or manual admin send." />
+          </div>
           <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.total}</span>
         </div>
-        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-          <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
-            Successfully Sent
-          </span>
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+              Successfully Sent
+            </span>
+            <AdminTooltip content="Emails accepted and confirmed by delivery transport providers." />
+          </div>
           <span className="text-[22px] font-bold text-[#059669] block leading-none mt-1">{counts.sent}</span>
         </div>
-        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-          <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
-            Failed Sends
-          </span>
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+              Failed Sends
+            </span>
+            <AdminTooltip content="Emails that encountered transport rejections or API errors." />
+          </div>
           <span className="text-[22px] font-bold text-[#F04438] block leading-none mt-1">{counts.failed}</span>
         </div>
-        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-          <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
-            Suppressed / Blocked
-          </span>
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+              Suppressed / Blocked
+            </span>
+            <AdminTooltip content="Emails held back due to unsubscribe preferences or suppression lists." />
+          </div>
           <span className="text-[22px] font-bold text-[#D97706] block leading-none mt-1">{counts.suppressed}</span>
         </div>
       </div>

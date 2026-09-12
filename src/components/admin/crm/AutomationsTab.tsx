@@ -5,6 +5,7 @@ import {
   Search,
   RefreshCw,
 } from "lucide-react";
+import { AdminTooltip } from "../ui";
 
 interface AutomationItem {
   id: string;
@@ -163,9 +164,12 @@ export function AutomationsTab() {
           {/* Card 1: Marketing Automation */}
           <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[76px]">
             <div>
-              <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
-                MARKETING AUTOMATION
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
+                  MARKETING AUTOMATION
+                </span>
+                <AdminTooltip content="Master switch controlling whether post-abandonment and recovery marketing emails are dispatched." />
+              </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {statusError ? (
                   <>
@@ -195,9 +199,12 @@ export function AutomationsTab() {
           {/* Card 2: Lifecycle Worker */}
           <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[76px]">
             <div>
-              <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
-                LIFECYCLE WORKER
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
+                  LIFECYCLE WORKER
+                </span>
+                <AdminTooltip content="Cron/background scheduler executing multi-step email cadence triggers." />
+              </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {statusError ? (
                   <>
@@ -227,9 +234,12 @@ export function AutomationsTab() {
           {/* Card 3: Resend Configuration */}
           <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[76px]">
             <div>
-              <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
-                RESEND
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
+                  RESEND
+                </span>
+                <AdminTooltip content="Transactional and marketing email delivery infrastructure status." />
+              </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 {statusError ? (
                   <>
@@ -259,9 +269,12 @@ export function AutomationsTab() {
           {/* Card 4: Live Since */}
           <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[76px]">
             <div>
-              <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
-                LIVE SINCE
-              </span>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
+                  LIVE SINCE
+                </span>
+                <AdminTooltip content="Timestamp from which automated lifecycle cadences became effective." />
+              </div>
               <div className="mt-0.5">
                 {statusError ? (
                   <span className="text-xs font-bold text-[#8A979D]">STATUS UNAVAILABLE</span>

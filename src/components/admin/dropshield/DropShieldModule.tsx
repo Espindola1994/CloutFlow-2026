@@ -5,7 +5,10 @@ import {
   ShieldCheck, 
   RefreshCw, 
   AlertTriangle, 
-  Activity
+  Activity,
+  Info,
+  Clock,
+  Shield
 } from "lucide-react";
 import { MonitoredProfile } from "../types";
 import {
@@ -22,6 +25,7 @@ import {
   AdminTableCell,
   PlatformIcon,
   MobileDataCard,
+  AdminTooltip,
 } from "../ui";
 
 interface DropShieldModuleProps {
@@ -49,39 +53,55 @@ export function DropShieldModule({ monitoredProfiles }: DropShieldModuleProps) {
       {/* Page Header */}
       <AdminSectionHeader
         title="Drop Shield 24/7"
-        description="Monitor retention protection and automatic refill safeguards."
+        description="Monitor retention protection, warranty thresholds, and automatic refill safeguard status."
         actions={
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#E7F5F4] border border-[#0F8F8A]/20 text-xs font-semibold text-[#0F8F8A]">
-            <span className="w-2 h-2 rounded-full bg-[#0F8F8A] animate-pulse" />
-            <span>Autonomous Engine: Active</span>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#FAFCFC] border border-[#D9E2E3] text-xs font-semibold text-[#65737A]">
+            <span className="w-2 h-2 rounded-full bg-[#8A979D]" />
+            <span>Refill Automation: Standby</span>
           </div>
         }
       />
+
+      {/* Honest Operational Notice */}
+      <div className="p-3.5 rounded-[9px] bg-[#F8FAFB] border border-[#D9E2E3] text-[#65737A] text-[12px] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="p-1 rounded bg-[#EBF1F2] text-[#0F8F8A]">
+            <Info className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="font-semibold text-[#142126]">Drop Shield Automation Status:</span>{' '}
+            <span>Drop Shield background polling is not actively connected to automatic refill jobs in this deployment. Profiles with warranty remain in standby.</span>
+          </div>
+        </div>
+        <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-[#EBF1F2] text-[#0F8F8A] border border-[#D9E2E3] shrink-0">
+          MONITORING STANDBY
+        </span>
+      </div>
 
       {/* Summary / KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <AdminStatCard
           title="Monitored Profiles"
-          value={monitoredProfiles.length > 0 ? monitoredProfiles.length : "—"}
+          value={monitoredProfiles.length > 0 ? monitoredProfiles.length : "0"}
           subValue="Active customer warranties"
           icon={Activity}
         />
         <AdminStatCard
           title="Protected (Stable)"
-          value={monitoredProfiles.length > 0 ? protectedCount : "—"}
+          value={monitoredProfiles.length > 0 ? protectedCount : "0"}
           subValue="Counts above delivery threshold"
           icon={ShieldCheck}
           change={monitoredProfiles.length > 0 ? { value: `${protectedCount} active`, isPositive: true } : undefined}
         />
         <AdminStatCard
           title="Auto Refilled"
-          value={monitoredProfiles.length > 0 ? refilledCount : "—"}
+          value={monitoredProfiles.length > 0 ? refilledCount : "0"}
           subValue="Compensated by provider"
           icon={RefreshCw}
         />
         <AdminStatCard
           title="Requires Attention"
-          value={monitoredProfiles.length > 0 ? attentionCount : "—"}
+          value={monitoredProfiles.length > 0 ? attentionCount : "0"}
           subValue="High drop detected"
           icon={AlertTriangle}
           change={attentionCount > 0 ? { value: `${attentionCount} alerts`, isPositive: false } : undefined}
@@ -145,13 +165,33 @@ export function DropShieldModule({ monitoredProfiles }: DropShieldModuleProps) {
             <AdminTable>
               <AdminTableHeader>
                 <AdminTableRow>
-                  <AdminTableHead>Target Profile</AdminTableHead>
+                  <AdminTableHead>
+                    <div className="flex items-center gap-1">
+                      <span>Target Profile</span>
+                      <AdminTooltip content="Destination account protected by the 30-day Drop Shield warranty." />
+                    </div>
+                  </AdminTableHead>
                   <AdminTableHead>Platform</AdminTableHead>
                   <AdminTableHead>Initial Count</AdminTableHead>
                   <AdminTableHead>Current Count</AdminTableHead>
-                  <AdminTableHead>Delivered</AdminTableHead>
-                  <AdminTableHead>Detected Drop</AdminTableHead>
-                  <AdminTableHead>Auto Refill</AdminTableHead>
+                  <AdminTableHead>
+                    <div className="flex items-center gap-1">
+                      <span>Delivered</span>
+                      <AdminTooltip content="Verified fulfilled units delivered by supplier execution." />
+                    </div>
+                  </AdminTableHead>
+                  <AdminTableHead>
+                    <div className="flex items-center gap-1">
+                      <span>Detected Drop</span>
+                      <AdminTooltip content="Follower/like drop delta calculated relative to baseline count." />
+                    </div>
+                  </AdminTableHead>
+                  <AdminTableHead>
+                    <div className="flex items-center gap-1">
+                      <span>Auto Refill</span>
+                      <AdminTooltip content="Autonomous compensation policy status for this warranty tier." />
+                    </div>
+                  </AdminTableHead>
                   <AdminTableHead>Status</AdminTableHead>
                   <AdminTableHead>Last Checked</AdminTableHead>
                 </AdminTableRow>

@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { CrmContactDetail } from "@/services/crm/crm.service";
-import { AdminBadge, PlatformIcon } from "../ui";
+import { AdminBadge, PlatformIcon, AdminTooltip } from "../ui";
 import { ManualEmailModal } from "./ManualEmailModal";
 import { useAdminAutoRefresh } from "@/hooks/useAdminAutoRefresh";
 import { getEffectiveOfferStatus, formatOfferDateTime } from "@/services/offers/offer-status";
@@ -225,21 +225,33 @@ export function Customer360Modal({
                   {/* Summary Metric Cards */}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <div className="p-4 rounded-xl bg-[#FAFCFC] border border-[#D9E2E3]">
-                      <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Customer Type</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Customer Type</span>
+                        <AdminTooltip content="Customer classification based on cumulative orders placed." />
+                      </div>
                       <span className="text-sm font-bold text-[#142126] mt-1 block">{contact.customerType}</span>
                     </div>
                     <div className="p-4 rounded-xl bg-[#FAFCFC] border border-[#D9E2E3]">
-                      <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Total Orders</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Total Orders</span>
+                        <AdminTooltip content="All orders placed by this customer, including completed deliveries." />
+                      </div>
                       <span className="text-sm font-bold text-[#142126] mt-1 block">{contact.ordersCount} ({contact.completedOrdersCount} done)</span>
                     </div>
                     <div className="p-4 rounded-xl bg-[#FAFCFC] border border-[#D9E2E3]">
-                      <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Gross Value</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Gross Value</span>
+                        <AdminTooltip content="Total revenue collected across all transactions in USD." />
+                      </div>
                       <span className="text-sm font-bold text-[#0F8F8A] mt-1 block">
                         ${(contact.totalSpentCents / 100).toFixed(2)}
                       </span>
                     </div>
                     <div className="p-4 rounded-xl bg-[#FAFCFC] border border-[#D9E2E3]">
-                      <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Derived Status</span>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Derived Status</span>
+                        <AdminTooltip content="Real-time operational funnel assessment calculated from orders and events." />
+                      </div>
                       <span className="text-sm font-bold text-[#142126] mt-1 block">
                         <AdminBadge variant="info" size="sm">{contact.derivedStatus}</AdminBadge>
                       </span>

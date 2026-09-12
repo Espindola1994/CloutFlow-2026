@@ -36,6 +36,7 @@ import {
   AdminTableCell,
   PlatformIcon,
   MobileDataCard,
+  AdminTooltip,
 } from "../ui";
 import { Customer360Modal } from "./Customer360Modal";
 import { ManualEmailModal } from "./ManualEmailModal";
@@ -222,29 +223,44 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
       {/* 1. CONTACTS CRM TAB */}
       {activeTab === "contacts" && (
         <div className="space-y-3.5">
-          {/* Summary counters */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-            <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-              <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Total Contacts</span>
-              <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.total}</span>
-            </div>
-            <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-              <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Active Leads</span>
-              <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.leads}</span>
-            </div>
-            <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-              <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Buyers</span>
-              <span className="text-[22px] font-bold text-[#0F8F8A] block leading-none mt-1">{counts.customers}</span>
-            </div>
-            <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-              <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Abandoned</span>
-              <span className="text-[22px] font-bold text-[#F04438] block leading-none mt-1">{counts.abandoned}</span>
-            </div>
-            <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-              <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Suppressed</span>
-              <span className="text-[22px] font-bold text-[#65737A] block leading-none mt-1">{counts.suppressed}</span>
-            </div>
+      {/* Summary counters */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Total Contacts</span>
+            <AdminTooltip content="All unique customer profiles identified across payment leads, checkout attempts, and fulfilled orders." />
           </div>
+          <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.total}</span>
+        </div>
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Active Leads</span>
+            <AdminTooltip content="Contacts who entered the funnel and initiated checkout but have not finalized a paid order." />
+          </div>
+          <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.leads}</span>
+        </div>
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Buyers</span>
+            <AdminTooltip content="Verified paying customers with one or more confirmed successful transactions." />
+          </div>
+          <span className="text-[22px] font-bold text-[#0F8F8A] block leading-none mt-1">{counts.customers}</span>
+        </div>
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Abandoned</span>
+            <AdminTooltip content="Leads whose checkout sessions expired without payment completion; eligible for cart recovery." />
+          </div>
+          <span className="text-[22px] font-bold text-[#F04438] block leading-none mt-1">{counts.abandoned}</span>
+        </div>
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">Suppressed</span>
+            <AdminTooltip content="Unsubscribed contacts or addresses placed on compliance suppress lists." />
+          </div>
+          <span className="text-[22px] font-bold text-[#65737A] block leading-none mt-1">{counts.suppressed}</span>
+        </div>
+      </div>
 
           {/* Search & Filter Bar */}
           <div className="bg-white border border-[#D9E2E3] rounded-[10px] p-3">
@@ -307,10 +323,30 @@ export function CrmModule({ leads = [], workflows = [], messages = [] }: CrmModu
                 <AdminTable>
                   <AdminTableHeader>
                     <AdminTableRow>
-                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Customer Identity</AdminTableHead>
-                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Target & Platform</AdminTableHead>
-                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Customer Type</AdminTableHead>
-                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Operational State</AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">
+                        <div className="flex items-center gap-1">
+                          <span>Customer Identity</span>
+                          <AdminTooltip content="Customer primary email, optional billing name, and contact details." />
+                        </div>
+                      </AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">
+                        <div className="flex items-center gap-1">
+                          <span>Target & Platform</span>
+                          <AdminTooltip content="Destination account handle/URL and destination social network." />
+                        </div>
+                      </AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">
+                        <div className="flex items-center gap-1">
+                          <span>Customer Type</span>
+                          <AdminTooltip content="Lead (no purchases), Customer (1 purchase), or Repeat Buyer (2+ purchases)." />
+                        </div>
+                      </AdminTableHead>
+                      <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">
+                        <div className="flex items-center gap-1">
+                          <span>Operational State</span>
+                          <AdminTooltip content="Derived live state across cart abandonment, payment confirmation, delivery queue, or manual review." />
+                        </div>
+                      </AdminTableHead>
                       <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Orders</AdminTableHead>
                       <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Gross Value</AdminTableHead>
                       <AdminTableHead className="py-2.5 text-[10px] tracking-wider uppercase font-semibold">Last Activity</AdminTableHead>

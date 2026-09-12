@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Plus, RefreshCw, Trash2, XCircle } from "lucide-react";
-import { AdminButton, AdminIconButton, AdminModal, AdminTable, AdminTableHeader, AdminTableBody, AdminTableRow, AdminTableHead, AdminTableCell } from "../ui";
+import { Plus, RefreshCw, Trash2, XCircle, FlaskConical } from "lucide-react";
+import { AdminButton, AdminIconButton, AdminModal, AdminTable, AdminTableHeader, AdminTableBody, AdminTableRow, AdminTableHead, AdminTableCell, AdminTooltip } from "../ui";
 import { getEffectiveOfferStatus, formatOfferDateTime, CanonicalOfferStatus } from "@/services/offers/offer-status";
 
 // Define local offer interface to avoid any
@@ -124,9 +124,28 @@ export function TestOffersTab() {
 
   return (
     <div className="space-y-4">
+      {/* Sandbox Diagnostic / Isolation Notice */}
+      <div className="p-3.5 rounded-[9px] bg-[#FFFBEB] border border-[#FDE68A] text-[#92400E] text-[12px] flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="p-1 rounded bg-[#FEF3C7] text-[#D97706]">
+            <FlaskConical className="w-4 h-4" />
+          </div>
+          <div>
+            <span className="font-bold">NON-PRODUCTION / TEST ENVIRONMENT:</span>{' '}
+            <span>Test offers create isolated temporary discounts without modifying base commercial catalog pricing.</span>
+          </div>
+        </div>
+        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] shrink-0">
+          ISOLATED SANDBOX
+        </span>
+      </div>
+
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-3.5 shadow-[0_1px_2px_rgba(10,35,42,0.03)]">
         <div>
-          <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">Test Offers</h3>
+          <div className="flex items-center gap-1.5">
+            <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126]">Test Offers Sandbox</h3>
+            <AdminTooltip content="Generate controlled 25% post-purchase discounts to test checkout experience without requiring a prior real charge." />
+          </div>
           <p className="text-[12px] text-[#65737A]">Create controlled 25% offers to validate the post-purchase experience without a prior transaction.</p>
         </div>
         <div className="flex items-center gap-2">
@@ -143,56 +162,68 @@ export function TestOffersTab() {
 
       <div className="bg-[#FFFFFF] border border-[#D9E2E3] rounded-[10px] p-5 shadow-[0_1px_2px_rgba(10,35,42,0.03)]">
         {offers.length === 0 ? (
-           <div className="py-12 text-center text-[#65737A] text-[12px]">No test offers found.</div>
+           <div className="py-12 text-center text-[#65737A] text-[12px]">No test offers found in sandbox.</div>
         ) : (
-          <AdminTable>
-            <AdminTableHeader>
-              <AdminTableRow>
-                <AdminTableHead>CUSTOMER</AdminTableHead>
-                <AdminTableHead>CODE</AdminTableHead>
-                <AdminTableHead>DISCOUNT</AdminTableHead>
-                <AdminTableHead>CREATED</AdminTableHead>
-                <AdminTableHead>EXPIRES</AdminTableHead>
-                <AdminTableHead>STATUS</AdminTableHead>
-                <AdminTableHead className="text-right">ACTIONS</AdminTableHead>
-              </AdminTableRow>
-            </AdminTableHeader>
-            <AdminTableBody>
-              {offers.map(o => {
-                const effectiveStatus = getEffectiveOfferStatus(o);
-                return (
-                  <AdminTableRow key={o.id}>
-                    <AdminTableCell className="font-medium text-[#142126]">{o.customerEmail}</AdminTableCell>
-                    <AdminTableCell className="font-mono">{o.code}</AdminTableCell>
-                    <AdminTableCell>25%</AdminTableCell>
-                    <AdminTableCell>{formatOfferDateTime(o.createdAt)}</AdminTableCell>
-                    <AdminTableCell>{formatOfferDateTime(o.expiresAt, { includeSeconds: true })}</AdminTableCell>
-                    <AdminTableCell>
-                      <span className={`px-2 py-0.5 rounded-[4px] text-[10px] font-semibold ${
-                        effectiveStatus === 'ACTIVE' ? 'bg-[#E8F8F2] text-[#16B77A]' :
-                        effectiveStatus === 'REDEEMED' ? 'bg-[#E0F2FE] text-[#0284C7]' :
-                        'bg-[#F1F5F5] text-[#65737A]'
-                      }`}>
-                        {effectiveStatus} TEST
-                      </span>
-                    </AdminTableCell>
-                    <AdminTableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        {effectiveStatus === 'ACTIVE' && (
-                          <AdminIconButton size="sm" variant="outline" onClick={() => handleExpire(o.id)} title="Expire">
-                            <XCircle className="w-3.5 h-3.5" />
+          <div className="overflow-x-auto">
+            <AdminTable>
+              <AdminTableHeader>
+                <AdminTableRow>
+                  <AdminTableHead>
+                    <div className="flex items-center gap-1">
+                      <span>Customer</span>
+                      <AdminTooltip content="Recipient email assigned to test discount voucher." />
+                    </div>
+                  </AdminTableHead>
+                  <AdminTableHead>
+                    <div className="flex items-center gap-1">
+                      <span>Code</span>
+                      <AdminTooltip content="Unique voucher code generated for sandbox verification." />
+                    </div>
+                  </AdminTableHead>
+                  <AdminTableHead>Discount</AdminTableHead>
+                  <AdminTableHead>Created</AdminTableHead>
+                  <AdminTableHead>Expires</AdminTableHead>
+                  <AdminTableHead>Status</AdminTableHead>
+                  <AdminTableHead className="text-right">Actions</AdminTableHead>
+                </AdminTableRow>
+              </AdminTableHeader>
+              <AdminTableBody>
+                {offers.map(o => {
+                  const effectiveStatus = getEffectiveOfferStatus(o);
+                  return (
+                    <AdminTableRow key={o.id}>
+                      <AdminTableCell className="font-medium text-[#142126]">{o.customerEmail}</AdminTableCell>
+                      <AdminTableCell className="font-mono">{o.code}</AdminTableCell>
+                      <AdminTableCell>25%</AdminTableCell>
+                      <AdminTableCell>{formatOfferDateTime(o.createdAt)}</AdminTableCell>
+                      <AdminTableCell>{formatOfferDateTime(o.expiresAt, { includeSeconds: true })}</AdminTableCell>
+                      <AdminTableCell>
+                        <span className={`px-2 py-0.5 rounded-[4px] text-[10px] font-semibold ${
+                          effectiveStatus === 'ACTIVE' ? 'bg-[#E8F8F2] text-[#16B77A]' :
+                          effectiveStatus === 'REDEEMED' ? 'bg-[#E0F2FE] text-[#0284C7]' :
+                          'bg-[#F1F5F5] text-[#65737A]'
+                        }`}>
+                          {effectiveStatus} TEST
+                        </span>
+                      </AdminTableCell>
+                      <AdminTableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          {effectiveStatus === 'ACTIVE' && (
+                            <AdminIconButton size="sm" variant="outline" onClick={() => handleExpire(o.id)} title="Expire">
+                              <XCircle className="w-3.5 h-3.5" />
+                            </AdminIconButton>
+                          )}
+                          <AdminIconButton size="sm" variant="danger" onClick={() => handleDelete(o.id)} title="Delete">
+                            <Trash2 className="w-3.5 h-3.5" />
                           </AdminIconButton>
-                        )}
-                        <AdminIconButton size="sm" variant="danger" onClick={() => handleDelete(o.id)} title="Delete">
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </AdminIconButton>
-                      </div>
-                    </AdminTableCell>
-                  </AdminTableRow>
-                );
-              })}
-            </AdminTableBody>
-          </AdminTable>
+                        </div>
+                      </AdminTableCell>
+                    </AdminTableRow>
+                  );
+                })}
+              </AdminTableBody>
+            </AdminTable>
+          </div>
         )}
       </div>
 

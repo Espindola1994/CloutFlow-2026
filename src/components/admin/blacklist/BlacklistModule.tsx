@@ -1,8 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { 
-  ShieldBan
+  ShieldBan,
+  ShieldCheck,
+  Ban,
+  AlertTriangle
 } from "lucide-react";
 import { BlacklistEntry } from "../types";
 import {
@@ -17,6 +20,7 @@ import {
   AdminTableHead,
   AdminTableCell,
   MobileDataCard,
+  AdminTooltip,
 } from "../ui";
 
 interface BlacklistModuleProps {
@@ -27,19 +31,73 @@ export function BlacklistModule({ entries }: BlacklistModuleProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  const filteredEntries = entries.filter((entry) => {
-    const matchesSearch = entry.value.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = typeFilter === "all" || entry.type === typeFilter;
-    return matchesSearch && matchesType;
-  });
+  const filteredEntries = useMemo(() => {
+    return entries.filter((entry) => {
+      const matchesSearch = entry.value.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesType = typeFilter === "all" || entry.type === typeFilter;
+      return matchesSearch && matchesType;
+    });
+  }, [entries, searchQuery, typeFilter]);
+
+  const counts = useMemo(() => {
+    return {
+      total: entries.length,
+      usernames: entries.filter((e) => e.type === "username").length,
+      emails: entries.filter((e) => e.type === "email").length,
+      ips: entries.filter((e) => e.type === "ip").length,
+    };
+  }, [entries]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <AdminSectionHeader
-        title="Anti-Fraud Blacklist"
-        description="Manage blocked targets and fulfillment restrictions."
+        title="Anti-Fraud & Deny List"
+        description="Operational deny list enforcement, blocked handles, fraudulent emails, and network restrictions."
       />
+
+      {/* Overview KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+              Blocked Identifiers
+            </span>
+            <AdminTooltip content="Total active deny-list entries permanently blocked from checkout and delivery." />
+          </div>
+          <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.total}</span>
+        </div>
+
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+              Blocked Handles
+            </span>
+            <AdminTooltip content="Social network handles restricted from automated fulfillment." />
+          </div>
+          <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.usernames}</span>
+        </div>
+
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+              Blocked Emails
+            </span>
+            <AdminTooltip content="Email addresses identified in fraud or chargeback histories." />
+          </div>
+          <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.emails}</span>
+        </div>
+
+        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+              Blocked IPs
+            </span>
+            <AdminTooltip content="Network IP addresses flagged for abuse or automated bot attempts." />
+          </div>
+          <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.ips}</span>
+        </div>
+      </div>
 
       {/* Filter and Search */}
       <AdminCard padded={false} className="p-4">
@@ -86,9 +144,24 @@ export function BlacklistModule({ entries }: BlacklistModuleProps) {
             <AdminTable>
               <AdminTableHeader>
                 <AdminTableRow>
-                  <AdminTableHead>Type</AdminTableHead>
-                  <AdminTableHead>Blocked Value</AdminTableHead>
-                  <AdminTableHead>Reason</AdminTableHead>
+                  <AdminTableHead>
+                    <div className="flex items-center gap-1">
+                      <span>Type</span>
+                      <AdminTooltip content="Type of blocked entity: handle, email address, or IP." />
+                    </div>
+                  </AdminTableHead>
+                  <AdminTableHead>
+                    <div className="flex items-center gap-1">
+                      <span>Blocked Value</span>
+                      <AdminTooltip content="Target identifier rejected by payment gates and fulfillment engines." />
+                    </div>
+                  </AdminTableHead>
+                  <AdminTableHead>
+                    <div className="flex items-center gap-1">
+                      <span>Reason</span>
+                      <AdminTooltip content="Operational or fraud rule that triggered this entry." />
+                    </div>
+                  </AdminTableHead>
                   <AdminTableHead>Added Date</AdminTableHead>
                   <AdminTableHead>Added By</AdminTableHead>
                 </AdminTableRow>
