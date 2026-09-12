@@ -8,6 +8,7 @@ import {
   Coins 
 } from "lucide-react";
 import { AnalyticsKpiSummary } from "@/types/admin-analytics";
+import { AdminTooltip } from "../ui";
 
 interface AnalyticsKpisProps {
   kpis: AnalyticsKpiSummary;
@@ -22,6 +23,7 @@ export function AnalyticsKpis({ kpis }: AnalyticsKpisProps) {
       icon: ShoppingCart,
       color: "text-[#142126]",
       iconBg: "bg-[#0F8F8A]/10 text-[#0F8F8A]",
+      tooltip: "Total unique sessions that advanced into checkout and viewed the payment step.",
     },
     {
       title: "CHECKOUTS ABANDONED",
@@ -30,6 +32,7 @@ export function AnalyticsKpis({ kpis }: AnalyticsKpisProps) {
       icon: XCircle,
       color: "text-[#DE3E44]",
       iconBg: "bg-[#DE3E44]/10 text-[#DE3E44]",
+      tooltip: "Sessions that started checkout but did not complete a verified payment.",
     },
     {
       title: "PAID ORDERS",
@@ -38,6 +41,7 @@ export function AnalyticsKpis({ kpis }: AnalyticsKpisProps) {
       icon: CheckCircle2,
       color: "text-[#0F8F8A]",
       iconBg: "bg-[#0F8F8A]/10 text-[#0F8F8A]",
+      tooltip: "Confirmed paid transactions successfully verified by payment gateway webhooks.",
     },
     {
       title: "CHECKOUT CONVERSION RATE",
@@ -46,6 +50,7 @@ export function AnalyticsKpis({ kpis }: AnalyticsKpisProps) {
       icon: Percent,
       color: "text-[#142126]",
       iconBg: "bg-[#071D26]/10 text-[#071D26]",
+      tooltip: "Percentage of checkouts started that resulted in a completed payment.",
     },
     {
       title: "REVENUE",
@@ -54,6 +59,7 @@ export function AnalyticsKpis({ kpis }: AnalyticsKpisProps) {
       icon: DollarSign,
       color: "text-[#0F8F8A]",
       iconBg: "bg-[#0F8F8A]/10 text-[#0F8F8A]",
+      tooltip: "Gross revenue captured before fees, provider costs and adjustments in USD.",
     },
     {
       title: "AVERAGE ORDER VALUE",
@@ -62,6 +68,7 @@ export function AnalyticsKpis({ kpis }: AnalyticsKpisProps) {
       icon: Coins,
       color: "text-[#142126]",
       iconBg: "bg-[#0F8F8A]/10 text-[#0F8F8A]",
+      tooltip: "Average gross dollar amount generated per completed paid order.",
     },
   ];
 
@@ -75,15 +82,18 @@ export function AnalyticsKpis({ kpis }: AnalyticsKpisProps) {
             className="bg-white border border-[#D9E2E3] rounded-[10px] p-4 flex flex-col justify-between shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)] transition-shadow hover:shadow-[0_2px_8px_rgba(10,35,42,0.06)]"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[11px] font-bold text-[#65737A] tracking-wider uppercase">
-                {card.title}
-              </span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-[11px] font-bold text-[#65737A] tracking-wider uppercase">
+                  {card.title}
+                </span>
+                <AdminTooltip content={card.tooltip} />
+              </div>
               <div className={`p-1.5 rounded-[6px] ${card.iconBg}`}>
                 <Icon className="w-4 h-4" />
               </div>
             </div>
             <div>
-              <div className={`text-[24px] font-bold tracking-tight ${card.color}`}>
+              <div className={`text-[24px] font-bold tracking-tight font-mono ${card.color}`}>
                 {card.value}
               </div>
               <div className="text-[11px] font-medium text-[#8A979D] mt-0.5 truncate">
