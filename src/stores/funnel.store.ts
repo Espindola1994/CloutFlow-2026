@@ -1,8 +1,25 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { resolveFunnelReadiness, FunnelReadinessResult, VerificationStatus } from '@/services/funnel-readiness.resolver';
 
 export type TargetType = 'profile' | 'post' | 'video' | 'channel';
+
+const LEGACY_STORAGE_KEY = 'funnel-storage-v3';
+
+// One-shot surgical cleanup of legacy localStorage key
+export function purgeLegacyFunnelStorage(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.removeItem(LEGACY_STORAGE_KEY);
+  } catch {
+    // Fail-open: Never disrupt execution if storage access is restricted
+  }
+}
+
+// Client-safe execution upon module load in the browser
+if (typeof window !== 'undefined') {
+  purgeLegacyFunnelStorage();
+}
 
 export interface FunnelState {
   // Versioning for storage migration
@@ -237,42 +254,8 @@ export const useFunnelStore = create<FunnelState>()(
       },
     }),
     {
-      name: 'funnel-storage-v3', // Migration v4: preserve customer inputs while invalidating stale analysis results
-      version: 4,
-      migrate: (persistedState: any, version: number) => {
-        const legacyTarget = typeof persistedState?.targetValue === 'string'
-          ? persistedState.targetValue
-          : typeof persistedState?.targetUrl === 'string'
-            ? persistedState.targetUrl
-            : null;
-        const draftIdentifier = typeof persistedState?.draftIdentifier === 'string'
-          ? persistedState.draftIdentifier
-          : legacyTarget && (persistedState?.targetType === 'profile' || persistedState?.targetType === 'channel')
-            ? `@${legacyTarget.replace(/^@+/, '')}`
-            : legacyTarget;
-
-        return {
-          version: 4,
-          platformSlug: null,
-          serviceSlug: null,
-          followerType: null,
-          username: null,
-          email: typeof persistedState?.email === 'string' ? persistedState.email : null,
-          draftIdentifier,
-          profileData: null,
-          targetType: null,
-          targetValue: null,
-          targetUrl: null,
-          socialUsername: null,
-          profileUrl: null,
-          verifiedTargetData: null,
-          verificationStatus: 'idle',
-          nicheId: null,
-          customNiche: null,
-          selectedMedia: null,
-          planId: null,
-        };
-      },
+      name: 'funnel-session-v1',
+      storage: createJSONStorage(() => sessionStorage),
     }
   )
 );
