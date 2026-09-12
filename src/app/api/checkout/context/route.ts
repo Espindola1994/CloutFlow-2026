@@ -19,6 +19,8 @@ import {
   getCanonicalPerfectPayItem,
   buildCanonicalOfferId
 } from '@/services/commercial-offer.resolver';
+import { extractGeoFromHeaders } from '@/lib/telemetry/geo';
+import { extractDeviceTelemetry } from '@/lib/telemetry/device';
 
 const ALLOWED_TARGET_HOSTS: Record<string, string[]> = {
   instagram: ['instagram.com', 'www.instagram.com'],
@@ -41,7 +43,10 @@ const checkoutContextCreateSchema = z.object({
   utmContent: z.string().optional().nullable(),
   utmTerm: z.string().optional().nullable(),
   offerCode: z.string().optional().nullable(),
+  sessionId: z.string().optional().nullable(),
+  visitorId: z.string().optional().nullable(),
 });
+
 
 function validateSocialUrl(urlStr: string, platform: string): boolean {
   try {
@@ -397,6 +402,10 @@ export async function POST(request: Request) {
     // canonical_offer_id is mandatory for the official commercial identity.
     // offer_id is physical UUID if override exists, or NULL if no override exists.
     // NO silent catch -> warning -> HTTP 200. Failures MUST yield HTTP 500/503 without checkoutUrl.
+    // Snapshot server-side Geo and Device telemetry (fail-open, purely nullable telemetry)
+    const geo = extractGeoFromHeaders(request.headers);
+    const device = extractDeviceTelemetry(request.headers);
+
     try {
       await db.insert(checkoutContexts).values({
         contextId,
@@ -418,9 +427,21 @@ export async function POST(request: Request) {
         utmCampaign: data.utmCampaign || null,
         utmContent: data.utmContent || null,
         utmTerm: data.utmTerm || null,
+        sessionId: data.sessionId ? data.sessionId.slice(0, 100) : null,
+        visitorId: data.visitorId ? data.visitorId.slice(0, 100) : null,
+        country: geo.country,
+        countryCode: geo.countryCode,
+        region: geo.region,
+        city: geo.city,
+        latitude: geo.latitude,
+        longitude: geo.longitude,
+        deviceType: device.deviceType,
+        os: device.os,
+        browser: device.browser,
         expiresAt,
       });
     } catch (dbInsertError: unknown) {
+
       const msg = dbInsertError instanceof Error ? dbInsertError.message : String(dbInsertError);
       console.error('[CheckoutContextAPI] Critical: Failed to persist checkout context:', msg);
       return NextResponse.json(

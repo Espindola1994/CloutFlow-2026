@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, varchar } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, varchar, numeric } from 'drizzle-orm/pg-core';
 import { offers } from './offers';
 
 export const checkoutContexts = pgTable('checkout_contexts', {
@@ -22,7 +22,20 @@ export const checkoutContexts = pgTable('checkout_contexts', {
   utmCampaign: varchar('utm_campaign', { length: 255 }),
   utmContent: varchar('utm_content', { length: 255 }),
   utmTerm: varchar('utm_term', { length: 255 }),
+  // Telemetry Snapshot: nullable geo/device/session
+  sessionId: text('session_id'),
+  visitorId: text('visitor_id'),
+  country: varchar('country', { length: 10 }),
+  countryCode: varchar('country_code', { length: 10 }),
+  region: varchar('region', { length: 100 }),
+  city: varchar('city', { length: 100 }),
+  latitude: numeric('latitude', { precision: 10, scale: 6 }),
+  longitude: numeric('longitude', { precision: 10, scale: 6 }),
+  deviceType: varchar('device_type', { length: 50 }),
+  os: varchar('os', { length: 50 }),
+  browser: varchar('browser', { length: 50 }),
   consumedAt: timestamp('consumed_at', { withTimezone: true }),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 });
+

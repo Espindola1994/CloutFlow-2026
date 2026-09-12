@@ -14,3 +14,4 @@ export * from './crm';
 export * from './email-inbox';
 export * from './supplier-routing';
 export * from './admin-security';
+export * from './visitor-presence';

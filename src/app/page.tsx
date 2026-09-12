@@ -360,6 +360,9 @@ export default function HomePage({
     }
 
     try {
+      const sessionId = typeof window !== 'undefined' ? sessionStorage.getItem('cf_asid_v1') : null;
+      const visitorId = typeof window !== 'undefined' ? localStorage.getItem('cf_aid_v1') : null;
+
       const res = await fetch("/api/checkout/context", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -371,8 +374,11 @@ export default function HomePage({
           socialUsername: readiness.normalizedUsername,
           profileUrl: readiness.canonicalProfileUrl,
           email: readiness.normalizedEmail,
+          sessionId: sessionId || undefined,
+          visitorId: visitorId || undefined,
         }),
       });
+
       const json = await res.json();
       if (res.ok && json.success && json.data?.checkoutUrl) {
         trackAnalyticsEvent("checkout_started_linked", {

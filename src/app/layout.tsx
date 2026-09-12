@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { DesktopSmoothScroll } from "@/components/DesktopSmoothScroll";
 import ClarityProvider from "@/components/analytics/ClarityProvider";
+import PresenceHeartbeat from "@/components/analytics/PresenceHeartbeat";
 
 
 export const viewport: Viewport = {
@@ -57,10 +58,12 @@ export default function RootLayout({
     <html lang="en" className={`dark ${inter.variable}`}>
       <body className={`${inter.className} font-sans antialiased bg-background text-foreground min-h-screen selection:bg-primary/30 selection:text-primary-foreground`}>
         <ClarityProvider />
+        <PresenceHeartbeat />
         <DesktopSmoothScroll />
         {children}
         <Toaster theme="dark" position="top-right" />
       </body>
+
     </html>
   );
 }
