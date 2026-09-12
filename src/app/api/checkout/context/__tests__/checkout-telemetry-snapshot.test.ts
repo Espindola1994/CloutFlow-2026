@@ -4,6 +4,7 @@ import { db } from '@/db';
 
 vi.mock('@/db', () => ({
   db: {
+    execute: vi.fn(),
     insert: vi.fn(),
     query: {
       offers: {
@@ -23,12 +24,35 @@ vi.mock('@/services/lifecycle/event.service', () => ({
   emitLifecycleEvent: vi.fn().mockResolvedValue(undefined),
 }));
 
-describe('Checkout Context Telemetry Snapshot', () => {
+describe('Checkout Context Telemetry Snapshot (Phase 1.1 Foundation)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('1. Captures server-side geo, device and client session in checkoutContexts insert', async () => {
+  it('1. checkout telemetry does NOT execute DDL (no ALTER TABLE, no db.execute)', async () => {
+    vi.mocked(db.insert).mockReturnValue({
+      values: vi.fn().mockResolvedValue(undefined),
+    } as any);
+
+    const req = new Request('http://localhost:3000/api/checkout/context', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        offerId: 'canonical-instagram-followers-starter',
+        targetType: 'profile',
+        socialUsername: 'noddl_user',
+        sessionId: 'cf_sess_no_ddl',
+      }),
+    });
+
+    const res = await checkoutContextPost(req);
+    expect(res.status).toBe(200);
+    expect(db.execute).not.toHaveBeenCalled();
+  });
+
+  it('2. Captures server-side geo, device and client session in checkoutContexts insert', async () => {
     const insertedValues: any[] = [];
     vi.mocked(db.insert).mockReturnValue({
       values: vi.fn().mockImplementation((val) => {
@@ -77,7 +101,7 @@ describe('Checkout Context Telemetry Snapshot', () => {
     expect(ccInsert.browser).toBe('Safari');
   });
 
-  it('2. When geo headers are absent, checkout context insert proceeds without blocking and saves null geo', async () => {
+  it('3. When geo headers are absent, checkout context insert proceeds without blocking and saves null geo', async () => {
     const insertedValues: any[] = [];
     vi.mocked(db.insert).mockReturnValue({
       values: vi.fn().mockImplementation((val) => {
@@ -107,5 +131,26 @@ describe('Checkout Context Telemetry Snapshot', () => {
     expect(ccInsert.country).toBeNull();
     expect(ccInsert.latitude).toBeNull();
     expect(ccInsert.longitude).toBeNull();
+  });
+
+  it('4. Checkout context failure mode: strict DB commit protection preserves 503 without executing DDL', async () => {
+    vi.mocked(db.insert).mockImplementation(() => {
+      throw new Error('column does not exist');
+    });
+
+    const req = new Request('http://localhost:3000/api/checkout/context', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        offerId: 'canonical-instagram-followers-starter',
+        targetType: 'profile',
+        socialUsername: 'fail_user',
+      }),
+    });
+
+    const res = await checkoutContextPost(req);
+    expect(res.status).toBe(503);
+    // Never run DDL in runtime error handling
+    expect(db.execute).not.toHaveBeenCalled();
   });
 });

@@ -6,10 +6,25 @@ import { db } from '@/db';
 import { visitorPresence } from '@/db/schema/visitor-presence';
 import { extractGeoFromHeaders } from '@/lib/telemetry/geo';
 import { extractDeviceTelemetry } from '@/lib/telemetry/device';
-import { ensurePresenceTable } from '@/lib/telemetry/db-init';
+import {
+  normalizePlatform,
+  normalizeService,
+  normalizePlan,
+  PLATFORM_SERVICES,
+  CommercialPlatform,
+  CommercialService,
+  CommercialPlan,
+} from '@/services/commercial-offer.resolver';
 
 // Active Window: 90 seconds (client heartbeats every ~40s)
-const ACTIVE_WINDOW_MS = 90 * 1000;
+// Users are considered ACTIVE if last_seen_at >= NOW() - 90 seconds
+export const ACTIVE_WINDOW_SECONDS = 90;
+export const ACTIVE_WINDOW_MS = ACTIVE_WINDOW_SECONDS * 1000;
+
+// Expiration / Cleanup retention: 3 minutes (180 seconds)
+// Row remains for safe, non-aggressive cleanup
+export const EXPIRATION_SECONDS = 180; // 3 minutes
+export const EXPIRATION_MS = EXPIRATION_SECONDS * 1000;
 
 // Rate Limiting per IP or Session (in-memory sliding window)
 const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
@@ -127,9 +142,45 @@ export async function POST(request: Request) {
 
     const safeSessionId = sessionId.slice(0, 100);
     const safeVisitorId = typeof visitorId === 'string' ? visitorId.slice(0, 100) : null;
-    const safePlatform = typeof platform === 'string' ? platform.slice(0, 50).toLowerCase() : null;
-    const safeService = typeof service === 'string' ? service.slice(0, 50).toLowerCase() : null;
-    const safePlanId = typeof planId === 'string' ? planId.slice(0, 100) : null;
+
+    // Strict validation & sanitization of platform, service, and planId
+    // Never trust arbitrary strings from the client.
+    // If invalid or absent -> null (never throw error, never block heartbeat).
+    // NEVER accept or store any PII (email, username, URLs, phone, etc).
+    let sanitizedPlatform: CommercialPlatform | null = null;
+    if (typeof platform === 'string') {
+      sanitizedPlatform = normalizePlatform(platform.slice(0, 50));
+    }
+
+    let sanitizedService: CommercialService | null = null;
+    if (typeof service === 'string' && sanitizedPlatform) {
+      const normService = normalizeService(service.slice(0, 50));
+      const allowedServices = PLATFORM_SERVICES[sanitizedPlatform];
+      if (normService && allowedServices && allowedServices.includes(normService)) {
+        sanitizedService = normService;
+      }
+    }
+
+    let sanitizedPlanId: string | null = null;
+    if (typeof planId === 'string') {
+      const rawPlan = planId.slice(0, 100);
+      // If client sent canonical-{platform}-{service}-{plan} format
+      const canonicalMatch = rawPlan.match(/^canonical-([a-z]+)-([a-z]+)-([a-z]+)$/i);
+      if (canonicalMatch) {
+        const p = normalizePlatform(canonicalMatch[1]);
+        const s = normalizeService(canonicalMatch[2]);
+        const pl = normalizePlan(canonicalMatch[3]);
+        if (p && s && pl && PLATFORM_SERVICES[p]?.includes(s)) {
+          sanitizedPlanId = `canonical-${p}-${s}-${pl}`;
+        }
+      } else {
+        // Check if raw string is just a recognized plan name
+        const pl = normalizePlan(rawPlan);
+        if (pl && sanitizedPlatform && sanitizedService) {
+          sanitizedPlanId = `canonical-${sanitizedPlatform}-${sanitizedService}-${pl}`;
+        }
+      }
+    }
 
     // Extract server-side Geo from edge headers (null if absent, NEVER fictitious)
     const geo = extractGeoFromHeaders(request.headers);
@@ -138,19 +189,17 @@ export async function POST(request: Request) {
     const device = extractDeviceTelemetry(request.headers);
 
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + ACTIVE_WINDOW_MS);
+    // ACTIVE window is calculated via lastSeenAt >= now - 90s in queries.
+    // expiresAt is retention/cleanup window: now + 3 minutes (180s)
+    const expiresAt = new Date(now.getTime() + EXPIRATION_MS);
 
-    // Ensure database table & indexes exist (idempotent, fail-open)
-    await ensurePresenceTable();
-
-    // UPSERT by sessionId
+    // UPSERT by sessionId (Fail-open: relies purely on existing database migration, NO runtime DDL)
     await db.insert(visitorPresence).values({
-
       sessionId: safeSessionId,
       visitorId: safeVisitorId,
-      platform: safePlatform,
-      service: safeService,
-      planId: safePlanId,
+      platform: sanitizedPlatform,
+      service: sanitizedService,
+      planId: sanitizedPlanId,
       country: geo.country,
       countryCode: geo.countryCode,
       region: geo.region,
@@ -167,9 +216,9 @@ export async function POST(request: Request) {
       target: visitorPresence.sessionId,
       set: {
         visitorId: safeVisitorId,
-        platform: safePlatform,
-        service: safeService,
-        planId: safePlanId,
+        platform: sanitizedPlatform,
+        service: sanitizedService,
+        planId: sanitizedPlanId,
         country: geo.country,
         countryCode: geo.countryCode,
         region: geo.region,
