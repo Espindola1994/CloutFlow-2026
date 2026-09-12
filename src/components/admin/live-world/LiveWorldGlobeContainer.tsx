@@ -2,7 +2,7 @@
 
 import React from "react";
 import dynamic from "next/dynamic";
-import type { LiveWorldLocationItem, LiveWorldRecentPurchase } from "@/types/admin-live-world";
+import type { LiveWorldGlobeProps } from "./LiveWorldGlobe";
 
 const DynamicGlobe = dynamic(
   () => import("./LiveWorldGlobe"),
@@ -22,14 +22,6 @@ const DynamicGlobe = dynamic(
   }
 );
 
-interface LiveWorldGlobeContainerProps {
-  locations: LiveWorldLocationItem[];
-  recentPurchases: LiveWorldRecentPurchase[];
-  newPurchaseOrderIds: Set<string>;
-  onHoverLocation?: (location: LiveWorldLocationItem | null) => void;
-  onHoverPurchase?: (purchase: LiveWorldRecentPurchase | null) => void;
-}
-
-export function LiveWorldGlobeContainer(props: LiveWorldGlobeContainerProps) {
+export function LiveWorldGlobeContainer(props: LiveWorldGlobeProps) {
   return <DynamicGlobe {...props} />;
 }

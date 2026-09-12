@@ -2,13 +2,32 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import type { LiveWorldLocationItem, LiveWorldRecentPurchase } from "@/types/admin-live-world";
+import type { LiveWorldHistoryTopCity } from "@/types/admin-live-world-history";
+import {
+  type LiveWorldGlobeMode,
+  type MappableCity,
+  extractValidMappableCities,
+  calculateLogIntensity,
+  calculateMarkerSize,
+  calculatePointAltitude,
+  getHistoricalPointColor,
+} from "./live-world-geo-utils";
 
-interface LiveWorldGlobeProps {
-  locations: LiveWorldLocationItem[];
-  recentPurchases: LiveWorldRecentPurchase[];
-  newPurchaseOrderIds: Set<string>;
+export interface LiveWorldGlobeProps {
+  // Mode selection: "live" (Live Activity), "revenue" (Revenue Map), "purchase" (Purchase Map)
+  mode?: LiveWorldGlobeMode;
+  // Live Activity datasets
+  locations?: LiveWorldLocationItem[];
+  recentPurchases?: LiveWorldRecentPurchase[];
+  newPurchaseOrderIds?: Set<string>;
   onHoverLocation?: (location: LiveWorldLocationItem | null) => void;
   onHoverPurchase?: (purchase: LiveWorldRecentPurchase | null) => void;
+
+  // Phase 4C Historical datasets
+  historicalCities?: LiveWorldHistoryTopCity[];
+  selectedCity?: MappableCity | null;
+  onHoverHistoricalCity?: (city: MappableCity | null) => void;
+  onSelectHistoricalCity?: (city: MappableCity | null) => void;
 }
 
 interface GlobePoint {
@@ -19,7 +38,8 @@ interface GlobePoint {
   altitude: number;
   location?: LiveWorldLocationItem;
   purchase?: LiveWorldRecentPurchase;
-  type: "visitor" | "purchase";
+  historicalCity?: MappableCity;
+  type: "visitor" | "purchase" | "historical";
 }
 
 interface GlobeRing {
@@ -32,17 +52,39 @@ interface GlobeRing {
 }
 
 export default function LiveWorldGlobe({
-  locations,
-  recentPurchases,
-  newPurchaseOrderIds,
+  mode = "live",
+  locations = [],
+  recentPurchases = [],
+  newPurchaseOrderIds = new Set(),
   onHoverLocation,
   onHoverPurchase,
+  historicalCities = [],
+  selectedCity = null,
+  onHoverHistoricalCity,
+  onSelectHistoricalCity,
 }: LiveWorldGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const globeInstanceRef = useRef<any>(null);
   const [webglSupported, setWebglSupported] = useState<boolean>(true);
   const [initError, setInitError] = useState<string | null>(null);
   const [isGlobeReady, setIsGlobeReady] = useState<boolean>(false);
+
+  // References to keep callbacks current without re-binding globe event listeners
+  const callbacksRef = useRef({
+    onHoverLocation,
+    onHoverPurchase,
+    onHoverHistoricalCity,
+    onSelectHistoricalCity,
+  });
+
+  useEffect(() => {
+    callbacksRef.current = {
+      onHoverLocation,
+      onHoverPurchase,
+      onHoverHistoricalCity,
+      onSelectHistoricalCity,
+    };
+  });
 
   // Check WebGL availability
   useEffect(() => {
@@ -57,7 +99,7 @@ export default function LiveWorldGlobe({
     }
   }, []);
 
-  // Initialize Globe
+  // Initialize Globe once
   useEffect(() => {
     if (!webglSupported || !containerRef.current || globeInstanceRef.current) return;
 
@@ -88,7 +130,7 @@ export default function LiveWorldGlobe({
           .pointColor("color")
           .pointResolution(24)
           .pointsMerge(false)
-          .pointLabel(() => "") // Tooltips are rendered via React overlay to maintain custom UI
+          .pointLabel(() => "") // Custom UI overlays handle tooltips
           .ringsData([])
           .ringColor("color")
           .ringMaxRadius("maxR")
@@ -96,16 +138,31 @@ export default function LiveWorldGlobe({
           .ringRepeatPeriod("repeatPeriod")
           .onPointHover((point: GlobePoint | null) => {
             if (!point) {
-              onHoverLocation?.(null);
-              onHoverPurchase?.(null);
+              callbacksRef.current.onHoverLocation?.(null);
+              callbacksRef.current.onHoverPurchase?.(null);
+              callbacksRef.current.onHoverHistoricalCity?.(null);
             } else if (point.type === "visitor" && point.location) {
-              onHoverPurchase?.(null);
-              onHoverLocation?.(point.location);
+              callbacksRef.current.onHoverPurchase?.(null);
+              callbacksRef.current.onHoverHistoricalCity?.(null);
+              callbacksRef.current.onHoverLocation?.(point.location);
             } else if (point.type === "purchase" && point.purchase) {
-              onHoverLocation?.(null);
-              onHoverPurchase?.(point.purchase);
+              callbacksRef.current.onHoverLocation?.(null);
+              callbacksRef.current.onHoverHistoricalCity?.(null);
+              callbacksRef.current.onHoverPurchase?.(point.purchase);
+            } else if (point.type === "historical" && point.historicalCity) {
+              callbacksRef.current.onHoverLocation?.(null);
+              callbacksRef.current.onHoverPurchase?.(null);
+              callbacksRef.current.onHoverHistoricalCity?.(point.historicalCity);
             }
           });
+
+        if (typeof globe.onPointClick === "function") {
+          globe.onPointClick((point: GlobePoint | null) => {
+            if (point && point.type === "historical" && point.historicalCity) {
+              callbacksRef.current.onSelectHistoricalCity?.(point.historicalCity);
+            }
+          });
+        }
 
         // Configure controls
         const controls = globe.controls();
@@ -178,68 +235,119 @@ export default function LiveWorldGlobe({
     };
   }, [webglSupported]);
 
-  // Update Points and Rings without recreating the Globe or resetting camera/zoom
+  // Update Points and Rings dynamically without recreating the Globe or resetting camera/zoom
   useEffect(() => {
     const globe = globeInstanceRef.current;
     if (!globe) return;
 
-    // 1. Visitors points
-    const pointsData: GlobePoint[] = [];
+    if (mode === "live") {
+      // 1. Live Activity Mode
+      const pointsData: GlobePoint[] = [];
 
-    locations.forEach((loc) => {
-      if (typeof loc.latitude !== "number" || typeof loc.longitude !== "number") return;
-      // Proportional size based on activeCount
-      const baseRadius = 0.35;
-      const size = Math.min(baseRadius + Math.log2(Math.max(1, loc.activeCount)) * 0.22, 1.4);
+      // Visitors points
+      locations.forEach((loc) => {
+        if (typeof loc.latitude !== "number" || typeof loc.longitude !== "number") return;
+        const baseRadius = 0.35;
+        const size = Math.min(baseRadius + Math.log2(Math.max(1, loc.activeCount)) * 0.22, 1.4);
 
-      pointsData.push({
-        lat: loc.latitude,
-        lng: loc.longitude,
-        size,
-        color: "rgba(15, 143, 138, 0.92)",
-        altitude: 0.02,
-        location: loc,
-        type: "visitor",
+        pointsData.push({
+          lat: loc.latitude,
+          lng: loc.longitude,
+          size,
+          color: "rgba(15, 143, 138, 0.92)",
+          altitude: 0.02,
+          location: loc,
+          type: "visitor",
+        });
       });
-    });
 
-    // 2. Recent purchases points
-    recentPurchases.forEach((purchase) => {
-      if (!purchase.mappable || typeof purchase.latitude !== "number" || typeof purchase.longitude !== "number") return;
+      // Recent purchases points
+      recentPurchases.forEach((purchase) => {
+        if (!purchase.mappable || typeof purchase.latitude !== "number" || typeof purchase.longitude !== "number") return;
 
-      const isNew = newPurchaseOrderIds.has(purchase.orderId);
-      pointsData.push({
-        lat: purchase.latitude,
-        lng: purchase.longitude,
-        size: isNew ? 0.75 : 0.5,
-        color: isNew ? "rgba(255, 184, 0, 1)" : "rgba(245, 158, 11, 0.85)",
-        altitude: isNew ? 0.06 : 0.035,
-        purchase,
-        type: "purchase",
-      });
-    });
-
-    globe.pointsData(pointsData);
-
-    // 3. Rings for purchases (animated pulse effect for new purchases)
-    const ringsData: GlobeRing[] = [];
-    recentPurchases.forEach((purchase) => {
-      if (!purchase.mappable || typeof purchase.latitude !== "number" || typeof purchase.longitude !== "number") return;
-
-      if (newPurchaseOrderIds.has(purchase.orderId)) {
-        ringsData.push({
+        const isNew = newPurchaseOrderIds.has(purchase.orderId);
+        pointsData.push({
           lat: purchase.latitude,
           lng: purchase.longitude,
-          maxR: 3.5,
-          propagationSpeed: 2.2,
-          repeatPeriod: 1200,
-          color: "rgba(255, 196, 0, 0.85)",
+          size: isNew ? 0.75 : 0.5,
+          color: isNew ? "rgba(255, 184, 0, 1)" : "rgba(245, 158, 11, 0.85)",
+          altitude: isNew ? 0.06 : 0.035,
+          purchase,
+          type: "purchase",
         });
-      }
-    });
+      });
 
-    globe.ringsData(ringsData);
-  }, [locations, recentPurchases, newPurchaseOrderIds, isGlobeReady]);
+      globe.pointsData(pointsData);
+
+      // Rings for recent purchases (animated pulse effect for new live purchases)
+      const ringsData: GlobeRing[] = [];
+      recentPurchases.forEach((purchase) => {
+        if (!purchase.mappable || typeof purchase.latitude !== "number" || typeof purchase.longitude !== "number") return;
+
+        if (newPurchaseOrderIds.has(purchase.orderId)) {
+          ringsData.push({
+            lat: purchase.latitude,
+            lng: purchase.longitude,
+            maxR: 3.5,
+            propagationSpeed: 2.2,
+            repeatPeriod: 1200,
+            color: "rgba(255, 196, 0, 0.85)",
+          });
+        }
+      });
+
+      globe.ringsData(ringsData);
+    } else {
+      // 2. Historical Mode (Revenue Map or Purchase Map)
+      // Zero live rings in historical mode
+      globe.ringsData([]);
+
+      const validCities = extractValidMappableCities(historicalCities);
+
+      if (validCities.length === 0) {
+        globe.pointsData([]);
+        return;
+      }
+
+      // Compute max value for normalized log scaling
+      let maxValue = 1;
+      if (mode === "revenue") {
+        maxValue = Math.max(...validCities.map((c) => c.revenueCents), 1);
+      } else {
+        maxValue = Math.max(...validCities.map((c) => c.purchaseCount), 1);
+      }
+
+      const pointsData: GlobePoint[] = validCities.map((city) => {
+        const val = mode === "revenue" ? city.revenueCents : city.purchaseCount;
+        const intensity = calculateLogIntensity(val, maxValue, 0.2);
+        const isSelected = selectedCity?.city === city.city && selectedCity?.countryCode === city.countryCode;
+
+        const size = calculateMarkerSize(val, maxValue, isSelected ? 0.7 : 0.45, isSelected ? 1.6 : 1.35);
+        const altitude = calculatePointAltitude(val, maxValue, 0.02, 0.10);
+        const color = getHistoricalPointColor(mode, intensity, isSelected);
+
+        return {
+          lat: city.latitude,
+          lng: city.longitude,
+          size,
+          color,
+          altitude: isSelected ? altitude + 0.03 : altitude,
+          historicalCity: city,
+          type: "historical",
+        };
+      });
+
+      globe.pointsData(pointsData);
+    }
+  }, [
+    mode,
+    locations,
+    recentPurchases,
+    newPurchaseOrderIds,
+    historicalCities,
+    selectedCity,
+    isGlobeReady,
+  ]);
 
   if (!webglSupported || initError) {
     return (
@@ -254,7 +362,7 @@ export default function LiveWorldGlobe({
         </div>
         <h3 className="text-white font-bold text-[15px]">3D view unavailable on this device.</h3>
         <p className="text-[#8A979D] text-[12px] mt-1 max-w-sm">
-          WebGL hardware acceleration is disabled or unsupported. Activity metrics, Top Countries, and Recent Purchases remain fully operational below.
+          WebGL hardware acceleration is disabled or unsupported. Activity metrics, Top Countries, and analytics cards remain fully operational.
         </p>
       </div>
     );
