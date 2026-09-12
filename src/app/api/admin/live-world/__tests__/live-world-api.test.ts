@@ -566,4 +566,169 @@ describe('Admin Live World API & Aggregation Suite (Fase 2)', () => {
     expect(data.os.Other).toBe(2);
     expect(data.os.iOS).toBe(1);
   });
+
+  // =========================================================================
+  // FASE 2.1 — GEO PRECISION NORMALIZATION & AGGREGATION TESTS
+  // =========================================================================
+
+  // 24. latitude payload arredondada para <= 2 casas decimais
+  it('24. normalizes latitude to at most 2 decimal places in locations and recentPurchases', () => {
+    const data = aggregateLiveWorldData({
+      visitors: [
+        {
+          countryCode: 'US',
+          region: 'FL',
+          city: 'Miami',
+          latitude: 25.7617,
+          longitude: -80.1918,
+          deviceType: 'mobile',
+          os: 'iOS',
+          browser: 'Safari',
+        },
+      ],
+      recentPurchases: [
+        {
+          orderId: 'CF-2026',
+          countryCode: 'US',
+          region: 'FL',
+          city: 'Miami',
+          latitude: 25.76, // 25.7617 rounded to <=2
+          longitude: -80.19,
+          mappable: true,
+          deviceType: 'mobile',
+          os: 'iOS',
+          browser: 'Safari',
+          platform: 'instagram',
+          service: 'followers',
+          planId: 'plan_1',
+          amountCents: 2990,
+          approvedAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    expect(data.locations[0].latitude).toBe(25.76);
+    expect(data.recentPurchases[0].latitude).toBe(25.76);
+
+    const latDecimals = String(data.locations[0].latitude).split('.')[1]?.length || 0;
+    expect(latDecimals).toBeLessThanOrEqual(2);
+  });
+
+  // 25. longitude payload arredondada para <= 2 casas decimais
+  it('25. normalizes longitude to at most 2 decimal places in locations and recentPurchases', () => {
+    const data = aggregateLiveWorldData({
+      visitors: [
+        {
+          countryCode: 'US',
+          region: 'FL',
+          city: 'Miami',
+          latitude: 25.7617,
+          longitude: -80.1918,
+          deviceType: 'mobile',
+          os: 'iOS',
+          browser: 'Safari',
+        },
+      ],
+      recentPurchases: [
+        {
+          orderId: 'CF-2026',
+          countryCode: 'US',
+          region: 'FL',
+          city: 'Miami',
+          latitude: 25.76,
+          longitude: -80.19,
+          mappable: true,
+          deviceType: 'mobile',
+          os: 'iOS',
+          browser: 'Safari',
+          platform: 'instagram',
+          service: 'followers',
+          planId: 'plan_1',
+          amountCents: 2990,
+          approvedAt: new Date().toISOString(),
+        },
+      ],
+    });
+
+    expect(data.locations[0].longitude).toBe(-80.19);
+    expect(data.recentPurchases[0].longitude).toBe(-80.19);
+
+    const lngDecimals = String(data.locations[0].longitude).split('.')[1]?.length || 0;
+    expect(lngDecimals).toBeLessThanOrEqual(2);
+  });
+
+  // 26. DB não é alterado pelo arredondamento (read-only transformation)
+  it('26. performs read-only transformation in memory without executing any DB update or DDL', async () => {
+    const rawPresence = [
+      {
+        countryCode: 'US',
+        region: 'FL',
+        city: 'Miami',
+        latitude: '25.761745',
+        longitude: '-80.191823',
+        deviceType: 'mobile',
+        os: 'iOS',
+        browser: 'Safari',
+      },
+    ];
+
+    let queryCount = 0;
+    vi.mocked(db.select).mockImplementation(() => {
+      queryCount++;
+      return {
+        from: vi.fn().mockReturnValue({
+          where: vi.fn().mockImplementation(() => {
+            if (queryCount === 1) return Promise.resolve(rawPresence);
+            return Promise.resolve([]);
+          }),
+        }),
+      } as any;
+    });
+
+    const result = await getAdminLiveWorldData();
+
+    // Verify coordinates in returned payload are rounded to 2 decimals
+    expect(result.locations[0].latitude).toBe(25.76);
+    expect(result.locations[0].longitude).toBe(-80.19);
+
+    // Verify raw input data was not mutated
+    expect(rawPresence[0].latitude).toBe('25.761745');
+    expect(rawPresence[0].longitude).toBe('-80.191823');
+  });
+
+  // 27. location aggregation continua correta e não mistura cidades com o mesmo arredondamento
+  it('27. does not merge different cities even if their coordinates round to the same value', () => {
+    // Two nearby or edge cities with coordinates rounding to same 2-decimal numbers
+    const data = aggregateLiveWorldData({
+      visitors: [
+        {
+          countryCode: 'US',
+          region: 'FL',
+          city: 'Miami',
+          latitude: 25.7611,
+          longitude: -80.1911,
+          deviceType: 'mobile',
+          os: 'iOS',
+          browser: 'Safari',
+        },
+        {
+          countryCode: 'US',
+          region: 'FL',
+          city: 'Miami Beach',
+          latitude: 25.7649,
+          longitude: -80.1949,
+          deviceType: 'desktop',
+          os: 'macOS',
+          browser: 'Chrome',
+        },
+      ],
+      recentPurchases: [],
+    });
+
+    // Both round to (25.76, -80.19), but city names are different ('Miami' vs 'Miami Beach')
+    expect(data.locations).toHaveLength(2);
+    const cityNames = data.locations.map((l) => l.city);
+    expect(cityNames).toContain('Miami');
+    expect(cityNames).toContain('Miami Beach');
+  });
 });

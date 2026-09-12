@@ -17,6 +17,24 @@ export const LIVE_WORLD_ACTIVE_WINDOW_SECONDS = 90;
 export const LIVE_WORLD_RECENT_PURCHASE_MINUTES = 15;
 
 /**
+ * Normalizes latitude or longitude coordinate to at most 2 decimal places.
+ * Returns null if the input is null, undefined, NaN, or out of range.
+ */
+export function normalizeGeoCoordinate(
+  coord: string | number | null | undefined,
+  type: 'lat' | 'lng'
+): number | null {
+  if (coord === null || coord === undefined || coord === '') return null;
+  const num = typeof coord === 'number' ? coord : parseFloat(String(coord));
+  if (isNaN(num)) return null;
+
+  if (type === 'lat' && (num < -90 || num > 90)) return null;
+  if (type === 'lng' && (num < -180 || num > 180)) return null;
+
+  return parseFloat(num.toFixed(2));
+}
+
+/**
  * Normalizes device type into canonical categories: mobile, tablet, desktop, other.
  */
 export function normalizeDeviceCategory(deviceType: string | null | undefined): keyof LiveWorldDeviceBreakdown {
@@ -129,23 +147,21 @@ export function aggregateLiveWorldData(params: {
     globalOs[os] += 1;
     globalBrowsers[br] += 1;
 
-    // Check if coordinates exist and are valid numbers
-    const latNum = v.latitude !== null && v.latitude !== undefined && v.latitude !== '' ? parseFloat(String(v.latitude)) : NaN;
-    const lngNum = v.longitude !== null && v.longitude !== undefined && v.longitude !== '' ? parseFloat(String(v.longitude)) : NaN;
+    // Check if coordinates exist and are valid numbers with max 2 decimal precision
+    const latFixed = normalizeGeoCoordinate(v.latitude, 'lat');
+    const lngFixed = normalizeGeoCoordinate(v.longitude, 'lng');
 
-    const isMappable = !isNaN(latNum) && !isNaN(lngNum) && latNum >= -90 && latNum <= 90 && lngNum >= -180 && lngNum <= 180;
+    const isMappable = latFixed !== null && lngFixed !== null;
 
     if (isMappable) {
       mappableVisitorsTotal += 1;
 
-      // Grouping key: Lat (4 decimals), Lng (4 decimals), normalized countryCode, city
-      const latFixed = parseFloat(latNum.toFixed(4));
-      const lngFixed = parseFloat(lngNum.toFixed(4));
+      // Grouping key: countryCode + region + city + roundedLat + roundedLng
       const cc = v.countryCode ? v.countryCode.trim().toUpperCase() : null;
       const city = v.city ? v.city.trim() : null;
       const region = v.region ? v.region.trim() : null;
 
-      const locKey = `${latFixed},${lngFixed}:${cc || 'UNKNOWN'}:${city || 'UNKNOWN'}`;
+      const locKey = `${cc || 'UNKNOWN'}:${region || 'UNKNOWN'}:${city || 'UNKNOWN'}:${latFixed}:${lngFixed}`;
 
       let loc = locationMap.get(locKey);
       if (!loc) {
@@ -336,19 +352,9 @@ export async function getAdminLiveWorldData(): Promise<LiveWorldResponseData> {
   const recentPurchases: LiveWorldRecentPurchase[] = recentOrders.map((ord) => {
     const ctx = ord.src && ord.src.startsWith('CFCTX_') ? contextMap.get(ord.src) : null;
 
-    let latitude: number | null = null;
-    let longitude: number | null = null;
-    let mappable = false;
-
-    if (ctx?.latitude !== null && ctx?.latitude !== undefined && ctx?.longitude !== null && ctx?.longitude !== undefined) {
-      const lat = parseFloat(String(ctx.latitude));
-      const lng = parseFloat(String(ctx.longitude));
-      if (!isNaN(lat) && !isNaN(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180) {
-        latitude = parseFloat(lat.toFixed(4));
-        longitude = parseFloat(lng.toFixed(4));
-        mappable = true;
-      }
-    }
+    const latitude = normalizeGeoCoordinate(ctx?.latitude, 'lat');
+    const longitude = normalizeGeoCoordinate(ctx?.longitude, 'lng');
+    const mappable = latitude !== null && longitude !== null;
 
     const effectivePlanId = ord.canonicalOfferId || ord.planId || null;
     const approvedTimestamp = (ord.paidAt || ord.createdAt || now).toISOString();
