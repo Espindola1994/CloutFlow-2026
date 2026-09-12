@@ -5,7 +5,8 @@ import {
   BarChart3, 
   RefreshCw, 
   Calendar, 
-  AlertCircle 
+  AlertCircle,
+  Globe2
 } from "lucide-react";
 import { AnalyticsDateRange, AnalyticsResponseData } from "@/types/admin-analytics";
 import { AnalyticsKpis } from "./AnalyticsKpis";
@@ -24,9 +25,10 @@ import { TrafficAndDevicesCard } from "./TrafficAndDevicesCard";
 
 interface AnalyticsModuleProps {
   onNavigateToAttribution?: () => void;
+  onNavigateToLiveWorld?: () => void;
 }
 
-export function AnalyticsModule({ onNavigateToAttribution }: AnalyticsModuleProps) {
+export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld }: AnalyticsModuleProps) {
   const [range, setRange] = useState<AnalyticsDateRange>("7d");
   const [data, setData] = useState<AnalyticsResponseData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -100,6 +102,17 @@ export function AnalyticsModule({ onNavigateToAttribution }: AnalyticsModuleProp
               </button>
             ))}
           </div>
+
+          {onNavigateToLiveWorld && (
+            <button
+              type="button"
+              onClick={onNavigateToLiveWorld}
+              className="px-3 py-1.5 rounded-[8px] border border-[#0F8F8A]/30 bg-[#0F8F8A]/10 text-[#0F8F8A] hover:bg-[#0F8F8A]/20 transition-colors cursor-pointer flex items-center gap-1.5 text-[12px] font-semibold"
+            >
+              <Globe2 className="w-3.5 h-3.5 animate-pulse" />
+              <span>Live World 3D</span>
+            </button>
+          )}
 
           <button
             type="button"

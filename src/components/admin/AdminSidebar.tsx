@@ -15,12 +15,13 @@ import {
   PackageOpen,
   Radio,
   Sliders,
-  BarChart3
+  BarChart3,
+  Globe2
 } from "lucide-react";
 import { BUILD_INFO } from "@/lib/build-info";
 import { AdminNeonIcon, AdminNeonColor } from "./ui";
 
-export type AdminTab = "dashboard" | "analytics" | "orders" | "supplier-routing" | "dropshield" | "fulfillment" | "growth" | "crm" | "blacklist" | "infra";
+export type AdminTab = "dashboard" | "analytics" | "live-world" | "orders" | "supplier-routing" | "dropshield" | "fulfillment" | "growth" | "crm" | "blacklist" | "infra";
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -40,6 +41,7 @@ export function AdminSidebar({
   const menuItems: { id: AdminTab; label: string; icon: React.ComponentType<{ className?: string }>; color: AdminNeonColor }[] = [
     { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, color: "teal" },
     { id: "analytics", label: "Analytics", icon: BarChart3, color: "violet" },
+    { id: "live-world", label: "Live World", icon: Globe2, color: "cyan" },
     { id: "orders", label: "Orders & Margins", icon: ShoppingBag, color: "blue" },
     { id: "supplier-routing", label: "Supplier Routing", icon: Sliders, color: "cyan" },
     { id: "dropshield", label: "Drop Shield 24/7", icon: ShieldCheck, color: "green" },
