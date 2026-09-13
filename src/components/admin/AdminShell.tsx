@@ -102,7 +102,12 @@ function AdminShellContent() {
   const renderModule = () => {
     switch (activeTab) {
       case "dashboard":
-        return <DashboardOverview onNavigateToOrders={() => handleSelectTab("orders")} />;
+        return (
+          <DashboardOverview 
+            onNavigateToOrders={() => handleSelectTab("orders")} 
+            onNavigateToTab={handleSelectTab}
+          />
+        );
       case "analytics":
         return (
           <AnalyticsModule 
@@ -136,7 +141,12 @@ function AdminShellContent() {
       case "infra":
         return <InfrastructureModule integrations={integrations} providers={providers} webhooks={webhooks} />;
       default:
-        return <DashboardOverview onNavigateToOrders={() => handleSelectTab("orders")} />;
+        return (
+          <DashboardOverview 
+            onNavigateToOrders={() => handleSelectTab("orders")} 
+            onNavigateToTab={handleSelectTab}
+          />
+        );
     }
   };
 

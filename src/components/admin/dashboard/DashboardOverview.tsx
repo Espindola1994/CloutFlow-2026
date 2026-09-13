@@ -17,6 +17,7 @@ import {
   Percent
 } from "lucide-react";
 import { Order, Platform } from "../types";
+import type { AdminTab } from "../AdminSidebar";
 import {
   AdminButton,
   AdminStatusBadge,
@@ -34,9 +35,10 @@ import {
 
 interface DashboardOverviewProps {
   onNavigateToOrders: () => void;
+  onNavigateToTab?: (tab: AdminTab) => void;
 }
 
-export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps) {
+export function DashboardOverview({ onNavigateToOrders, onNavigateToTab }: DashboardOverviewProps) {
   const [period, setPeriod] = useState<"7d" | "30d">("7d");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -215,16 +217,34 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-[26px] font-[650] text-[var(--admin-text)] tracking-tight">
-            Dashboard
-          </h1>
-          <p className="text-[13px] text-[var(--admin-text-secondary)] mt-0.5">
-            USD Financial KPIs, orders and fulfillment performance.
-          </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-[22px] md:text-[26px] font-[650] text-[var(--admin-text)] tracking-tight">
+              Dashboard
+            </h1>
+            <p className="text-[12px] md:text-[13px] text-[var(--admin-text-secondary)] mt-0.5">
+              USD Financial KPIs, orders and fulfillment performance.
+            </p>
+          </div>
+          {/* Mobile-only compact quick refresh button */}
+          <div className="sm:hidden flex items-center gap-1.5">
+            {isUpdating && (
+              <span className="w-2 h-2 rounded-full bg-[var(--admin-primary)] animate-ping" />
+            )}
+            <AdminButton
+              variant="outline"
+              size="sm"
+              onClick={() => fetchDashboardData(false)}
+              disabled={loading || isUpdating}
+              aria-label="Refresh dashboard data"
+              className="h-9 min-h-[44px] min-w-[44px] px-2.5 flex items-center justify-center cursor-pointer"
+            >
+              <RefreshCw className={`w-4 h-4 ${(loading || isUpdating) ? "animate-spin text-[var(--admin-primary)]" : "text-[var(--admin-primary)]"}`} />
+            </AdminButton>
+          </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="hidden sm:flex items-center gap-2">
           {isUpdating && (
             <span className="text-[11px] text-[var(--admin-primary)] font-medium animate-pulse flex items-center gap-1 bg-[var(--admin-primary-soft)] px-2 py-0.5 rounded-full border border-[var(--admin-primary-border)]">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--admin-primary)] animate-ping" />
@@ -245,28 +265,73 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
         </div>
       </div>
 
+      {/* Mobile Top Operational Summary (<901px) */}
+      <div className="block lg:hidden bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-3.5 shadow-xs">
+        <div className="flex items-center justify-between pb-2.5 border-b border-[var(--admin-divider)]">
+          <div className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-[var(--admin-success)] animate-pulse" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-secondary)]">
+              Operations Live
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[11px] font-medium text-[var(--admin-text-secondary)]">
+            <span>Paid:</span>
+            <span className="font-bold text-[var(--admin-text)] font-mono">{stats.paidOrders}</span>
+            <span className="text-[var(--admin-text-muted)]">/</span>
+            <span>Total:</span>
+            <span className="font-bold text-[var(--admin-text)] font-mono">{stats.totalOrders}</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-3 gap-2 pt-2.5 text-center">
+          <div>
+            <span className="text-[10px] uppercase font-semibold text-[var(--admin-text-muted)] block tracking-wider">
+              Net Profit
+            </span>
+            <span className={`text-[14px] font-bold font-mono ${(stats.netProfit ?? 0) >= 0 ? "text-[var(--admin-success)]" : "text-[var(--admin-danger)]"}`}>
+              {(stats.netProfit ?? 0) < 0 ? `-$${Math.abs(stats.netProfit ?? 0).toFixed(2)}` : `$${(stats.netProfit ?? 0).toFixed(2)}`}
+            </span>
+          </div>
+          <div className="border-x border-[var(--admin-divider)]">
+            <span className="text-[10px] uppercase font-semibold text-[var(--admin-text-muted)] block tracking-wider">
+              Margin
+            </span>
+            <span className="text-[14px] font-bold font-mono text-[var(--admin-text)]">
+              {stats.netMarginPercent ?? '0.0'}%
+            </span>
+          </div>
+          <div>
+            <span className="text-[10px] uppercase font-semibold text-[var(--admin-text-muted)] block tracking-wider">
+              AOV
+            </span>
+            <span className="text-[14px] font-bold font-mono text-[var(--admin-text)]">
+              ${stats.averageOrderValue ?? '0.00'}
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Primary Financial KPIs Grid (USD-Only) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-2.5 sm:gap-3">
         {primaryKpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
             <div
               key={kpi.label}
-              className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[9px] p-4 shadow-xs flex flex-col justify-between transition-all hover:border-[var(--admin-primary-border)]"
+              className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[9px] p-3 sm:p-4 shadow-xs flex flex-col justify-between transition-all hover:border-[var(--admin-primary-border)]"
             >
               <div className="flex items-center justify-between">
-                <span className="text-[10.5px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider">
+                <span className="text-[10px] sm:text-[10.5px] font-semibold text-[var(--admin-text-muted)] uppercase tracking-wider truncate">
                   {kpi.label}
                 </span>
-                <div className="w-7 h-7 rounded-lg bg-transparent flex items-center justify-center">
-                  <AdminNeonIcon color={kpi.color} icon={Icon} className="w-4 h-4" />
+                <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-lg bg-transparent flex items-center justify-center shrink-0">
+                  <AdminNeonIcon color={kpi.color} icon={Icon} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </div>
               </div>
-              <div className="mt-2.5">
-                <div className={`text-[20px] font-bold tracking-tight font-mono ${kpi.valueColor}`}>
+              <div className="mt-2 sm:mt-2.5">
+                <div className={`text-[17px] sm:text-[20px] font-bold tracking-tight font-mono ${kpi.valueColor}`}>
                   {kpi.value}
                 </div>
-                <p className="text-[10.5px] text-[var(--admin-text-muted)] mt-0.5 truncate">
+                <p className="text-[10px] sm:text-[10.5px] text-[var(--admin-text-muted)] mt-0.5 truncate">
                   {kpi.description}
                 </p>
               </div>
@@ -276,17 +341,17 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       </div>
 
       {/* Secondary Financial Health Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[9px] p-3 shadow-xs">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-3 bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[9px] p-2.5 sm:p-3 shadow-xs">
         {secondaryKpis.map((kpi) => {
           const Icon = kpi.icon;
           return (
-            <div key={kpi.label} className="flex items-center gap-3 px-2">
-              <div className="w-8 h-8 rounded-lg bg-[var(--admin-card-hover)] border border-[var(--admin-border)] flex items-center justify-center shrink-0">
-                <AdminNeonIcon color={kpi.color} icon={Icon} className="w-4 h-4" />
+            <div key={kpi.label} className="flex items-center gap-2.5 sm:gap-3 px-1 sm:px-2 py-1">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-[var(--admin-card-hover)] border border-[var(--admin-border)] flex items-center justify-center shrink-0">
+                <AdminNeonIcon color={kpi.color} icon={Icon} className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </div>
-              <div>
-                <span className="text-[10.5px] text-[var(--admin-text-muted)] block font-medium uppercase tracking-wider">{kpi.label}</span>
-                <span className="text-[15px] font-bold text-[var(--admin-text)] font-mono">{kpi.value}</span>
+              <div className="min-w-0">
+                <span className="text-[10px] sm:text-[10.5px] text-[var(--admin-text-muted)] block font-medium uppercase tracking-wider truncate">{kpi.label}</span>
+                <span className="text-[14px] sm:text-[15px] font-bold text-[var(--admin-text)] font-mono">{kpi.value}</span>
               </div>
             </div>
           );
@@ -306,10 +371,47 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
         </div>
       )}
 
+      {/* Quick Action Navigation Buttons for Mobile (Touch targets >= 44px, no mutations) */}
+      {onNavigateToTab && (
+        <div className="block lg:hidden bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-3.5 shadow-xs">
+          <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--admin-text-muted)] mb-2.5">
+            Quick Navigation
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={onNavigateToOrders}
+              className="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-[var(--admin-card-hover)] border border-[var(--admin-border)] text-left hover:border-[var(--admin-primary-border)] transition-colors min-h-[44px] cursor-pointer"
+            >
+              <div className="w-8 h-8 rounded-lg bg-[var(--admin-primary-soft)] flex items-center justify-center shrink-0">
+                <ShoppingBag className="w-4 h-4 text-[var(--admin-primary)]" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[12px] font-semibold text-[var(--admin-text)] truncate">Orders & Margins</div>
+                <div className="text-[10px] text-[var(--admin-text-muted)] truncate">View all transactions</div>
+              </div>
+            </button>
+            <button
+              type="button"
+              onClick={() => onNavigateToTab("analytics")}
+              className="flex items-center gap-2.5 p-2.5 rounded-[8px] bg-[var(--admin-card-hover)] border border-[var(--admin-border)] text-left hover:border-[var(--admin-primary-border)] transition-colors min-h-[44px] cursor-pointer"
+            >
+              <div className="w-8 h-8 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
+                <TrendingUp className="w-4 h-4 text-violet-500" />
+              </div>
+              <div className="min-w-0">
+                <div className="text-[12px] font-semibold text-[var(--admin-text)] truncate">Analytics</div>
+                <div className="text-[10px] text-[var(--admin-text-muted)] truncate">Funnel & attribution</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Main Grid: Revenue Overview & Platform Share (2fr / 1fr) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue Overview Chart Area */}
-        <div className="lg:col-span-2 bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-5 md:p-6 shadow-xs flex flex-col justify-between">
+        <div className="lg:col-span-2 bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-4 sm:p-5 md:p-6 shadow-xs flex flex-col justify-between">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
             <div>
               <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[var(--admin-text)]">
@@ -323,7 +425,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
               <button
                 type="button"
                 onClick={() => setPeriod("7d")}
-                className={`px-3 py-1 rounded-[5px] text-[12px] font-medium transition-colors cursor-pointer ${
+                className={`px-3 py-1.5 min-h-[36px] sm:min-h-0 sm:py-1 rounded-[5px] text-[12px] font-medium transition-colors cursor-pointer ${
                   period === "7d"
                     ? "bg-[var(--admin-card)] text-[var(--admin-text)] shadow-xs font-semibold"
                     : "text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)]"
@@ -334,7 +436,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
               <button
                 type="button"
                 onClick={() => setPeriod("30d")}
-                className={`px-3 py-1 rounded-[5px] text-[12px] font-medium transition-colors cursor-pointer ${
+                className={`px-3 py-1.5 min-h-[36px] sm:min-h-0 sm:py-1 rounded-[5px] text-[12px] font-medium transition-colors cursor-pointer ${
                   period === "30d"
                     ? "bg-[var(--admin-card)] text-[var(--admin-text)] shadow-xs font-semibold"
                     : "text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)]"
@@ -346,7 +448,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
           </div>
 
           {/* Empty Chart State (Zero Mocks) */}
-          <div className="h-60 rounded-[8px] bg-[var(--admin-card-hover)]/40 border border-[var(--admin-border)] flex flex-col items-center justify-center text-center p-6 my-2">
+          <div className="h-52 sm:h-60 rounded-[8px] bg-[var(--admin-card-hover)]/40 border border-[var(--admin-border)] flex flex-col items-center justify-center text-center p-4 sm:p-6 my-2">
             <div className="w-10 h-10 rounded-full bg-transparent flex items-center justify-center mb-3">
               <AdminNeonIcon color="violet" icon={Clock} className="w-6 h-6" />
             </div>
@@ -368,7 +470,7 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
         </div>
 
         {/* Platform Share */}
-        <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-5 md:p-6 shadow-xs flex flex-col justify-between">
+        <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-4 sm:p-5 md:p-6 shadow-xs flex flex-col justify-between">
           <div>
             <div className="mb-4">
               <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[var(--admin-text)]">
@@ -419,20 +521,20 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
       </div>
 
       {/* Latest Orders Section - Full width table & mobile cards */}
-      <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-5 md:p-6 shadow-xs">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-3.5 sm:p-5 md:p-6 shadow-xs">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
           <div>
-            <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[var(--admin-text)]">
+            <h3 className="text-[12px] sm:text-[13px] font-[650] uppercase tracking-wider text-[var(--admin-text)]">
               RECENT ORDERS
             </h3>
-            <p className="text-[12px] text-[var(--admin-text-secondary)] mt-0.5">
+            <p className="text-[11px] sm:text-[12px] text-[var(--admin-text-secondary)] mt-0.5">
               Real-time incoming customer transactions (USD)
             </p>
           </div>
           <button
             type="button"
             onClick={onNavigateToOrders}
-            className="text-[12px] font-semibold text-[var(--admin-primary)] hover:text-[var(--admin-primary-hover)] flex items-center gap-1 cursor-pointer transition-colors"
+            className="text-[11px] sm:text-[12px] font-semibold text-[var(--admin-primary)] hover:text-[var(--admin-primary-hover)] flex items-center gap-1 cursor-pointer transition-colors min-h-[44px] sm:min-h-0 items-center justify-center"
           >
             View all orders <AdminNeonIcon color="teal" className="w-3.5 h-3.5"><ArrowUpRight className="w-3.5 h-3.5" /></AdminNeonIcon>
           </button>
@@ -526,30 +628,90 @@ export function DashboardOverview({ onNavigateToOrders }: DashboardOverviewProps
             </div>
 
             {/* Mobile View */}
-            <div className="md:hidden space-y-3">
+            <div className="md:hidden space-y-2.5">
               {stats.recentOrders.map((order) => {
                 const orderPublicId = order.publicId || order.id.slice(0, 8);
                 const gross = order.grossAmount ?? order.amount ?? 0;
                 const ppFee = order.perfectPayFee ?? ((gross * 0.089) + 1.00);
                 const cost = order.providerCost ?? 0;
                 const profit = order.netProfit ?? (order.status === 'paid' ? (gross - ppFee - cost) : -(ppFee + cost));
+                const targetText = order.target || order.username;
 
                 return (
-                  <MobileDataCard
+                  <div
                     key={order.id}
-                    platform={order.platform}
-                    title={`#${orderPublicId}`}
-                    subtitle={`@${order.target || order.username} • ${order.plan}`}
-                    status={<AdminStatusBadge status={order.status} />}
-                    metrics={[
-                      { label: "Gross", value: `$${gross.toFixed(2)}` },
-                      { label: "PP Fee", value: `$${ppFee.toFixed(2)}` },
-                      { label: "Cost", value: order.providerCost !== null && order.providerCost !== undefined ? `$${order.providerCost.toFixed(2)}` : order.providerCostSource === 'UNKNOWN' ? "—" : `$${cost.toFixed(2)}` },
-                      { label: "Net Profit", value: profit < 0 ? `-$${Math.abs(profit).toFixed(2)}` : `$${profit.toFixed(2)}` },
-                      { label: "Fulfillment", value: order.fulfillmentStatus || 'NOT_DISPATCHED' },
-                      { label: "Date", value: order.date },
-                    ]}
-                  />
+                    className="bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-[10px] p-3.5 shadow-xs space-y-2.5 text-[var(--admin-text)]"
+                  >
+                    {/* Header: Platform icon + Order ID + Username/Plan + Status */}
+                    <div className="flex items-start justify-between gap-2.5">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-lg bg-[var(--admin-card-hover)] border border-[var(--admin-border)] flex items-center justify-center shrink-0">
+                          <PlatformIcon platform={order.platform} size={20} />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-mono font-bold text-[13px] text-[var(--admin-text)]">
+                              #{orderPublicId}
+                            </span>
+                            <span className="text-[11px] text-[var(--admin-text-muted)] truncate capitalize">
+                              • {order.platform}
+                            </span>
+                          </div>
+                          <div className="text-[12px] font-medium text-[var(--admin-text-secondary)] truncate mt-0.5">
+                            @{targetText} {order.plan ? `• ${order.plan}` : ''}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="shrink-0">
+                        <AdminStatusBadge status={order.status} />
+                      </div>
+                    </div>
+
+                    {/* Compact Product snippet if available */}
+                    {order.product && (
+                      <div className="text-[11px] text-[var(--admin-text-secondary)] bg-[var(--admin-card-hover)] px-2.5 py-1.5 rounded-[6px] border border-[var(--admin-border)] truncate">
+                        {order.product}
+                      </div>
+                    )}
+
+                    {/* Operational Metrics Grid */}
+                    <div className="grid grid-cols-2 gap-2 text-[12px] py-2 border-y border-[var(--admin-divider)]">
+                      <div className="flex flex-col">
+                        <span className="text-[9.5px] uppercase font-semibold text-[var(--admin-text-muted)] tracking-wider">Gross Sales</span>
+                        <span className="font-bold font-mono text-[13px] text-[var(--admin-text)] mt-0.5">${gross.toFixed(2)}</span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[9.5px] uppercase font-semibold text-[var(--admin-text-muted)] tracking-wider">Net Profit</span>
+                        <span className={`font-bold font-mono text-[13px] mt-0.5 ${profit >= 0 ? "text-[var(--admin-success)]" : "text-[var(--admin-danger)]"}`}>
+                          {profit < 0 ? `-$${Math.abs(profit).toFixed(2)}` : `$${profit.toFixed(2)}`}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[9.5px] uppercase font-semibold text-[var(--admin-text-muted)] tracking-wider">Fulfillment</span>
+                        <span className="font-mono text-[11px] text-[var(--admin-text-secondary)] mt-0.5 truncate">
+                          {order.fulfillmentStatus || order.providerStatus || 'NOT_DISPATCHED'}
+                        </span>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="text-[9.5px] uppercase font-semibold text-[var(--admin-text-muted)] tracking-wider">Date</span>
+                        <span className="text-[11px] text-[var(--admin-text-muted)] mt-0.5 truncate">
+                          {order.date}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Action: View full order details button (touch target >= 44px) */}
+                    <div className="pt-0.5 flex justify-end">
+                      <AdminButton
+                        size="sm"
+                        variant="ghost"
+                        onClick={onNavigateToOrders}
+                        className="w-full text-[12px] min-h-[44px] h-[44px] justify-center bg-[var(--admin-card-hover)] hover:bg-[var(--admin-primary-soft)] hover:text-[var(--admin-primary)] border border-[var(--admin-border)]"
+                      >
+                        View Order Details <ArrowUpRight className="w-3.5 h-3.5 ml-1" />
+                      </AdminButton>
+                    </div>
+                  </div>
                 );
               })}
             </div>
