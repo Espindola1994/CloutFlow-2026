@@ -457,6 +457,7 @@ export default function LiveWorldGlobe({
   const [webglSupported, setWebglSupported] = useState<boolean>(true);
   const [initError, setInitError] = useState<string | null>(null);
   const [isGlobeReady, setIsGlobeReady] = useState<boolean>(false);
+  const [isInteractionLocked, setIsInteractionLocked] = useState<boolean>(false);
 
   // References to keep callbacks current without re-binding globe event listeners
   const callbacksRef = useRef({
@@ -642,7 +643,11 @@ export default function LiveWorldGlobe({
         // Configure controls
         const controls = globe.controls();
         if (controls) {
-          controls.enableZoom = true;
+          // Passive by default: page wheel/trackpad scrolling must remain native.
+          // The explicit Explore Globe toggle enables zoom + manual rotation.
+          controls.enableZoom = false;
+          controls.enableRotate = false;
+          if ("enablePan" in controls) controls.enablePan = false;
           controls.autoRotate = true;
           controls.autoRotateSpeed = 0.34;
           controls.enableDamping = true;
@@ -732,6 +737,50 @@ export default function LiveWorldGlobe({
       }
     };
   }, [webglSupported]);
+
+  // Explicit interaction gate for the 3D stage.
+  // Default/passive mode preserves normal page scrolling even while the pointer
+  // is over the globe. Explore mode locks document scrolling and gives the mouse
+  // wheel + drag gestures to OrbitControls until the user exits (or presses Esc).
+  useEffect(() => {
+    const globe = globeInstanceRef.current;
+    const controls = globe && typeof globe.controls === "function" ? globe.controls() : null;
+
+    if (controls) {
+      controls.enableZoom = isInteractionLocked;
+      controls.enableRotate = isInteractionLocked;
+      if ("enablePan" in controls) controls.enablePan = false;
+    }
+
+    const body = document.body;
+    const root = document.documentElement;
+    const previousBodyOverflow = body.style.overflow;
+    const previousRootOverflow = root.style.overflow;
+    const previousTouchAction = containerRef.current?.style.touchAction ?? "";
+
+    if (containerRef.current) {
+      containerRef.current.style.touchAction = isInteractionLocked ? "none" : "pan-y";
+    }
+
+    if (isInteractionLocked) {
+      body.style.overflow = "hidden";
+      root.style.overflow = "hidden";
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && isInteractionLocked) {
+        setIsInteractionLocked(false);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      body.style.overflow = previousBodyOverflow;
+      root.style.overflow = previousRootOverflow;
+      if (containerRef.current) containerRef.current.style.touchAction = previousTouchAction;
+    };
+  }, [isInteractionLocked, isGlobeReady]);
 
   // Update Points and Rings dynamically without recreating the Globe or resetting camera/zoom
   useEffect(() => {
@@ -890,8 +939,49 @@ export default function LiveWorldGlobe({
   }
 
   return (
-    <div className="w-full h-full min-h-[440px] relative select-none" ref={containerRef}>
+    <div
+      className={`global-pulse-globe-interaction w-full h-full min-h-[440px] relative select-none ${
+        isInteractionLocked ? "is-locked" : "is-passive"
+      }`}
+      ref={containerRef}
+      data-globe-interaction={isInteractionLocked ? "locked" : "passive"}
+    >
       {/* Globe canvas attaches here */}
+      <div className="global-pulse-interaction-control" onPointerDown={(event) => event.stopPropagation()}>
+        {isInteractionLocked && (
+          <div className="global-pulse-interaction-hint" role="status">
+            Scroll to zoom · Drag to rotate · Esc to exit
+          </div>
+        )}
+        <button
+          type="button"
+          className="global-pulse-interaction-button"
+          aria-pressed={isInteractionLocked}
+          aria-label={isInteractionLocked ? "Exit globe interaction mode" : "Explore globe and lock page scrolling"}
+          title={isInteractionLocked ? "Return mouse wheel to page scrolling" : "Lock page scrolling and interact with the globe"}
+          onClick={(event) => {
+            event.stopPropagation();
+            setIsInteractionLocked((current) => !current);
+          }}
+        >
+          <span className="global-pulse-interaction-button-icon" aria-hidden="true">
+            {isInteractionLocked ? (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M7 7l10 10M17 7L7 17" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3M16 3h3a2 2 0 0 1 2 2v3M8 21H5a2 2 0 0 1-2-2v-3M16 21h3a2 2 0 0 0 2-2v-3" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="12" cy="12" r="3.25" />
+              </svg>
+            )}
+          </span>
+          <span>{isInteractionLocked ? "Exit Globe" : "Explore Globe"}</span>
+          <span className="global-pulse-interaction-state" aria-hidden="true">
+            {isInteractionLocked ? "LOCKED" : "SCROLL"}
+          </span>
+        </button>
+      </div>
     </div>
   );
 }
