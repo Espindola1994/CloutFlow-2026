@@ -16,7 +16,10 @@ import {
   EyeOff,
   Save,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Share,
+  PlusSquare,
+  X
 } from "lucide-react";
 import { AdminSectionHeader, AdminCard, AdminButton, AdminBadge } from "../ui";
 import { AdminTab } from "../AdminSidebar";
@@ -40,6 +43,7 @@ interface AdminProfile {
 export function SettingsModule({ onLogout, onNavigateToTab }: SettingsModuleProps) {
   const { theme } = useAdminTheme();
   const { isInstallable, isStandalone, isIos, promptInstall } = usePwaInstall();
+  const [showAdminIosModal, setShowAdminIosModal] = useState(false);
 
   // Active section for Mobile navigation (and desktop overview)
   const [activeSection, setActiveSection] = useState<"account" | "security" | "appearance" | "integrations" | "system">("account");
@@ -144,11 +148,20 @@ export function SettingsModule({ onLogout, onNavigateToTab }: SettingsModuleProp
     }
   };
 
-  const handleInstallClick = async () => {
+  const handleInstallAdminClick = async () => {
+    if (isIos) {
+      setShowAdminIosModal(true);
+      return;
+    }
     const outcome = await promptInstall();
     if (outcome === "accepted") {
       toast.success("CloutFlow Admin installed successfully!");
     }
+  };
+
+  const handleInstallPublicClick = () => {
+    // Navigate to public context with ?install=public so the browser activates public manifest
+    window.location.href = "/?install=public";
   };
 
   return (
@@ -514,7 +527,7 @@ export function SettingsModule({ onLogout, onNavigateToTab }: SettingsModuleProp
             </AdminCard>
           </div>
 
-          {/* 5. PWA INSTALL & STANDALONE STATUS */}
+          {/* 5. APP INSTALLATIONS (DUAL PWA) & STANDALONE STATUS */}
           <div className={activeSection === "system" ? "block" : "hidden md:block"}>
             <AdminCard data-testid="settings-section-pwa">
               <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-[var(--admin-border)]">
@@ -523,50 +536,106 @@ export function SettingsModule({ onLogout, onNavigateToTab }: SettingsModuleProp
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-[var(--admin-text)]">PWA Mobile Experience</h3>
-                  <p className="text-xs text-[var(--admin-text-secondary)]">Installation mode, offline status & build telemetry</p>
+                  <p className="text-xs text-[var(--admin-text-secondary)]">APP INSTALLATIONS & System build telemetry</p>
                 </div>
               </div>
 
-              <div className="space-y-3">
-                {/* Installed Standalone Mode */}
-                {isStandalone ? (
-                  <div className="p-3.5 rounded-xl bg-emerald-500/10 border border-emerald-500/25 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-600 flex items-center justify-center shrink-0">
-                      <Check className="w-4 h-4" />
-                    </div>
+              <div className="space-y-4">
+                <div className="text-[11px] font-bold text-[var(--admin-text-secondary)] tracking-wider uppercase">
+                  App Installations
+                </div>
+                {/* PUBLIC APP CARD */}
+                <div 
+                  data-testid="pwa-card-public"
+                  className="p-3.5 rounded-xl bg-[var(--admin-card-hover)] border border-[var(--admin-border)] space-y-3"
+                >
+                  <div className="flex items-start justify-between">
                     <div>
-                      <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 block">Standalone App Installed</span>
-                      <span className="text-[11px] text-emerald-600/80">Running directly from device home screen with native frame</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-[var(--admin-text)]">CloutFlow</span>
+                        <AdminBadge variant="default" size="sm">Public App</AdminBadge>
+                      </div>
+                      <p className="text-[11px] text-[var(--admin-text-secondary)] mt-1">
+                        Customer-facing CloutFlow app.
+                      </p>
                     </div>
                   </div>
-                ) : isInstallable ? (
-                  <div className="p-3.5 rounded-xl bg-[var(--admin-primary-soft)] border border-[var(--admin-primary-border)] space-y-3">
+
+                  <div className="grid grid-cols-2 gap-2 text-[10.5px] bg-[var(--admin-card)] p-2 rounded-lg border border-[var(--admin-border)]">
                     <div>
-                      <span className="text-xs font-bold text-[var(--admin-text)] block">Install CloutFlow Admin</span>
-                      <span className="text-[11px] text-[var(--admin-text-secondary)]">Install on your mobile device for quick launcher access and fullscreen display.</span>
+                      <span className="text-[var(--admin-text-secondary)] block">Scope:</span>
+                      <code className="font-mono text-[var(--admin-text)]">/</code>
                     </div>
+                    <div>
+                      <span className="text-[var(--admin-text-secondary)] block">Start URL:</span>
+                      <code className="font-mono text-[var(--admin-text)]">/</code>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleInstallPublicClick}
+                    data-testid="install-public-app-btn"
+                    className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-xs font-semibold text-white bg-[var(--admin-primary)] hover:opacity-90 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Install Public App</span>
+                  </button>
+                </div>
+
+                {/* ADMIN APP CARD */}
+                <div 
+                  data-testid="pwa-card-admin"
+                  className="p-3.5 rounded-xl bg-[var(--admin-card-hover)] border border-[var(--admin-border)] space-y-3"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-bold text-[var(--admin-text)]">CloutFlow Admin</span>
+                        <AdminBadge variant="primary" size="sm">Admin App</AdminBadge>
+                      </div>
+                      <p className="text-[11px] text-[var(--admin-text-secondary)] mt-1">
+                        Private administration app.
+                      </p>
+                    </div>
+                    {isStandalone && (
+                      <AdminBadge variant="success" size="sm">
+                        Installed
+                      </AdminBadge>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-[10.5px] bg-[var(--admin-card)] p-2 rounded-lg border border-[var(--admin-border)]">
+                    <div>
+                      <span className="text-[var(--admin-text-secondary)] block">Scope:</span>
+                      <code className="font-mono text-[var(--admin-text)]">/admin/</code>
+                    </div>
+                    <div>
+                      <span className="text-[var(--admin-text-secondary)] block">Start URL:</span>
+                      <code className="font-mono text-[var(--admin-text)]">/admin</code>
+                    </div>
+                  </div>
+
+                  {isStandalone ? (
+                    <div 
+                      data-testid="admin-pwa-installed-badge"
+                      className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 justify-center"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>Installed</span>
+                    </div>
+                  ) : (
                     <button
                       type="button"
-                      onClick={handleInstallClick}
-                      data-testid="pwa-install-button"
+                      onClick={handleInstallAdminClick}
+                      data-testid="install-admin-app-btn"
                       className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-xs font-semibold text-white bg-[var(--admin-primary)] hover:opacity-90 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                     >
                       <Download className="w-4 h-4" />
-                      <span>Install App Now</span>
+                      <span>Install Admin App</span>
                     </button>
-                  </div>
-                ) : isIos ? (
-                  <div className="p-3.5 rounded-xl bg-[var(--admin-card-hover)] border border-[var(--admin-border)] space-y-1.5">
-                    <span className="text-xs font-bold text-[var(--admin-text)] block">Add to Home Screen (iOS)</span>
-                    <p className="text-[11px] text-[var(--admin-text-secondary)] leading-relaxed">
-                      To install CloutFlow Admin on iOS, open the Safari share menu and tap <strong className="text-[var(--admin-text)]">&quot;Add to Home Screen&quot;</strong>.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="p-3 rounded-lg bg-[var(--admin-card-hover)] border border-[var(--admin-border)] text-xs text-[var(--admin-text-secondary)]">
-                    <span>Browser supports direct access. Add to favorites or install via browser settings menu.</span>
-                  </div>
-                )}
+                  )}
+                </div>
 
                 {/* System Build Info */}
                 <div className="p-3 rounded-lg bg-[var(--admin-card)] border border-[var(--admin-border)] space-y-1 text-xs">
@@ -609,6 +678,96 @@ export function SettingsModule({ onLogout, onNavigateToTab }: SettingsModuleProp
         </div>
 
       </div>
+
+      {/* iOS Admin Add to Home Screen Modal */}
+      {showAdminIosModal && (
+        <div
+          data-testid="admin-ios-install-modal"
+          className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-4"
+          onClick={() => setShowAdminIosModal(false)}
+        >
+          <div
+            className="w-full max-w-sm bg-[var(--admin-card)] border border-[var(--admin-border)] rounded-2xl p-5 shadow-2xl space-y-4 text-[var(--admin-text)] animate-in fade-in slide-in-from-bottom-4 duration-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-xl bg-[var(--admin-primary)]/15 border border-[var(--admin-primary)]/30 flex items-center justify-center text-[var(--admin-primary)]">
+                  <Smartphone className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-[var(--admin-text)]">Install CloutFlow Admin</h3>
+                  <p className="text-xs text-[var(--admin-text-secondary)]">Private Administration App</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowAdminIosModal(false)}
+                className="text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)] p-1 cursor-pointer"
+                aria-label="Close"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <ol className="space-y-2.5 text-xs text-[var(--admin-text-secondary)] bg-[var(--admin-card-hover)] p-3.5 rounded-xl border border-[var(--admin-border)]">
+              <li className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-[var(--admin-primary)]/20 text-[var(--admin-primary)] flex items-center justify-center shrink-0 font-bold text-[11px] mt-0.5">
+                  1
+                </span>
+                <span>
+                  Open/continue on <code className="font-mono text-[var(--admin-primary)]">/admin</code> in Safari.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-[var(--admin-primary)]/20 text-[var(--admin-primary)] flex items-center justify-center shrink-0 font-bold text-[11px] mt-0.5">
+                  2
+                </span>
+                <span>
+                  Tap the <strong className="text-[var(--admin-text)]">Share</strong> button in Safari{" "}
+                  <Share className="w-3.5 h-3.5 inline-block mx-0.5 text-[var(--admin-primary)]" />.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-[var(--admin-primary)]/20 text-[var(--admin-primary)] flex items-center justify-center shrink-0 font-bold text-[11px] mt-0.5">
+                  3
+                </span>
+                <span>
+                  Scroll down and tap <strong className="text-[var(--admin-text)]">&quot;Add to Home Screen&quot;</strong>{" "}
+                  <PlusSquare className="w-3.5 h-3.5 inline-block mx-0.5 text-[var(--admin-primary)]" />.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-[var(--admin-primary)]/20 text-[var(--admin-primary)] flex items-center justify-center shrink-0 font-bold text-[11px] mt-0.5">
+                  4
+                </span>
+                <span>
+                  Enable <strong className="text-[var(--admin-text)]">&quot;Open as Web App&quot;</strong> if shown.
+                </span>
+              </li>
+              <li className="flex items-start gap-2.5">
+                <span className="w-5 h-5 rounded-full bg-[var(--admin-primary)]/20 text-[var(--admin-primary)] flex items-center justify-center shrink-0 font-bold text-[11px] mt-0.5">
+                  5
+                </span>
+                <span>
+                  Tap <strong className="text-[var(--admin-text)]">Add</strong> in the top right. Opens <code className="font-mono text-[var(--admin-primary)]">/admin</code>.
+                </span>
+              </li>
+            </ol>
+
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => setShowAdminIosModal(false)}
+                className="w-full py-2.5 rounded-lg text-xs font-semibold text-white bg-[var(--admin-primary)] hover:opacity-90 active:scale-98 transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+              >
+                <Check className="w-4 h-4" />
+                <span>Got it</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

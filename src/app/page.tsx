@@ -21,6 +21,8 @@ import twitterIcon from "@/assets/home-icons-vector/twitter.svg";
 import youtubeIcon from "@/assets/home-icons-vector/youtube.svg";
 import { trackAnalyticsEvent } from "@/lib/analytics/tracker";
 
+import { PublicPwaInstallBanner } from "@/components/pwa/PublicPwaInstallBanner";
+
 type PlatformId = "instagram" | "tiktok" | "twitter" | "youtube";
 const PLATFORM_META: Record<PlatformId, { label: string; icon: any; accent: string; accent2: string }> = {
   instagram: { label: "Instagram", icon: instagramIcon, accent: "#E1306C", accent2: "#FCAF45" },
@@ -401,7 +403,9 @@ export default function HomePage({
   };
 
   return (
-    <main className="cf-plans-v1" style={{ "--plans-accent": meta.accent, "--plans-accent-2": meta.accent2 } as any}>
+    <>
+      <PublicPwaInstallBanner />
+      <main className="cf-plans-v1" style={{ "--plans-accent": meta.accent, "--plans-accent-2": meta.accent2 } as any}>
       <div className="cf-v80-background cf-plans-v1-bg" aria-hidden="true">
         <div className="cf-v80-blob cf-v80-blob-top-right" />
         <div className="cf-v80-blob cf-v80-blob-bottom-left" />
@@ -470,22 +474,26 @@ export default function HomePage({
             }
           }}
         />
-        {loadingOffers && funnelReadiness.canShowPlans && (
-          <div className="cf-plans-loading cf-plans-loading-inline">
-            <Loader2 />
-            <span>Loading current live packages...</span>
+        {loadingOffers && (
+          <div className="cf-plans-loading">
+            <Loader2 className="animate-spin" />
+            <p>Loading available plans...</p>
           </div>
         )}
-        <PlanSelector
-          sectionRef={plansSectionRef}
-          plans={offers}
-          username={username}
-          platform={platform}
-          service={service}
-          hasTarget={funnelReadiness.canShowPlans}
-          onSelectPlan={handleCheckout}
-        />
+        {!loadingOffers && offers.length > 0 && (
+          <section ref={plansSectionRef} className="cf-plans-grid-section">
+            <PlanSelector
+              plans={offers}
+              hasTarget={Boolean(targetValue || socialUsername)}
+              platform={platform}
+              service={service}
+              username={username}
+              onSelectPlan={handleCheckout}
+            />
+          </section>
+        )}
       </section>
     </main>
+    </>
   );
 }

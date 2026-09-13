@@ -153,4 +153,94 @@ describe("UI 5.7 — Admin Settings Module", () => {
 
     expect(onLogoutMock).toHaveBeenCalledTimes(1);
   });
+
+  describe("UI 5.7.1 Dual PWA App Installations", () => {
+    it("9. renders both Public App and Admin App cards independently in PWA & System section", () => {
+      renderWithTheme(
+        <SettingsModule onLogout={onLogoutMock} onNavigateToTab={onNavigateToTabMock} />
+      );
+
+      // Check section & cards
+      expect(screen.getByTestId("settings-section-pwa")).toBeDefined();
+      expect(screen.getByTestId("pwa-card-public")).toBeDefined();
+      expect(screen.getByTestId("pwa-card-admin")).toBeDefined();
+
+      // Check Public card content
+      const publicCard = screen.getByTestId("pwa-card-public");
+      expect(publicCard.textContent).toContain("CloutFlow");
+      expect(publicCard.textContent).toContain("Customer-facing CloutFlow app.");
+      expect(publicCard.textContent).toContain("Scope:");
+      expect(publicCard.textContent).toContain("/");
+      expect(screen.getByTestId("install-public-app-btn")).toBeDefined();
+
+      // Check Admin card content
+      const adminCard = screen.getByTestId("pwa-card-admin");
+      expect(adminCard.textContent).toContain("CloutFlow Admin");
+      expect(adminCard.textContent).toContain("Private administration app.");
+      expect(adminCard.textContent).toContain("Scope:");
+      expect(adminCard.textContent).toContain("/admin/");
+      expect(screen.getByTestId("install-admin-app-btn")).toBeDefined();
+    });
+
+    it("10. Install Public App button navigates to public context with ?install=public rather than triggering admin prompt", () => {
+      const originalLocation = window.location;
+      let targetHref = "/admin/dashboard";
+      Object.defineProperty(window, "location", {
+        configurable: true,
+        value: {
+          ...originalLocation,
+          get href() {
+            return targetHref;
+          },
+          set href(val: string) {
+            targetHref = val;
+          },
+        },
+      });
+
+      renderWithTheme(
+        <SettingsModule onLogout={onLogoutMock} onNavigateToTab={onNavigateToTabMock} />
+      );
+
+      const installPublicBtn = screen.getByTestId("install-public-app-btn");
+      fireEvent.click(installPublicBtn);
+
+      expect(targetHref).toBe("/?install=public");
+      Object.defineProperty(window, "location", {
+        configurable: true,
+        value: originalLocation,
+      });
+    });
+
+    it("11. Install Admin App button stays in admin context and does not navigate away", () => {
+      const originalLocation = window.location;
+      let targetHref = "/admin/dashboard";
+      Object.defineProperty(window, "location", {
+        configurable: true,
+        value: {
+          ...originalLocation,
+          get href() {
+            return targetHref;
+          },
+          set href(val: string) {
+            targetHref = val;
+          },
+        },
+      });
+
+      renderWithTheme(
+        <SettingsModule onLogout={onLogoutMock} onNavigateToTab={onNavigateToTabMock} />
+      );
+
+      const installAdminBtn = screen.getByTestId("install-admin-app-btn");
+      fireEvent.click(installAdminBtn);
+
+      // Must remain in admin context
+      expect(targetHref).toBe("/admin/dashboard");
+      Object.defineProperty(window, "location", {
+        configurable: true,
+        value: originalLocation,
+      });
+    });
+  });
 });
