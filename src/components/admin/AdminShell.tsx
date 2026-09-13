@@ -3,9 +3,9 @@
 import React, { useState, useCallback, Suspense } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
-import { Menu } from "lucide-react";
 
 import { AdminSidebar, AdminTab } from "./AdminSidebar";
+import { AdminMobileHeader, AdminBottomNavigation, AdminMobileMoreSheet } from "./mobile";
 import { DashboardOverview } from "./dashboard/DashboardOverview";
 import { AnalyticsModule } from "./analytics/AnalyticsModule";
 import { LiveWorldModule } from "./live-world/LiveWorldModule";
@@ -17,7 +17,7 @@ import { GrowthModule } from "./growth/GrowthModule";
 import { CrmModule } from "./crm/CrmModule";
 import { BlacklistModule } from "./blacklist/BlacklistModule";
 import { InfrastructureModule } from "./infrastructure/InfrastructureModule";
-import { AdminNeonIcon, AdminThemeProvider, AdminThemeToggle } from "./ui";
+import { AdminThemeProvider } from "./ui";
 
 
 import { 
@@ -58,7 +58,7 @@ function AdminShellContent() {
   const tabParam = searchParams.get("tab") as AdminTab | null;
   const activeTab: AdminTab = tabParam && VALID_TABS.includes(tabParam) ? tabParam : "dashboard";
 
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMoreSheetOpen, setIsMoreSheetOpen] = useState(false);
 
   // Tab change handler that updates URL with router.push (SPA navigation, no reload)
   const handleSelectTab = useCallback((tab: AdminTab) => {
@@ -152,48 +152,44 @@ function AdminShellContent() {
           }}
         />
 
+        {/* Mobile Header (<= 900px) */}
+        <AdminMobileHeader activeTab={activeTab} />
+
+        {/* Desktop Sidebar (>= 901px) */}
         <AdminSidebar 
           activeTab={activeTab} 
           onSelectTab={handleSelectTab} 
           onLogout={handleLogout}
-          isOpenMobile={isMobileMenuOpen}
-          onCloseMobile={() => setIsMobileMenuOpen(false)}
         />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0 md:ml-[248px] relative z-10 min-h-screen">
+        <div className="flex-1 flex flex-col min-w-0 md:ml-[248px] relative z-10 min-h-screen pb-[calc(76px+env(safe-area-inset-bottom,0px))] md:pb-0">
           
-          {/* Mobile Header */}
-          <header className="md:hidden flex items-center justify-between h-14 px-4 bg-[var(--admin-sidebar)] border-b border-[var(--admin-sidebar-border)] sticky top-0 z-30 shadow-xs">
-            <div className="flex items-center gap-2">
-              <span className="text-base font-bold tracking-tight text-[var(--admin-text)] flex items-center gap-1">
-                <span>Clout</span>
-                <span className="text-[var(--admin-primary)]">Flow</span>
-                <span className="text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.2 rounded bg-[var(--admin-primary)]/10 text-[var(--admin-primary)] border border-[var(--admin-primary)]/25 ml-1">
-                  Admin
-                </span>
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <AdminThemeToggle />
-              <button 
-                type="button" 
-                onClick={() => setIsMobileMenuOpen(true)}
-                className="text-[var(--admin-text-secondary)] hover:text-[var(--admin-text)] p-2 rounded-lg hover:bg-[var(--admin-card-hover)] transition-colors cursor-pointer"
-              >
-                <AdminNeonIcon color="cyan" icon={Menu} className="w-5 h-5" />
-              </button>
-            </div>
-          </header>
-
-          {/* Scrollable Content View */}
-          <main className="flex-1 p-4 md:p-[24px_32px_36px] overflow-y-auto">
+          {/* Scrollable Content View with Safe Areas */}
+          <main className="flex-1 p-4 md:p-[24px_32px_36px] overflow-y-auto pl-[max(16px,env(safe-area-inset-left,0px))] pr-[max(16px,env(safe-area-inset-right,0px))]">
             <div className="w-full max-w-[1720px] mr-auto">
               {renderModule()}
             </div>
           </main>
           
         </div>
+
+        {/* Mobile Bottom Navigation (<= 900px) */}
+        <AdminBottomNavigation 
+          activeTab={activeTab}
+          onSelectTab={handleSelectTab}
+          onOpenMore={() => setIsMoreSheetOpen(true)}
+          isMoreOpen={isMoreSheetOpen}
+        />
+
+        {/* Mobile More Sheet Drawer (<= 900px) */}
+        <AdminMobileMoreSheet
+          isOpen={isMoreSheetOpen}
+          onClose={() => setIsMoreSheetOpen(false)}
+          activeTab={activeTab}
+          onSelectTab={handleSelectTab}
+          onLogout={handleLogout}
+        />
       </div>
     </AdminThemeProvider>
   );
