@@ -624,8 +624,10 @@ export default function LiveWorldGlobe({
         }
 
         // Global-First initial view: North Atlantic / International (US, Canada, UK, Western Europe, Africa)
-        // Phase 2A.1 Camera altitude tuned to 1.70 so Earth diameter occupies ~76-80% of usable stage height
-        globe.pointOfView({ lat: 16, lng: -42, altitude: 2.38 }, 0);
+        // Desktop >=901px preserves exact 2.38 altitude; mobile <=900px uses 2.82 for complete portrait framing
+        const isMobileView = typeof window !== "undefined" && window.innerWidth <= 900;
+        const initialAltitude = isMobileView ? 2.82 : 2.38;
+        globe.pointOfView({ lat: 16, lng: -42, altitude: initialAltitude }, 0);
 
         globeInstanceRef.current = globe;
         setIsGlobeReady(true);
