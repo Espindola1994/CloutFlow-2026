@@ -759,8 +759,10 @@ export default function LiveWorldGlobe({
 
     if (!isInteractionMode) return;
 
-    // Lock only native document scrolling. Do NOT freeze/reposition the body.
-    // The event still propagates to OrbitControls, so wheel continues to zoom.
+    // Active mode is local to the globe only. OrbitControls receives the wheel
+    // first on this same element, then preventDefault stops the browser/page scroll.
+    // Never register a capture listener on window: that would intercept the wheel
+    // before OrbitControls and break globe zoom. Never mutate body/html either.
     const preventPageWheel = (event: WheelEvent) => {
       event.preventDefault();
     };
@@ -773,13 +775,13 @@ export default function LiveWorldGlobe({
       if (event.key === "Escape") setIsInteractionMode(false);
     };
 
-    window.addEventListener("wheel", preventPageWheel, { passive: false, capture: true });
-    window.addEventListener("touchmove", preventPageTouchMove, { passive: false, capture: true });
+    container?.addEventListener("wheel", preventPageWheel, { passive: false });
+    container?.addEventListener("touchmove", preventPageTouchMove, { passive: false });
     window.addEventListener("keydown", onKeyDown);
 
     return () => {
-      window.removeEventListener("wheel", preventPageWheel, true);
-      window.removeEventListener("touchmove", preventPageTouchMove, true);
+      container?.removeEventListener("wheel", preventPageWheel);
+      container?.removeEventListener("touchmove", preventPageTouchMove);
       window.removeEventListener("keydown", onKeyDown);
 
       if (containerRef.current) {
