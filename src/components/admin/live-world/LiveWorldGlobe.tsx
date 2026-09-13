@@ -258,7 +258,7 @@ function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.O
  */
 function setupGlobalPulsePlatform(scene: THREE.Scene, globeRadius: number = 100): THREE.Object3D[] {
   const created: THREE.Object3D[] = [];
-  const y = -globeRadius * 1.34;
+  const y = -globeRadius * 1.20;
   const makeRing = (radius: number, opacity: number, color = "#21b7ff") => {
     const geometry = new THREE.RingGeometry(radius - 0.38, radius + 0.38, 192);
     const material = new THREE.MeshBasicMaterial({
@@ -270,10 +270,10 @@ function setupGlobalPulsePlatform(scene: THREE.Scene, globeRadius: number = 100)
     ring.position.y = y;
     scene.add(ring); created.push(ring);
   };
-  makeRing(globeRadius * 0.76, 0.22, "#55ddff");
-  makeRing(globeRadius * 1.00, 0.15, "#159dff");
-  makeRing(globeRadius * 1.24, 0.095, "#0c6fff");
-  makeRing(globeRadius * 1.46, 0.055, "#36d9ff");
+  makeRing(globeRadius * 0.78, 0.20, "#55ddff");
+  makeRing(globeRadius * 1.02, 0.13, "#159dff");
+  makeRing(globeRadius * 1.28, 0.075, "#0c6fff");
+  makeRing(globeRadius * 1.52, 0.040, "#36d9ff");
 
   // Dotted outer telemetry ring — decorative infrastructure, never customer data.
   const pts: THREE.Vector3[] = [];
@@ -286,8 +286,8 @@ function setupGlobalPulsePlatform(scene: THREE.Scene, globeRadius: number = 100)
   const mat = new THREE.PointsMaterial({ color: 0x41cfff, size: 0.62, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
   const dots = new THREE.Points(geo, mat); scene.add(dots); created.push(dots);
 
-  const glow = new THREE.PointLight(0x168cff, 0.9, globeRadius * 3.4, 2);
-  glow.position.set(0, y + 10, 28); scene.add(glow); created.push(glow);
+  const glow = new THREE.PointLight(0x168cff, 0.72, globeRadius * 3.5, 2);
+  glow.position.set(0, y + 8, 24); scene.add(glow); created.push(glow);
   return created;
 }
 
@@ -309,23 +309,115 @@ function setupStarField(scene: THREE.Scene, globeRadius: number = 100): THREE.Ob
   return [stars];
 }
 
-function buildLiveArcs(locations: LiveWorldLocationItem[]): GlobeArc[] {
-  // These arcs visualize an active session reaching the CloutFlow network core.
-  // They are NOT claimed to be physical user-to-user routes. Every arc starts
-  // from a real mappable active cluster; no synthetic visitor location is added.
-  return locations
-    .filter((loc) => typeof loc.latitude === "number" && typeof loc.longitude === "number" && loc.activeCount > 0)
-    .sort((a, b) => b.activeCount - a.activeCount)
-    .slice(0, 18)
-    .map((loc, index) => ({
-      startLat: loc.latitude as number,
-      startLng: loc.longitude as number,
-      endLat: 0,
-      endLng: -25,
-      color: index % 5 === 0 ? "rgba(255, 181, 63, 0.86)" : "rgba(47, 184, 255, 0.82)",
-      altitude: Math.min(0.16 + Math.log2(Math.max(1, loc.activeCount)) * 0.025 + (index % 4) * 0.018, 0.34),
-      stroke: Math.min(0.32 + Math.log2(Math.max(1, loc.activeCount)) * 0.08, 0.72),
-    }));
+
+function setupCinematicBackdrop(scene: THREE.Scene, globeRadius: number = 100): THREE.Object3D[] {
+  const created: THREE.Object3D[] = [];
+
+  const makeGlowTexture = (inner: string, middle: string) => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 512;
+    canvas.height = 512;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return null;
+    const gradient = ctx.createRadialGradient(256, 256, 0, 256, 256, 250);
+    gradient.addColorStop(0, inner);
+    gradient.addColorStop(0.38, middle);
+    gradient.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 512, 512);
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+    return texture;
+  };
+
+  const haloTexture = makeGlowTexture("rgba(20,145,255,.34)", "rgba(7,70,145,.13)");
+  if (haloTexture) {
+    const material = new THREE.SpriteMaterial({
+      map: haloTexture,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false,
+      opacity: 0.78,
+      toneMapped: false,
+    });
+    const sprite = new THREE.Sprite(material);
+    sprite.position.set(0, 4, -118);
+    sprite.scale.set(globeRadius * 3.05, globeRadius * 3.05, 1);
+    sprite.renderOrder = -20;
+    scene.add(sprite);
+    created.push(sprite);
+  }
+
+  const floorTexture = makeGlowTexture("rgba(0,205,255,.28)", "rgba(0,93,180,.09)");
+  if (floorTexture) {
+    const material = new THREE.SpriteMaterial({
+      map: floorTexture,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false,
+      opacity: 0.56,
+      toneMapped: false,
+    });
+    const sprite = new THREE.Sprite(material);
+    sprite.position.set(0, -globeRadius * 1.12, -90);
+    sprite.scale.set(globeRadius * 3.5, globeRadius * 1.28, 1);
+    sprite.renderOrder = -19;
+    scene.add(sprite);
+    created.push(sprite);
+  }
+
+  return created;
+}
+
+function setupDecorativeNetwork(scene: THREE.Scene, globeRadius: number = 100): THREE.Object3D[] {
+  const created: THREE.Object3D[] = [];
+  const specs = [
+    { rx: 1.30, rz: 0.48, y: -0.54, rotZ: 0.08, opacity: 0.11 },
+    { rx: 1.18, rz: 0.62, y: -0.30, rotZ: -0.16, opacity: 0.075 },
+    { rx: 1.08, rz: 0.86, y: 0.06, rotZ: 0.27, opacity: 0.055 },
+  ];
+
+  specs.forEach((spec, idx) => {
+    const pts: THREE.Vector3[] = [];
+    const segments = 240;
+    for (let i = 0; i <= segments; i += 1) {
+      const t = (i / segments) * Math.PI * 2;
+      pts.push(new THREE.Vector3(
+        Math.cos(t) * globeRadius * spec.rx,
+        globeRadius * spec.y,
+        Math.sin(t) * globeRadius * spec.rz,
+      ));
+    }
+    const geometry = new THREE.BufferGeometry().setFromPoints(pts);
+    const material = new THREE.LineDashedMaterial({
+      color: idx === 0 ? 0x35cfff : 0x197ad6,
+      transparent: true,
+      opacity: spec.opacity,
+      dashSize: 2.2,
+      gapSize: 3.8,
+      depthWrite: false,
+      depthTest: true,
+      blending: THREE.AdditiveBlending,
+      toneMapped: false,
+    });
+    const line = new THREE.Line(geometry, material);
+    line.computeLineDistances();
+    line.rotation.z = spec.rotZ;
+    line.renderOrder = -2;
+    scene.add(line);
+    created.push(line);
+  });
+
+  return created;
+}
+function buildLiveArcs(_locations: LiveWorldLocationItem[]): GlobeArc[] {
+  // Intentionally empty. Global Pulse never invents geographic routes.
+  // Decorative network infrastructure is rendered as non-data scene geometry,
+  // while real visitors/purchases remain points, rings and labels.
+  return [];
 }
 
 function buildLiveLabels(locations: LiveWorldLocationItem[]): GlobeLabel[] {
@@ -505,10 +597,26 @@ export default function LiveWorldGlobe({
           const scene: THREE.Scene | null = globe.scene();
           if (scene && scene.isScene) {
             const lights = setupSceneLighting(scene);
+            const backdrop = setupCinematicBackdrop(scene, 100);
             const atmosphere = setupAtmosphere(scene, 100);
+            const network = setupDecorativeNetwork(scene, 100);
             const platform = setupGlobalPulsePlatform(scene, 100);
             const stars = setupStarField(scene, 100);
-            customSceneObjectsRef.current = [...lights, ...atmosphere, ...platform, ...stars];
+            customSceneObjectsRef.current = [...lights, ...backdrop, ...atmosphere, ...network, ...platform, ...stars];
+          }
+        }
+
+        // Cinematic renderer baseline. Keep the stage deep navy instead of a
+        // pure-black inner canvas, and use filmic tone mapping for city lights.
+        if (typeof globe.renderer === "function") {
+          try {
+            const renderer = globe.renderer();
+            renderer.setClearColor?.(0x020916, 1);
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.02;
+          } catch (err) {
+            console.warn("Global Pulse renderer tuning unavailable:", err);
           }
         }
 
@@ -559,7 +667,7 @@ export default function LiveWorldGlobe({
 
         // Global-First initial view: North Atlantic / International (US, Canada, UK, Western Europe, Africa)
         // Phase 2A.1 Camera altitude tuned to 1.70 so Earth diameter occupies ~76-80% of usable stage height
-        globe.pointOfView({ lat: 14, lng: -42, altitude: 2.12 }, 0);
+        globe.pointOfView({ lat: 14, lng: -42, altitude: 2.20 }, 0);
 
         globeInstanceRef.current = globe;
         setIsGlobeReady(true);

@@ -34346,3 +34346,77 @@ html body .cf-pricing-subtitle-mobile {
 @media (prefers-reduced-motion:reduce){
   .live-world-global-pulse * { scroll-behavior:auto!important; }
 }
+/* =========================================================
+   CLOUTFLOW GLOBAL PULSE V5.3 — CINEMATIC COMPOSITION PASS
+   Append after the V5/V5.2 Live World rules in src/app/globals.css.
+   Admin Live World only. No storefront selectors are touched.
+   ========================================================= */
+.live-world-global-pulse .live-world-stage {
+  background:
+    radial-gradient(circle at 50% 41%, rgba(21, 112, 196, .19) 0%, rgba(7, 54, 106, .10) 24%, transparent 48%),
+    radial-gradient(ellipse at 50% 93%, rgba(0, 179, 255, .19) 0%, rgba(0, 76, 151, .08) 32%, transparent 58%),
+    radial-gradient(circle at 16% 20%, rgba(12, 72, 136, .12), transparent 30%),
+    radial-gradient(circle at 84% 22%, rgba(10, 62, 124, .11), transparent 31%),
+    linear-gradient(180deg, #020a18 0%, #031223 46%, #020b18 100%) !important;
+  box-shadow:
+    0 30px 90px rgba(0, 4, 13, .52),
+    inset 0 0 120px rgba(0, 40, 82, .24),
+    inset 0 -70px 110px rgba(0, 12, 28, .58) !important;
+}
+
+.live-world-global-pulse .live-world-stage::before {
+  opacity: .22 !important;
+  filter: blur(.15px);
+}
+
+.live-world-global-pulse .live-world-stage::after {
+  background:
+    radial-gradient(ellipse at 50% 47%, transparent 34%, rgba(0, 5, 16, .08) 62%, rgba(0, 3, 11, .54) 100%),
+    linear-gradient(180deg, rgba(2, 8, 20, .08), transparent 34%, transparent 72%, rgba(2, 7, 18, .28)) !important;
+}
+
+/* Do not shrink the WebGL canvas with CSS. Camera distance owns globe scale. */
+@media (min-width:1280px) {
+  .live-world-global-pulse .live-world-stage canvas {
+    transform: none !important;
+    transform-origin: 50% 50% !important;
+  }
+}
+
+.live-world-global-pulse .live-world-stage canvas {
+  filter: saturate(1.08) contrast(1.045) brightness(.98) !important;
+}
+
+/* HUDs become part of the scene instead of reading like cards pasted on top. */
+.live-world-global-pulse .global-pulse-hud {
+  background:
+    linear-gradient(180deg, rgba(4, 21, 42, .84), rgba(2, 12, 27, .73)) !important;
+  border-color: rgba(52, 152, 219, .25) !important;
+  box-shadow:
+    0 20px 55px rgba(0, 2, 10, .30),
+    inset 0 1px 0 rgba(161, 226, 255, .035),
+    0 0 36px rgba(17, 117, 190, .045) !important;
+  backdrop-filter: blur(18px) saturate(1.08) !important;
+}
+
+.live-world-global-pulse .global-pulse-hud-left {
+  left: 20px !important;
+}
+
+.live-world-global-pulse .global-pulse-hud-right {
+  right: 20px !important;
+}
+
+/* Keep the holographic platform/brand readable above the lower edge. */
+.live-world-global-pulse .global-pulse-brand {
+  bottom: 10px !important;
+  text-shadow: 0 0 18px rgba(53, 188, 255, .42), 0 0 36px rgba(20, 111, 213, .20) !important;
+}
+
+.live-world-global-pulse .global-pulse-brand strong {
+  color: #64d9ff !important;
+}
+
+.live-world-global-pulse .global-pulse-brand small {
+  color: #6f9fbd !important;
+}
