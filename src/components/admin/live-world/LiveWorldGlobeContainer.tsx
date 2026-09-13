@@ -9,9 +9,9 @@ const DynamicGlobe = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div 
+      <div
         data-testid="globe-loading-placeholder"
-        className="w-full h-full min-h-[560px] flex flex-col items-center justify-center rounded-[12px] p-8 text-center"
+        className="w-full h-full min-h-[440px] flex flex-col items-center justify-center rounded-[12px] p-8 text-center"
       >
         <div className="relative flex items-center justify-center mb-4">
           <div className="w-12 h-12 rounded-full border-2 border-cyan-500/20 border-t-cyan-400 animate-spin" />

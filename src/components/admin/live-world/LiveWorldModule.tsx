@@ -243,6 +243,7 @@ export function LiveWorldModule() {
   // Selected city state (for interactive selection panel and highlight)
   const [selectedCity, setSelectedCity] = useState<MappableCity | null>(null);
   const [hoveredHistoricalCity, setHoveredHistoricalCity] = useState<MappableCity | null>(null);
+  const [isGlobeControlActive, setIsGlobeControlActive] = useState<boolean>(false);
 
   const fetchHistoryForMap = useCallback(async (
     targetRange: LiveWorldHistoryRange,
@@ -373,8 +374,19 @@ export function LiveWorldModule() {
   const mappedPercentage = totalPurchasesHist > 0 ? ((mappedPurchasesHist / totalPurchasesHist) * 100).toFixed(1) : "0.0";
   const unknownPercentage = totalPurchasesHist > 0 ? ((unknownGeoPurchasesHist / totalPurchasesHist) * 100).toFixed(1) : "0.0";
 
+  // Structural globe-control mode. The control button lives in this module,
+  // above the WebGL canvas, so it remains visible regardless of renderer stacking.
+  useEffect(() => {
+    if (!isGlobeControlActive) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsGlobeControlActive(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isGlobeControlActive]);
+
   return (
-    <div className="live-world-global-pulse space-y-6 select-none">
+    <div className="space-y-6 select-none">
       {/* 1. Module Header with Live Now / History Navigation Tabs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#D9E2E3] rounded-[10px] p-4 text-[#142126] shadow-[0_1px_2px_rgba(10,35,42,0.03),0_4px_12px_rgba(10,35,42,0.02)]">
         <div className="flex items-center gap-3">
@@ -739,7 +751,7 @@ export function LiveWorldModule() {
             )}
 
             {/* 3D Globe Visual Stage */}
-            <div className="live-world-stage relative bg-[#071D26] border border-[#11313B] rounded-[14px] overflow-hidden min-h-[500px] lg:min-h-[680px] shadow-2xl">
+            <div className="relative bg-[#071D26] border border-[#11313B] rounded-[14px] overflow-hidden min-h-[500px] lg:min-h-[580px] shadow-2xl">
               {/* Globe Header Badge Overlay */}
               <div className="absolute top-4 left-4 z-20 pointer-events-none flex flex-col gap-1">
                 <div className="flex items-center gap-2 bg-[#0A2630]/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#11313B] shadow-sm">
@@ -757,6 +769,31 @@ export function LiveWorldModule() {
                   North Atlantic Centered &bull; 360&deg; Orbit &bull; Inertial Drag
                 </span>
               </div>
+
+
+              {/* Globe Control — structural UI above WebGL, always reachable */}
+              <button
+                type="button"
+                data-testid="globe-control-toggle"
+                aria-pressed={isGlobeControlActive}
+                onClick={() => setIsGlobeControlActive((current) => !current)}
+                className={`absolute bottom-4 right-4 z-[90] pointer-events-auto inline-flex items-center gap-2 rounded-full border px-3.5 py-2 text-[11px] font-bold tracking-wide shadow-lg backdrop-blur-md transition-all cursor-pointer ${
+                  isGlobeControlActive
+                    ? "border-cyan-300/70 bg-cyan-400/20 text-cyan-100 shadow-[0_0_22px_rgba(34,211,238,0.22)]"
+                    : "border-[#1B5263] bg-[#071D26]/92 text-white hover:border-cyan-400/70 hover:bg-[#0A2630]"
+                }`}
+                title={isGlobeControlActive ? "Return mouse wheel to page scrolling" : "Use mouse wheel to zoom and drag to rotate the globe"}
+              >
+                <span className={`h-2 w-2 rounded-full ${isGlobeControlActive ? "bg-cyan-300 shadow-[0_0_10px_#67e8f9]" : "bg-[#0F8F8A]"}`} />
+                <span>{isGlobeControlActive ? "Exit Globe Control" : "Control Globe"}</span>
+                <span className="text-[9px] font-mono opacity-60">{isGlobeControlActive ? "ESC" : "OFF"}</span>
+              </button>
+
+              {isGlobeControlActive && (
+                <div className="absolute bottom-[58px] right-4 z-[89] pointer-events-none rounded-md border border-cyan-300/20 bg-[#020916]/88 px-3 py-1.5 text-[10px] text-cyan-100/80 backdrop-blur-md">
+                  Scroll to zoom · Drag to rotate · ESC to release
+                </div>
+              )}
 
               {/* Dynamic Legend Overlay */}
               <div 
@@ -928,63 +965,8 @@ export function LiveWorldModule() {
                 </div>
               )}
 
-              {/* GLOBAL PULSE — cinematic HUD. All values below come from the existing live payload. */}
-              {globeMode === "live" && (
-                <>
-                  <aside className="global-pulse-hud global-pulse-hud-left hidden xl:block" aria-label="Live activity">
-                    <div className="global-pulse-hud-title"><span className="global-pulse-status-dot" /> Live Activity</div>
-                    <div className="global-pulse-hud-subtitle">Real visitors and approved orders</div>
-                    <div className="global-pulse-feed">
-                      {(liveData?.recentPurchases ?? []).slice(0, 5).map((purchase) => (
-                        <div className="global-pulse-feed-row" key={`pulse-${purchase.orderId}`}>
-                          <span className="global-pulse-feed-icon global-pulse-feed-icon-order"><ShoppingBag className="w-3 h-3" /></span>
-                          <div className="min-w-0 flex-1">
-                            <strong>New order</strong>
-                            <span>{purchase.city || purchase.region || purchase.countryCode || "Global"}{purchase.countryCode && purchase.city ? `, ${purchase.countryCode}` : ""}</span>
-                          </div>
-                          <div className="global-pulse-feed-meta"><b>{`Order ${formatUSD(purchase.amountCents)}`}</b><span>{getRelativeTime(purchase.approvedAt)}</span></div>
-                        </div>
-                      ))}
-                      {(liveData?.locations ?? []).slice(0, Math.max(0, 6 - Math.min(5, liveData?.recentPurchases?.length ?? 0))).map((location, index) => (
-                        <div className="global-pulse-feed-row" key={`visitor-${location.latitude}-${location.longitude}-${index}`}>
-                          <span className="global-pulse-feed-icon global-pulse-feed-icon-visitor"><Users className="w-3 h-3" /></span>
-                          <div className="min-w-0 flex-1">
-                            <strong>Visitor online</strong>
-                            <span>{location.city || location.region || location.countryCode || "Mapped cluster"}</span>
-                          </div>
-                          <div className="global-pulse-feed-meta"><b>{location.activeCount}</b><span>online</span></div>
-                        </div>
-                      ))}
-                      {(liveData?.recentPurchases?.length ?? 0) === 0 && (liveData?.locations?.length ?? 0) === 0 && (
-                        <div className="global-pulse-empty">Waiting for live activity…</div>
-                      )}
-                    </div>
-                  </aside>
-
-                  <aside className="global-pulse-hud global-pulse-hud-right hidden xl:block" aria-label="Top countries">
-                    <div className="global-pulse-hud-title"><Activity className="w-4 h-4" /> Live Worldwide</div>
-                    <div className="global-pulse-hud-subtitle">Real-time activity across the globe</div>
-                    <div className="global-pulse-worldline"><span className="global-pulse-world-dot global-pulse-world-dot-blue" /><b>{formatNumber(liveData?.activeVisitorsTotal ?? 0)}</b><span>Visitors online</span></div>
-                    <div className="global-pulse-worldline"><span className="global-pulse-world-dot global-pulse-world-dot-gold" /><b>{formatNumber(liveData?.recentPurchases?.length ?? 0)}</b><span>Recent orders</span></div>
-                    <div className="global-pulse-country-title">Top Countries</div>
-                    <div className="global-pulse-country-list">
-                      {(liveData?.topCountries ?? []).slice(0, 7).map((country, index) => (
-                        <div className="global-pulse-country-row" key={`${country.countryCode}-${index}`}>
-                          <span>{index + 1}</span><strong>{country.countryCode || "—"}</strong><b>{country.activeCount}</b>
-                        </div>
-                      ))}
-                      {(liveData?.topCountries?.length ?? 0) === 0 && <div className="global-pulse-empty">No mapped countries online</div>}
-                    </div>
-                  </aside>
-
-                  <div className="global-pulse-brand hidden lg:flex" aria-hidden="true">
-                    <strong>CLOUTFLOW</strong><span>GLOBAL PULSE</span><small>REAL PEOPLE&nbsp;&nbsp;•&nbsp;&nbsp;REAL ORDERS&nbsp;&nbsp;•&nbsp;&nbsp;A GLOBAL CREATOR ECONOMY</small>
-                  </div>
-                </>
-              )}
-
               {/* Globe Container (Single persistent 3D instance) */}
-              <div className="w-full h-[560px] lg:h-[680px]">
+              <div className="w-full h-[500px] lg:h-[580px]">
                 <LiveWorldGlobeContainer
                   mode={globeMode}
                   locations={liveData?.locations ?? []}
@@ -996,6 +978,7 @@ export function LiveWorldModule() {
                   selectedCity={selectedCity}
                   onHoverHistoricalCity={setHoveredHistoricalCity}
                   onSelectHistoricalCity={setSelectedCity}
+                  interactionMode={isGlobeControlActive}
                 />
               </div>
             </div>

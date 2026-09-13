@@ -29,6 +29,7 @@ export interface LiveWorldGlobeProps {
   selectedCity?: MappableCity | null;
   onHoverHistoricalCity?: (city: MappableCity | null) => void;
   onSelectHistoricalCity?: (city: MappableCity | null) => void;
+  interactionMode?: boolean;
 }
 
 interface GlobePoint {
@@ -450,6 +451,7 @@ export default function LiveWorldGlobe({
   selectedCity = null,
   onHoverHistoricalCity,
   onSelectHistoricalCity,
+  interactionMode = false,
 }: LiveWorldGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const globeInstanceRef = useRef<any>(null);
@@ -457,7 +459,6 @@ export default function LiveWorldGlobe({
   const [webglSupported, setWebglSupported] = useState<boolean>(true);
   const [initError, setInitError] = useState<string | null>(null);
   const [isGlobeReady, setIsGlobeReady] = useState<boolean>(false);
-  const [isInteractionMode, setIsInteractionMode] = useState<boolean>(false);
 
   // References to keep callbacks current without re-binding globe event listeners
   const callbacksRef = useRef({
@@ -747,17 +748,17 @@ export default function LiveWorldGlobe({
     const container = containerRef.current;
 
     if (controls) {
-      controls.enableZoom = isInteractionMode;
-      controls.enableRotate = isInteractionMode;
+      controls.enableZoom = interactionMode;
+      controls.enableRotate = interactionMode;
       if ("enablePan" in controls) controls.enablePan = false;
     }
 
     if (container) {
-      container.style.touchAction = isInteractionMode ? "none" : "pan-y";
-      container.style.cursor = isInteractionMode ? "grab" : "default";
+      container.style.touchAction = interactionMode ? "none" : "pan-y";
+      container.style.cursor = interactionMode ? "grab" : "default";
     }
 
-    if (!isInteractionMode) return;
+    if (!interactionMode) return;
 
     // Active mode is local to the globe only. OrbitControls receives the wheel
     // first on this same element, then preventDefault stops the browser/page scroll.
@@ -771,25 +772,19 @@ export default function LiveWorldGlobe({
       event.preventDefault();
     };
 
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setIsInteractionMode(false);
-    };
-
     container?.addEventListener("wheel", preventPageWheel, { passive: false });
     container?.addEventListener("touchmove", preventPageTouchMove, { passive: false });
-    window.addEventListener("keydown", onKeyDown);
 
     return () => {
       container?.removeEventListener("wheel", preventPageWheel);
       container?.removeEventListener("touchmove", preventPageTouchMove);
-      window.removeEventListener("keydown", onKeyDown);
 
       if (containerRef.current) {
         containerRef.current.style.touchAction = "pan-y";
         containerRef.current.style.cursor = "default";
       }
     };
-  }, [isInteractionMode, isGlobeReady]);
+  }, [interactionMode, isGlobeReady]);
 
   // Update Points and Rings dynamically without recreating the Globe or resetting camera/zoom
   useEffect(() => {
@@ -950,36 +945,12 @@ export default function LiveWorldGlobe({
   return (
     <div
       className={`global-pulse-globe-interaction w-full h-full min-h-[440px] relative select-none ${
-        isInteractionMode ? "is-active" : "is-passive"
+        interactionMode ? "is-active" : "is-passive"
       }`}
       ref={containerRef}
-      data-globe-interaction={isInteractionMode ? "active" : "passive"}
+      data-globe-interaction={interactionMode ? "active" : "passive"}
     >
-      {/* Globe canvas attaches here */}
-
-      <button
-        type="button"
-        className="global-pulse-interaction-toggle"
-        aria-pressed={isInteractionMode}
-        aria-label={isInteractionMode ? "Exit globe interaction mode" : "Explore globe"}
-        title={isInteractionMode ? "Return mouse wheel to normal page scrolling" : "Enable globe zoom and rotation"}
-        onPointerDown={(event) => event.stopPropagation()}
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          setIsInteractionMode((current) => !current);
-        }}
-      >
-        <span className="global-pulse-interaction-toggle-dot" aria-hidden="true" />
-        <span>{isInteractionMode ? "Exit Globe Control" : "Control Globe"}</span>
-        <small>{isInteractionMode ? "ESC" : "OFF"}</small>
-      </button>
-
-      {isInteractionMode && (
-        <div className="global-pulse-interaction-note" role="status">
-          Globe control active · Scroll to zoom · Drag to rotate · Esc to release page scroll
-        </div>
-      )}
+      {/* Globe canvas attaches here. Interaction UI lives in LiveWorldModule so it can never be hidden by WebGL/canvas stacking. */}
     </div>
   );
 }
