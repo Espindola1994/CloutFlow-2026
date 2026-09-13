@@ -41,6 +41,7 @@ interface GlobePoint {
   purchase?: LiveWorldRecentPurchase;
   historicalCity?: MappableCity;
   type: "visitor" | "purchase" | "historical";
+  glow?: boolean;
 }
 
 interface GlobeRing {
@@ -50,6 +51,32 @@ interface GlobeRing {
   propagationSpeed: number;
   repeatPeriod: number;
   color: string;
+}
+
+interface GlobeArc {
+  startLat: number;
+  startLng: number;
+  endLat: number;
+  endLng: number;
+  color: string;
+  altitude: number;
+  stroke: number;
+}
+
+interface GlobeLabel {
+  lat: number;
+  lng: number;
+  altitude: number;
+  text: string;
+  color: string;
+  size: number;
+  dotRadius: number;
+}
+
+interface GlobePath {
+  coords: Array<[number, number, number]>;
+  color: string;
+  stroke: number;
 }
 
 // -------------------------------------------------------------
@@ -178,7 +205,7 @@ function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.O
     power: number;
     renderOrder: number;
   }) => {
-    const geometry = new THREE.SphereGeometry(globeRadius * params.radiusScale, 64, 64);
+    const geometry = new THREE.SphereGeometry(globeRadius * params.radiusScale, 96, 96);
     const material = new THREE.ShaderMaterial({
       vertexShader: ATMOSPHERE_VERTEX_SHADER,
       fragmentShader: ATMOSPHERE_FRAGMENT_SHADER,
@@ -201,25 +228,113 @@ function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.O
     createdObjects.push(mesh);
   };
 
-  // Tight cyan silhouette directly hugging Earth.
+  // Reference-style atmosphere: no hard neon outline. The inner shell is tight
+  // and soft, while the outer shell provides only a faint cyan-blue bloom.
   makeAtmosphereShell({
-    radiusScale: 1.018,
-    color: "#5cf2ff",
-    intensity: 1.55,
-    power: 2.15,
+    radiusScale: 1.012,
+    color: "#70f5ff",
+    intensity: 0.62,
+    power: 4.8,
     renderOrder: 2,
   });
 
-  // Wider, softer blue/cyan falloff outside the inner rim.
   makeAtmosphereShell({
-    radiusScale: 1.075,
-    color: "#238cff",
-    intensity: 0.62,
-    power: 3.0,
+    radiusScale: 1.055,
+    color: "#2aa7ff",
+    intensity: 0.22,
+    power: 5.8,
     renderOrder: 1,
   });
 
   return createdObjects;
+}
+
+/**
+ * Decorative orbital guides inspired by the approved Live World reference.
+ * They contain no invented customer/location data: they are purely visual
+ * infrastructure around the real data-driven globe.
+ */
+function setupOrbitalGuides(scene: THREE.Scene, globeRadius: number = 100): THREE.Object3D[] {
+  const createdObjects: THREE.Object3D[] = [];
+
+  const makeEllipse = (
+    radiusX: number,
+    radiusZ: number,
+    y: number,
+    rotationX: number,
+    rotationZ: number,
+    opacity: number,
+  ) => {
+    const points: THREE.Vector3[] = [];
+    const segments = 220;
+    for (let i = 0; i <= segments; i += 1) {
+      const t = (i / segments) * Math.PI * 2;
+      points.push(new THREE.Vector3(Math.cos(t) * radiusX, y, Math.sin(t) * radiusZ));
+    }
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+    const material = new THREE.LineBasicMaterial({
+      color: new THREE.Color("#55eaff"),
+      transparent: true,
+      opacity,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const line = new THREE.LineLoop(geometry, material);
+    line.rotation.x = rotationX;
+    line.rotation.z = rotationZ;
+    line.renderOrder = 0;
+    scene.add(line);
+    createdObjects.push(line);
+  };
+
+  // A few subtle orbital tracks provide the dense "global network" silhouette
+  // from the reference without pretending that they are customer routes.
+  makeEllipse(globeRadius * 1.34, globeRadius * 0.54, -globeRadius * 0.72, -0.08, 0.02, 0.34);
+  makeEllipse(globeRadius * 1.22, globeRadius * 0.46, -globeRadius * 0.60, 0.12, -0.12, 0.20);
+  makeEllipse(globeRadius * 1.10, globeRadius * 1.10, 0, 0.72, 0.34, 0.10);
+  makeEllipse(globeRadius * 1.08, globeRadius * 1.08, 0, -0.54, -0.52, 0.08);
+
+  return createdObjects;
+}
+
+function buildLiveArcs(locations: LiveWorldLocationItem[]): GlobeArc[] {
+  const mappable = locations
+    .filter((loc) => typeof loc.latitude === "number" && typeof loc.longitude === "number")
+    .sort((a, b) => b.activeCount - a.activeCount)
+    .slice(0, 7);
+
+  if (mappable.length < 2) return [];
+
+  const hub = mappable[0];
+  return mappable.slice(1).map((loc, index) => ({
+    startLat: hub.latitude as number,
+    startLng: hub.longitude as number,
+    endLat: loc.latitude as number,
+    endLng: loc.longitude as number,
+    color: index % 3 === 0 ? "rgba(255, 184, 72, 0.72)" : "rgba(52, 232, 240, 0.72)",
+    altitude: Math.min(0.18 + index * 0.025, 0.34),
+    stroke: index < 2 ? 0.48 : 0.32,
+  }));
+}
+
+function buildLiveLabels(locations: LiveWorldLocationItem[]): GlobeLabel[] {
+  return locations
+    .filter((loc) => typeof loc.latitude === "number" && typeof loc.longitude === "number")
+    .sort((a, b) => b.activeCount - a.activeCount)
+    .slice(0, 6)
+    .map((loc) => {
+      const city = (loc as any).city || (loc as any).region || (loc as any).country || "Active cluster";
+      return {
+        lat: loc.latitude as number,
+        lng: loc.longitude as number,
+        altitude: 0.10,
+        text: `${city}  ${loc.activeCount} online`,
+        color: "#dffcff",
+        size: 0.82,
+        dotRadius: 0.18,
+      };
+    });
 }
 
 export default function LiveWorldGlobe({
@@ -327,6 +442,38 @@ export default function LiveWorldGlobe({
             }
           });
 
+        // Optional globe.gl layers are feature-detected instead of being part of
+        // the mandatory constructor chain. This keeps the renderer compatible
+        // with the existing test double and older/minimal globe.gl builds while
+        // enabling the richer production layers whenever the API is available.
+        if (typeof globe.arcsData === "function") {
+          globe
+            .arcsData([])
+            .arcStartLat("startLat")
+            .arcStartLng("startLng")
+            .arcEndLat("endLat")
+            .arcEndLng("endLng")
+            .arcColor("color")
+            .arcAltitude("altitude")
+            .arcStroke("stroke")
+            .arcDashLength(0.42)
+            .arcDashGap(0.16)
+            .arcDashAnimateTime(2600);
+        }
+
+        if (typeof globe.labelsData === "function") {
+          globe
+            .labelsData([])
+            .labelLat("lat")
+            .labelLng("lng")
+            .labelAltitude("altitude")
+            .labelText("text")
+            .labelColor("color")
+            .labelSize("size")
+            .labelDotRadius("dotRadius")
+            .labelResolution(2);
+        }
+
         if (typeof globe.onPointClick === "function") {
           globe.onPointClick((point: GlobePoint | null) => {
             if (point && point.type === "historical" && point.historicalCity) {
@@ -349,7 +496,8 @@ export default function LiveWorldGlobe({
           if (scene && scene.isScene) {
             const lights = setupSceneLighting(scene);
             const atmosphere = setupAtmosphere(scene, 100);
-            customSceneObjectsRef.current = [...lights, ...atmosphere];
+            const orbitalGuides = setupOrbitalGuides(scene, 100);
+            customSceneObjectsRef.current = [...lights, ...atmosphere, ...orbitalGuides];
           }
         }
 
@@ -491,8 +639,23 @@ export default function LiveWorldGlobe({
 
       globe.pointsData(pointsData);
 
-      // Rings for recent purchases (animated pulse effect for new live purchases)
+      // Rings: real visitor clusters receive restrained cyan pulses; new
+      // purchases retain the stronger amber pulse already used by production.
       const ringsData: GlobeRing[] = [];
+
+      locations.forEach((loc) => {
+        if (typeof loc.latitude !== "number" || typeof loc.longitude !== "number") return;
+        if (loc.activeCount < 2) return;
+        ringsData.push({
+          lat: loc.latitude,
+          lng: loc.longitude,
+          maxR: Math.min(2.8 + Math.log2(Math.max(2, loc.activeCount)) * 0.75, 6.8),
+          propagationSpeed: 1.25,
+          repeatPeriod: 2200,
+          color: "rgba(67, 240, 239, 0.42)",
+        });
+      });
+
       recentPurchases.forEach((purchase) => {
         if (!purchase.mappable || typeof purchase.latitude !== "number" || typeof purchase.longitude !== "number") return;
 
@@ -509,10 +672,18 @@ export default function LiveWorldGlobe({
       });
 
       globe.ringsData(ringsData);
+      if (typeof globe.arcsData === "function") {
+        globe.arcsData(buildLiveArcs(locations));
+      }
+      if (typeof globe.labelsData === "function") {
+        globe.labelsData(buildLiveLabels(locations));
+      }
     } else {
       // 2. Historical Mode (Revenue Map or Purchase Map)
-      // Zero live rings in historical mode
+      // Zero live-only overlays in historical mode.
       globe.ringsData([]);
+      if (typeof globe.arcsData === "function") globe.arcsData([]);
+      if (typeof globe.labelsData === "function") globe.labelsData([]);
 
       const validCities = extractValidMappableCities(historicalCities);
 
