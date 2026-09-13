@@ -34195,6 +34195,59 @@ html body .cf-pricing-subtitle-mobile {
   }
 }
 
+/* =========================================================
+   LIVE WORLD — PHASE 1 CINEMATIC GLOBE STAGE & SCOPED STYLES
+   ========================================================= */
+
+.live-world-stage {
+  position: relative;
+  background-color: #061124;
+  background-image: 
+    radial-gradient(circle at 50% 50%, rgba(14, 165, 233, 0.18) 0%, rgba(6, 182, 212, 0.08) 28%, transparent 58%),
+    radial-gradient(circle at 50% 90%, rgba(30, 220, 255, 0.12) 0%, rgba(14, 116, 144, 0.06) 35%, transparent 65%),
+    radial-gradient(circle at 15% 20%, rgba(30, 58, 138, 0.25) 0%, transparent 40%),
+    radial-gradient(circle at 85% 20%, rgba(30, 58, 138, 0.25) 0%, transparent 40%),
+    linear-gradient(180deg, #050d1a 0%, #061224 38%, #08172e 72%, #061021 100%);
+  border: 1px solid rgba(30, 58, 110, 0.45);
+  box-shadow: 0 16px 40px -12px rgba(2, 6, 23, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.live-world-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.22) 1px, transparent 1px);
+  background-size: 36px 36px;
+  background-position: 18px 18px;
+  opacity: 0.14;
+  z-index: 1;
+}
+
+.live-world-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(4, 9, 20, 0.65) 100%);
+  z-index: 2;
+}
+
+.live-world-feed-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+.live-world-feed-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.live-world-feed-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 9999px;
+}
+.live-world-feed-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.35);
+}
+
+
 
 
 
