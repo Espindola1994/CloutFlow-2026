@@ -186,7 +186,7 @@ function setupSceneLighting(scene: THREE.Scene): THREE.Object3D[] {
   const keyLight = new THREE.DirectionalLight(0xd7ecff, 0.72);
   keyLight.position.set(-120, 150, 185);
   scene.add(keyLight); createdObjects.push(keyLight);
-  const rimLight = new THREE.DirectionalLight(0x1b8dff, 0.42);
+  const rimLight = new THREE.DirectionalLight(0x1b8dff, 0.28);
   rimLight.position.set(160, 40, -120);
   scene.add(rimLight); createdObjects.push(rimLight);
   return createdObjects;
@@ -235,16 +235,16 @@ function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.O
   makeAtmosphereShell({
     radiusScale: 1.012,
     color: "#7de8ff",
-    intensity: 0.28,
-    power: 6.8,
+    intensity: 0.22,
+    power: 7.2,
     renderOrder: 2,
   });
 
   makeAtmosphereShell({
     radiusScale: 1.055,
     color: "#126fcb",
-    intensity: 0.075,
-    power: 8.5,
+    intensity: 0.050,
+    power: 9.0,
     renderOrder: 1,
   });
 
@@ -258,7 +258,7 @@ function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.O
  */
 function setupGlobalPulsePlatform(scene: THREE.Scene, globeRadius: number = 100): THREE.Object3D[] {
   const created: THREE.Object3D[] = [];
-  const y = -globeRadius * 1.20;
+  const y = -globeRadius * 1.07;
   const makeRing = (radius: number, opacity: number, color = "#21b7ff") => {
     const geometry = new THREE.RingGeometry(radius - 0.38, radius + 0.38, 192);
     const material = new THREE.MeshBasicMaterial({
@@ -272,21 +272,21 @@ function setupGlobalPulsePlatform(scene: THREE.Scene, globeRadius: number = 100)
   };
   makeRing(globeRadius * 0.78, 0.20, "#55ddff");
   makeRing(globeRadius * 1.02, 0.13, "#159dff");
-  makeRing(globeRadius * 1.28, 0.075, "#0c6fff");
-  makeRing(globeRadius * 1.52, 0.040, "#36d9ff");
+  makeRing(globeRadius * 1.24, 0.065, "#0c6fff");
+  makeRing(globeRadius * 1.40, 0.032, "#36d9ff");
 
   // Dotted outer telemetry ring — decorative infrastructure, never customer data.
   const pts: THREE.Vector3[] = [];
   for (let i = 0; i < 180; i += 1) {
     const a = (i / 180) * Math.PI * 2;
-    const r = globeRadius * (1.42 + (i % 7) * 0.002);
+    const r = globeRadius * (1.34 + (i % 7) * 0.002);
     pts.push(new THREE.Vector3(Math.cos(a) * r, y + 0.5, Math.sin(a) * r));
   }
   const geo = new THREE.BufferGeometry().setFromPoints(pts);
   const mat = new THREE.PointsMaterial({ color: 0x41cfff, size: 0.62, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
   const dots = new THREE.Points(geo, mat); scene.add(dots); created.push(dots);
 
-  const glow = new THREE.PointLight(0x168cff, 0.72, globeRadius * 3.5, 2);
+  const glow = new THREE.PointLight(0x168cff, 0.48, globeRadius * 3.2, 2);
   glow.position.set(0, y + 8, 24); scene.add(glow); created.push(glow);
   return created;
 }
@@ -339,12 +339,12 @@ function setupCinematicBackdrop(scene: THREE.Scene, globeRadius: number = 100): 
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       depthTest: false,
-      opacity: 0.78,
+      opacity: 0.50,
       toneMapped: false,
     });
     const sprite = new THREE.Sprite(material);
-    sprite.position.set(0, 4, -118);
-    sprite.scale.set(globeRadius * 3.05, globeRadius * 3.05, 1);
+    sprite.position.set(0, 0, -126);
+    sprite.scale.set(globeRadius * 2.78, globeRadius * 2.78, 1);
     sprite.renderOrder = -20;
     scene.add(sprite);
     created.push(sprite);
@@ -358,12 +358,12 @@ function setupCinematicBackdrop(scene: THREE.Scene, globeRadius: number = 100): 
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       depthTest: false,
-      opacity: 0.56,
+      opacity: 0.42,
       toneMapped: false,
     });
     const sprite = new THREE.Sprite(material);
-    sprite.position.set(0, -globeRadius * 1.12, -90);
-    sprite.scale.set(globeRadius * 3.5, globeRadius * 1.28, 1);
+    sprite.position.set(0, -globeRadius * 1.02, -96);
+    sprite.scale.set(globeRadius * 3.15, globeRadius * 1.02, 1);
     sprite.renderOrder = -19;
     scene.add(sprite);
     created.push(sprite);
@@ -667,7 +667,7 @@ export default function LiveWorldGlobe({
 
         // Global-First initial view: North Atlantic / International (US, Canada, UK, Western Europe, Africa)
         // Phase 2A.1 Camera altitude tuned to 1.70 so Earth diameter occupies ~76-80% of usable stage height
-        globe.pointOfView({ lat: 14, lng: -42, altitude: 2.20 }, 0);
+        globe.pointOfView({ lat: 16, lng: -42, altitude: 2.38 }, 0);
 
         globeInstanceRef.current = globe;
         setIsGlobeReady(true);
