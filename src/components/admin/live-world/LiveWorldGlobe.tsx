@@ -198,58 +198,12 @@ function setupSceneLighting(scene: THREE.Scene): THREE.Object3D[] {
  * PlaneGeometry backdrop here: the Phase 1 stage already owns the cinematic
  * background, and removing the plane avoids billboard/rotation artifacts.
  */
-function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.Object3D[] {
-  const createdObjects: THREE.Object3D[] = [];
-
-  const makeAtmosphereShell = (params: {
-    radiusScale: number;
-    color: string;
-    intensity: number;
-    power: number;
-    renderOrder: number;
-  }) => {
-    const geometry = new THREE.SphereGeometry(globeRadius * params.radiusScale, 96, 96);
-    const material = new THREE.ShaderMaterial({
-      vertexShader: ATMOSPHERE_VERTEX_SHADER,
-      fragmentShader: ATMOSPHERE_FRAGMENT_SHADER,
-      uniforms: {
-        color: { value: new THREE.Color(params.color) },
-        intensity: { value: params.intensity },
-        power: { value: params.power },
-      },
-      transparent: true,
-      blending: THREE.AdditiveBlending,
-      side: THREE.BackSide,
-      depthWrite: false,
-      depthTest: true,
-      toneMapped: false,
-    });
-
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.renderOrder = params.renderOrder;
-    scene.add(mesh);
-    createdObjects.push(mesh);
-  };
-
-  // Reference-style atmosphere: no hard neon outline. The inner shell is tight
-  // and soft, while the outer shell provides only a faint cyan-blue bloom.
-  makeAtmosphereShell({
-    radiusScale: 1.012,
-    color: "#7de8ff",
-    intensity: 0.22,
-    power: 7.2,
-    renderOrder: 2,
-  });
-
-  makeAtmosphereShell({
-    radiusScale: 1.055,
-    color: "#126fcb",
-    intensity: 0.050,
-    power: 9.0,
-    renderOrder: 1,
-  });
-
-  return createdObjects;
+function setupAtmosphere(_scene: THREE.Scene, _globeRadius: number = 100): THREE.Object3D[] {
+  // V5.5.5: intentionally no full-sphere atmosphere shell.
+  // The previous Fresnel shells produced a thin cyan 360° outline around Earth,
+  // which read as an artificial stroke. Scene glow/lighting remains intact,
+  // and the lower holographic platform rings are untouched.
+  return [];
 }
 
 /**
