@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
 import type { LiveWorldLocationItem, LiveWorldRecentPurchase } from "@/types/admin-live-world";
 import type { LiveWorldHistoryTopCity } from "@/types/admin-live-world-history";
 import {
@@ -51,6 +52,176 @@ interface GlobeRing {
   color: string;
 }
 
+// -------------------------------------------------------------
+// Shaders & Setup Helpers for Phase 2A Cinematic Earth Visuals
+// -------------------------------------------------------------
+
+// Local Texture Paths
+const LOCAL_GLOBE_IMG = "/admin/live-world/earth-night.jpg";
+const LOCAL_BUMP_IMG = "/admin/live-world/earth-topology.png";
+
+// Fresnel shaders for the dedicated two-layer atmosphere.
+// The glow is derived from the actual surface normal/view direction, so it
+// remains stable while the user rotates or zooms the globe.
+const ATMOSPHERE_VERTEX_SHADER = `
+  varying vec3 vNormalView;
+  varying vec3 vViewDirection;
+
+  void main() {
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    vNormalView = normalize(normalMatrix * normal);
+    vViewDirection = normalize(-mvPosition.xyz);
+    gl_Position = projectionMatrix * mvPosition;
+  }
+`;
+
+const ATMOSPHERE_FRAGMENT_SHADER = `
+  varying vec3 vNormalView;
+  varying vec3 vViewDirection;
+
+  uniform vec3 color;
+  uniform float intensity;
+  uniform float power;
+
+  void main() {
+    float facing = abs(dot(normalize(vNormalView), normalize(vViewDirection)));
+    float fresnel = pow(clamp(1.0 - facing, 0.0, 1.0), power);
+    float alpha = clamp(fresnel * intensity, 0.0, 1.0);
+
+    if (alpha < 0.01) discard;
+    gl_FragColor = vec4(color, alpha);
+  }
+`;
+
+/**
+ * Preserve the authored texture colors instead of asking a very dark diffuse
+ * texture to carry the whole visual through lighting alone. The same loaded
+ * map is reused as a restrained emissive contribution, which keeps oceans,
+ * continents and warm city lights readable while directional lights still
+ * provide curvature/depth. No extra texture request or duplicate globe is
+ * created.
+ */
+function applyEarthMaterial(globe: any) {
+  if (!globe || typeof globe.globeMaterial !== "function") return;
+
+  try {
+    const mat = globe.globeMaterial();
+    if (!mat || !(mat as any).isMeshPhongMaterial) return;
+
+    const phongMat = mat as THREE.MeshPhongMaterial;
+
+    // Neutral diffuse tint: do not multiply the blue NASA composite down.
+    phongMat.color.set("#ffffff");
+
+    // Reuse the loaded surface map as a low-strength emissive map. This is the
+    // key fix that keeps the supplied blue oceans and city lights visible on
+    // the night side without flattening the sphere into a fully unlit texture.
+    if (phongMat.map) {
+      phongMat.emissiveMap = phongMat.map;
+      phongMat.emissive.set("#ffffff");
+      phongMat.emissiveIntensity = 0.48;
+    } else {
+      // Safe fallback while the async globe texture is still loading.
+      phongMat.emissiveMap = null;
+      phongMat.emissive.set("#0a2748");
+      phongMat.emissiveIntensity = 0.32;
+    }
+
+    // Restrained ocean sheen. The authored texture remains the visual source;
+    // lighting is used only to add shape, not to recolor the planet.
+    phongMat.specular.set("#3f78a8");
+    phongMat.shininess = 14;
+    phongMat.bumpScale = 0.035;
+    phongMat.needsUpdate = true;
+  } catch (err) {
+    console.warn("Failed to configure globe material:", err);
+  }
+}
+
+/**
+ * Add only the lighting needed for spherical depth. Because the surface map
+ * now contributes a restrained emissive term, these lights no longer have to
+ * overpower the texture just to make geography readable.
+ */
+function setupSceneLighting(scene: THREE.Scene): THREE.Object3D[] {
+  const createdObjects: THREE.Object3D[] = [];
+
+  const hemisphereLight = new THREE.HemisphereLight(0x8ed8ff, 0x071425, 0.95);
+  scene.add(hemisphereLight);
+  createdObjects.push(hemisphereLight);
+
+  const keyLight = new THREE.DirectionalLight(0xd7efff, 1.35);
+  keyLight.position.set(145, 105, 175);
+  scene.add(keyLight);
+  createdObjects.push(keyLight);
+
+  const fillLight = new THREE.DirectionalLight(0x3c86bd, 0.55);
+  fillLight.position.set(-135, -35, 120);
+  scene.add(fillLight);
+  createdObjects.push(fillLight);
+
+  return createdObjects;
+}
+
+/**
+ * Create two camera-independent Fresnel shells. There is deliberately no
+ * PlaneGeometry backdrop here: the Phase 1 stage already owns the cinematic
+ * background, and removing the plane avoids billboard/rotation artifacts.
+ */
+function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.Object3D[] {
+  const createdObjects: THREE.Object3D[] = [];
+
+  const makeAtmosphereShell = (params: {
+    radiusScale: number;
+    color: string;
+    intensity: number;
+    power: number;
+    renderOrder: number;
+  }) => {
+    const geometry = new THREE.SphereGeometry(globeRadius * params.radiusScale, 64, 64);
+    const material = new THREE.ShaderMaterial({
+      vertexShader: ATMOSPHERE_VERTEX_SHADER,
+      fragmentShader: ATMOSPHERE_FRAGMENT_SHADER,
+      uniforms: {
+        color: { value: new THREE.Color(params.color) },
+        intensity: { value: params.intensity },
+        power: { value: params.power },
+      },
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
+      depthWrite: false,
+      depthTest: true,
+      toneMapped: false,
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.renderOrder = params.renderOrder;
+    scene.add(mesh);
+    createdObjects.push(mesh);
+  };
+
+  // Tight cyan silhouette directly hugging Earth.
+  makeAtmosphereShell({
+    radiusScale: 1.018,
+    color: "#5cf2ff",
+    intensity: 1.55,
+    power: 2.15,
+    renderOrder: 2,
+  });
+
+  // Wider, softer blue/cyan falloff outside the inner rim.
+  makeAtmosphereShell({
+    radiusScale: 1.075,
+    color: "#238cff",
+    intensity: 0.62,
+    power: 3.0,
+    renderOrder: 1,
+  });
+
+  return createdObjects;
+}
+
 export default function LiveWorldGlobe({
   mode = "live",
   locations = [],
@@ -65,6 +236,7 @@ export default function LiveWorldGlobe({
 }: LiveWorldGlobeProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const globeInstanceRef = useRef<any>(null);
+  const customSceneObjectsRef = useRef<THREE.Object3D[]>([]);
   const [webglSupported, setWebglSupported] = useState<boolean>(true);
   const [initError, setInitError] = useState<string | null>(null);
   const [isGlobeReady, setIsGlobeReady] = useState<boolean>(false);
@@ -116,15 +288,14 @@ export default function LiveWorldGlobe({
         const width = containerRef.current.clientWidth || 600;
         const height = containerRef.current.clientHeight || 500;
 
+        // Dedicated two-layer atmosphere is rendered via custom Three.js objects (Layer 1 thin cyan rim + Layer 2 soft outer halo)
         globe = new GlobeConstructor(containerRef.current)
           .width(width)
           .height(height)
           .backgroundColor("rgba(0,0,0,0)")
-          .showAtmosphere(true)
-          .atmosphereColor("#0F8F8A")
-          .atmosphereAltitude(0.18)
-          .globeImageUrl("//unpkg.com/three-globe/example/img/earth-night.jpg")
-          .bumpImageUrl("//unpkg.com/three-globe/example/img/earth-topology.png")
+          .showAtmosphere(false)
+          .globeImageUrl(LOCAL_GLOBE_IMG)
+          .bumpImageUrl(LOCAL_BUMP_IMG)
           .pointAltitude("altitude")
           .pointRadius("size")
           .pointColor("color")
@@ -164,6 +335,24 @@ export default function LiveWorldGlobe({
           });
         }
 
+        // Apply rich Earth material properties immediately and upon texture readiness
+        applyEarthMaterial(globe);
+        if (typeof globe.onGlobeReady === "function") {
+          globe.onGlobeReady(() => {
+            applyEarthMaterial(globe);
+          });
+        }
+
+        // Access Three.js Scene and inject custom lighting, outer halo, and backdrop depth
+        if (typeof globe.scene === "function") {
+          const scene: THREE.Scene | null = globe.scene();
+          if (scene && scene.isScene) {
+            const lights = setupSceneLighting(scene);
+            const atmosphere = setupAtmosphere(scene, 100);
+            customSceneObjectsRef.current = [...lights, ...atmosphere];
+          }
+        }
+
         // Configure controls
         const controls = globe.controls();
         if (controls) {
@@ -190,9 +379,9 @@ export default function LiveWorldGlobe({
           controls.addEventListener("end", onEndInteraction);
         }
 
-        // Global-First initial view: North Atlantic / International (US, Canada, UK, Western Europe)
-        // lat: 35, lng: -40, altitude: 2.1
-        globe.pointOfView({ lat: 35, lng: -40, altitude: 2.1 }, 0);
+        // Global-First initial view: North Atlantic / International (US, Canada, UK, Western Europe, Africa)
+        // Phase 2A.1 Camera altitude tuned to 1.70 so Earth diameter occupies ~76-80% of usable stage height
+        globe.pointOfView({ lat: 14, lng: -35, altitude: 1.70 }, 0);
 
         globeInstanceRef.current = globe;
         setIsGlobeReady(true);
@@ -224,6 +413,29 @@ export default function LiveWorldGlobe({
           if (globeInstanceRef.current._cleanupResize) {
             globeInstanceRef.current._cleanupResize();
           }
+
+          // Clean up custom Three.js meshes & materials
+          if (typeof globeInstanceRef.current.scene === "function") {
+            const scene: THREE.Scene | null = globeInstanceRef.current.scene();
+            if (scene && scene.isScene) {
+              customSceneObjectsRef.current.forEach((obj) => {
+                scene.remove(obj);
+                if ((obj as any).geometry) {
+                  (obj as any).geometry.dispose?.();
+                }
+                if ((obj as any).material) {
+                  const mat = (obj as any).material;
+                  if (Array.isArray(mat)) {
+                    mat.forEach((m) => m.dispose?.());
+                  } else {
+                    mat.dispose?.();
+                  }
+                }
+              });
+              customSceneObjectsRef.current = [];
+            }
+          }
+
           if (typeof globeInstanceRef.current._destructor === "function") {
             globeInstanceRef.current._destructor();
           }
