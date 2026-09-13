@@ -233,18 +233,18 @@ function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.O
   // Reference-style atmosphere: no hard neon outline. The inner shell is tight
   // and soft, while the outer shell provides only a faint cyan-blue bloom.
   makeAtmosphereShell({
-    radiusScale: 1.018,
-    color: "#8deaff",
-    intensity: 0.82,
-    power: 3.4,
+    radiusScale: 1.012,
+    color: "#7de8ff",
+    intensity: 0.28,
+    power: 6.8,
     renderOrder: 2,
   });
 
   makeAtmosphereShell({
-    radiusScale: 1.075,
-    color: "#137dff",
-    intensity: 0.20,
-    power: 4.6,
+    radiusScale: 1.055,
+    color: "#126fcb",
+    intensity: 0.075,
+    power: 8.5,
     renderOrder: 1,
   });
 
@@ -258,7 +258,7 @@ function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.O
  */
 function setupGlobalPulsePlatform(scene: THREE.Scene, globeRadius: number = 100): THREE.Object3D[] {
   const created: THREE.Object3D[] = [];
-  const y = -globeRadius * 1.13;
+  const y = -globeRadius * 1.34;
   const makeRing = (radius: number, opacity: number, color = "#21b7ff") => {
     const geometry = new THREE.RingGeometry(radius - 0.38, radius + 0.38, 192);
     const material = new THREE.MeshBasicMaterial({
@@ -270,10 +270,10 @@ function setupGlobalPulsePlatform(scene: THREE.Scene, globeRadius: number = 100)
     ring.position.y = y;
     scene.add(ring); created.push(ring);
   };
-  makeRing(globeRadius * 0.72, 0.34, "#4fdcff");
-  makeRing(globeRadius * 0.94, 0.23, "#159dff");
-  makeRing(globeRadius * 1.16, 0.15, "#0c6fff");
-  makeRing(globeRadius * 1.36, 0.09, "#36d9ff");
+  makeRing(globeRadius * 0.76, 0.22, "#55ddff");
+  makeRing(globeRadius * 1.00, 0.15, "#159dff");
+  makeRing(globeRadius * 1.24, 0.095, "#0c6fff");
+  makeRing(globeRadius * 1.46, 0.055, "#36d9ff");
 
   // Dotted outer telemetry ring — decorative infrastructure, never customer data.
   const pts: THREE.Vector3[] = [];
@@ -283,11 +283,11 @@ function setupGlobalPulsePlatform(scene: THREE.Scene, globeRadius: number = 100)
     pts.push(new THREE.Vector3(Math.cos(a) * r, y + 0.5, Math.sin(a) * r));
   }
   const geo = new THREE.BufferGeometry().setFromPoints(pts);
-  const mat = new THREE.PointsMaterial({ color: 0x41cfff, size: 0.8, transparent: true, opacity: 0.48, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+  const mat = new THREE.PointsMaterial({ color: 0x41cfff, size: 0.62, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
   const dots = new THREE.Points(geo, mat); scene.add(dots); created.push(dots);
 
-  const glow = new THREE.PointLight(0x168cff, 1.8, globeRadius * 3.2, 2);
-  glow.position.set(0, y + 6, 35); scene.add(glow); created.push(glow);
+  const glow = new THREE.PointLight(0x168cff, 0.9, globeRadius * 3.4, 2);
+  glow.position.set(0, y + 10, 28); scene.add(glow); created.push(glow);
   return created;
 }
 
@@ -296,7 +296,7 @@ function setupStarField(scene: THREE.Scene, globeRadius: number = 100): THREE.Ob
   // deterministic distribution so SSR/tests/screenshots don't jitter between mounts
   let seed = 9173;
   const rand = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646;
-  for (let i = 0; i < 520; i += 1) {
+  for (let i = 0; i < 640; i += 1) {
     const theta = rand() * Math.PI * 2;
     const phi = Math.acos(2 * rand() - 1);
     const r = globeRadius * (2.25 + rand() * 1.65);
@@ -304,7 +304,7 @@ function setupStarField(scene: THREE.Scene, globeRadius: number = 100): THREE.Ob
   }
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-  const material = new THREE.PointsMaterial({ color: 0x8edcff, size: 0.72, transparent: true, opacity: 0.34, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+  const material = new THREE.PointsMaterial({ color: 0x8edcff, size: 0.56, transparent: true, opacity: 0.26, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
   const stars = new THREE.Points(geometry, material); scene.add(stars);
   return [stars];
 }
@@ -519,10 +519,10 @@ export default function LiveWorldGlobe({
             const composer = globe.postProcessingComposer();
             const { UnrealBloomPass } = await import("three/examples/jsm/postprocessing/UnrealBloomPass.js");
             if (composer && typeof composer.addPass === "function") {
-              const bloom = new UnrealBloomPass(new THREE.Vector2(width, height), 0.72, 0.58, 0.78);
-              bloom.threshold = 0.72;
-              bloom.strength = 0.72;
-              bloom.radius = 0.58;
+              const bloom = new UnrealBloomPass(new THREE.Vector2(width, height), 0.54, 0.42, 0.82);
+              bloom.threshold = 0.82;
+              bloom.strength = 0.54;
+              bloom.radius = 0.42;
               composer.addPass(bloom);
               (globe as any)._globalPulseBloom = bloom;
             }
@@ -559,7 +559,7 @@ export default function LiveWorldGlobe({
 
         // Global-First initial view: North Atlantic / International (US, Canada, UK, Western Europe, Africa)
         // Phase 2A.1 Camera altitude tuned to 1.70 so Earth diameter occupies ~76-80% of usable stage height
-        globe.pointOfView({ lat: 12, lng: -42, altitude: 1.82 }, 0);
+        globe.pointOfView({ lat: 14, lng: -42, altitude: 2.12 }, 0);
 
         globeInstanceRef.current = globe;
         setIsGlobeReady(true);
