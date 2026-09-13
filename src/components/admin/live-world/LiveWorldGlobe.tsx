@@ -146,7 +146,7 @@ function applyEarthMaterial(globe: any) {
     if (phongMat.map) {
       phongMat.emissiveMap = phongMat.map;
       phongMat.emissive.set("#ffffff");
-      phongMat.emissiveIntensity = 0.48;
+      phongMat.emissiveIntensity = 0.22;
     } else {
       // Safe fallback while the async globe texture is still loading.
       phongMat.emissiveMap = null;
@@ -173,16 +173,16 @@ function applyEarthMaterial(globe: any) {
 function setupSceneLighting(scene: THREE.Scene): THREE.Object3D[] {
   const createdObjects: THREE.Object3D[] = [];
 
-  const hemisphereLight = new THREE.HemisphereLight(0x8ed8ff, 0x071425, 0.95);
+  const hemisphereLight = new THREE.HemisphereLight(0x74cfff, 0x020914, 0.62);
   scene.add(hemisphereLight);
   createdObjects.push(hemisphereLight);
 
-  const keyLight = new THREE.DirectionalLight(0xd7efff, 1.35);
+  const keyLight = new THREE.DirectionalLight(0xc9ebff, 1.05);
   keyLight.position.set(145, 105, 175);
   scene.add(keyLight);
   createdObjects.push(keyLight);
 
-  const fillLight = new THREE.DirectionalLight(0x3c86bd, 0.55);
+  const fillLight = new THREE.DirectionalLight(0x2875a8, 0.28);
   fillLight.position.set(-135, -35, 120);
   scene.add(fillLight);
   createdObjects.push(fillLight);
@@ -231,18 +231,18 @@ function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.O
   // Reference-style atmosphere: no hard neon outline. The inner shell is tight
   // and soft, while the outer shell provides only a faint cyan-blue bloom.
   makeAtmosphereShell({
-    radiusScale: 1.012,
-    color: "#70f5ff",
-    intensity: 0.62,
-    power: 4.8,
+    radiusScale: 1.018,
+    color: "#5defff",
+    intensity: 0.38,
+    power: 5.6,
     renderOrder: 2,
   });
 
   makeAtmosphereShell({
-    radiusScale: 1.055,
-    color: "#2aa7ff",
-    intensity: 0.22,
-    power: 5.8,
+    radiusScale: 1.075,
+    color: "#178dff",
+    intensity: 0.12,
+    power: 6.8,
     renderOrder: 1,
   });
 
@@ -257,43 +257,97 @@ function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.O
 function setupOrbitalGuides(scene: THREE.Scene, globeRadius: number = 100): THREE.Object3D[] {
   const createdObjects: THREE.Object3D[] = [];
 
-  const makeEllipse = (
+  const makeDashedOrbit = (
     radiusX: number,
     radiusZ: number,
     y: number,
     rotationX: number,
     rotationZ: number,
     opacity: number,
+    dashEvery: number = 2,
   ) => {
-    const points: THREE.Vector3[] = [];
-    const segments = 220;
-    for (let i = 0; i <= segments; i += 1) {
+    const positions: number[] = [];
+    const segments = 360;
+    for (let i = 0; i < segments; i += 1) {
+      if (i % dashEvery !== 0) continue;
       const t = (i / segments) * Math.PI * 2;
-      points.push(new THREE.Vector3(Math.cos(t) * radiusX, y, Math.sin(t) * radiusZ));
+      positions.push(Math.cos(t) * radiusX, y, Math.sin(t) * radiusZ);
     }
-    const geometry = new THREE.BufferGeometry().setFromPoints(points);
-    const material = new THREE.LineBasicMaterial({
-      color: new THREE.Color("#55eaff"),
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    const material = new THREE.PointsMaterial({
+      color: new THREE.Color("#65efff"),
+      size: 0.72,
+      sizeAttenuation: true,
       transparent: true,
       opacity,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
       toneMapped: false,
     });
-    const line = new THREE.LineLoop(geometry, material);
-    line.rotation.x = rotationX;
-    line.rotation.z = rotationZ;
-    line.renderOrder = 0;
-    scene.add(line);
-    createdObjects.push(line);
+    const orbit = new THREE.Points(geometry, material);
+    orbit.rotation.x = rotationX;
+    orbit.rotation.z = rotationZ;
+    orbit.renderOrder = 0;
+    scene.add(orbit);
+    createdObjects.push(orbit);
   };
 
-  // A few subtle orbital tracks provide the dense "global network" silhouette
-  // from the reference without pretending that they are customer routes.
-  makeEllipse(globeRadius * 1.34, globeRadius * 0.54, -globeRadius * 0.72, -0.08, 0.02, 0.34);
-  makeEllipse(globeRadius * 1.22, globeRadius * 0.46, -globeRadius * 0.60, 0.12, -0.12, 0.20);
-  makeEllipse(globeRadius * 1.10, globeRadius * 1.10, 0, 0.72, 0.34, 0.10);
-  makeEllipse(globeRadius * 1.08, globeRadius * 1.08, 0, -0.54, -0.52, 0.08);
+  // Reference-style orbital architecture: mostly below/around the globe rather
+  // than large solid ellipses cutting across the planet.
+  makeDashedOrbit(globeRadius * 1.30, globeRadius * 0.34, -globeRadius * 0.82, 0.02, 0.0, 0.42, 1);
+  makeDashedOrbit(globeRadius * 1.13, globeRadius * 0.26, -globeRadius * 0.75, 0.03, 0.0, 0.22, 2);
+  makeDashedOrbit(globeRadius * 1.08, globeRadius * 1.08, 0, 0.76, 0.28, 0.075, 4);
+  makeDashedOrbit(globeRadius * 1.06, globeRadius * 1.06, 0, -0.58, -0.44, 0.055, 5);
+
+  // Sparse cyan particles provide depth even when live telemetry is zero. They
+  // are decorative infrastructure only and never represent users or purchases.
+  const particlePositions: number[] = [];
+  const particleCount = 240;
+  for (let i = 0; i < particleCount; i += 1) {
+    const seedA = ((i * 73) % 997) / 997;
+    const seedB = ((i * 193) % 991) / 991;
+    const seedC = ((i * 389) % 983) / 983;
+    const theta = seedA * Math.PI * 2;
+    const radius = globeRadius * (1.12 + seedB * 0.72);
+    const y = globeRadius * (-0.92 + seedC * 1.84);
+    particlePositions.push(Math.cos(theta) * radius, y, Math.sin(theta) * radius);
+  }
+  const particleGeometry = new THREE.BufferGeometry();
+  particleGeometry.setAttribute("position", new THREE.Float32BufferAttribute(particlePositions, 3));
+  const particleMaterial = new THREE.PointsMaterial({
+    color: new THREE.Color("#48dff7"),
+    size: 0.62,
+    sizeAttenuation: true,
+    transparent: true,
+    opacity: 0.20,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    toneMapped: false,
+  });
+  const particles = new THREE.Points(particleGeometry, particleMaterial);
+  particles.renderOrder = -1;
+  scene.add(particles);
+  createdObjects.push(particles);
+
+  // Soft base glow under the planet, matching the approved composition without
+  // encoding any fake telemetry.
+  const glowGeometry = new THREE.RingGeometry(globeRadius * 0.62, globeRadius * 1.26, 160);
+  const glowMaterial = new THREE.MeshBasicMaterial({
+    color: new THREE.Color("#20dff4"),
+    transparent: true,
+    opacity: 0.075,
+    blending: THREE.AdditiveBlending,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    toneMapped: false,
+  });
+  const baseGlow = new THREE.Mesh(glowGeometry, glowMaterial);
+  baseGlow.rotation.x = Math.PI / 2;
+  baseGlow.position.y = -globeRadius * 0.91;
+  baseGlow.scale.set(1.35, 0.42, 1);
+  scene.add(baseGlow);
+  createdObjects.push(baseGlow);
 
   return createdObjects;
 }
@@ -529,7 +583,7 @@ export default function LiveWorldGlobe({
 
         // Global-First initial view: North Atlantic / International (US, Canada, UK, Western Europe, Africa)
         // Phase 2A.1 Camera altitude tuned to 1.70 so Earth diameter occupies ~76-80% of usable stage height
-        globe.pointOfView({ lat: 14, lng: -35, altitude: 1.70 }, 0);
+        globe.pointOfView({ lat: 18, lng: -38, altitude: 2.08 }, 0);
 
         globeInstanceRef.current = globe;
         setIsGlobeReady(true);
