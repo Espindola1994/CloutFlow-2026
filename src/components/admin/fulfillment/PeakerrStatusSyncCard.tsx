@@ -97,16 +97,16 @@ export function PeakerrStatusSyncCard({
   return (
     <div className="space-y-3">
       {/* Section Header */}
-      <div className="flex items-center justify-between min-h-[44px]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 min-h-[44px]">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h3 className="text-[13px] font-[650] uppercase tracking-wider text-[#142126] flex items-center gap-2">
               AUTOMATIC STATUS SYNC
               <span className={`px-1.5 py-0.5 text-[9px] font-bold tracking-wider rounded ${enabled ? "bg-[#E8F8F2] text-[#16B77A] border border-[#B6ECD7]" : "bg-[#F1F5F5] text-[#65737A] border border-[#D9E2E3]"}`}>
                 {enabled ? "ENABLED" : "DISABLED"}
               </span>
             </h3>
-            <span className="text-[#8F9B9F]">•</span>
+            <span className="text-[#8F9B9F] hidden sm:inline">•</span>
             <span className="text-[11px] font-semibold uppercase tracking-wider text-[#65737A] flex items-center gap-1.5">
               TARGET QUEUE AUTO RELEASE:
               <span className={`px-1.5 py-0.5 text-[9px] font-bold tracking-wider rounded ${targetQueueAutoReleaseEnabled ? "bg-[#E8F8F2] text-[#16B77A] border border-[#B6ECD7]" : "bg-[#F1F5F5] text-[#65737A] border border-[#D9E2E3]"}`}>
@@ -136,7 +136,8 @@ export function PeakerrStatusSyncCard({
           type="button"
           onClick={onRunSync}
           disabled={loading}
-          className="inline-flex items-center gap-2 px-3.5 py-2 text-[13px] font-semibold text-[#0F8F8A] hover:text-[#0B7A76] bg-white border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_2px_rgba(10,35,42,0.02)]"
+          aria-label="Run Provider Status Sync Now"
+          className="min-h-[44px] inline-flex items-center justify-center gap-2 px-3.5 py-2 text-[13px] font-semibold text-[#0F8F8A] hover:text-[#0B7A76] bg-white border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] active:bg-[#EDF1F2] transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_2px_rgba(10,35,42,0.02)] shrink-0 self-start sm:self-center"
         >
           {loading ? (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -153,8 +154,8 @@ export function PeakerrStatusSyncCard({
         </div>
       )}
 
-      {/* 7-column metrics grid (cards ~78px height, 150-190px width) */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2.5">
+      {/* 7-column metrics grid (cards ~78px height on desktop, 2-col on mobile) */}
+      <div data-testid="status-sync-metrics-grid" className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 sm:gap-2.5">
         {syncItems.map((item, idx) => {
           const Icon = item.icon;
           return (

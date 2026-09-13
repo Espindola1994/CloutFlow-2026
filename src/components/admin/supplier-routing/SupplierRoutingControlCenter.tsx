@@ -453,6 +453,8 @@ export function SupplierRoutingControlCenter() {
             size="sm"
             onClick={handleRefreshRates}
             isLoading={refreshingRates}
+            aria-label="Refresh Rates"
+            className="min-h-[44px] sm:min-h-[36px]"
           >
             <RefreshCw className="w-4 h-4 mr-1.5" />
             Refresh Rates
@@ -460,8 +462,8 @@ export function SupplierRoutingControlCenter() {
         </div>
       </div>
 
-      {/* Top Dashboard Metrics */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+      {/* Top Dashboard Metrics: 2 columns on mobile, 4 on md, 8 on lg */}
+      <div data-testid="supplier-routing-metrics-grid" className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-2.5 sm:gap-3">
         <AdminStatCard
           title="Revenue Today"
           value={metrics?.revenueTodayFormatted || "$0.00"}
@@ -637,7 +639,7 @@ export function SupplierRoutingControlCenter() {
           {/* Search & Filter Toolbar */}
           <AdminCard padded={false}>
             <div className="p-3.5 border-b border-[#E3E8EA] flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#F7F9FA]">
-              <div className="flex items-center gap-2 flex-1 max-w-md">
+              <div className="flex items-center gap-2 flex-1 max-w-full md:max-w-md">
                 <div className="relative w-full">
                   <Search className="w-4 h-4 text-[#8A979D] absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -645,7 +647,8 @@ export function SupplierRoutingControlCenter() {
                     placeholder="Search service, package, SKU, supplier ID (e.g. 31714)..."
                     value={searchFilter}
                     onChange={(e) => setSearchFilter(e.target.value)}
-                    className="w-full pl-9 pr-3 py-1.5 text-[13px] bg-white border border-[#D1D9DC] rounded-[6px] focus:outline-none focus:border-[#0F8F8A]"
+                    aria-label="Search routing catalog"
+                    className="w-full min-h-[44px] md:min-h-[36px] pl-9 pr-3 py-1.5 text-[13px] bg-white border border-[#D1D9DC] rounded-[6px] focus:outline-none focus:border-[#0F8F8A]"
                   />
                 </div>
               </div>
@@ -654,7 +657,8 @@ export function SupplierRoutingControlCenter() {
                 <select
                   value={serviceCategoryFilter}
                   onChange={(e) => setServiceCategoryFilter(e.target.value)}
-                  className="text-[12px] bg-white border border-[#D1D9DC] rounded-[6px] px-2.5 py-1.5 text-[#142126]"
+                  aria-label="Filter by Service"
+                  className="min-h-[44px] md:min-h-[36px] text-[12px] bg-white border border-[#D1D9DC] rounded-[6px] px-2.5 py-1.5 text-[#142126]"
                 >
                   <option value="all">All Services (Followers, Likes, Views)</option>
                   <option value="followers">Followers</option>
@@ -665,7 +669,8 @@ export function SupplierRoutingControlCenter() {
                 <select
                   value={healthFilter}
                   onChange={(e) => setHealthFilter(e.target.value)}
-                  className="text-[12px] bg-white border border-[#D1D9DC] rounded-[6px] px-2.5 py-1.5 text-[#142126]"
+                  aria-label="Filter by Health"
+                  className="min-h-[44px] md:min-h-[36px] text-[12px] bg-white border border-[#D1D9DC] rounded-[6px] px-2.5 py-1.5 text-[#142126]"
                 >
                   <option value="all">All Health Statuses</option>
                   <option value="GREEN">GREEN (Healthy)</option>
@@ -909,12 +914,13 @@ export function SupplierRoutingControlCenter() {
                             </AdminTable>
                           </div>
 
-                          {/* Mobile Cards View (viewport < 768px) */}
-                          <div className="block md:hidden p-3 space-y-2.5 bg-[#F7F9FA]">
+                          {/* Mobile Cards View (viewport <= 900px) */}
+                          <div data-testid="supplier-routing-mobile-cards" className="block md:hidden p-3 space-y-2.5 bg-[#F7F9FA]">
                             {group.items.map((p) => (
                               <div
                                 key={p.id}
                                 onClick={() => handleOpenEdit(p)}
+                                aria-label={`Inspect ${p.plan}`}
                                 className="p-3.5 bg-white border border-[#D9E2E3] rounded-[8px] space-y-2.5 shadow-sm active:bg-[#F3F7F7] cursor-pointer"
                               >
                                 <div className="flex items-center justify-between gap-2">
@@ -1003,98 +1009,179 @@ export function SupplierRoutingControlCenter() {
             </AdminButton>
           </div>
 
-          <AdminTable>
-            <AdminTableHeader>
-              <AdminTableRow>
-                <AdminTableHead>Order ID / Date</AdminTableHead>
-                <AdminTableHead>Package</AdminTableHead>
-                <AdminTableHead>Customer Paid</AdminTableHead>
-                <AdminTableHead>Priority Attempt</AdminTableHead>
-                <AdminTableHead>Fallback 1 Attempt</AdminTableHead>
-                <AdminTableHead>Hold Reason / Max Cost</AdminTableHead>
-                <AdminTableHead className="text-right">Actions</AdminTableHead>
-              </AdminTableRow>
-            </AdminTableHeader>
-            <AdminTableBody>
-              {loadingQueue ? (
+          {/* Desktop Table View (>=901px) */}
+          <div className="hidden md:block overflow-x-auto">
+            <AdminTable>
+              <AdminTableHeader>
                 <AdminTableRow>
-                  <AdminTableCell colSpan={7} className="text-center py-8 text-[#65737A]">
-                    Loading held orders...
-                  </AdminTableCell>
+                  <AdminTableHead>Order ID / Date</AdminTableHead>
+                  <AdminTableHead>Package</AdminTableHead>
+                  <AdminTableHead>Customer Paid</AdminTableHead>
+                  <AdminTableHead>Priority Attempt</AdminTableHead>
+                  <AdminTableHead>Fallback 1 Attempt</AdminTableHead>
+                  <AdminTableHead>Hold Reason / Max Cost</AdminTableHead>
+                  <AdminTableHead className="text-right">Actions</AdminTableHead>
                 </AdminTableRow>
-              ) : queue.length === 0 ? (
-                <AdminTableRow>
-                  <AdminTableCell colSpan={7} className="text-center py-8 text-[#16B77A] font-medium">
-                    No orders currently on HOLD. All routing pipeline is clear!
-                  </AdminTableCell>
-                </AdminTableRow>
-              ) : (
-                queue.map((ord) => (
-                  <AdminTableRow key={ord.id}>
-                    <AdminTableCell>
-                      <div className="font-mono text-[12px] font-bold text-[#142126]">{ord.publicId || ord.id.slice(0, 8)}</div>
+              </AdminTableHeader>
+              <AdminTableBody>
+                {loadingQueue ? (
+                  <AdminTableRow>
+                    <AdminTableCell colSpan={7} className="text-center py-8 text-[#65737A]">
+                      Loading held orders...
+                    </AdminTableCell>
+                  </AdminTableRow>
+                ) : queue.length === 0 ? (
+                  <AdminTableRow>
+                    <AdminTableCell colSpan={7} className="text-center py-8 text-[#16B77A] font-medium">
+                      No orders currently on HOLD. All routing pipeline is clear!
+                    </AdminTableCell>
+                  </AdminTableRow>
+                ) : (
+                  queue.map((ord) => (
+                    <AdminTableRow key={ord.id}>
+                      <AdminTableCell>
+                        <div className="font-mono text-[12px] font-bold text-[#142126]">{ord.publicId || ord.id.slice(0, 8)}</div>
+                        <div className="text-[11px] text-[#65737A]">
+                          {new Date(ord.createdAt).toLocaleString()}
+                        </div>
+                      </AdminTableCell>
+                      <AdminTableCell>
+                        <div className="text-[13px] font-medium text-[#142126]">{ord.platform} &gt; {ord.service}</div>
+                        <div className="text-[11px] text-[#65737A]">Qty: {ord.quantity?.toLocaleString()} | @{ord.username}</div>
+                      </AdminTableCell>
+                      <AdminTableCell className="font-bold text-[#142126] text-[13px]">
+                        {ord.customerPaidFormatted}
+                      </AdminTableCell>
+                      <AdminTableCell>
+                        {ord.priorityAttempt ? (
+                          <div className="text-[12px]">
+                            <div className="font-mono text-[#142126]">ID {ord.priorityAttempt.supplierId}</div>
+                            <div className="text-[11px] text-[#EF4444]">Cost: ${ord.priorityAttempt.cost.toFixed(2)} ({ord.priorityAttempt.decision})</div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-[11px]">--</span>
+                        )}
+                      </AdminTableCell>
+                      <AdminTableCell>
+                        {ord.fallback1Attempt ? (
+                          <div className="text-[12px]">
+                            <div className="font-mono text-[#142126]">ID {ord.fallback1Attempt.supplierId}</div>
+                            <div className="text-[11px] text-[#EF4444]">Cost: ${ord.fallback1Attempt.cost.toFixed(2)} ({ord.fallback1Attempt.decision})</div>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 text-[11px]">--</span>
+                        )}
+                      </AdminTableCell>
+                      <AdminTableCell>
+                        <div className="text-[12px] font-semibold text-[#EF4444]">{ord.holdReason}</div>
+                        <div className="text-[11px] text-[#65737A]">
+                          Max Allowed: {ord.allowedSupplierCost !== null ? `$${ord.allowedSupplierCost.toFixed(2)}` : "--"}
+                        </div>
+                      </AdminTableCell>
+                      <AdminTableCell className="text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <AdminButton
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleRetryOrder(ord.id)}
+                          >
+                            <RotateCcw className="w-3.5 h-3.5 mr-1" />
+                            Retry Routing
+                          </AdminButton>
+                          <AdminButton
+                            size="sm"
+                            variant="danger"
+                            onClick={() => openOverrideModal(ord)}
+                          >
+                            <Lock className="w-3.5 h-3.5 mr-1" />
+                            Override
+                          </AdminButton>
+                        </div>
+                      </AdminTableCell>
+                    </AdminTableRow>
+                  ))
+                )}
+              </AdminTableBody>
+            </AdminTable>
+          </div>
+
+          {/* Mobile Queue Cards View (<=900px) */}
+          <div data-testid="manual-review-mobile-list" className="block md:hidden p-3 space-y-2.5">
+            {loadingQueue ? (
+              <div className="text-center py-8 text-[#65737A] text-[13px]">
+                Loading held orders...
+              </div>
+            ) : queue.length === 0 ? (
+              <div className="text-center py-8 text-[#16B77A] font-medium text-[13px]">
+                No orders currently on HOLD. All routing pipeline is clear!
+              </div>
+            ) : (
+              queue.map((ord) => (
+                <div
+                  key={ord.id}
+                  className="p-3.5 bg-white border border-[#D9E2E3] rounded-[8px] space-y-2.5 shadow-sm"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <div className="font-mono font-bold text-[13px] text-[#142126]">
+                        #{ord.publicId || ord.id.slice(0, 8)}
+                      </div>
                       <div className="text-[11px] text-[#65737A]">
                         {new Date(ord.createdAt).toLocaleString()}
                       </div>
-                    </AdminTableCell>
-                    <AdminTableCell>
-                      <div className="text-[13px] font-medium text-[#142126]">{ord.platform} &gt; {ord.service}</div>
-                      <div className="text-[11px] text-[#65737A]">Qty: {ord.quantity?.toLocaleString()} | @{ord.username}</div>
-                    </AdminTableCell>
-                    <AdminTableCell className="font-bold text-[#142126] text-[13px]">
-                      {ord.customerPaidFormatted}
-                    </AdminTableCell>
-                    <AdminTableCell>
-                      {ord.priorityAttempt ? (
-                        <div className="text-[12px]">
-                          <div className="font-mono text-[#142126]">ID {ord.priorityAttempt.supplierId}</div>
-                          <div className="text-[11px] text-[#EF4444]">Cost: ${ord.priorityAttempt.cost.toFixed(2)} ({ord.priorityAttempt.decision})</div>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 text-[11px]">--</span>
-                      )}
-                    </AdminTableCell>
-                    <AdminTableCell>
-                      {ord.fallback1Attempt ? (
-                        <div className="text-[12px]">
-                          <div className="font-mono text-[#142126]">ID {ord.fallback1Attempt.supplierId}</div>
-                          <div className="text-[11px] text-[#EF4444]">Cost: ${ord.fallback1Attempt.cost.toFixed(2)} ({ord.fallback1Attempt.decision})</div>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 text-[11px]">--</span>
-                      )}
-                    </AdminTableCell>
-                    <AdminTableCell>
-                      <div className="text-[12px] font-semibold text-[#EF4444]">{ord.holdReason}</div>
-                      <div className="text-[11px] text-[#65737A]">
-                        Max Allowed: {ord.allowedSupplierCost !== null ? `$${ord.allowedSupplierCost.toFixed(2)}` : "--"}
-                      </div>
-                    </AdminTableCell>
-                    <AdminTableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <AdminButton
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRetryOrder(ord.id)}
-                        >
-                          <RotateCcw className="w-3.5 h-3.5 mr-1" />
-                          Retry Routing
-                        </AdminButton>
-                        <AdminButton
-                          size="sm"
-                          variant="danger"
-                          onClick={() => openOverrideModal(ord)}
-                        >
-                          <Lock className="w-3.5 h-3.5 mr-1" />
-                          Override
-                        </AdminButton>
-                      </div>
-                    </AdminTableCell>
-                  </AdminTableRow>
-                ))
-              )}
-            </AdminTableBody>
-          </AdminTable>
+                    </div>
+                    <span className="text-[12px] font-bold text-[#EF4444] bg-[#FEECEB] px-2 py-0.5 rounded border border-[#FCA5A5]">
+                      ON HOLD
+                    </span>
+                  </div>
+
+                  <div className="text-[12px] text-[#142126]">
+                    <span className="font-semibold">{ord.platform} &gt; {ord.service}</span>
+                    <span className="text-[#65737A] block text-[11px]">Qty: {ord.quantity?.toLocaleString()} | @{ord.username}</span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-[11.5px] bg-[#F7F9FA] p-2 rounded-[6px] border border-[#E3E8EA]">
+                    <div>
+                      <span className="text-[#65737A] text-[10px] uppercase font-bold block">Paid</span>
+                      <strong className="text-[#142126] font-mono">{ord.customerPaidFormatted}</strong>
+                    </div>
+                    <div>
+                      <span className="text-[#65737A] text-[10px] uppercase font-bold block">Max Allowed</span>
+                      <strong className="text-[#142126] font-mono">
+                        {ord.allowedSupplierCost !== null ? `$${ord.allowedSupplierCost.toFixed(2)}` : "--"}
+                      </strong>
+                    </div>
+                    <div className="col-span-2">
+                      <span className="text-[#EF4444] text-[10px] uppercase font-bold block">Reason</span>
+                      <span className="text-[#EF4444] font-semibold text-[11px]">{ord.holdReason}</span>
+                    </div>
+                  </div>
+
+                  {/* Actions for Mobile */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => handleRetryOrder(ord.id)}
+                      aria-label={`Retry Routing ${ord.publicId || ord.id.slice(0, 8)}`}
+                      className="min-h-[44px] text-[12px] font-semibold text-[#142126] bg-white border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] active:bg-[#EDF1F2] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>Retry</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openOverrideModal(ord)}
+                      aria-label={`Override ${ord.publicId || ord.id.slice(0, 8)}`}
+                      className="min-h-[44px] text-[12px] font-semibold text-white bg-[#EF4444] hover:bg-[#DC2626] active:bg-[#B91C1C] rounded-[7px] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      <Lock className="w-3.5 h-3.5" />
+                      <span>Override</span>
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
         </AdminCard>
       )}
 
@@ -1181,74 +1268,134 @@ export function SupplierRoutingControlCenter() {
             </AdminButton>
           </div>
 
-          <AdminTable>
-            <AdminTableHeader>
-              <AdminTableRow>
-                <AdminTableHead>Date / Time</AdminTableHead>
-                <AdminTableHead>Order ID</AdminTableHead>
-                <AdminTableHead>Position</AdminTableHead>
-                <AdminTableHead>Supplier ID</AdminTableHead>
-                <AdminTableHead>Rate / Cost</AdminTableHead>
-                <AdminTableHead>Selling Price</AdminTableHead>
-                <AdminTableHead>Profit / Margin</AdminTableHead>
-                <AdminTableHead>Allowed Cost</AdminTableHead>
-                <AdminTableHead>Decision</AdminTableHead>
-              </AdminTableRow>
-            </AdminTableHeader>
-            <AdminTableBody>
-              {loadingHistory ? (
+          {/* Desktop Table (>=901px) */}
+          <div className="hidden md:block overflow-x-auto">
+            <AdminTable>
+              <AdminTableHeader>
                 <AdminTableRow>
-                  <AdminTableCell colSpan={9} className="text-center py-8 text-[#65737A]">
-                    Loading routing history...
-                  </AdminTableCell>
+                  <AdminTableHead>Date / Time</AdminTableHead>
+                  <AdminTableHead>Order ID</AdminTableHead>
+                  <AdminTableHead>Position</AdminTableHead>
+                  <AdminTableHead>Supplier ID</AdminTableHead>
+                  <AdminTableHead>Rate / Cost</AdminTableHead>
+                  <AdminTableHead>Selling Price</AdminTableHead>
+                  <AdminTableHead>Profit / Margin</AdminTableHead>
+                  <AdminTableHead>Allowed Cost</AdminTableHead>
+                  <AdminTableHead>Decision</AdminTableHead>
                 </AdminTableRow>
-              ) : historyItems.length === 0 ? (
-                <AdminTableRow>
-                  <AdminTableCell colSpan={9} className="text-center py-8 text-[#65737A]">
-                    No routing attempts recorded yet.
-                  </AdminTableCell>
-                </AdminTableRow>
-              ) : (
-                historyItems.map((item) => (
-                  <AdminTableRow key={item.id}>
-                    <AdminTableCell className="text-[11px] text-[#65737A]">
-                      {new Date(item.createdAt).toLocaleString()}
-                    </AdminTableCell>
-                    <AdminTableCell className="font-mono text-[12px] font-medium text-[#142126]">
-                      {item.orderId?.slice(0, 8)}
-                    </AdminTableCell>
-                    <AdminTableCell className="capitalize text-[12px] font-semibold text-[#65737A]">
-                      {item.supplierPosition}
-                    </AdminTableCell>
-                    <AdminTableCell className="font-mono text-[12px] text-[#142126]">
-                      {item.supplierServiceId}
-                    </AdminTableCell>
-                    <AdminTableCell className="text-[12px]">
-                      <div>${item.supplierRate.toFixed(3)}/K</div>
-                      <div className="font-semibold text-[#0F8F8A]">Est: ${item.supplierCalculatedCost.toFixed(2)}</div>
-                    </AdminTableCell>
-                    <AdminTableCell className="font-bold text-[12px] text-[#142126]">
-                      ${item.sellingPrice.toFixed(2)}
-                    </AdminTableCell>
-                    <AdminTableCell className="text-[12px]">
-                      <div>${item.grossProfit.toFixed(2)}</div>
-                      <div className="text-[11px] text-[#65737A] font-semibold">{item.grossMarginPercent}%</div>
-                    </AdminTableCell>
-                    <AdminTableCell className="font-mono text-[12px] text-[#142126]">
-                      ${item.allowedSupplierCost.toFixed(2)}
-                    </AdminTableCell>
-                    <AdminTableCell>
-                      <AdminBadge
-                        variant={item.decision === "ACCEPTED" ? "success" : "danger"}
-                      >
-                        {item.decision}
-                      </AdminBadge>
+              </AdminTableHeader>
+              <AdminTableBody>
+                {loadingHistory ? (
+                  <AdminTableRow>
+                    <AdminTableCell colSpan={9} className="text-center py-8 text-[#65737A]">
+                      Loading routing history...
                     </AdminTableCell>
                   </AdminTableRow>
-                ))
-              )}
-            </AdminTableBody>
-          </AdminTable>
+                ) : historyItems.length === 0 ? (
+                  <AdminTableRow>
+                    <AdminTableCell colSpan={9} className="text-center py-8 text-[#65737A]">
+                      No routing attempts recorded yet.
+                    </AdminTableCell>
+                  </AdminTableRow>
+                ) : (
+                  historyItems.map((item) => (
+                    <AdminTableRow key={item.id}>
+                      <AdminTableCell className="text-[11px] text-[#65737A]">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </AdminTableCell>
+                      <AdminTableCell className="font-mono text-[12px] font-medium text-[#142126]">
+                        {item.orderId?.slice(0, 8)}
+                      </AdminTableCell>
+                      <AdminTableCell className="capitalize text-[12px] font-semibold text-[#65737A]">
+                        {item.supplierPosition}
+                      </AdminTableCell>
+                      <AdminTableCell className="font-mono text-[12px] text-[#142126]">
+                        {item.supplierServiceId}
+                      </AdminTableCell>
+                      <AdminTableCell className="text-[12px]">
+                        <div>${item.supplierRate.toFixed(3)}/K</div>
+                        <div className="font-semibold text-[#0F8F8A]">Est: ${item.supplierCalculatedCost.toFixed(2)}</div>
+                      </AdminTableCell>
+                      <AdminTableCell className="font-bold text-[12px] text-[#142126]">
+                        ${item.sellingPrice.toFixed(2)}
+                      </AdminTableCell>
+                      <AdminTableCell className="text-[12px]">
+                        <div>${item.grossProfit.toFixed(2)}</div>
+                        <div className="text-[11px] text-[#65737A] font-semibold">{item.grossMarginPercent}%</div>
+                      </AdminTableCell>
+                      <AdminTableCell className="font-mono text-[12px] text-[#142126]">
+                        ${item.allowedSupplierCost.toFixed(2)}
+                      </AdminTableCell>
+                      <AdminTableCell>
+                        <AdminBadge
+                          variant={item.decision === "ACCEPTED" ? "success" : "danger"}
+                        >
+                          {item.decision}
+                        </AdminBadge>
+                      </AdminTableCell>
+                    </AdminTableRow>
+                  ))
+                )}
+              </AdminTableBody>
+            </AdminTable>
+          </div>
+
+          {/* Mobile History Cards (<=900px) */}
+          <div data-testid="supplier-history-mobile-list" className="block md:hidden p-3 space-y-2.5">
+            {loadingHistory ? (
+              <div className="text-center py-8 text-[#65737A] text-[13px]">
+                Loading routing history...
+              </div>
+            ) : historyItems.length === 0 ? (
+              <div className="text-center py-8 text-[#65737A] text-[13px]">
+                No routing attempts recorded yet.
+              </div>
+            ) : (
+              historyItems.map((item) => (
+                <div
+                  key={item.id}
+                  className="p-3.5 bg-white border border-[#D9E2E3] rounded-[8px] space-y-2.5 shadow-sm"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <div className="font-mono font-bold text-[13px] text-[#142126]">
+                        Order #{item.orderId?.slice(0, 8)}
+                      </div>
+                      <div className="text-[11px] text-[#65737A]">
+                        {new Date(item.createdAt).toLocaleString()}
+                      </div>
+                    </div>
+                    <AdminBadge variant={item.decision === "ACCEPTED" ? "success" : "danger"}>
+                      {item.decision}
+                    </AdminBadge>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-[11.5px] bg-[#F7F9FA] p-2 rounded-[6px] border border-[#E3E8EA]">
+                    <div>
+                      <span className="text-[#65737A] text-[10px] uppercase font-bold block">Position / Service</span>
+                      <strong className="text-[#142126] capitalize">{item.supplierPosition}</strong>
+                      <span className="text-[10px] font-mono text-[#0F8F8A] block">ID #{item.supplierServiceId}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#65737A] text-[10px] uppercase font-bold block">Selling Price</span>
+                      <strong className="text-[#142126] font-mono">${item.sellingPrice.toFixed(2)}</strong>
+                      <span className="text-[10px] text-[#65737A] block font-mono">Max: ${item.allowedSupplierCost.toFixed(2)}</span>
+                    </div>
+                    <div>
+                      <span className="text-[#65737A] text-[10px] uppercase font-bold block">Rate / Est Cost</span>
+                      <strong className="text-[#0F8F8A] font-mono">${item.supplierCalculatedCost.toFixed(2)}</strong>
+                      <span className="text-[10px] text-[#65737A] block">(${item.supplierRate.toFixed(3)}/K)</span>
+                    </div>
+                    <div>
+                      <span className="text-[#65737A] text-[10px] uppercase font-bold block">Profit / Margin</span>
+                      <strong className="text-[#142126] font-mono">${item.grossProfit.toFixed(2)}</strong>
+                      <span className="text-[10px] text-[#65737A] block font-semibold">{item.grossMarginPercent}%</span>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
 
           {/* Pagination */}
           <div className="p-3 border-t border-[#E3E8EA] flex items-center justify-between bg-[#F7F9FA] text-[12px] text-[#65737A]">
@@ -1283,13 +1430,13 @@ export function SupplierRoutingControlCenter() {
           open={isEditModalOpen}
           onOpenChange={setIsEditModalOpen}
           title={`Edit Supplier Routing: ${selectedProduct.platform} > ${selectedProduct.service} > ${selectedProduct.plan}`}
-          className="sm:max-w-2xl"
+          className="w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto"
           footer={
             <div className="flex items-center justify-end gap-2 w-full">
-              <AdminButton variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              <AdminButton variant="outline" onClick={() => setIsEditModalOpen(false)} className="min-h-[44px] sm:min-h-[36px]">
                 Cancel
               </AdminButton>
-              <AdminButton variant="primary" onClick={() => handleSaveEdit(false)}>
+              <AdminButton variant="primary" onClick={() => handleSaveEdit(false)} className="min-h-[44px] sm:min-h-[36px]">
                 Save Changes
               </AdminButton>
             </div>
@@ -1341,7 +1488,7 @@ export function SupplierRoutingControlCenter() {
             )}
 
             {/* Supplier IDs Configuration */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-[12px] font-semibold text-[#142126] mb-1">
                   Priority Service ID
@@ -1350,7 +1497,7 @@ export function SupplierRoutingControlCenter() {
                   type="text"
                   value={editFormData.priorityServiceId || ""}
                   onChange={(e) => setEditFormData({ ...editFormData, priorityServiceId: e.target.value })}
-                  className="w-full text-[13px] font-mono px-3 py-1.5 border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
+                  className="w-full text-[13px] font-mono px-3 py-2 sm:py-1.5 min-h-[44px] sm:min-h-[36px] border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
                 />
               </div>
 
@@ -1362,7 +1509,7 @@ export function SupplierRoutingControlCenter() {
                   type="text"
                   value={editFormData.fallback1ServiceId || ""}
                   onChange={(e) => setEditFormData({ ...editFormData, fallback1ServiceId: e.target.value })}
-                  className="w-full text-[13px] font-mono px-3 py-1.5 border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
+                  className="w-full text-[13px] font-mono px-3 py-2 sm:py-1.5 min-h-[44px] sm:min-h-[36px] border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
                 />
               </div>
 
@@ -1374,13 +1521,13 @@ export function SupplierRoutingControlCenter() {
                   type="text"
                   value={editFormData.fallback2ServiceId || ""}
                   onChange={(e) => setEditFormData({ ...editFormData, fallback2ServiceId: e.target.value })}
-                  className="w-full text-[13px] font-mono px-3 py-1.5 border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
+                  className="w-full text-[13px] font-mono px-3 py-2 sm:py-1.5 min-h-[44px] sm:min-h-[36px] border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
                 />
               </div>
             </div>
 
             {/* Financial Protection Settings */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <label className="block text-[12px] font-semibold text-[#142126] mb-1">
                   Min Margin %
@@ -1389,7 +1536,7 @@ export function SupplierRoutingControlCenter() {
                   type="number"
                   value={editFormData.minimumGrossMarginPercent || ""}
                   onChange={(e) => setEditFormData({ ...editFormData, minimumGrossMarginPercent: e.target.value })}
-                  className="w-full text-[13px] px-3 py-1.5 border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
+                  className="w-full text-[13px] px-3 py-2 sm:py-1.5 min-h-[44px] sm:min-h-[36px] border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
                 />
               </div>
 
@@ -1402,7 +1549,7 @@ export function SupplierRoutingControlCenter() {
                   step="0.50"
                   value={editFormData.minimumGrossProfit || ""}
                   onChange={(e) => setEditFormData({ ...editFormData, minimumGrossProfit: e.target.value })}
-                  className="w-full text-[13px] px-3 py-1.5 border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
+                  className="w-full text-[13px] px-3 py-2 sm:py-1.5 min-h-[44px] sm:min-h-[36px] border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
                 />
               </div>
 
@@ -1416,7 +1563,7 @@ export function SupplierRoutingControlCenter() {
                   placeholder="Optional override"
                   value={editFormData.maxSupplierCostAbsolute ?? ""}
                   onChange={(e) => setEditFormData({ ...editFormData, maxSupplierCostAbsolute: e.target.value })}
-                  className="w-full text-[13px] px-3 py-1.5 border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
+                  className="w-full text-[13px] px-3 py-2 sm:py-1.5 min-h-[44px] sm:min-h-[36px] border border-[#D1D9DC] rounded-[6px] focus:border-[#0F8F8A] focus:outline-none"
                 />
               </div>
             </div>

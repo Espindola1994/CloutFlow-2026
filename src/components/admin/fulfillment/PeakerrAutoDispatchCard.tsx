@@ -714,7 +714,8 @@ export function PeakerrAutoDispatchCard() {
               type="button"
               onClick={fetchCandidates}
               disabled={candidatesLoading}
-              className="h-[36px] px-4 w-auto rounded-[7px] bg-[#0F8F8A] hover:bg-[#0B7A76] text-white text-[13px] font-semibold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_3px_rgba(15,143,138,0.25)]"
+              aria-label="Preview Eligible Orders for Auto Dispatch"
+              className="min-h-[44px] sm:min-h-[36px] px-4 w-full sm:w-auto rounded-[7px] bg-[#0F8F8A] hover:bg-[#0B7A76] text-white text-[13px] font-semibold inline-flex items-center justify-center gap-2 transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_3px_rgba(15,143,138,0.25)]"
             >
               {candidatesLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sliders className="w-4 h-4" />}
               <span>Preview Eligible Orders</span>
@@ -935,7 +936,7 @@ export function PeakerrAutoDispatchCard() {
         }}
         title="Operational Order Inspector (Read-Only)"
         description="Comprehensive diagnostic & safe operational actions."
-        className="sm:max-w-3xl"
+        className="w-full sm:max-w-3xl max-h-[90vh] overflow-y-auto"
       >
         <div>
           {inspectFailedOrder ? (
@@ -1380,7 +1381,7 @@ export function PeakerrAutoDispatchCard() {
         onOpenChange={setShowTargetQueueModal}
         title="Target-Aware Delivery Queue Inspector"
         description="Active delivery slots and FIFO queued orders grouped by canonical target"
-        className="max-w-4xl"
+        className="w-full max-w-4xl max-h-[90vh] overflow-y-auto"
       >
         <div className="space-y-4">
           {targetQueueLoading ? (

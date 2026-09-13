@@ -689,9 +689,10 @@ export function PeakerrChainsModule() {
         </button>
       </div>
 
-      {/* 2. PROVIDER STATUS — MASTER STRIP (Single large horizontal card, height ~82px–92px, border #D9E2E3, radius 8px–10px) */}
-      <div className="min-h-[84px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_1px_2px_rgba(10,35,42,0.02)]">
-        <div className="flex flex-wrap items-center gap-6 divide-y md:divide-y-0 md:divide-x divide-[#E7ECEC]">
+      {/* 2. PROVIDER STATUS — MASTER STRIP (Single large horizontal card, height ~82px–92px on desktop, border #D9E2E3, radius 8px–10px) */}
+      <div className="min-h-[84px] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[9px] px-4 md:px-6 py-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-[0_1px_2px_rgba(10,35,42,0.02)]">
+        {/* Desktop View (>= 901px) */}
+        <div className="hidden md:flex flex-wrap items-center gap-6 divide-x divide-[#E7ECEC]">
           {/* Item 1: Provider Name & Routing */}
           <div className="flex items-center gap-3 pr-4">
             <div className="w-[34px] h-[34px] rounded-[7px] bg-transparent flex items-center justify-center shrink-0">
@@ -711,7 +712,7 @@ export function PeakerrChainsModule() {
           </div>
 
           {/* Item 2: Connection */}
-          <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
+          <div className="pl-6 min-h-[36px] flex flex-col justify-center">
             <div className="flex items-center gap-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">
                 CONNECTION
@@ -729,7 +730,7 @@ export function PeakerrChainsModule() {
           </div>
 
           {/* Item 3: Live Fulfillment */}
-          <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
+          <div className="pl-6 min-h-[36px] flex flex-col justify-center">
             <div className="flex items-center gap-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">
                 LIVE FULFILLMENT
@@ -747,7 +748,7 @@ export function PeakerrChainsModule() {
           </div>
 
           {/* Item 4: Balance */}
-          <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
+          <div className="pl-6 min-h-[36px] flex flex-col justify-center">
             <div className="flex items-center gap-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">
                 BALANCE
@@ -762,7 +763,7 @@ export function PeakerrChainsModule() {
           </div>
 
           {/* Item 5: Services Loaded */}
-          <div className="pt-3 md:pt-0 md:pl-6 min-h-[36px] flex flex-col justify-center">
+          <div className="pl-6 min-h-[36px] flex flex-col justify-center">
             <div className="flex items-center gap-1">
               <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">
                 SERVICES
@@ -775,8 +776,87 @@ export function PeakerrChainsModule() {
           </div>
         </div>
 
-        {/* Refresh Button on the right (Height 34px-36px) */}
-        <div className="shrink-0">
+        {/* Mobile View (<= 900px) */}
+        <div data-testid="peakerr-status-mobile" className="flex md:hidden flex-col gap-3 w-full">
+          {/* Header Row: Provider & Refresh Button */}
+          <div className="flex items-center justify-between pb-2.5 border-b border-[#E7ECEC]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-[32px] h-[32px] rounded-[7px] bg-[#EBF4F4] flex items-center justify-center shrink-0">
+                <AdminNeonIcon color="teal" icon={Server} className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A] block leading-tight">
+                  PEAKERR SMM PROVIDER
+                </span>
+                <span className="text-[13px] font-[650] text-[#142126] leading-tight block">
+                  Provider Routing
+                </span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={fetchPeakerrInspection}
+              disabled={inspectLoading}
+              aria-label="Refresh Provider Status"
+              className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center gap-1.5 px-3 text-[12px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer disabled:opacity-50 shadow-[0_1px_2px_rgba(10,35,42,0.02)] shrink-0"
+            >
+              {inspectLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <AdminNeonIcon color="teal" className="w-3.5 h-3.5">
+                  <RotateCcw className="w-3.5 h-3.5" />
+                </AdminNeonIcon>
+              )}
+              <span className="text-[11px]">Sync</span>
+            </button>
+          </div>
+
+          {/* 2x2 Grid for Metrics */}
+          <div className="grid grid-cols-2 gap-2">
+            <div className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 flex flex-col justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">Connection</span>
+              <span
+                className={`text-[12px] font-semibold mt-1 flex items-center gap-1.5 ${
+                  connectionInfo?.connected ? "text-[#16B77A]" : "text-[#EF4444]"
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${connectionInfo?.connected ? "bg-[#16B77A]" : "bg-[#EF4444]"}`} />
+                <span>{inspectLoading ? "Connecting..." : connectionInfo?.connected ? "Connected" : "Disconnected"}</span>
+              </span>
+            </div>
+
+            <div className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 flex flex-col justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">Live Fulfillment</span>
+              <span
+                className={`text-[12px] font-semibold mt-1 flex items-center gap-1.5 ${
+                  runtimeFlags.liveFulfillment ? "text-[#16B77A]" : "text-[#F59E0B]"
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${runtimeFlags.liveFulfillment ? "bg-[#16B77A]" : "bg-[#F59E0B]"}`} />
+                <span>{runtimeFlags.liveFulfillment ? "Active" : "Inactive"}</span>
+              </span>
+            </div>
+
+            <div className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 flex flex-col justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">Balance</span>
+              <span className="text-[15px] font-[650] font-mono text-[#142126] mt-0.5">
+                {connectionInfo?.balance !== null && connectionInfo?.balance !== undefined
+                  ? `$${Number(connectionInfo.balance).toFixed(2)}`
+                  : "—"}
+              </span>
+            </div>
+
+            <div className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-[7px] p-2.5 flex flex-col justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#65737A]">Services</span>
+              <span className="text-[15px] font-[650] font-mono text-[#142126] mt-0.5">
+                {connectionInfo?.servicesCount ? Number(connectionInfo.servicesCount).toLocaleString() : "0"}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Refresh Button on Desktop (Height 34px-36px) */}
+        <div className="hidden md:block shrink-0">
           <button
             type="button"
             onClick={fetchPeakerrInspection}
@@ -959,7 +1039,7 @@ export function PeakerrChainsModule() {
           </div>
 
           {/* Mobile View */}
-          <div className="block md:hidden p-4 space-y-3">
+          <div data-testid="chains-mobile-list" className="block md:hidden p-4 space-y-3">
             {services.map((svc) => {
               const key = `${selectedPlatform}:${svc}`;
               const chain = chains[key] || {
@@ -1010,7 +1090,8 @@ export function PeakerrChainsModule() {
                     <button
                       type="button"
                       onClick={() => setEditingService(svc)}
-                      className="w-full h-[34px] text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                      aria-label={`Configure ${selectedPlatform} ${svc}`}
+                      className="w-full min-h-[44px] text-[13px] font-semibold text-[#142126] bg-[#FFFFFF] border border-[#D9E2E3] rounded-[7px] hover:bg-[#F8FAFA] active:bg-[#EDF1F2] transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                     >
                       <AdminNeonIcon color="blue" icon={Settings2} className="w-3.5 h-3.5" />
                       <span>Configure</span>
@@ -1380,8 +1461,8 @@ export function PeakerrChainsModule() {
                 />
               </div>
 
-              <div className="pt-2 flex items-center justify-end gap-2 border-t border-[#EDF1F2]">
-                <AdminButton variant="secondary" onClick={() => setEditingService(null)}>
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-[#EDF1F2]">
+                <AdminButton variant="secondary" onClick={() => setEditingService(null)} className="min-h-[44px]">
                   Cancel
                 </AdminButton>
                 <AdminButton
@@ -1389,8 +1470,9 @@ export function PeakerrChainsModule() {
                   onClick={() => handleSave(editingService)}
                   disabled={isSaving}
                   isLoading={isSaving}
+                  className="min-h-[44px]"
                 >
-                  <Save className="w-3.5 h-3.5" />
+                  <Save className="w-3.5 h-3.5 mr-1.5" />
                   <span>Save Chain</span>
                 </AdminButton>
               </div>
