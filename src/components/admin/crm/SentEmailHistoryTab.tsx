@@ -76,49 +76,49 @@ export function SentEmailHistoryTab() {
   return (
     <div className="space-y-3.5">
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="p-3 sm:p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[70px] sm:min-h-[74px] shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
               Total Dispatched
             </span>
             <AdminTooltip content="All outgoing email communications initiated via automated workflows or manual admin send." />
           </div>
-          <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.total}</span>
+          <span className="text-[20px] sm:text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.total}</span>
         </div>
-        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+        <div className="p-3 sm:p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[70px] sm:min-h-[74px] shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
               Successfully Sent
             </span>
             <AdminTooltip content="Emails accepted and confirmed by delivery transport providers." />
           </div>
-          <span className="text-[22px] font-bold text-[#059669] block leading-none mt-1">{counts.sent}</span>
+          <span className="text-[20px] sm:text-[22px] font-bold text-[#059669] block leading-none mt-1">{counts.sent}</span>
         </div>
-        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+        <div className="p-3 sm:p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[70px] sm:min-h-[74px] shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
               Failed Sends
             </span>
             <AdminTooltip content="Emails that encountered transport rejections or API errors." />
           </div>
-          <span className="text-[22px] font-bold text-[#F04438] block leading-none mt-1">{counts.failed}</span>
+          <span className="text-[20px] sm:text-[22px] font-bold text-[#F04438] block leading-none mt-1">{counts.failed}</span>
         </div>
-        <div className="p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[74px] shadow-xs">
+        <div className="p-3 sm:p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[70px] sm:min-h-[74px] shadow-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-[#8A979D] uppercase tracking-wider block">
               Suppressed / Blocked
             </span>
             <AdminTooltip content="Emails held back due to unsubscribe preferences or suppression lists." />
           </div>
-          <span className="text-[22px] font-bold text-[#D97706] block leading-none mt-1">{counts.suppressed}</span>
+          <span className="text-[20px] sm:text-[22px] font-bold text-[#D97706] block leading-none mt-1">{counts.suppressed}</span>
         </div>
       </div>
 
       {/* Filter Controls */}
-      <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2 flex-1 max-w-md">
-          <Search className="w-4 h-4 text-[#8A979D]" />
+      <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2 flex-1 w-full sm:max-w-md">
+          <Search className="w-4 h-4 text-[#8A979D] shrink-0" />
           <input
             type="text"
             placeholder="Search by recipient email, subject, or order..."
@@ -128,9 +128,9 @@ export function SentEmailHistoryTab() {
           />
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end overflow-x-auto">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-[#65737A]">
-            <span>Category:</span>
+            <span className="hidden xs:inline">Category:</span>
             <select
               value={filterCategory}
               onChange={(e) => setFilterCategory(e.target.value)}
@@ -144,7 +144,7 @@ export function SentEmailHistoryTab() {
           </div>
 
           <div className="flex items-center gap-1.5 text-xs font-semibold text-[#65737A]">
-            <span>Origin:</span>
+            <span className="hidden xs:inline">Origin:</span>
             <select
               value={filterOrigin}
               onChange={(e) => setFilterOrigin(e.target.value)}
@@ -158,7 +158,7 @@ export function SentEmailHistoryTab() {
 
           <button
             onClick={() => fetchHistory()}
-            className="p-2 text-[#65737A] hover:text-[#142126] bg-[#FAFCFC] hover:bg-[#F1F5F5] rounded-md border border-[#D9E2E3] transition-colors"
+            className="p-2 min-h-[36px] min-w-[36px] text-[#65737A] hover:text-[#142126] bg-[#FAFCFC] hover:bg-[#F1F5F5] rounded-md border border-[#D9E2E3] transition-colors shrink-0 flex items-center justify-center"
             title="Refresh History"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#0F8F8A]" : ""}`} />
@@ -166,8 +166,8 @@ export function SentEmailHistoryTab() {
         </div>
       </div>
 
-      {/* Table / List */}
-      <div className="bg-white border border-[#D9E2E3] rounded-[10px] overflow-hidden">
+      {/* 1. Desktop Table View (>=901px / md:block) */}
+      <div className="hidden md:block bg-white border border-[#D9E2E3] rounded-[10px] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-[#142126]">
             <thead className="bg-[#F7F9FA] text-[10px] font-semibold text-[#65737A] uppercase tracking-wider border-b border-[#E3E8EA]">
@@ -248,6 +248,64 @@ export function SentEmailHistoryTab() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* 2. Mobile Cards View (<=900px / md:hidden) */}
+      <div data-testid="email-history-mobile" className="md:hidden space-y-2.5">
+        {loading && items.length === 0 ? (
+          <div className="p-8 text-center text-[#65737A] bg-white border border-[#D9E2E3] rounded-[10px]">
+            <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#0F8F8A] mb-2" />
+            <span className="text-xs">Loading email logs...</span>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="p-8 text-center text-xs text-[#65737A] bg-white border border-[#D9E2E3] rounded-[10px]">
+            No email audit records found.
+          </div>
+        ) : (
+          items.map((log) => {
+            const statusColor =
+              log.status === "SENT"
+                ? "bg-[#E6F4EA] text-[#059669] border-[#059669]/30"
+                : log.status.startsWith("SUPPRESSED")
+                ? "bg-[#FFF4E5] text-[#D97706] border-[#FFB020]"
+                : "bg-[#FEE4E2] text-[#F04438] border-[#F04438]/30";
+
+            return (
+              <div
+                key={log.id}
+                className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] space-y-2 shadow-xs"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="font-bold text-xs text-[#142126] block truncate">{log.recipient}</span>
+                    {log.relatedOrder?.targetHandle && (
+                      <span className="text-[11px] text-[#0F8F8A] font-medium block">
+                        @{log.relatedOrder.targetHandle}
+                      </span>
+                    )}
+                  </div>
+                  <span className={`px-1.5 py-0.5 rounded-sm text-[9.5px] font-bold border ${statusColor} shrink-0`}>
+                    {log.status}
+                  </span>
+                </div>
+
+                <div className="text-xs font-semibold text-[#142126] line-clamp-1">
+                  {log.subject}
+                </div>
+
+                <div className="flex items-center justify-between text-[10.5px] text-[#8A979D] pt-1 border-t border-[#F1F5F5]">
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-1 py-0.5 rounded bg-[#F1F5F5] font-bold text-[#65737A] border border-[#D9E2E3]">
+                      {log.origin}
+                    </span>
+                    <span>{log.template}</span>
+                  </div>
+                  <span>{new Date(log.sentAt || log.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

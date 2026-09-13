@@ -578,9 +578,12 @@ export function SmartInboxTab() {
   };
 
   return (
-    <div className="flex flex-col lg:flex-row h-[780px] bg-white border border-[#D9E2E3] rounded-[10px] overflow-hidden shadow-sm">
+    <div className="flex flex-col md:flex-row h-[780px] bg-white border border-[#D9E2E3] rounded-[10px] overflow-hidden shadow-sm">
       {/* 1. Left Sidebar: Conversation List */}
-      <div className={`w-full lg:w-[350px] flex flex-col border-r border-[#D9E2E3] bg-[#FAFCFC] ${selectedThreadId ? "hidden lg:flex" : "flex"}`}>
+      <div 
+        data-testid="crm-inbox-conversation-list"
+        className={`w-full md:w-[350px] flex flex-col border-r border-[#D9E2E3] bg-[#FAFCFC] ${selectedThreadId ? "hidden md:flex" : "flex"}`}
+      >
         {/* Header & Filter Controls */}
         <div className="p-3 border-b border-[#D9E2E3] space-y-2.5">
           <div className="flex items-center justify-between">
@@ -594,13 +597,26 @@ export function SmartInboxTab() {
               <button
                 onClick={() => handleSyncNow()}
                 disabled={isSyncing}
-                className="px-2 py-1.5 flex items-center gap-1 text-[10px] uppercase font-bold text-[#65737A] hover:text-[#0F8F8A] bg-white hover:bg-[#F8FAFA] rounded-md transition-colors border border-[#D9E2E3] disabled:opacity-50"
+                className="px-2.5 py-1.5 min-h-[36px] sm:min-h-0 flex items-center gap-1 text-[10px] uppercase font-bold text-[#65737A] hover:text-[#0F8F8A] bg-white hover:bg-[#F8FAFA] rounded-md transition-colors border border-[#D9E2E3] disabled:opacity-50 cursor-pointer"
                 title="Sync Now"
               >
                 <RefreshCw className={`w-3 h-3 ${isSyncing || loadingList ? "animate-spin text-[#0F8F8A]" : ""}`} />
                 {isSyncing ? "Syncing..." : "Sync Now"}
               </button>
             </div>
+          </div>
+
+          {/* Search bar inside Smart Inbox */}
+          <div className="relative w-full">
+            <Search className="w-3.5 h-3.5 text-[#8A979D] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              data-testid="inbox-search-input"
+              placeholder="Search conversations by email or subject..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white border border-[#D9E2E3] rounded-md pl-8 pr-3 py-1.5 text-xs text-[#142126] placeholder-[#8A979D] focus:outline-none focus:border-[#0F8F8A] transition-colors"
+            />
           </div>
           
           {syncStatus && (
@@ -629,8 +645,9 @@ export function SmartInboxTab() {
             ].map((tab) => (
               <button
                 key={tab.id}
+                data-testid={`inbox-filter-${tab.id}`}
                 onClick={() => setFilterStatus(tab.id)}
-                className={`px-2 py-1 rounded-md transition-colors ${
+                className={`px-2 py-1 min-h-[32px] sm:min-h-0 rounded-md transition-colors cursor-pointer ${
                   filterStatus === tab.id
                     ? "bg-[#0F8F8A] text-white"
                     : "bg-white text-[#65737A] hover:text-[#142126] border border-[#D9E2E3]"
@@ -760,20 +777,24 @@ export function SmartInboxTab() {
       </div>
 
       {/* 2. Right Pane: Customer 360 Context + Thread Messages + Reply Box */}
-      <div className={`flex-1 flex flex-col bg-white ${selectedThreadId ? "flex" : "hidden lg:flex"}`}>
+      <div 
+        data-testid="crm-inbox-conversation-detail"
+        className={`flex-1 flex flex-col bg-white ${selectedThreadId ? "flex" : "hidden md:flex"}`}
+      >
         {selectedThreadId && threadDetail ? (
           <div className="flex-1 flex flex-col h-full overflow-hidden">
             {/* Thread Header */}
             <div className="p-3 border-b border-[#D9E2E3] bg-[#FAFCFC] flex items-center justify-between flex-wrap gap-2.5">
               <div className="flex items-center gap-2.5">
                 <button
+                  data-testid="crm-inbox-back-btn"
                   onClick={() => {
                     if (selectedThreadId) {
                       setDrafts(prev => ({ ...prev, [selectedThreadId]: replyText }));
                     }
                     setSelectedThreadId(null);
                   }}
-                  className="lg:hidden p-1.5 text-[#65737A] hover:text-[#142126] bg-white border border-[#D9E2E3] rounded-md"
+                  className="md:hidden min-h-[44px] px-3 py-1.5 text-[#65737A] hover:text-[#142126] bg-white border border-[#D9E2E3] rounded-md flex items-center gap-1 font-semibold text-xs cursor-pointer"
                 >
                   ← Back
                 </button>
@@ -784,7 +805,7 @@ export function SmartInboxTab() {
                   <div className="flex items-center gap-2 mt-0.5">
                     <button 
                       onClick={() => setIsCustomerContextOpen(!isCustomerContextOpen)}
-                      className="text-xs text-[#0F8F8A] hover:text-[#0a6662] font-semibold flex items-center gap-1"
+                      className="text-xs text-[#0F8F8A] hover:text-[#0a6662] font-semibold flex items-center gap-1 min-h-[32px]"
                     >
                       <User className="w-3.5 h-3.5" />
                       {threadDetail.customer.email}
@@ -952,7 +973,10 @@ export function SmartInboxTab() {
             )}
 
             {/* Reply / Internal Note Composer Box */}
-            <div className="p-3 border-t border-[#D9E2E3] bg-white space-y-2.5">
+            <div 
+              data-testid="crm-inbox-composer"
+              className="p-3 border-t border-[#D9E2E3] bg-white space-y-2.5"
+            >
               {replyError && (
                 <div className="p-2.5 rounded-md bg-[#FFF4E5] border border-[#FFB020] text-xs text-[#D97706] flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -963,6 +987,7 @@ export function SmartInboxTab() {
               <div className="relative">
                 <textarea
                   rows={2}
+                  data-testid="inbox-reply-textarea"
                   value={replyText}
                   onChange={(e) => {
                      setReplyText(e.target.value);
@@ -995,7 +1020,7 @@ export function SmartInboxTab() {
                       setTimeout(() => handleAddInternalNote(), 50);
                     }}
                     disabled={internalNoteSending || !replyText.trim()}
-                    className="px-3 py-1.5 bg-white hover:bg-[#F8FAFA] disabled:opacity-50 text-[#65737A] hover:text-[#142126] text-xs font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer border border-[#D9E2E3]"
+                    className="min-h-[44px] sm:min-h-[36px] px-3 py-1.5 bg-white hover:bg-[#F8FAFA] disabled:opacity-50 text-[#65737A] hover:text-[#142126] text-xs font-semibold rounded-md flex items-center gap-1.5 transition-all cursor-pointer border border-[#D9E2E3]"
                     title="Save text as an internal note (not sent to customer)"
                   >
                     <FileText className="w-3.5 h-3.5" />
@@ -1003,9 +1028,10 @@ export function SmartInboxTab() {
                   </button>
                   <button
                     type="button"
+                    data-testid="inbox-send-reply-btn"
                     onClick={handleSendReply}
                     disabled={replySending || !replyText.trim()}
-                    className="px-3 py-1.5 bg-[#0F8F8A] hover:bg-[#0a6662] disabled:opacity-50 text-white text-xs font-bold rounded-md flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="min-h-[44px] sm:min-h-[36px] px-3.5 py-1.5 bg-[#0F8F8A] hover:bg-[#0a6662] disabled:opacity-50 text-white text-xs font-bold rounded-md flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Send className="w-3.5 h-3.5" />
                     <span>{replySending ? "Sending..." : "Send Reply"}</span>

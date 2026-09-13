@@ -118,17 +118,24 @@ export function Customer360Modal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-[#FFFFFF] border-l border-[#D9E2E3] w-full max-w-4xl h-full flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-300">
+      <div className="bg-[#FFFFFF] border-l border-[#D9E2E3] w-full md:max-w-4xl h-full flex flex-col shadow-2xl overflow-hidden animate-in slide-in-from-right duration-300">
         
         {/* Header */}
-        <div className="px-6 py-5 border-b border-[#D9E2E3] bg-[#FAFCFC] flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-xl bg-[#0F8F8A]/10 border border-[#0F8F8A]/20 flex items-center justify-center text-[#0F8F8A] font-bold text-lg">
+        <div className="px-4 sm:px-6 py-3.5 sm:py-5 border-b border-[#D9E2E3] bg-[#FAFCFC] flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+            <button
+              onClick={onClose}
+              className="md:hidden p-2 text-[#65737A] hover:text-[#142126] -ml-1.5"
+              aria-label="Back to contacts"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-[#0F8F8A]/10 border border-[#0F8F8A]/20 flex items-center justify-center text-[#0F8F8A] font-bold text-base sm:text-lg shrink-0">
               {contact?.name ? contact.name.charAt(0).toUpperCase() : email.charAt(0).toUpperCase()}
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-[#142126]">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h2 className="text-sm sm:text-base font-bold text-[#142126] truncate">
                   {contact?.name || email}
                 </h2>
                 {contact && (
@@ -153,23 +160,23 @@ export function Customer360Modal({
                   </AdminBadge>
                 )}
               </div>
-              <p className="text-xs text-[#65737A] mt-0.5">
-                {email} · Last Activity: <span className="font-semibold text-[#142126]">{contact ? new Date(contact.lastActivity).toLocaleString() : "..."}</span>
+              <p className="text-[11px] sm:text-xs text-[#65737A] mt-0.5 truncate">
+                {email} · Last Activity: <span className="font-semibold text-[#142126]">{contact ? new Date(contact.lastActivity).toLocaleDateString() : "..."}</span>
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               onClick={() => setIsManualEmailOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0F8F8A] hover:bg-[#0D7A76] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+              className="flex items-center gap-1.5 px-3 min-h-[36px] py-1.5 rounded-lg bg-[#0F8F8A] hover:bg-[#0D7A76] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
               <Send className="w-3.5 h-3.5" />
-              Send Email
+              <span className="hidden xs:inline">Send Email</span>
             </button>
             <button
               onClick={onClose}
-              className="text-[#8A979D] hover:text-[#142126] p-2 rounded-lg hover:bg-[#F1F5F5] transition-colors"
+              className="hidden md:flex text-[#8A979D] hover:text-[#142126] p-2 rounded-lg hover:bg-[#F1F5F5] transition-colors"
             >
               <X className="w-5 h-5" />
             </button>
@@ -177,7 +184,7 @@ export function Customer360Modal({
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-6 border-b border-[#D9E2E3] bg-[#FAFCFC] flex items-center gap-2 overflow-x-auto text-xs font-bold">
+        <div className="px-4 sm:px-6 border-b border-[#D9E2E3] bg-[#FAFCFC] flex items-center gap-1.5 sm:gap-2 overflow-x-auto text-xs font-bold no-scrollbar">
           {[
             { id: "overview", label: "Overview", icon: Activity },
             { id: "orders", label: `Orders (${contact?.orders?.length || 0})`, icon: ShoppingCart },

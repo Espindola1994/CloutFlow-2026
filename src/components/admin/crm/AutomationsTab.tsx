@@ -78,39 +78,32 @@ export function AutomationsTab() {
   });
   const [envInfo, setEnvInfo] = useState<{ isLive: boolean; liveFrom: string | null } | null>(null);
   const [lifecycleStatus, setLifecycleStatus] = useState<{
-    marketingAutomation: 'LIVE' | 'OFF';
-    lifecycleWorker: 'ACTIVE' | 'ERROR';
-    resend: 'CONFIGURED' | 'CONFIG ERROR';
+    marketingAutomation: 'LIVE' | 'PAUSED';
+    cronTrigger: 'ACTIVE' | 'INACTIVE';
+    resend: 'CONFIGURED' | 'MISSING_API_KEY';
     liveSince: string | null;
-    lifecycleEmailsEnabled: boolean;
     liveFromConfigured: boolean;
   } | null>(null);
   const [statusError, setStatusError] = useState(false);
-  const [lastChecked, setLastChecked] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
     try {
-      setStatusError(false);
-      const res = await fetch('/api/admin/crm/automations/status');
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success) {
-          setLifecycleStatus(data.data);
-          setLastChecked(new Date().toLocaleTimeString());
-        } else {
-          setStatusError(true);
-        }
+      const res = await fetch("/api/admin/crm/lifecycle/status", { cache: "no-store" });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setLifecycleStatus(data.data);
+        setStatusError(false);
       } else {
         setStatusError(true);
       }
-    } catch (err) {
-      console.error("Failed to load status:", err);
+    } catch {
       setStatusError(true);
     }
   }, []);
 
   const fetchAutomations = useCallback(async () => {
     try {
+      setLoading(true);
       const params = new URLSearchParams();
       if (filterStatus !== "ALL") params.set("status", filterStatus);
       if (searchQuery.trim()) params.set("search", searchQuery.trim());
@@ -120,10 +113,7 @@ export function AutomationsTab() {
       if (res.ok && data.success) {
         setItems(data.data.items);
         setCounts(data.data.counts);
-        setEnvInfo({
-          isLive: data.data.isLive ?? false,
-          liveFrom: data.data.liveFrom ?? null
-        });
+        setEnvInfo(data.data.env);
       }
     } catch (err) {
       console.error("Failed to load automations:", err);
@@ -133,34 +123,18 @@ export function AutomationsTab() {
   }, [filterStatus, searchQuery]);
 
   useEffect(() => {
-    let isCancelled = false;
-    (async () => {
-      if (!isCancelled) {
-        await Promise.all([fetchAutomations(), fetchStatus()]);
-      }
-    })();
-    return () => {
-      isCancelled = true;
-    };
-  }, [fetchAutomations, fetchStatus]);
+    fetchStatus();
+    fetchAutomations();
+  }, [fetchStatus, fetchAutomations]);
 
   return (
     <div className="space-y-3.5">
-      {/* Section Header & Email & Lifecycle Health */}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-[11px] font-bold text-[#65737A] uppercase tracking-wider">
-            EMAIL &amp; LIFECYCLE HEALTH
-          </h3>
-          {lastChecked && (
-            <span className="text-[10px] text-[#8A979D]">
-              Last checked: <span className="text-[#142126] font-mono">{lastChecked}</span>
-            </span>
-          )}
-        </div>
-
-        {/* 4 Primary Operational Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+      {/* Engine Status Grid */}
+      <div className="bg-white border border-[#D9E2E3] rounded-[10px] p-3 sm:p-4">
+        <h3 className="text-xs font-bold text-[#142126] uppercase tracking-wider mb-2.5">
+          Lifecycle Engine Operational Status
+        </h3>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
           {/* Card 1: Marketing Automation */}
           <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[76px]">
             <div>
@@ -168,14 +142,11 @@ export function AutomationsTab() {
                 <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
                   MARKETING AUTOMATION
                 </span>
-                <AdminTooltip content="Master switch controlling whether post-abandonment and recovery marketing emails are dispatched." />
+                <AdminTooltip content="Master switch controlling whether lifecycle drip cadences actively execute." />
               </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex items-center gap-1.5 mt-1">
                 {statusError ? (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-neutral-400" />
-                    <span className="text-xs font-bold text-[#8A979D]">STATUS UNAVAILABLE</span>
-                  </>
+                  <span className="text-xs font-bold text-[#8A979D]">STATUS UNAVAILABLE</span>
                 ) : !lifecycleStatus ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-neutral-400 animate-pulse" />
@@ -192,25 +163,22 @@ export function AutomationsTab() {
               </div>
             </div>
             <p className="text-[10px] text-[#8A979D] mt-1">
-              Automated lifecycle marketing emails
+              Master lifecycle execution switch
             </p>
           </div>
 
-          {/* Card 2: Lifecycle Worker */}
+          {/* Card 2: Cron Trigger */}
           <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[76px]">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
-                  LIFECYCLE WORKER
+                  CRON TRIGGER
                 </span>
-                <AdminTooltip content="Cron/background scheduler executing multi-step email cadence triggers." />
+                <AdminTooltip content="Verification that the scheduled runner is active." />
               </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex items-center gap-1.5 mt-1">
                 {statusError ? (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-neutral-400" />
-                    <span className="text-xs font-bold text-[#8A979D]">STATUS UNAVAILABLE</span>
-                  </>
+                  <span className="text-xs font-bold text-[#8A979D]">STATUS UNAVAILABLE</span>
                 ) : !lifecycleStatus ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-neutral-400 animate-pulse" />
@@ -218,34 +186,31 @@ export function AutomationsTab() {
                   </>
                 ) : (
                   <>
-                    <span className={`w-2 h-2 rounded-full ${lifecycleStatus.lifecycleWorker === 'ACTIVE' ? 'bg-[#059669]' : 'bg-[#F04438]'}`} />
-                    <span className={`text-xs font-bold ${lifecycleStatus.lifecycleWorker === 'ACTIVE' ? 'text-[#059669]' : 'text-[#F04438]'}`}>
-                      {lifecycleStatus.lifecycleWorker}
+                    <span className={`w-2 h-2 rounded-full ${lifecycleStatus.cronTrigger === 'ACTIVE' ? 'bg-[#059669]' : 'bg-[#D97706]'}`} />
+                    <span className={`text-xs font-bold ${lifecycleStatus.cronTrigger === 'ACTIVE' ? 'text-[#059669]' : 'text-[#D97706]'}`}>
+                      {lifecycleStatus.cronTrigger}
                     </span>
                   </>
                 )}
               </div>
             </div>
             <p className="text-[10px] text-[#8A979D] mt-1">
-              Processes scheduled lifecycle automations
+              Hourly cadence dispatcher
             </p>
           </div>
 
-          {/* Card 3: Resend Configuration */}
+          {/* Card 3: Resend Provider */}
           <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[76px]">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
-                  RESEND
+                  RESEND PROVIDER
                 </span>
-                <AdminTooltip content="Transactional and marketing email delivery infrastructure status." />
+                <AdminTooltip content="Status of the authenticated email transport provider credentials." />
               </div>
-              <div className="flex items-center gap-1.5 mt-0.5">
+              <div className="flex items-center gap-1.5 mt-1">
                 {statusError ? (
-                  <>
-                    <span className="w-2 h-2 rounded-full bg-neutral-400" />
-                    <span className="text-xs font-bold text-[#8A979D]">STATUS UNAVAILABLE</span>
-                  </>
+                  <span className="text-xs font-bold text-[#8A979D]">STATUS UNAVAILABLE</span>
                 ) : !lifecycleStatus ? (
                   <>
                     <span className="w-2 h-2 rounded-full bg-neutral-400 animate-pulse" />
@@ -308,11 +273,11 @@ export function AutomationsTab() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3">
+        <div className="p-3 sm:p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[70px] sm:min-h-[72px]">
           <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
-              Total Scheduled Jobs
+            <span className="text-[10px] sm:text-[11px] text-[#8A979D] font-semibold uppercase tracking-wider block">
+              Total Jobs
             </span>
             {statusError ? (
               <span className="text-[9px] font-bold text-[#8A979D] uppercase">UNAVAILABLE</span>
@@ -324,42 +289,42 @@ export function AutomationsTab() {
               </span>
             )}
           </div>
-          <span className="text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.total}</span>
+          <span className="text-[20px] sm:text-[22px] font-bold text-[#142126] block leading-none mt-1">{counts.total}</span>
         </div>
-        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-          <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
-            Pending Execution
+        <div className="p-3 sm:p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[70px] sm:min-h-[72px]">
+          <span className="text-[10px] sm:text-[11px] text-[#8A979D] font-semibold uppercase tracking-wider block">
+            Pending
           </span>
-          <span className="text-[22px] font-bold text-[#D97706] block leading-none mt-1">{counts.pending}</span>
+          <span className="text-[20px] sm:text-[22px] font-bold text-[#D97706] block leading-none mt-1">{counts.pending}</span>
         </div>
-        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-          <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
+        <div className="p-3 sm:p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[70px] sm:min-h-[72px]">
+          <span className="text-[10px] sm:text-[11px] text-[#8A979D] font-semibold uppercase tracking-wider block">
             Completed / Sent
           </span>
-          <span className="text-[22px] font-bold text-[#059669] block leading-none mt-1">{counts.completed}</span>
+          <span className="text-[20px] sm:text-[22px] font-bold text-[#059669] block leading-none mt-1">{counts.completed}</span>
         </div>
-        <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[72px]">
-          <span className="text-[10px] text-[#8A979D] font-semibold uppercase tracking-wider block">
-            Converted / Suppressed
+        <div className="p-3 sm:p-3.5 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col justify-between min-h-[70px] sm:min-h-[72px]">
+          <span className="text-[10px] sm:text-[11px] text-[#8A979D] font-semibold uppercase tracking-wider block">
+            Suppressed
           </span>
-          <span className="text-[22px] font-bold text-[#0F8F8A] block leading-none mt-1">{counts.suppressed}</span>
+          <span className="text-[20px] sm:text-[22px] font-bold text-[#0F8F8A] block leading-none mt-1">{counts.suppressed}</span>
         </div>
       </div>
 
       {/* Filter Header */}
-      <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-wrap items-center justify-between gap-2.5">
-        <div className="flex items-center gap-2 flex-1 max-w-md">
-          <Search className="w-4 h-4 text-[#8A979D]" />
+      <div className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+        <div className="flex items-center gap-2 flex-1 w-full sm:max-w-md">
+          <Search className="w-4 h-4 text-[#8A979D] shrink-0" />
           <input
             type="text"
-            placeholder="Search by customer email or sequence..."
+            placeholder="Search by customer email or automation type..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full bg-[#FAFCFC] border border-[#D9E2E3] rounded-[10px] px-3 h-10 text-xs text-[#142126] placeholder-[#8A979D] focus:outline-none focus:border-[#0F8F8A]"
           />
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-[#65737A]">
             <span>Status:</span>
             <select
@@ -368,17 +333,17 @@ export function AutomationsTab() {
               className="bg-[#FAFCFC] border border-[#D9E2E3] rounded-md px-2 h-9 text-xs text-[#142126] font-semibold focus:outline-none focus:border-[#0F8F8A] cursor-pointer"
             >
               <option value="ALL">All Statuses</option>
-              <option value="PENDING">Pending</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="SUPPRESSED_CONVERTED">Suppressed Converted</option>
-              <option value="BLOCKED_SEND_DISABLED">Send Disabled (Safe)</option>
-              <option value="FAILED">Failed</option>
+              <option value="pending">Pending</option>
+              <option value="completed">Completed</option>
+              <option value="suppressed">Suppressed</option>
+              <option value="failed">Failed</option>
+              <option value="blocked">Blocked</option>
             </select>
           </div>
 
           <button
-            onClick={() => { fetchAutomations(); fetchStatus(); }}
-            className="p-2 text-[#65737A] hover:text-[#142126] bg-[#FAFCFC] hover:bg-[#F1F5F5] rounded-md border border-[#D9E2E3] transition-colors"
+            onClick={() => { fetchStatus(); fetchAutomations(); }}
+            className="p-2 min-h-[36px] min-w-[36px] text-[#65737A] hover:text-[#142126] bg-[#FAFCFC] hover:bg-[#F1F5F5] rounded-md border border-[#D9E2E3] transition-colors shrink-0 flex items-center justify-center"
             title="Refresh Automations"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin text-[#0F8F8A]" : ""}`} />
@@ -386,18 +351,18 @@ export function AutomationsTab() {
         </div>
       </div>
 
-      {/* Automations Table */}
-      <div className="bg-white border border-[#D9E2E3] rounded-[10px] overflow-hidden">
+      {/* 1. Desktop Automations Table (>=901px / md:block) */}
+      <div className="hidden md:block bg-white border border-[#D9E2E3] rounded-[10px] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-[#142126]">
             <thead className="bg-[#F7F9FA] text-[10px] font-semibold text-[#65737A] uppercase tracking-wider border-b border-[#E3E8EA]">
               <tr>
                 <th className="py-2.5 px-3">Recipient & @Handle</th>
-                <th className="py-2.5 px-3">Sequence & Step</th>
+                <th className="py-2.5 px-3">Action & Cadence</th>
                 <th className="py-2.5 px-3">Scheduled For</th>
                 <th className="py-2.5 px-3">Execution Status</th>
-                <th className="py-2.5 px-3">Email Log Status</th>
-                <th className="py-2.5 px-3">Attempts / Errors</th>
+                <th className="py-2.5 px-3">Attempts</th>
+                <th className="py-2.5 px-3">Created At</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#EDF1F2]">
@@ -405,68 +370,53 @@ export function AutomationsTab() {
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-[#65737A]">
                     <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#0F8F8A] mb-2" />
-                    Loading automation queue...
+                    Loading automated jobs...
                   </td>
                 </tr>
               ) : items.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-[#65737A]">
-                    No scheduled automations in queue.
+                    No automated lifecycle jobs found.
                   </td>
                 </tr>
               ) : (
-                items.map((auto) => {
+                items.map((job) => {
                   const statusColor =
-                    !auto.status
-                      ? "bg-[#F1F5F5] text-[#65737A] border-[#D9E2E3]"
-                      : auto.status === "COMPLETED"
+                    job.status === "completed"
                       ? "bg-[#E6F4EA] text-[#059669] border-[#059669]/30"
-                      : auto.status === "PENDING"
+                      : job.status === "pending"
                       ? "bg-[#FFF4E5] text-[#D97706] border-[#FFB020]"
-                      : auto.status === "SUPPRESSED_CONVERTED"
+                      : job.status === "suppressed"
                       ? "bg-[#E7F5F4] text-[#0F8F8A] border-[#0F8F8A]/30"
-                      : auto.status.startsWith("BLOCKED")
-                      ? "bg-[#F1F5F5] text-[#65737A] border-[#D9E2E3]"
                       : "bg-[#FEE4E2] text-[#F04438] border-[#F04438]/30";
 
                   return (
-                    <tr key={auto.id} className="hover:bg-[#F8FAFA] transition-colors h-[54px]">
+                    <tr key={job.id} className="hover:bg-[#F8FAFA] transition-colors h-[54px]">
                       <td className="py-2 px-3 font-semibold text-[#142126]">
-                        <div>{auto.customerEmail}</div>
-                        {auto.targetHandle && (
+                        <div>{job.customerEmail}</div>
+                        {job.targetHandle && (
                           <div className="text-[11px] text-[#0F8F8A] font-medium">
-                            @{auto.targetHandle}
+                            @{job.targetHandle}
                           </div>
                         )}
                       </td>
                       <td className="py-2 px-3">
-                        <div className="font-semibold text-[#142126]">
-                          {auto.actionType}
-                        </div>
-                        <div className="text-[11px] text-[#8A979D]">
-                          Step {auto.stepNumber} ({auto.automationId})
-                        </div>
+                        <div className="font-semibold text-[#142126]">{job.actionType}</div>
+                        <div className="text-[11px] text-[#8A979D]">Step #{job.stepNumber}</div>
                       </td>
                       <td className="py-2 px-3 text-[#65737A]">
-                        {auto.scheduledFor ? new Date(auto.scheduledFor).toLocaleString() : "—"}
+                        {new Date(job.scheduledFor).toLocaleString()}
                       </td>
                       <td className="py-2 px-3">
-                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold border ${statusColor}`}>
-                          {auto.status}
+                        <span className={`px-2 py-0.5 rounded-sm text-[10px] font-bold border ${statusColor} uppercase`}>
+                          {job.status}
                         </span>
                       </td>
-                      <td className="py-2 px-3">
-                        <span className="text-[11px] font-mono text-[#65737A]">
-                          {auto.emailLogStatus || "—"}
-                        </span>
+                      <td className="py-2 px-3 text-center font-mono text-[11px]">
+                        {job.attempts}
                       </td>
                       <td className="py-2 px-3 text-[#8A979D] text-[11px]">
-                        <div>Attempts: {auto.attempts}</div>
-                        {auto.lastError && (
-                          <div className="text-[10px] text-[#F04438] truncate max-w-xs" title={auto.lastError}>
-                            {auto.lastError}
-                          </div>
-                        )}
+                        {new Date(job.createdAt).toLocaleDateString()}
                       </td>
                     </tr>
                   );
@@ -475,6 +425,62 @@ export function AutomationsTab() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* 2. Mobile Automations Cards (<=900px / md:hidden) */}
+      <div data-testid="automations-mobile" className="md:hidden space-y-2.5">
+        {loading && items.length === 0 ? (
+          <div className="p-8 text-center text-[#65737A] bg-white border border-[#D9E2E3] rounded-[10px]">
+            <RefreshCw className="w-5 h-5 animate-spin mx-auto text-[#0F8F8A] mb-2" />
+            <span className="text-xs">Loading automated jobs...</span>
+          </div>
+        ) : items.length === 0 ? (
+          <div className="p-8 text-center text-xs text-[#65737A] bg-white border border-[#D9E2E3] rounded-[10px]">
+            No automated lifecycle jobs found.
+          </div>
+        ) : (
+          items.map((job) => {
+            const statusColor =
+              job.status === "completed"
+                ? "bg-[#E6F4EA] text-[#059669] border-[#059669]/30"
+                : job.status === "pending"
+                ? "bg-[#FFF4E5] text-[#D97706] border-[#FFB020]"
+                : job.status === "suppressed"
+                ? "bg-[#E7F5F4] text-[#0F8F8A] border-[#0F8F8A]/30"
+                : "bg-[#FEE4E2] text-[#F04438] border-[#F04438]/30";
+
+            return (
+              <div
+                key={job.id}
+                className="p-3 rounded-[10px] bg-white border border-[#D9E2E3] space-y-2 shadow-xs"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <span className="font-bold text-xs text-[#142126] block truncate">{job.customerEmail}</span>
+                    {job.targetHandle && (
+                      <span className="text-[11px] text-[#0F8F8A] font-medium block">
+                        @{job.targetHandle}
+                      </span>
+                    )}
+                  </div>
+                  <span className={`px-1.5 py-0.5 rounded-sm text-[9.5px] font-bold border ${statusColor} shrink-0 uppercase`}>
+                    {job.status}
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-[#142126]">{job.actionType}</span>
+                  <span className="text-[#8A979D] text-[11px]">Step #{job.stepNumber}</span>
+                </div>
+
+                <div className="flex items-center justify-between text-[10.5px] text-[#8A979D] pt-1 border-t border-[#F1F5F5]">
+                  <span>Scheduled: {new Date(job.scheduledFor).toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}</span>
+                  <span>Attempts: {job.attempts}</span>
+                </div>
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );

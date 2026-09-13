@@ -87,30 +87,36 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* 1. Module Header with Date Range Selector & Refresh */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#D9E2E3] rounded-[10px] p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03)]">
-        <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-[8px] bg-[#0F8F8A]/10 text-[#0F8F8A]">
-            <BarChart3 className="w-5 h-5" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 bg-white border border-[#D9E2E3] rounded-[10px] p-3 sm:p-4 shadow-[0_1px_2px_rgba(10,35,42,0.03)]">
+        <div className="flex items-center gap-2.5 sm:gap-3">
+          <div className="p-2 sm:p-2.5 rounded-[8px] bg-[#0F8F8A]/10 text-[#0F8F8A] shrink-0">
+            <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
           <div>
-            <h1 className="text-[18px] font-bold text-[#142126] tracking-tight">Commerce & Funnel Analytics</h1>
-            <p className="text-[12px] text-[#65737A]">
+            <h1 className="text-[16px] sm:text-[18px] font-bold text-[#142126] tracking-tight">
+              Commerce & Funnel Analytics
+            </h1>
+            <p className="text-[11px] sm:text-[12px] text-[#65737A]">
               Full buyer funnel, pre-checkout discovery, traffic attribution, and package performance
             </p>
           </div>
         </div>
 
-        {/* Range Controls & Actions */}
-        <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
-          <div className="flex items-center bg-[#F1F5F5] p-1 rounded-[8px] border border-[#D9E2E3]">
+        {/* Range Controls & Actions - Touch-friendly (>=44px target) */}
+        <div className="flex items-center gap-1.5 sm:gap-2 self-stretch sm:self-auto justify-between sm:justify-end overflow-x-auto pb-0.5 sm:pb-0">
+          <div 
+            data-testid="analytics-range-selector"
+            className="flex items-center bg-[#F1F5F5] p-1 rounded-[8px] border border-[#D9E2E3] shrink-0"
+          >
             {ranges.map((r) => (
               <button
                 key={r.key}
                 type="button"
+                data-testid={`range-btn-${r.key}`}
                 onClick={() => setRange(r.key)}
-                className={`px-3 py-1.5 rounded-[6px] text-[12px] font-semibold transition-all cursor-pointer ${
+                className={`min-h-[36px] sm:min-h-[32px] px-2.5 sm:px-3 py-1 rounded-[6px] text-[12px] font-semibold transition-all cursor-pointer ${
                   range === r.key
                     ? "bg-white text-[#142126] shadow-xs"
                     : "text-[#65737A] hover:text-[#142126]"
@@ -121,31 +127,37 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
             ))}
           </div>
 
-          {onNavigateToLiveWorld && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {onNavigateToLiveWorld && (
+              <button
+                type="button"
+                onClick={onNavigateToLiveWorld}
+                className="min-h-[36px] sm:min-h-[32px] px-2.5 sm:px-3 py-1 rounded-[8px] border border-[#0F8F8A]/30 bg-[#0F8F8A]/10 text-[#0F8F8A] hover:bg-[#0F8F8A]/20 transition-colors cursor-pointer flex items-center gap-1.5 text-[12px] font-semibold"
+              >
+                <Globe2 className="w-3.5 h-3.5 animate-pulse" />
+                <span className="hidden xs:inline sm:inline">Live World 3D</span>
+                <span className="xs:hidden sm:hidden">3D</span>
+              </button>
+            )}
+
             <button
               type="button"
-              onClick={onNavigateToLiveWorld}
-              className="px-3 py-1.5 rounded-[8px] border border-[#0F8F8A]/30 bg-[#0F8F8A]/10 text-[#0F8F8A] hover:bg-[#0F8F8A]/20 transition-colors cursor-pointer flex items-center gap-1.5 text-[12px] font-semibold"
+              onClick={() => void fetchAnalytics(range, true)}
+              disabled={loading || isRefreshing}
+              className="min-h-[36px] min-w-[36px] sm:min-h-[32px] sm:min-w-[32px] p-2 rounded-[8px] border border-[#D9E2E3] bg-white text-[#65737A] hover:text-[#142126] hover:bg-[#F8FAFB] transition-colors cursor-pointer disabled:opacity-50 flex items-center justify-center"
+              title="Refresh metrics"
             >
-              <Globe2 className="w-3.5 h-3.5 animate-pulse" />
-              <span>Live World 3D</span>
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[#0F8F8A]" : ""}`} />
             </button>
-          )}
-
-          <button
-            type="button"
-            onClick={() => void fetchAnalytics(range, true)}
-            disabled={loading || isRefreshing}
-            className="p-2 rounded-[8px] border border-[#D9E2E3] bg-white text-[#65737A] hover:text-[#142126] hover:bg-[#F8FAFB] transition-colors cursor-pointer disabled:opacity-50"
-            title="Refresh metrics"
-          >
-            <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-[#0F8F8A]" : ""}`} />
-          </button>
+          </div>
         </div>
       </div>
 
-      {/* 2. Secondary Tab Navigation */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 border-b border-[#D9E2E3]">
+      {/* 2. Secondary Tab Navigation - Touch-friendly horizontal scroll */}
+      <div 
+        data-testid="analytics-tab-bar"
+        className="flex items-center gap-1.5 overflow-x-auto pb-1.5 border-b border-[#D9E2E3] no-scrollbar -mx-1 px-1"
+      >
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.key;
@@ -153,8 +165,9 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
             <button
               key={tab.key}
               type="button"
+              data-testid={`analytics-tab-${tab.key}`}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-[8px] text-[13px] font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-3.5 min-h-[40px] sm:min-h-[36px] py-1.5 rounded-[8px] text-[12px] sm:text-[13px] font-semibold whitespace-nowrap transition-all cursor-pointer shrink-0 ${
                 isActive
                   ? "bg-[#E7F5F4] text-[#0F8F8A] border border-[#BFE5E2] shadow-xs"
                   : "text-[#65737A] hover:text-[#142126] hover:bg-white/80 border border-transparent"
@@ -167,9 +180,12 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
         })}
       </div>
 
-      {/* 3. Loading State */}
+      {/* 3. Loading State - Native PWA aesthetic */}
       {loading && !data && (
-        <div className="min-h-[400px] flex flex-col items-center justify-center bg-white border border-[#D9E2E3] rounded-[10px] p-12 text-center">
+        <div 
+          data-testid="analytics-loading-skeleton"
+          className="min-h-[320px] flex flex-col items-center justify-center bg-white border border-[#D9E2E3] rounded-[10px] p-8 sm:p-12 text-center"
+        >
           <div className="w-8 h-8 rounded-full border-2 border-[#0F8F8A] border-t-transparent animate-spin mb-3" />
           <p className="text-[14px] font-semibold text-[#142126]">Loading Analytics...</p>
           <p className="text-[12px] text-[#65737A] mt-1">Aggregating checkout and order metrics</p>
@@ -178,7 +194,10 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
 
       {/* 4. Error State */}
       {error && !loading && (
-        <div className="bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] p-5 flex items-start gap-3">
+        <div 
+          data-testid="analytics-error-banner"
+          className="bg-[#FEF2F2] border border-[#FECACA] rounded-[10px] p-4 sm:p-5 flex items-start gap-3"
+        >
           <div className="p-1.5 rounded-full bg-[#FEE2E2] text-[#DC2626] shrink-0 mt-0.5">
             <RefreshCw className="w-4 h-4" />
           </div>
@@ -188,7 +207,7 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
             <button
               type="button"
               onClick={() => void fetchAnalytics(range, false)}
-              className="mt-3 px-3 py-1.5 bg-[#DC2626] text-white rounded-[6px] text-[12px] font-semibold hover:bg-[#B91C1C] transition-colors cursor-pointer"
+              className="mt-3 min-h-[36px] px-3.5 py-1.5 bg-[#DC2626] text-white rounded-[6px] text-[12px] font-semibold hover:bg-[#B91C1C] transition-colors cursor-pointer"
             >
               Try Again
             </button>
@@ -198,21 +217,21 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
 
       {/* 5. Main Analytics Dashboard Content By Tab */}
       {data && (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* TAB 1: OVERVIEW */}
           {activeTab === "overview" && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Primary KPI Row */}
               <AnalyticsKpis kpis={data.kpis} />
 
               {/* Funnel Snapshot & Performance Trend */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <CheckoutFunnelCard funnel={data.funnel} />
                 <PerformanceTimeSeriesChart data={data.performanceOverTime} />
               </div>
 
               {/* Platform & Service Snapshot */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <NetworkPerformanceCard networks={data.networkPerformance} />
                 <ServicePerformanceCard services={data.servicePerformance} />
               </div>
@@ -225,7 +244,7 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
               />
 
               {/* Bottom Attribution & Abandonment row */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 <div className="lg:col-span-2">
                   <AbandonmentAnalyticsCard abandonment={data.abandonment} />
                 </div>
@@ -248,10 +267,10 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
 
           {/* TAB 2: FULL FUNNEL */}
           {activeTab === "funnel" && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <FullFunnelCard fullFunnel={data.fullFunnel} />
               
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <CheckoutFunnelCard funnel={data.funnel} />
                 <AbandonmentAnalyticsCard abandonment={data.abandonment} />
               </div>
@@ -260,14 +279,14 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
 
           {/* TAB 3: TRAFFIC & ATTRIBUTION */}
           {activeTab === "attribution" && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <TrafficAndDevicesCard
                 sources={data.trafficSources}
                 devices={data.deviceBreakdown}
                 browsers={data.browserBreakdown}
               />
 
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                 <div className="lg:col-span-1">
                   <AttributionCompactCard
                     attribution={data.attributionCompact}
@@ -290,10 +309,10 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
 
           {/* TAB 4: PRODUCTS & SERVICES */}
           {activeTab === "products" && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <TopPlansCard plans={data.topPlans} rankings={data.rankings} />
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <NetworkPerformanceCard networks={data.networkPerformance} />
                 <ServicePerformanceCard services={data.servicePerformance} />
               </div>
@@ -302,7 +321,7 @@ export function AnalyticsModule({ onNavigateToAttribution, onNavigateToLiveWorld
 
           {/* TAB 5: PRE-CHECKOUT */}
           {activeTab === "precheckout" && (
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <AnalyzePerformanceCard performance={data.analyzePerformance} />
               <PreCheckoutInterestsCard
                 networks={data.preCheckoutNetworkInterest}
