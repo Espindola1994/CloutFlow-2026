@@ -34246,65 +34246,103 @@ html body .cf-pricing-subtitle-mobile {
 .live-world-feed-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.35);
 }
+
+
+
+
+
+
+
+
 /* =========================================================
-   LIVE WORLD V4 — CINEMATIC EARTH FINISHING (ADMIN ONLY)
-   Append this block at the end of src/app/globals.css.
+   CLOUTFLOW GLOBAL PULSE V5 — APPROVED CINEMATIC CONCEPT
+   Admin Live World only. Public storefront is untouched.
    ========================================================= */
-
-.live-world-stage {
-  overflow: hidden;
-  isolation: isolate;
-  background-color: #020813 !important;
-  background-image:
-    radial-gradient(ellipse at 50% 44%, rgba(32, 146, 196, 0.22) 0%, rgba(10, 73, 118, 0.14) 25%, rgba(2, 18, 35, 0.02) 53%, transparent 68%),
-    radial-gradient(ellipse at 50% 93%, rgba(45, 220, 244, 0.18) 0%, rgba(16, 128, 171, 0.10) 22%, transparent 56%),
-    radial-gradient(circle at 18% 26%, rgba(21, 87, 139, 0.16) 0%, transparent 34%),
-    radial-gradient(circle at 83% 24%, rgba(26, 100, 149, 0.14) 0%, transparent 36%),
-    linear-gradient(180deg, #020713 0%, #03101f 40%, #04182a 72%, #020a16 100%) !important;
-  border-color: rgba(41, 103, 151, 0.34) !important;
-  box-shadow:
-    0 24px 58px -28px rgba(0, 0, 0, 0.88),
-    inset 0 1px 0 rgba(154, 225, 255, 0.05),
-    inset 0 -80px 120px -100px rgba(64, 226, 247, 0.28) !important;
+.live-world-global-pulse {
+  --gp-bg:#020916; --gp-panel:rgba(3,15,31,.88); --gp-line:rgba(51,145,211,.28);
+  --gp-cyan:#31c8ff; --gp-blue:#168cff; --gp-gold:#ffb43f; --gp-text:#eaf7ff; --gp-muted:#7f9db7;
 }
-
-.live-world-stage::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.30 !important;
-  background-image:
-    radial-gradient(circle, rgba(188, 236, 255, 0.72) 0 0.7px, transparent 0.9px),
-    radial-gradient(circle, rgba(66, 205, 232, 0.50) 0 0.65px, transparent 0.9px),
-    radial-gradient(circle, rgba(255, 255, 255, 0.30) 0 0.55px, transparent 0.8px) !important;
-  background-size: 73px 73px, 109px 109px, 151px 151px !important;
-  background-position: 11px 19px, 39px 61px, 97px 27px !important;
-  mix-blend-mode: screen;
-}
-
-.live-world-stage::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2;
+.live-world-global-pulse > div:first-child,
+.live-world-global-pulse > div:nth-child(3),
+.live-world-global-pulse > div:nth-child(4) { backdrop-filter: blur(16px); }
+.live-world-global-pulse .live-world-stage {
   background:
-    radial-gradient(ellipse at 50% 88%, rgba(68, 233, 250, 0.11) 0%, rgba(11, 100, 138, 0.05) 24%, transparent 47%),
-    radial-gradient(ellipse at 50% 47%, transparent 38%, rgba(1, 7, 17, 0.14) 67%, rgba(1, 5, 13, 0.64) 100%) !important;
+    radial-gradient(circle at 50% 34%, rgba(15,102,178,.18), transparent 34%),
+    radial-gradient(ellipse at 50% 92%, rgba(0,174,255,.22), transparent 34%),
+    radial-gradient(circle at 14% 18%, rgba(9,70,130,.14), transparent 28%),
+    linear-gradient(180deg,#020817 0%,#03101f 48%,#020915 100%) !important;
+  border:1px solid rgba(37,130,194,.30)!important;
+  border-radius:18px!important;
+  box-shadow:0 30px 90px rgba(0,4,13,.55), inset 0 0 100px rgba(0,24,54,.30)!important;
+  isolation:isolate;
+}
+.live-world-global-pulse .live-world-stage::before {
+  content:""; position:absolute; inset:0; pointer-events:none; z-index:1;
+  background-image:
+    radial-gradient(circle at 10% 18%,rgba(122,216,255,.7) 0 1px,transparent 1.4px),
+    radial-gradient(circle at 82% 23%,rgba(61,174,255,.55) 0 1px,transparent 1.5px),
+    radial-gradient(circle at 64% 68%,rgba(92,203,255,.5) 0 1px,transparent 1.3px);
+  background-size:137px 113px,193px 167px,251px 211px; opacity:.34;
+}
+.live-world-global-pulse .live-world-stage::after {
+  content:""; position:absolute; inset:0; z-index:2; pointer-events:none;
+  background:radial-gradient(ellipse at center,transparent 38%,rgba(0,5,15,.18) 66%,rgba(0,3,10,.72) 100%);
+}
+.live-world-global-pulse .live-world-stage canvas { position:relative; z-index:3; filter:saturate(1.12) contrast(1.07); }
+
+/* HUD panels inside the stage */
+.global-pulse-hud { position:absolute; z-index:18; top:82px; width:224px; padding:15px; color:var(--gp-text); background:linear-gradient(180deg,rgba(3,17,35,.93),rgba(2,11,25,.82)); border:1px solid var(--gp-line); border-radius:12px; box-shadow:0 18px 45px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.025); backdrop-filter:blur(14px); }
+.global-pulse-hud-left { left:18px; }
+.global-pulse-hud-right { right:18px; }
+.global-pulse-hud-title { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:800; letter-spacing:.01em; }
+.global-pulse-hud-subtitle { margin-top:3px; padding-bottom:11px; border-bottom:1px solid rgba(75,146,195,.22); font-size:10px; color:var(--gp-muted); }
+.global-pulse-status-dot { width:7px;height:7px;border-radius:50%;background:#38e3a5;box-shadow:0 0 12px #38e3a5; }
+.global-pulse-feed { margin-top:8px; }
+.global-pulse-feed-row { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid rgba(55,118,164,.15); }
+.global-pulse-feed-row:last-child { border-bottom:0; }
+.global-pulse-feed-icon { width:24px;height:24px;display:grid;place-items:center;border-radius:50%;flex:none; }
+.global-pulse-feed-icon-order { color:#ffd37a;background:rgba(255,176,54,.13);box-shadow:inset 0 0 0 1px rgba(255,181,63,.22); }
+.global-pulse-feed-icon-visitor { color:#65d9ff;background:rgba(42,174,255,.13);box-shadow:inset 0 0 0 1px rgba(52,193,255,.22); }
+.global-pulse-feed-row strong,.global-pulse-feed-row span { display:block; }
+.global-pulse-feed-row strong { font-size:10px;color:#f3fbff; }
+.global-pulse-feed-row div>span { font-size:9px;color:#7f9db7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.global-pulse-feed-meta { text-align:right;flex:none; }
+.global-pulse-feed-meta b { display:block;font-size:9px;color:#ffd27b; }
+.global-pulse-feed-meta span { font-size:8px!important;color:#718da6!important; }
+.global-pulse-worldline { display:grid;grid-template-columns:12px 44px 1fr;align-items:center;gap:7px;padding:9px 0;border-bottom:1px solid rgba(55,118,164,.14);font-size:10px;color:#8aa5bd; }
+.global-pulse-worldline b { color:#eaf7ff;font-size:15px; }
+.global-pulse-world-dot { width:7px;height:7px;border-radius:50%; }
+.global-pulse-world-dot-blue { background:#31c8ff;box-shadow:0 0 12px #31c8ff; }
+.global-pulse-world-dot-gold { background:#ffb43f;box-shadow:0 0 12px #ffb43f; }
+.global-pulse-country-title { margin:12px 0 5px;font-size:11px;font-weight:800;color:#dceeff; }
+.global-pulse-country-row { display:grid;grid-template-columns:18px 1fr auto;gap:8px;padding:7px 0;border-bottom:1px solid rgba(55,118,164,.13);font-size:10px; }
+.global-pulse-country-row span { color:#68859f; }.global-pulse-country-row strong { color:#dceeff; }.global-pulse-country-row b { color:#65cfff; }
+.global-pulse-empty { padding:18px 4px;text-align:center;font-size:10px;color:#6e8aa2; }
+
+/* Branding / holographic base label */
+.global-pulse-brand { position:absolute; z-index:17; left:50%; bottom:16px; transform:translateX(-50%); width:420px; align-items:center; flex-direction:column; pointer-events:none; text-align:center; text-shadow:0 0 18px rgba(53,188,255,.5); }
+.global-pulse-brand strong { font-size:18px;letter-spacing:.18em;color:#5ad2ff;font-style:italic; }
+.global-pulse-brand span { margin-top:4px;font-size:10px;letter-spacing:.52em;color:#d8f4ff; }
+.global-pulse-brand small { margin-top:6px;font-size:7px;letter-spacing:.28em;color:#6fa5c8;white-space:nowrap; }
+
+/* Make the existing shell read like the approved concept without touching data/test ids. */
+.live-world-global-pulse > div:first-child,
+.live-world-global-pulse > .grid > div,
+.live-world-global-pulse .space-y-3 > div:first-child {
+  border-color:rgba(35,119,174,.24)!important;
+  box-shadow:0 10px 30px rgba(4,17,31,.05)!important;
 }
 
-/* Final optical grade for the WebGL scene only; no storefront styles touched. */
-.live-world-stage canvas {
-  filter: contrast(1.10) saturate(1.10) brightness(0.98);
+@media (min-width:1280px){
+  .live-world-global-pulse .live-world-stage canvas { transform:scale(.90); transform-origin:50% 48%; }
 }
-
-
-
-
-
-
-
-
-
+@media (max-width:1279px){
+  .global-pulse-brand { bottom:10px; }
+}
+@media (max-width:900px){
+  .live-world-global-pulse .live-world-stage { border-radius:14px!important; }
+  .global-pulse-brand { display:none!important; }
+}
+@media (prefers-reduced-motion:reduce){
+  .live-world-global-pulse * { scroll-behavior:auto!important; }
+}
