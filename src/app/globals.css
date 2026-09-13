@@ -34246,30 +34246,58 @@ html body .cf-pricing-subtitle-mobile {
 .live-world-feed-scroll::-webkit-scrollbar-thumb:hover {
   background: rgba(148, 163, 184, 0.35);
 }
-/* LIVE WORLD — V3.1 finishing pass (append after the V3 Live World rules) */
+/* =========================================================
+   LIVE WORLD V4 — CINEMATIC EARTH FINISHING (ADMIN ONLY)
+   Append this block at the end of src/app/globals.css.
+   ========================================================= */
+
 .live-world-stage {
-  background-color: #031022;
+  overflow: hidden;
+  isolation: isolate;
+  background-color: #020813 !important;
   background-image:
-    radial-gradient(ellipse at 50% 45%, rgba(17, 126, 183, .16) 0%, rgba(7, 58, 103, .075) 33%, transparent 60%),
-    radial-gradient(ellipse at 50% 91%, rgba(20, 190, 224, .11) 0%, rgba(9, 87, 124, .045) 31%, transparent 58%),
-    radial-gradient(circle at 18% 18%, rgba(17, 65, 119, .13) 0%, transparent 36%),
-    radial-gradient(circle at 84% 18%, rgba(13, 67, 122, .11) 0%, transparent 35%),
-    linear-gradient(180deg, #020a16 0%, #041226 46%, #06172c 76%, #030d1b 100%);
+    radial-gradient(ellipse at 50% 44%, rgba(32, 146, 196, 0.22) 0%, rgba(10, 73, 118, 0.14) 25%, rgba(2, 18, 35, 0.02) 53%, transparent 68%),
+    radial-gradient(ellipse at 50% 93%, rgba(45, 220, 244, 0.18) 0%, rgba(16, 128, 171, 0.10) 22%, transparent 56%),
+    radial-gradient(circle at 18% 26%, rgba(21, 87, 139, 0.16) 0%, transparent 34%),
+    radial-gradient(circle at 83% 24%, rgba(26, 100, 149, 0.14) 0%, transparent 36%),
+    linear-gradient(180deg, #020713 0%, #03101f 40%, #04182a 72%, #020a16 100%) !important;
+  border-color: rgba(41, 103, 151, 0.34) !important;
+  box-shadow:
+    0 24px 58px -28px rgba(0, 0, 0, 0.88),
+    inset 0 1px 0 rgba(154, 225, 255, 0.05),
+    inset 0 -80px 120px -100px rgba(64, 226, 247, 0.28) !important;
 }
 
 .live-world-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.30 !important;
   background-image:
-    radial-gradient(rgba(112, 215, 246, .34) .65px, transparent .9px),
-    radial-gradient(rgba(255,255,255,.14) .5px, transparent .75px);
-  background-size: 47px 47px, 83px 83px;
-  background-position: 11px 17px, 34px 29px;
-  opacity: .16;
+    radial-gradient(circle, rgba(188, 236, 255, 0.72) 0 0.7px, transparent 0.9px),
+    radial-gradient(circle, rgba(66, 205, 232, 0.50) 0 0.65px, transparent 0.9px),
+    radial-gradient(circle, rgba(255, 255, 255, 0.30) 0 0.55px, transparent 0.8px) !important;
+  background-size: 73px 73px, 109px 109px, 151px 151px !important;
+  background-position: 11px 19px, 39px 61px, 97px 27px !important;
+  mix-blend-mode: screen;
 }
 
 .live-world-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
   background:
-    radial-gradient(ellipse at 50% 48%, transparent 43%, rgba(3, 8, 18, .25) 72%, rgba(1, 5, 13, .72) 100%),
-    radial-gradient(ellipse at 50% 96%, rgba(52, 220, 242, .055) 0%, transparent 38%);
+    radial-gradient(ellipse at 50% 88%, rgba(68, 233, 250, 0.11) 0%, rgba(11, 100, 138, 0.05) 24%, transparent 47%),
+    radial-gradient(ellipse at 50% 47%, transparent 38%, rgba(1, 7, 17, 0.14) 67%, rgba(1, 5, 13, 0.64) 100%) !important;
+}
+
+/* Final optical grade for the WebGL scene only; no storefront styles touched. */
+.live-world-stage canvas {
+  filter: contrast(1.10) saturate(1.10) brightness(0.98);
 }
 
 
