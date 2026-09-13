@@ -430,11 +430,11 @@ function buildLiveLabels(locations: LiveWorldLocationItem[]): GlobeLabel[] {
       return {
         lat: loc.latitude as number,
         lng: loc.longitude as number,
-        altitude: 0.10,
-        text: `${city}  ${loc.activeCount} online`,
-        color: "#dffcff",
-        size: 0.82,
-        dotRadius: 0.18,
+        altitude: 0.16,
+        text: `${city} · ${loc.activeCount} online`,
+        color: "#c9f7ff",
+        size: 1.02,
+        dotRadius: 0.22,
       };
     });
 }
@@ -458,7 +458,6 @@ export default function LiveWorldGlobe({
   const [initError, setInitError] = useState<string | null>(null);
   const [isGlobeReady, setIsGlobeReady] = useState<boolean>(false);
   const [isInteractionMode, setIsInteractionMode] = useState<boolean>(false);
-  const lockedScrollYRef = useRef<number>(0);
 
   // References to keep callbacks current without re-binding globe event listeners
   const callbacksRef = useRef({
@@ -738,21 +737,20 @@ export default function LiveWorldGlobe({
   }, [webglSupported]);
 
   // Explicit interaction mode:
-  // passive = native page scrolling, globe cannot hijack wheel/drag;
-  // active = freeze page at its current scroll position and give wheel/drag to the globe.
+  // passive = the globe never steals wheel/drag, so the page scrolls normally;
+  // active = wheel is prevented from scrolling the page and belongs to the globe.
+  // IMPORTANT: we never mutate body/html positioning or overflow. That was the
+  // source of the V5.5.1 layout lock.
   useEffect(() => {
     const globe = globeInstanceRef.current;
     const controls = globe && typeof globe.controls === "function" ? globe.controls() : null;
+    const container = containerRef.current;
 
     if (controls) {
       controls.enableZoom = isInteractionMode;
       controls.enableRotate = isInteractionMode;
       if ("enablePan" in controls) controls.enablePan = false;
     }
-
-    const body = document.body;
-    const root = document.documentElement;
-    const container = containerRef.current;
 
     if (container) {
       container.style.touchAction = isInteractionMode ? "none" : "pan-y";
@@ -761,47 +759,33 @@ export default function LiveWorldGlobe({
 
     if (!isInteractionMode) return;
 
-    lockedScrollYRef.current = window.scrollY || window.pageYOffset || 0;
-
-    const previous = {
-      bodyOverflow: body.style.overflow,
-      bodyPosition: body.style.position,
-      bodyTop: body.style.top,
-      bodyWidth: body.style.width,
-      rootOverflow: root.style.overflow,
+    // Lock only native document scrolling. Do NOT freeze/reposition the body.
+    // The event still propagates to OrbitControls, so wheel continues to zoom.
+    const preventPageWheel = (event: WheelEvent) => {
+      event.preventDefault();
     };
 
-    // position:fixed prevents wheel/trackpad from moving the document while also
-    // preserving the exact visual scroll position. We restore it on exit.
-    body.style.overflow = "hidden";
-    body.style.position = "fixed";
-    body.style.top = `-${lockedScrollYRef.current}px`;
-    body.style.width = "100%";
-    root.style.overflow = "hidden";
+    const preventPageTouchMove = (event: TouchEvent) => {
+      event.preventDefault();
+    };
 
-    const exitInteraction = () => setIsInteractionMode(false);
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") exitInteraction();
+      if (event.key === "Escape") setIsInteractionMode(false);
     };
 
+    window.addEventListener("wheel", preventPageWheel, { passive: false, capture: true });
+    window.addEventListener("touchmove", preventPageTouchMove, { passive: false, capture: true });
     window.addEventListener("keydown", onKeyDown);
 
     return () => {
+      window.removeEventListener("wheel", preventPageWheel, true);
+      window.removeEventListener("touchmove", preventPageTouchMove, true);
       window.removeEventListener("keydown", onKeyDown);
-
-      body.style.overflow = previous.bodyOverflow;
-      body.style.position = previous.bodyPosition;
-      body.style.top = previous.bodyTop;
-      body.style.width = previous.bodyWidth;
-      root.style.overflow = previous.rootOverflow;
 
       if (containerRef.current) {
         containerRef.current.style.touchAction = "pan-y";
         containerRef.current.style.cursor = "default";
       }
-
-      // Return the page exactly to where it was before Explore Globe was enabled.
-      window.scrollTo({ top: lockedScrollYRef.current, left: 0, behavior: "auto" });
     };
   }, [isInteractionMode, isGlobeReady]);
 
@@ -817,15 +801,15 @@ export default function LiveWorldGlobe({
       // Visitors points
       locations.forEach((loc) => {
         if (typeof loc.latitude !== "number" || typeof loc.longitude !== "number") return;
-        const baseRadius = 0.35;
-        const size = Math.min(baseRadius + Math.log2(Math.max(1, loc.activeCount)) * 0.22, 1.4);
+        const baseRadius = 0.48;
+        const size = Math.min(baseRadius + Math.log2(Math.max(1, loc.activeCount)) * 0.26, 1.55);
 
         pointsData.push({
           lat: loc.latitude,
           lng: loc.longitude,
           size,
-          color: "rgba(40, 190, 255, 0.98)",
-          altitude: 0.02,
+          color: "rgba(72, 220, 255, 1)",
+          altitude: 0.035,
           location: loc,
           type: "visitor",
         });
@@ -976,7 +960,7 @@ export default function LiveWorldGlobe({
         className="global-pulse-interaction-toggle"
         aria-pressed={isInteractionMode}
         aria-label={isInteractionMode ? "Exit globe interaction mode" : "Explore globe"}
-        title={isInteractionMode ? "Return mouse wheel to page scrolling" : "Lock page scrolling and interact with the globe"}
+        title={isInteractionMode ? "Return mouse wheel to normal page scrolling" : "Enable globe zoom and rotation"}
         onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => {
           event.preventDefault();
@@ -985,13 +969,13 @@ export default function LiveWorldGlobe({
         }}
       >
         <span className="global-pulse-interaction-toggle-dot" aria-hidden="true" />
-        <span>{isInteractionMode ? "Exit Globe" : "Explore Globe"}</span>
-        <small>{isInteractionMode ? "ESC" : "SCROLL"}</small>
+        <span>{isInteractionMode ? "Exit Globe Control" : "Control Globe"}</span>
+        <small>{isInteractionMode ? "ESC" : "OFF"}</small>
       </button>
 
       {isInteractionMode && (
         <div className="global-pulse-interaction-note" role="status">
-          Scroll to zoom · Drag to rotate · Press Esc to exit
+          Globe control active · Scroll to zoom · Drag to rotate · Esc to release page scroll
         </div>
       )}
     </div>
