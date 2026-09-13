@@ -17,6 +17,8 @@ import { GrowthModule } from "./growth/GrowthModule";
 import { CrmModule } from "./crm/CrmModule";
 import { BlacklistModule } from "./blacklist/BlacklistModule";
 import { InfrastructureModule } from "./infrastructure/InfrastructureModule";
+import { SettingsModule } from "./settings/SettingsModule";
+import { AdminOfflineBanner } from "./mobile/AdminOfflineBanner";
 import { AdminThemeProvider } from "./ui";
 
 
@@ -46,7 +48,8 @@ const VALID_TABS: AdminTab[] = [
   "growth",
   "crm",
   "blacklist",
-  "infra"
+  "infra",
+  "settings"
 ];
 
 function AdminShellContent() {
@@ -140,6 +143,8 @@ function AdminShellContent() {
         return <BlacklistModule entries={blacklist} />;
       case "infra":
         return <InfrastructureModule integrations={integrations} providers={providers} webhooks={webhooks} />;
+      case "settings":
+        return <SettingsModule onLogout={handleLogout} onNavigateToTab={handleSelectTab} />;
       default:
         return (
           <DashboardOverview 
@@ -164,6 +169,11 @@ function AdminShellContent() {
 
         {/* Mobile Header (<= 900px) */}
         <AdminMobileHeader activeTab={activeTab} />
+
+        {/* Online / Offline Connectivity Status Banner (<= 900px priority) */}
+        <div className="md:hidden">
+          <AdminOfflineBanner />
+        </div>
 
         {/* Desktop Sidebar (>= 901px) */}
         <AdminSidebar 

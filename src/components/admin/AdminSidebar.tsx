@@ -16,12 +16,13 @@ import {
   Radio,
   Sliders,
   BarChart3,
-  Globe2
+  Globe2,
+  Settings
 } from "lucide-react";
 import { BUILD_INFO } from "@/lib/build-info";
 import { AdminNeonIcon, AdminNeonColor, AdminThemeToggle } from "./ui";
 
-export type AdminTab = "dashboard" | "analytics" | "live-world" | "orders" | "supplier-routing" | "dropshield" | "fulfillment" | "growth" | "crm" | "blacklist" | "infra";
+export type AdminTab = "dashboard" | "analytics" | "live-world" | "orders" | "supplier-routing" | "dropshield" | "fulfillment" | "growth" | "crm" | "blacklist" | "infra" | "settings";
 
 interface AdminSidebarProps {
   activeTab: AdminTab;
@@ -50,6 +51,7 @@ export function AdminSidebar({
     { id: "crm", label: "CRM & Communication", icon: Users, color: "cyan" },
     { id: "blacklist", label: "Anti-Fraud Blacklist", icon: ShieldBan, color: "red" },
     { id: "infra", label: "Integrations & APIs", icon: Server, color: "purple" },
+    { id: "settings", label: "Settings", icon: Settings, color: "teal" },
   ];
 
   const sidebarContent = (

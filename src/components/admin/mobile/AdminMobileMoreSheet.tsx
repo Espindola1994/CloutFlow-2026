@@ -10,10 +10,13 @@ import {
   Server,
   LogOut,
   X,
-  Radio
+  Radio,
+  Settings,
+  Download
 } from "lucide-react";
 import { AdminNeonIcon, AdminNeonColor } from "../ui/AdminNeonIcon";
 import { BUILD_INFO } from "@/lib/build-info";
+import { usePwaInstall } from "./usePwaInstall";
 
 export interface AdminMobileMoreSheetProps {
   isOpen: boolean;
@@ -81,6 +84,13 @@ const MORE_ITEMS: MoreMenuItem[] = [
     color: "purple",
     description: "Webhooks, API keys & infrastructure logs" 
   },
+  { 
+    id: "settings", 
+    label: "Settings", 
+    icon: Settings, 
+    color: "teal",
+    description: "Profile, 2FA, appearance & system preferences" 
+  },
 ];
 
 export function AdminMobileMoreSheet({
@@ -92,6 +102,7 @@ export function AdminMobileMoreSheet({
 }: AdminMobileMoreSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const { isInstallable, promptInstall } = usePwaInstall();
 
   // Handle ESC key to close
   useEffect(() => {
@@ -222,6 +233,24 @@ export function AdminMobileMoreSheet({
 
         {/* Footer info & Sign Out */}
         <div className="p-4 border-t border-[var(--admin-sidebar-border)] bg-[var(--admin-sidebar-secondary)] space-y-3 shrink-0">
+          {/* PWA Native Install Button when available */}
+          {isInstallable && (
+            <button
+              type="button"
+              data-testid="admin-more-install-app-btn"
+              onClick={async () => {
+                const outcome = await promptInstall();
+                if (outcome === "accepted") {
+                  onClose();
+                }
+              }}
+              className="w-full min-h-[44px] flex items-center justify-center gap-2 px-4 py-2.5 rounded-[10px] text-[13px] font-semibold text-white bg-[var(--admin-primary)] hover:opacity-95 transition-all cursor-pointer shadow-xs"
+            >
+              <Download className="w-4 h-4 shrink-0" />
+              <span>Install CloutFlow App</span>
+            </button>
+          )}
+
           <div className="flex items-center justify-between text-[11px] text-[var(--admin-text-secondary)]">
             <div className="flex items-center gap-1.5 text-[var(--admin-success)] font-semibold">
               <Radio className="w-3 h-3 animate-pulse" />

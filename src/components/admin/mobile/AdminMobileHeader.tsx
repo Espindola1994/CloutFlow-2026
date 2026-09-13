@@ -12,7 +12,8 @@ import {
   PackageOpen, 
   Sliders, 
   BarChart3, 
-  Globe2 
+  Globe2,
+  Settings
 } from "lucide-react";
 import { AdminNeonIcon, AdminNeonColor } from "../ui/AdminNeonIcon";
 
@@ -32,6 +33,7 @@ const TAB_METADATA: Record<AdminTab, { label: string; icon: React.ComponentType<
   crm: { label: "CRM & Communication", icon: Users, color: "cyan" },
   blacklist: { label: "Anti-Fraud Blacklist", icon: ShieldBan, color: "red" },
   infra: { label: "Integrations & APIs", icon: Server, color: "purple" },
+  settings: { label: "Settings", icon: Settings, color: "teal" },
 };
 
 export function AdminMobileHeader({ activeTab }: AdminMobileHeaderProps) {
