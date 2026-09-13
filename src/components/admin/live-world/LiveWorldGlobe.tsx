@@ -138,7 +138,7 @@ function applyEarthMaterial(globe: any) {
     const phongMat = mat as THREE.MeshPhongMaterial;
 
     // Neutral diffuse tint: do not multiply the blue NASA composite down.
-    phongMat.color.set("#ffffff");
+    phongMat.color.set("#dceaf2");
 
     // Reuse the loaded surface map as a low-strength emissive map. This is the
     // key fix that keeps the supplied blue oceans and city lights visible on
@@ -146,19 +146,19 @@ function applyEarthMaterial(globe: any) {
     if (phongMat.map) {
       phongMat.emissiveMap = phongMat.map;
       phongMat.emissive.set("#ffffff");
-      phongMat.emissiveIntensity = 0.22;
+      phongMat.emissiveIntensity = 0.12;
     } else {
       // Safe fallback while the async globe texture is still loading.
       phongMat.emissiveMap = null;
-      phongMat.emissive.set("#0a2748");
-      phongMat.emissiveIntensity = 0.32;
+      phongMat.emissive.set("#061b2e");
+      phongMat.emissiveIntensity = 0.18;
     }
 
     // Restrained ocean sheen. The authored texture remains the visual source;
     // lighting is used only to add shape, not to recolor the planet.
-    phongMat.specular.set("#3f78a8");
-    phongMat.shininess = 14;
-    phongMat.bumpScale = 0.035;
+    phongMat.specular.set("#1e4f70");
+    phongMat.shininess = 9;
+    phongMat.bumpScale = 0.045;
     phongMat.needsUpdate = true;
   } catch (err) {
     console.warn("Failed to configure globe material:", err);
@@ -173,16 +173,16 @@ function applyEarthMaterial(globe: any) {
 function setupSceneLighting(scene: THREE.Scene): THREE.Object3D[] {
   const createdObjects: THREE.Object3D[] = [];
 
-  const hemisphereLight = new THREE.HemisphereLight(0x74cfff, 0x020914, 0.62);
+  const hemisphereLight = new THREE.HemisphereLight(0x6ebfe8, 0x010711, 0.42);
   scene.add(hemisphereLight);
   createdObjects.push(hemisphereLight);
 
-  const keyLight = new THREE.DirectionalLight(0xc9ebff, 1.05);
+  const keyLight = new THREE.DirectionalLight(0xc9ebff, 0.82);
   keyLight.position.set(145, 105, 175);
   scene.add(keyLight);
   createdObjects.push(keyLight);
 
-  const fillLight = new THREE.DirectionalLight(0x2875a8, 0.28);
+  const fillLight = new THREE.DirectionalLight(0x1f5b82, 0.14);
   fillLight.position.set(-135, -35, 120);
   scene.add(fillLight);
   createdObjects.push(fillLight);
@@ -231,18 +231,18 @@ function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.O
   // Reference-style atmosphere: no hard neon outline. The inner shell is tight
   // and soft, while the outer shell provides only a faint cyan-blue bloom.
   makeAtmosphereShell({
-    radiusScale: 1.018,
-    color: "#5defff",
-    intensity: 0.38,
-    power: 5.6,
+    radiusScale: 1.014,
+    color: "#63e8ff",
+    intensity: 0.20,
+    power: 6.4,
     renderOrder: 2,
   });
 
   makeAtmosphereShell({
-    radiusScale: 1.075,
-    color: "#178dff",
-    intensity: 0.12,
-    power: 6.8,
+    radiusScale: 1.060,
+    color: "#1a7fdb",
+    intensity: 0.055,
+    power: 8.2,
     renderOrder: 1,
   });
 
@@ -257,72 +257,71 @@ function setupAtmosphere(scene: THREE.Scene, globeRadius: number = 100): THREE.O
 function setupOrbitalGuides(scene: THREE.Scene, globeRadius: number = 100): THREE.Object3D[] {
   const createdObjects: THREE.Object3D[] = [];
 
-  const makeDashedOrbit = (
+  const makeLowerOrbit = (
     radiusX: number,
     radiusZ: number,
     y: number,
-    rotationX: number,
-    rotationZ: number,
     opacity: number,
-    dashEvery: number = 2,
+    dashEvery: number,
+    pointSize: number,
   ) => {
     const positions: number[] = [];
-    const segments = 360;
+    const segments = 420;
     for (let i = 0; i < segments; i += 1) {
       if (i % dashEvery !== 0) continue;
       const t = (i / segments) * Math.PI * 2;
       positions.push(Math.cos(t) * radiusX, y, Math.sin(t) * radiusZ);
     }
+
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
     const material = new THREE.PointsMaterial({
-      color: new THREE.Color("#65efff"),
-      size: 0.72,
+      color: new THREE.Color("#63e9ff"),
+      size: pointSize,
       sizeAttenuation: true,
       transparent: true,
       opacity,
       blending: THREE.AdditiveBlending,
       depthWrite: false,
+      depthTest: true,
       toneMapped: false,
     });
+
     const orbit = new THREE.Points(geometry, material);
-    orbit.rotation.x = rotationX;
-    orbit.rotation.z = rotationZ;
     orbit.renderOrder = 0;
     scene.add(orbit);
     createdObjects.push(orbit);
   };
 
-  // Reference-style orbital architecture: mostly below/around the globe rather
-  // than large solid ellipses cutting across the planet.
-  makeDashedOrbit(globeRadius * 1.30, globeRadius * 0.34, -globeRadius * 0.82, 0.02, 0.0, 0.42, 1);
-  makeDashedOrbit(globeRadius * 1.13, globeRadius * 0.26, -globeRadius * 0.75, 0.03, 0.0, 0.22, 2);
-  makeDashedOrbit(globeRadius * 1.08, globeRadius * 1.08, 0, 0.76, 0.28, 0.075, 4);
-  makeDashedOrbit(globeRadius * 1.06, globeRadius * 1.06, 0, -0.58, -0.44, 0.055, 5);
+  // Permanent scene architecture only. Keeping both tracks below the sphere
+  // prevents the visual from reading as a translucent band passing through Earth.
+  makeLowerOrbit(globeRadius * 1.28, globeRadius * 0.32, -globeRadius * 0.91, 0.34, 2, 0.72);
+  makeLowerOrbit(globeRadius * 1.08, globeRadius * 0.24, -globeRadius * 0.84, 0.16, 4, 0.58);
 
-  // Sparse cyan particles provide depth even when live telemetry is zero. They
-  // are decorative infrastructure only and never represent users or purchases.
+  // Sparse deterministic particles add depth while remaining clearly decorative.
   const particlePositions: number[] = [];
-  const particleCount = 240;
+  const particleCount = 180;
   for (let i = 0; i < particleCount; i += 1) {
     const seedA = ((i * 73) % 997) / 997;
     const seedB = ((i * 193) % 991) / 991;
     const seedC = ((i * 389) % 983) / 983;
     const theta = seedA * Math.PI * 2;
-    const radius = globeRadius * (1.12 + seedB * 0.72);
-    const y = globeRadius * (-0.92 + seedC * 1.84);
+    const radius = globeRadius * (1.18 + seedB * 0.74);
+    const y = globeRadius * (-0.88 + seedC * 1.76);
     particlePositions.push(Math.cos(theta) * radius, y, Math.sin(theta) * radius);
   }
+
   const particleGeometry = new THREE.BufferGeometry();
   particleGeometry.setAttribute("position", new THREE.Float32BufferAttribute(particlePositions, 3));
   const particleMaterial = new THREE.PointsMaterial({
-    color: new THREE.Color("#48dff7"),
-    size: 0.62,
+    color: new THREE.Color("#6edff5"),
+    size: 0.52,
     sizeAttenuation: true,
     transparent: true,
-    opacity: 0.20,
+    opacity: 0.14,
     blending: THREE.AdditiveBlending,
     depthWrite: false,
+    depthTest: true,
     toneMapped: false,
   });
   const particles = new THREE.Points(particleGeometry, particleMaterial);
@@ -330,48 +329,8 @@ function setupOrbitalGuides(scene: THREE.Scene, globeRadius: number = 100): THRE
   scene.add(particles);
   createdObjects.push(particles);
 
-  // Soft base glow under the planet, matching the approved composition without
-  // encoding any fake telemetry.
-  const glowGeometry = new THREE.RingGeometry(globeRadius * 0.62, globeRadius * 1.26, 160);
-  const glowMaterial = new THREE.MeshBasicMaterial({
-    color: new THREE.Color("#20dff4"),
-    transparent: true,
-    opacity: 0.075,
-    blending: THREE.AdditiveBlending,
-    side: THREE.DoubleSide,
-    depthWrite: false,
-    toneMapped: false,
-  });
-  const baseGlow = new THREE.Mesh(glowGeometry, glowMaterial);
-  baseGlow.rotation.x = Math.PI / 2;
-  baseGlow.position.y = -globeRadius * 0.91;
-  baseGlow.scale.set(1.35, 0.42, 1);
-  scene.add(baseGlow);
-  createdObjects.push(baseGlow);
-
   return createdObjects;
 }
-
-function buildLiveArcs(locations: LiveWorldLocationItem[]): GlobeArc[] {
-  const mappable = locations
-    .filter((loc) => typeof loc.latitude === "number" && typeof loc.longitude === "number")
-    .sort((a, b) => b.activeCount - a.activeCount)
-    .slice(0, 7);
-
-  if (mappable.length < 2) return [];
-
-  const hub = mappable[0];
-  return mappable.slice(1).map((loc, index) => ({
-    startLat: hub.latitude as number,
-    startLng: hub.longitude as number,
-    endLat: loc.latitude as number,
-    endLng: loc.longitude as number,
-    color: index % 3 === 0 ? "rgba(255, 184, 72, 0.72)" : "rgba(52, 232, 240, 0.72)",
-    altitude: Math.min(0.18 + index * 0.025, 0.34),
-    stroke: index < 2 ? 0.48 : 0.32,
-  }));
-}
-
 function buildLiveLabels(locations: LiveWorldLocationItem[]): GlobeLabel[] {
   return locations
     .filter((loc) => typeof loc.latitude === "number" && typeof loc.longitude === "number")
@@ -501,18 +460,9 @@ export default function LiveWorldGlobe({
         // with the existing test double and older/minimal globe.gl builds while
         // enabling the richer production layers whenever the API is available.
         if (typeof globe.arcsData === "function") {
-          globe
-            .arcsData([])
-            .arcStartLat("startLat")
-            .arcStartLng("startLng")
-            .arcEndLat("endLat")
-            .arcEndLng("endLng")
-            .arcColor("color")
-            .arcAltitude("altitude")
-            .arcStroke("stroke")
-            .arcDashLength(0.42)
-            .arcDashGap(0.16)
-            .arcDashAnimateTime(2600);
+          // Intentionally empty: current Live World payload has locations, not
+          // route/flow semantics. We do not fabricate city-to-city connections.
+          globe.arcsData([]);
         }
 
         if (typeof globe.labelsData === "function") {
@@ -582,8 +532,8 @@ export default function LiveWorldGlobe({
         }
 
         // Global-First initial view: North Atlantic / International (US, Canada, UK, Western Europe, Africa)
-        // Phase 2A.1 Camera altitude tuned to 1.70 so Earth diameter occupies ~76-80% of usable stage height
-        globe.pointOfView({ lat: 18, lng: -38, altitude: 2.08 }, 0);
+        // V3.1 composition: slightly wider framing leaves room for the permanent scene architecture
+        globe.pointOfView({ lat: 18, lng: -38, altitude: 2.20 }, 0);
 
         globeInstanceRef.current = globe;
         setIsGlobeReady(true);
@@ -628,8 +578,12 @@ export default function LiveWorldGlobe({
                 if ((obj as any).material) {
                   const mat = (obj as any).material;
                   if (Array.isArray(mat)) {
-                    mat.forEach((m) => m.dispose?.());
+                    mat.forEach((m) => {
+                      m.map?.dispose?.();
+                      m.dispose?.();
+                    });
                   } else {
+                    mat.map?.dispose?.();
                     mat.dispose?.();
                   }
                 }
@@ -727,7 +681,7 @@ export default function LiveWorldGlobe({
 
       globe.ringsData(ringsData);
       if (typeof globe.arcsData === "function") {
-        globe.arcsData(buildLiveArcs(locations));
+        globe.arcsData([]);
       }
       if (typeof globe.labelsData === "function") {
         globe.labelsData(buildLiveLabels(locations));
