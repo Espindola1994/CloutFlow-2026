@@ -361,7 +361,16 @@ export function OfferOption10Experience(props: Props) {
                   <h1>Ready to Take Your Growth <em>Further?</em></h1>
                   <p>Your 25% reward is ready.<br />Keep growing with CloutFlow.</p>
                 </div>
-                <Image className="cf-o10-rocket-image" src={rocketArt} alt="" width={72} height={72} priority />
+                <Image
+                  className="cf-o10-rocket-image"
+                  src={rocketArt}
+                  alt=""
+                  width={1309}
+                  height={1201}
+                  sizes="(max-width: 700px) 138px, (max-width: 900px) 120px, 205px"
+                  quality={100}
+                  priority
+                />
               </div>
 
               <div className="cf-o10-goal-builder" data-network={targetPlatform}>
@@ -633,7 +642,16 @@ export function OfferOption10Experience(props: Props) {
                   <h1>{flowStep === 'PREVIEW' ? <>Profile <em>found!</em></> : <>Find your <em>profile.</em></>}</h1>
                   <p>{flowStep === 'PREVIEW' ? 'Confirm the destination before continuing.' : 'Choose a network and enter your public profile.'}</p>
                 </div>
-                <Image className="cf-o10-rocket-image" src={rocketArt} alt="" width={72} height={72} priority />
+                <Image
+                  className="cf-o10-rocket-image"
+                  src={rocketArt}
+                  alt=""
+                  width={1309}
+                  height={1201}
+                  sizes="(max-width: 700px) 138px, (max-width: 900px) 120px, 205px"
+                  quality={100}
+                  priority
+                />
               </div>
 
               {flowStep !== 'PREVIEW' && (
