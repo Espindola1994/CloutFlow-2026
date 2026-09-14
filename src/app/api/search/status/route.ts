@@ -71,7 +71,37 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    if (snapshotRes.status === "ready" && snapshotRes.data) {
+    if (snapshotRes.status === "ready") {
+      // B3. READY SEM DATA: data === null || data === undefined -> terminal error
+      if (snapshotRes.data === null || snapshotRes.data === undefined) {
+        return NextResponse.json(
+          {
+            success: false,
+            status: "failed",
+            code: "PROVIDER_EMPTY_RESPONSE",
+            message: "The provider returned an empty response. Please try again.",
+          },
+          { status: 502 }
+        );
+      }
+
+      // data === [] -> empty array means nothing found
+      if (Array.isArray(snapshotRes.data) && snapshotRes.data.length === 0) {
+        const notFoundCode = job.operation === "content" ? "CONTENT_NOT_FOUND" : "PROFILE_NOT_FOUND";
+        const notFoundMsg = job.operation === "content"
+          ? "We couldn't find this content. Check the link and try again."
+          : "We couldn't find this profile. Check the @handle or link and try again.";
+        return NextResponse.json(
+          {
+            success: false,
+            status: "failed",
+            code: notFoundCode,
+            message: notFoundMsg,
+          },
+          { status: 404 }
+        );
+      }
+
       // -------------------------------------------------------------
       // CASO YOUTUBE
       // -------------------------------------------------------------
@@ -258,6 +288,14 @@ export async function GET(req: NextRequest) {
                 data: profileRes.data,
               });
             }
+          } else {
+            // B5: If no valid authorIdentifier found, do NOT pending: return CONTENT_AUTHOR_NOT_FOUND
+            return NextResponse.json({
+              success: false,
+              status: "failed",
+              code: "CONTENT_AUTHOR_NOT_FOUND",
+              message: "Could not identify the author of this post. Check the link and try again.",
+            }, { status: 422 });
           }
         }
 
@@ -288,12 +326,16 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      status: "pending",
-      platform: job.platform,
-      phase: job.operation === "content" ? "finding_content" : "loading_profile",
-    });
+    // B1: Handle unexpected provider status - NEVER return pending silently
+    return NextResponse.json(
+      {
+        success: false,
+        status: "failed",
+        code: "PROVIDER_STATUS_UNEXPECTED",
+        message: "An unexpected provider status was received. Please try again.",
+      },
+      { status: 502 }
+    );
   } catch (error: any) {
     console.error("Error in /api/search/status:", error);
     return NextResponse.json(

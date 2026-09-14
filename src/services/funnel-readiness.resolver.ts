@@ -1,5 +1,5 @@
 import { CommercialPlatform, CommercialService } from './commercial-offer.resolver';
-import { validateEmailFormat, buildCanonicalProfileUrl } from '@/lib/social/normalize';
+import { validateEmailFormat, buildCanonicalProfileUrl, classifyContentTargetKind } from '@/lib/social/normalize';
 import { validateSafeUrl } from '@/lib/social/security';
 
 export type FunnelStateStep =
@@ -72,13 +72,6 @@ export function resolveFunnelReadiness(input: FunnelReadinessInput): FunnelReadi
   const isFollowers = service === 'followers';
   const isContent = service === 'likes' || service === 'views';
 
-  // Resolve target type
-  const resolvedTargetType: 'profile' | 'post' | 'video' | 'channel' = isFollowers
-    ? 'profile'
-    : platform === 'youtube' || platform === 'tiktok'
-      ? 'video'
-      : 'post';
-
   // Evaluate Target Validity
   let targetValid = false;
   let normalizedUsername: string | null = null;
@@ -124,6 +117,24 @@ export function resolveFunnelReadiness(input: FunnelReadinessInput): FunnelReadi
         }
       }
     }
+  }
+
+  // Resolve target type based on service, platform, and content classification
+  let resolvedTargetType: 'profile' | 'post' | 'video' | 'channel' = 'post';
+  if (isFollowers) {
+    resolvedTargetType = platform === 'youtube' ? 'channel' : 'profile';
+  } else if (platform === 'youtube' || platform === 'tiktok') {
+    resolvedTargetType = 'video';
+  } else if (platform === 'instagram') {
+    if (service === 'views') {
+      const contentUrl = resolvedTargetUrl || input.targetUrl || input.targetValue || '';
+      const kind = classifyContentTargetKind(contentUrl, 'instagram');
+      resolvedTargetType = kind === 'video' ? 'video' : 'post';
+    } else {
+      resolvedTargetType = 'post';
+    }
+  } else if (platform === 'twitter') {
+    resolvedTargetType = 'post';
   }
 
   // Target Verification Evaluation

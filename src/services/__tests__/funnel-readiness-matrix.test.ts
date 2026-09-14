@@ -443,5 +443,82 @@ describe('Funnel Central Readiness & Transition Matrix', () => {
         expect(res.canCheckout).toBe(true);
       }
     });
+
+    describe('Instagram Views Target Type Resolution Regression', () => {
+      it('Instagram Views + /reel/ -> resolvedTargetType = video', () => {
+        const res = resolveFunnelReadiness({
+          platform: 'instagram',
+          service: 'views',
+          targetUrl: 'https://www.instagram.com/reel/C123456789/',
+          email: 'user@example.com',
+          verificationStatus: 'success',
+          verifiedTargetData: { id: 'C123456789' },
+        });
+        expect(res.resolvedTargetType).toBe('video');
+        expect(res.canCheckout).toBe(true);
+      });
+
+      it('Instagram Views + /reels/ -> resolvedTargetType = video', () => {
+        const res = resolveFunnelReadiness({
+          platform: 'instagram',
+          service: 'views',
+          targetUrl: 'https://www.instagram.com/reels/C123456789/',
+          email: 'user@example.com',
+          verificationStatus: 'success',
+          verifiedTargetData: { id: 'C123456789' },
+        });
+        expect(res.resolvedTargetType).toBe('video');
+        expect(res.canCheckout).toBe(true);
+      });
+
+      it('Instagram Views + /tv/ -> resolvedTargetType = video', () => {
+        const res = resolveFunnelReadiness({
+          platform: 'instagram',
+          service: 'views',
+          targetUrl: 'https://www.instagram.com/tv/C123456789/',
+          email: 'user@example.com',
+          verificationStatus: 'success',
+          verifiedTargetData: { id: 'C123456789' },
+        });
+        expect(res.resolvedTargetType).toBe('video');
+        expect(res.canCheckout).toBe(true);
+      });
+
+      it('Instagram Views + photo post /p/ -> resolvedTargetType = post (NOT video)', () => {
+        const res = resolveFunnelReadiness({
+          platform: 'instagram',
+          service: 'views',
+          targetUrl: 'https://www.instagram.com/p/C123456789/',
+          email: 'user@example.com',
+          verificationStatus: 'success',
+          verifiedTargetData: { id: 'C123456789' },
+        });
+        expect(res.resolvedTargetType).toBe('post');
+      });
+
+      it('Instagram Likes + post -> resolvedTargetType = post', () => {
+        const res = resolveFunnelReadiness({
+          platform: 'instagram',
+          service: 'likes',
+          targetUrl: 'https://www.instagram.com/p/C123456789/',
+          email: 'user@example.com',
+          verificationStatus: 'success',
+          verifiedTargetData: { id: 'C123456789' },
+        });
+        expect(res.resolvedTargetType).toBe('post');
+      });
+
+      it('Instagram Followers + profile -> resolvedTargetType = profile', () => {
+        const res = resolveFunnelReadiness({
+          platform: 'instagram',
+          service: 'followers',
+          socialUsername: 'cloutflow',
+          email: 'user@example.com',
+          verificationStatus: 'success',
+          verifiedTargetData: { username: 'cloutflow' },
+        });
+        expect(res.resolvedTargetType).toBe('profile');
+      });
+    });
   });
 });

@@ -1,6 +1,7 @@
 import { db } from '@/db';
 import { orders, fulfillmentChains, fulfillmentChainServices, fulfillmentOrders } from '@/db/schema';
 import { eq, and, asc, or, desc } from 'drizzle-orm';
+import { classifyContentTargetKind } from '@/lib/social/normalize';
 
 export interface ChainServiceEvaluation {
   serviceId: string;
@@ -132,36 +133,7 @@ export function isContentUrl(urlStr: string, platform: string): boolean {
 }
 
 
-function classifyTargetUrl(urlStr: string, platform: string): 'profile' | 'post' | 'video' | 'story' | 'invalid' {
-  try {
-    const parsed = new URL(urlStr.startsWith('http') ? urlStr : `https://${urlStr}`);
-    const path = parsed.pathname.toLowerCase();
-    const host = parsed.hostname.toLowerCase();
-    const p = platform.toLowerCase();
-
-    if (p === 'instagram') {
-      if (path.includes('/stories/') || path.includes('/story/')) return 'story';
-      if (path.includes('/reel/') || path.includes('/reels/') || path.includes('/tv/')) return 'video';
-      if (path.includes('/p/')) return 'post';
-      return 'profile';
-    }
-    if (p === 'tiktok') {
-      if (path.includes('/video/') || path.includes('/v/') || host.includes('vm.tiktok.com') || host.includes('vt.tiktok.com')) return 'video';
-      return 'profile';
-    }
-    if (p === 'youtube') {
-      if (path.includes('/watch') || path.includes('/shorts/') || host.includes('youtu.be') || path.includes('/v/')) return 'video';
-      return 'profile';
-    }
-    if (p === 'twitter') {
-      if (path.includes('/status/') || path.includes('/statuses/')) return 'post';
-      return 'profile';
-    }
-    return 'invalid';
-  } catch {
-    return 'invalid';
-  }
-}
+export const classifyTargetUrl = classifyContentTargetKind;
 
 /**
  * Resolves and normalizes the target for any service/platform combination with strict validation.

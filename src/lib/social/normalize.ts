@@ -548,3 +548,35 @@ export function detectSearchInput(
     isValid: true,
   };
 }
+
+export function classifyContentTargetKind(urlStr: string, platform: string): 'profile' | 'post' | 'video' | 'story' | 'invalid' {
+  try {
+    const parsed = new URL(urlStr.startsWith('http') ? urlStr : `https://${urlStr}`);
+    const path = parsed.pathname.toLowerCase();
+    const host = parsed.hostname.toLowerCase();
+    const p = platform.toLowerCase();
+
+    if (p === 'instagram') {
+      if (path.includes('/stories/') || path.includes('/story/')) return 'story';
+      if (path.includes('/reel/') || path.includes('/reels/') || path.includes('/tv/')) return 'video';
+      if (path.includes('/p/')) return 'post';
+      return 'profile';
+    }
+    if (p === 'tiktok') {
+      if (path.includes('/video/') || path.includes('/v/') || host.includes('vm.tiktok.com') || host.includes('vt.tiktok.com')) return 'video';
+      return 'profile';
+    }
+    if (p === 'youtube') {
+      if (path.includes('/watch') || path.includes('/shorts/') || host.includes('youtu.be') || path.includes('/v/')) return 'video';
+      return 'profile';
+    }
+    if (p === 'twitter') {
+      if (path.includes('/status/') || path.includes('/statuses/')) return 'post';
+      return 'profile';
+    }
+    return 'invalid';
+  } catch {
+    return 'invalid';
+  }
+}
+

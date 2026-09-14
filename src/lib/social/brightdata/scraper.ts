@@ -210,9 +210,18 @@ export async function checkBrightDataSnapshot(snapshotId: string): Promise<{
     }
 
     const progressJson = await progressRes.json();
-    const currentStatus = progressJson.status;
+    const rawStatus = typeof progressJson?.status === "string" ? progressJson.status.toLowerCase().trim() : "";
 
-    if (currentStatus === "ready") {
+    // Normalize Bright Data provider states:
+    // "running", "collecting", "pending" -> internal "pending"
+    // "ready" -> fetch snapshot data
+    // "failed" -> internal "failed"
+    // any other status -> internal "error"
+    if (rawStatus === "running" || rawStatus === "collecting" || rawStatus === "pending") {
+      return { status: "pending" };
+    }
+
+    if (rawStatus === "ready") {
       const dataRes = await fetch(`https://api.brightdata.com/datasets/v3/snapshot/${encodeURIComponent(snapshotId)}?format=json`, {
         headers: { Authorization: `Bearer ${apiKey}` },
       });
@@ -224,11 +233,14 @@ export async function checkBrightDataSnapshot(snapshotId: string): Promise<{
       return { status: "error", error: `SNAPSHOT_FETCH_HTTP_${dataRes.status}` };
     }
 
-    if (currentStatus === "failed") {
+    if (rawStatus === "failed") {
       return { status: "failed", error: "SNAPSHOT_FAILED" };
     }
 
-    return { status: "pending" };
+    return {
+      status: "error",
+      error: `PROVIDER_STATUS_UNEXPECTED: ${rawStatus || "UNKNOWN"}`,
+    };
   } catch (err: any) {
     return { status: "error", error: err.message };
   }

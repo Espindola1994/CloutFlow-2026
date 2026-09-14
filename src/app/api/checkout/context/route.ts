@@ -21,6 +21,7 @@ import {
 } from '@/services/commercial-offer.resolver';
 import { extractGeoFromHeaders } from '@/lib/telemetry/geo';
 import { extractDeviceTelemetry } from '@/lib/telemetry/device';
+import { classifyContentTargetKind } from '@/lib/social/normalize';
 
 const ALLOWED_TARGET_HOSTS: Record<string, string[]> = {
   instagram: ['instagram.com', 'www.instagram.com'],
@@ -61,40 +62,7 @@ function validateSocialUrl(urlStr: string, platform: string): boolean {
 }
 
 
-function getContentKind(urlStr: string, platform: string): "profile" | "post" | "video" | "story" | "invalid" {
-  try {
-    const parsed = new URL(urlStr);
-    const path = parsed.pathname.toLowerCase();
-    const host = parsed.hostname.toLowerCase();
-    const p = platform.toLowerCase();
-
-    if (p === "instagram") {
-      if (path.includes("/stories/") || path.includes("/story/")) return "story";
-      if (path.includes("/reel/") || path.includes("/reels/") || path.includes("/tv/")) return "video";
-      if (path.includes("/p/")) return "post";
-      return "profile";
-    }
-
-    if (p === "tiktok") {
-      if (path.includes("/video/") || host === "vm.tiktok.com" || host === "vt.tiktok.com") return "video";
-      return "profile";
-    }
-
-    if (p === "youtube") {
-      if (path.includes("/watch") || path.includes("/shorts/") || host === "youtu.be") return "video";
-      return "profile";
-    }
-
-    if (p === "twitter") {
-      if (path.includes("/status/") || path.includes("/statuses/")) return "post";
-      return "profile";
-    }
-
-    return "invalid";
-  } catch {
-    return "invalid";
-  }
-}
+const getContentKind = classifyContentTargetKind;
 
 function validateTargetForService(params: {
   platform: string;
