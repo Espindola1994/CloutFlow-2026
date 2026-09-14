@@ -20225,7 +20225,7 @@ html body .cf-offer-header-new .cf-offer-brand-logo{display:block!important;widt
   }
 
   html body .cf-o10-gb-network{
-    height:59px!important;
+    height:50px!important;
     border-radius:11px!important;
     gap:8px!important;
   }
@@ -21069,7 +21069,7 @@ html body .cf-offer-header-new .cf-offer-brand-logo{display:block!important;widt
 
 @media (min-width: 901px) {
   html body .cf-o10-gb-goal-card {
-    height: 55px !important;
+    height: 50px !important;
   }
 }
 
@@ -26820,7 +26820,7 @@ html body .cf-offer-header-clean .cf-offer-progress {
     min-width: 0 !important;
     padding-left: 5px !important;
     padding-right: 5px !important;
-    gap: 5px !important;
+    gap: 8px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
