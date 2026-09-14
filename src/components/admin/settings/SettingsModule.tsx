@@ -625,15 +625,32 @@ export function SettingsModule({ onLogout, onNavigateToTab }: SettingsModuleProp
                       <span>Installed</span>
                     </div>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={handleInstallAdminClick}
-                      data-testid="install-admin-app-btn"
-                      className="w-full min-h-[44px] px-4 py-2.5 rounded-lg text-xs font-semibold text-white bg-[var(--admin-primary)] hover:opacity-90 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span>Install Admin App</span>
-                    </button>
+                    <div className="space-y-2">
+                      <button
+                        type="button"
+                        onClick={handleInstallAdminClick}
+                        data-testid="install-admin-app-btn"
+                        disabled={!isInstallable && !isIos}
+                        className={`w-full min-h-[44px] px-4 py-2.5 rounded-lg text-xs font-semibold text-white transition-all flex items-center justify-center gap-2 shadow-xs ${
+                          isInstallable || isIos
+                            ? "bg-[var(--admin-primary)] hover:opacity-90 active:scale-98 cursor-pointer"
+                            : "bg-[var(--admin-card-hover)] text-[var(--admin-text-muted)] border border-[var(--admin-border)] cursor-not-allowed opacity-75"
+                        }`}
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>
+                          {isInstallable || isIos ? "Install Admin App" : "Install not available yet"}
+                        </span>
+                      </button>
+                      {!isInstallable && !isIos && (
+                        <p
+                          data-testid="admin-pwa-instruction-hint"
+                          className="text-[11px] text-[var(--admin-text-muted)] text-center"
+                        >
+                          Open this page in Chrome to install.
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
 

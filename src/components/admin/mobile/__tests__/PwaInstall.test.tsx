@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, renderHook, act } from "@testing-library/react";
-import { usePwaInstall } from "../usePwaInstall";
+import { render, screen, renderHook, act } from "@testing-library/react";
+import { usePwaInstall, AdminPwaInstallProvider, _resetEarlyPromptForTesting } from "../usePwaInstall";
 import { AdminMobileMoreSheet } from "../AdminMobileMoreSheet";
 
 // Helper for Mock BeforeInstallPromptEvent
@@ -16,10 +16,10 @@ class MockBeforeInstallPromptEvent extends Event {
 
 describe("UI 5.7 — PWA Install & Standalone Experience", () => {
   const originalMatchMedia = window.matchMedia;
-  const originalUserAgent = window.navigator.userAgent;
 
   beforeEach(() => {
     vi.clearAllMocks();
+    _resetEarlyPromptForTesting();
     // Default: not standalone
     window.matchMedia = vi.fn().mockImplementation((query: string) => ({
       matches: false,
@@ -35,6 +35,7 @@ describe("UI 5.7 — PWA Install & Standalone Experience", () => {
 
   afterEach(() => {
     window.matchMedia = originalMatchMedia;
+    _resetEarlyPromptForTesting();
   });
 
   it("1. usePwaInstall initializes with isInstallable=false when no event is fired", () => {
@@ -136,5 +137,53 @@ describe("UI 5.7 — PWA Install & Standalone Experience", () => {
     );
 
     expect(screen.queryByTestId("admin-more-install-app-btn")).toBeNull();
+  });
+
+  it("7. AdminPwaInstallProvider captures beforeinstallprompt early and shares with descendants", async () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <AdminPwaInstallProvider>{children}</AdminPwaInstallProvider>
+    );
+
+    const { result } = renderHook(() => usePwaInstall(), { wrapper });
+    expect(result.current.isInstallable).toBe(false);
+
+    const mockEvent = new MockBeforeInstallPromptEvent();
+    act(() => {
+      window.dispatchEvent(mockEvent);
+    });
+
+    expect(result.current.isInstallable).toBe(true);
+    expect(result.current.isPromptReady).toBe(true);
+
+    let outcome;
+    await act(async () => {
+      outcome = await result.current.promptInstall();
+    });
+
+    expect(mockEvent.prompt).toHaveBeenCalledTimes(1);
+    expect(outcome).toBe("accepted");
+    expect(result.current.isStandalone).toBe(true);
+    expect(result.current.isInstallable).toBe(false);
+  });
+
+  it("8. appinstalled event cleans up prompt and marks app as standalone", () => {
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <AdminPwaInstallProvider>{children}</AdminPwaInstallProvider>
+    );
+
+    const { result } = renderHook(() => usePwaInstall(), { wrapper });
+
+    const mockEvent = new MockBeforeInstallPromptEvent();
+    act(() => {
+      window.dispatchEvent(mockEvent);
+    });
+    expect(result.current.isInstallable).toBe(true);
+
+    act(() => {
+      window.dispatchEvent(new Event("appinstalled"));
+    });
+
+    expect(result.current.isStandalone).toBe(true);
+    expect(result.current.isInstallable).toBe(false);
   });
 });

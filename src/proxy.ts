@@ -10,8 +10,9 @@ export default function proxy(request: NextRequest) {
      return NextResponse.next();
   }
   
-  // Protect all /admin pages (except login)
-  if (path.startsWith('/admin') && !path.startsWith('/admin/login')) {
+  // Protect all /admin pages (except login and safe public PWA assets)
+  const isPwaExempt = path === '/admin/manifest.json' || path.startsWith('/admin/icons/');
+  if (path.startsWith('/admin') && !path.startsWith('/admin/login') && !isPwaExempt) {
     const sessionCookie = request.cookies.get(SESSION_COOKIE_NAME);
     
     if (!sessionCookie?.value || !verifyAdminToken(sessionCookie.value)) {

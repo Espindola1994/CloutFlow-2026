@@ -5,7 +5,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { toast } from "sonner";
 
 import { AdminSidebar, AdminTab } from "./AdminSidebar";
-import { AdminMobileHeader, AdminBottomNavigation, AdminMobileMoreSheet } from "./mobile";
+import { AdminMobileHeader, AdminBottomNavigation, AdminMobileMoreSheet, AdminPwaInstallProvider } from "./mobile";
 import { DashboardOverview } from "./dashboard/DashboardOverview";
 import { AnalyticsModule } from "./analytics/AnalyticsModule";
 import { LiveWorldModule } from "./live-world/LiveWorldModule";
@@ -222,7 +222,9 @@ export function AdminShell() {
         <div className="w-8 h-8 rounded-full border-2 border-[#0F8F8A] border-t-transparent animate-spin" />
       </div>
     }>
-      <AdminShellContent />
+      <AdminPwaInstallProvider>
+        <AdminShellContent />
+      </AdminPwaInstallProvider>
     </Suspense>
   );
 }

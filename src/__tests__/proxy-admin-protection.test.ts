@@ -30,6 +30,20 @@ describe('Admin Proxy & Route Protection with 2FA MFA', () => {
     expect(res.status).toBe(200);
   });
 
+  it('allows access to /admin/manifest.json without redirection when unauthenticated', () => {
+    const req = new NextRequest('http://localhost/admin/manifest.json');
+    const res = proxy(req);
+
+    expect(res.status).toBe(200);
+  });
+
+  it('allows access to /admin/icons/ without redirection when unauthenticated', () => {
+    const req = new NextRequest('http://localhost/admin/icons/icon-192.png');
+    const res = proxy(req);
+
+    expect(res.status).toBe(200);
+  });
+
   it('blocks /api/admin/orders with 401 when no session is present', async () => {
     const req = new NextRequest('http://localhost/api/admin/orders');
     const res = proxy(req);
