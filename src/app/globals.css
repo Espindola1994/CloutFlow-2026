@@ -26776,6 +26776,64 @@ html body .cf-offer-header-clean .cf-offer-progress {
     margin-left: auto !important;
     margin-right: auto !important;
   }
+
+  /* Desktop 500px card fit correction: service & network card distribution */
+  html body .cf-offer-page .cf-o10-profile-panel {
+    box-sizing: border-box !important;
+    padding-left: 18px !important;
+    padding-right: 18px !important;
+  }
+
+  html body .cf-offer-page .cf-o10-gb-section {
+    box-sizing: border-box !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  /* Services: Followers / Likes / Views */
+  html body .cf-offer-page .cf-o10-gb-goals {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  html body .cf-offer-page .cf-o10-gb-goal-card {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+    gap: 7px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  /* Networks: Instagram / TikTok / YouTube / X (Twitter) */
+  html body .cf-offer-page .cf-o10-gb-networks {
+    display: grid !important;
+    grid-template-columns: 1.05fr 0.88fr 0.97fr 1.10fr !important;
+    gap: 5px !important;
+  }
+
+  html body .cf-offer-page .cf-o10-gb-network {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+    gap: 5px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  html body .cf-offer-page .cf-o10-gb-network > span {
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    flex: 0 0 36px !important;
+    display: grid !important;
+    place-items: center !important;
+  }
 }
 
 
