@@ -27661,8 +27661,8 @@ html body .cf-offer-header-clean .cf-offer-progress {
   html body .cf-timer579-hourglass {
     position: relative !important;
     z-index: 4 !important;
-    width: 78px !important;
-    height: 78px !important;
+    width: 65px !important;
+    height: 65px !important;
     display: grid !important;
     place-items: center !important;
     overflow: visible !important;
@@ -27670,8 +27670,8 @@ html body .cf-offer-header-clean .cf-offer-progress {
 
   html body .cf-timer579-hourglass svg {
     display: block !important;
-    width: 78px !important;
-    height: 78px !important;
+    width: 65px !important;
+    height: 65px !important;
     max-width: none !important;
     shape-rendering: geometricPrecision !important;
     text-rendering: geometricPrecision !important;
@@ -27811,13 +27811,13 @@ html body .cf-offer-header-clean .cf-offer-progress {
   }
 
   html body .cf-timer579-hourglass {
-    width: 78px !important;
-    height: 78px !important;
+    width: 65px !important;
+    height: 65px !important;
   }
 
   html body .cf-timer579-hourglass svg {
-    width: 78px !important;
-    height: 78px !important;
+    width: 65px !important;
+    height: 65px !important;
   }
 
   html body .cf-timer578-copy {
