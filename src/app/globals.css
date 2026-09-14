@@ -20287,8 +20287,8 @@ html body .cf-offer-header-new .cf-offer-brand-logo{display:block!important;widt
   }
 
   html body .cf-o10-gb-input svg{
-    width:21px!important;
-    height:21px!important;
+    width:28px!important;
+    height:28px!important;
     color:#8290a8!important;
   }
 
@@ -20327,7 +20327,7 @@ html body .cf-offer-header-new .cf-offer-brand-logo{display:block!important;widt
   }
 
   html body .cf-o10-gb-analyze strong{
-    font-size:13px!important;
+    font-size:14.5px!important;
   }
 }
 
@@ -20375,9 +20375,9 @@ html body .cf-offer-header-new .cf-offer-brand-logo{display:block!important;widt
 
   html body .cf-o10-gb-network > span img{
     display:block!important;
-    width:25px!important;
-    height:25px!important;
-    max-width:25px!important;
+    width:28px!important;
+    height:28px!important;
+    max-width:28px!important;
     object-fit:contain!important;
     opacity:1!important;
     visibility:visible!important;
@@ -21725,9 +21725,9 @@ html body .cf-offer-header-new .cf-offer-brand-logo{display:block!important;widt
 /* V463 DESKTOP — Scan/Search icon approved for Analyze Profile button */
 @media (min-width: 901px) {
   html body .cf-o10-gb-analyze svg {
-    width: 21px !important;
-    height: 21px !important;
-    stroke-width: 2.2 !important;
+    width: 28px !important;
+    height: 28px !important;
+    stroke-width: 2.2px !important;
   }
 }
 
@@ -26827,12 +26827,20 @@ html body .cf-offer-header-clean .cf-offer-progress {
   }
 
   html body .cf-offer-page .cf-o10-gb-network > span {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
-    flex: 0 0 36px !important;
+    width: 30px !important;
+    height: 30px !important;
+    min-width: 30px !important;
+    flex: 0 0 30px !important;
     display: grid !important;
     place-items: center !important;
+  }
+
+  html body .cf-offer-page .cf-o10-last-profile-label {
+    font-size: 12.5px !important;
+  }
+
+  html body .cf-offer-page .cf-o10-last-profile-network {
+    font-size: 12.5px !important;
   }
 }
 
