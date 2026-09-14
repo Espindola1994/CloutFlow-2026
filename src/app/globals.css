@@ -26772,7 +26772,7 @@ html body .cf-offer-header-clean .cf-offer-progress {
   html body .cf-offer-page .cf-o10-page-preview > * {
     box-sizing: border-box !important;
     width: 100% !important;
-    max-width: 650px !important;
+    max-width: 500px !important;
     margin-left: auto !important;
     margin-right: auto !important;
   }
