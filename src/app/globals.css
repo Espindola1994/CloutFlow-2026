@@ -18905,10 +18905,10 @@ html body .cf-offer-header-new .cf-offer-brand-logo{display:block!important;widt
 
 
 /* V409 — Offer profile hero: remove fire and restore clean spacing */
-@media (min-width:701px){
-  html body .cf-o10-profile-hero-row{
-    height:166px!important;
-    align-items:start!important;
+@media (min-width: 701px) {
+  html body .cf-o10-profile-hero-row {
+    align-items: start !important;
+    height: 150px !important;
   }
   html body .cf-o10-profile-hero-row h1{
     margin-top:18px!important;
