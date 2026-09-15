@@ -3,6 +3,7 @@
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Flame } from 'lucide-react';
 
 import { OfferPlatformTheme } from './theme';
 import instagramIcon from '@/assets/home-icons-vector/instagram.svg';
@@ -101,9 +102,9 @@ export function OfferHeader({ timeLeft, isExpiredLocally }: OfferHeaderProps) {
         </div>
 
         <div className="cf-offer-nav-meta">
-          <div className="cf-header-tagline589" aria-label="Grow. Engage. Get Noticed.">
-            <span className="cf-header-tagline589-spark" aria-hidden="true">✦</span>
-            <strong>Grow. Engage. Get Noticed.</strong>
+          <div className="cf-header-tagline589" aria-label="Post. Engage. Grow Faster.">
+            <Flame className="cf-plans-header-flame" aria-hidden="true" />
+            <strong>Post. Engage. Grow Faster.</strong>
           </div>
         </div>
       </div>
