@@ -328,6 +328,14 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     // Click Analyze Profile
     fireEvent.click(screen.getByText('Analyze Profile'));
 
+    // Wait for resolution and confirmation button state
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Yes, This is my profile' })).toBeDefined();
+    }, { timeout: 4000 });
+
+    // Click "Yes, This is my profile" to advance to packages
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, This is my profile' }));
+
     await waitFor(() => {
       expect(screen.getByText('growth package')).toBeDefined();
     }, { timeout: 4000 });
@@ -413,6 +421,14 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     fireEvent.change(input, { target: { value: '@novoperfil' } });
     fireEvent.click(screen.getByRole('button', { name: 'Analyze Profile' }));
 
+    // Wait for resolution and confirmation button state
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Yes, This is my profile' })).toBeDefined();
+    });
+
+    // Click "Yes, This is my profile" to advance to packages
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, This is my profile' }));
+
     await waitFor(() => {
       expect(screen.getByText('growth package')).toBeDefined();
     }, { timeout: 4000 });
@@ -493,6 +509,11 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     // Start B before A resolves. A is then deliberately released late.
     fireEvent.change(screen.getByRole('textbox', { name: 'Profile username or link' }), { target: { value: '@perfilB' } });
     fireEvent.click(screen.getByRole('button', { name: 'Analyze Profile' }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Yes, This is my profile' })).toBeDefined();
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, This is my profile' }));
     await waitFor(() => expect(screen.getByText('growth package')).toBeDefined(), { timeout: 4000 });
 
     const releaseSearchA: any = resolveSearchA;

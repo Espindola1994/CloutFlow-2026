@@ -160,8 +160,14 @@ describe('Offer 11-Combination Service Matrix and Checkout Resolution', () => {
     const analyzeBtn = screen.getByRole('button', { name: /Analyze profile/i });
     fireEvent.click(analyzeBtn);
 
+    // After analysis, click confirmation button "Yes, This is my profile"
     await waitFor(() => {
-      expect(screen.getByText(/Choose your/i)).toBeDefined();
+      expect(screen.getByRole('button', { name: 'Yes, This is my profile' })).toBeDefined();
+    }, { timeout: 4000 });
+    fireEvent.click(screen.getByRole('button', { name: 'Yes, This is my profile' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('growth package')).toBeDefined();
     }, { timeout: 4000 });
 
     // Verify all 6 Instagram Likes plans are displayed with exact quantity and pricing
@@ -313,7 +319,12 @@ describe('Offer 11-Combination Service Matrix and Checkout Resolution', () => {
       fireEvent.click(analyzeBtn);
 
       await waitFor(() => {
-        expect(screen.getByText(/Choose your/i)).toBeDefined();
+        expect(screen.getByRole('button', { name: 'Yes, This is my profile' })).toBeDefined();
+      }, { timeout: 4000 });
+      fireEvent.click(screen.getByRole('button', { name: 'Yes, This is my profile' }));
+
+      await waitFor(() => {
+        expect(screen.getByText('growth package')).toBeDefined();
       }, { timeout: 4000 });
 
       // Find the Starter plan CTA and click to advance to REVIEW step
@@ -345,5 +356,5 @@ describe('Offer 11-Combination Service Matrix and Checkout Resolution', () => {
 
       unmount();
     }
-  });
+  }, 25000);
 });

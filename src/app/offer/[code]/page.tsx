@@ -463,6 +463,7 @@ export default function OfferLandingPage() {
     const cachedProfile = autoResolvedProfileRef.current;
     if (cachedProfile && isMatchingIdentity(username, cachedProfile.username)) {
       checkRestrictionAndSetProfile(cachedProfile, platform, username, targetService);
+      setFlowStep('PACKAGE');
       return;
     }
 
@@ -720,7 +721,20 @@ export default function OfferLandingPage() {
       setSelectedPackageId(match.id);
     }
 
-    setFlowStep('PACKAGE');
+    // If reusing saved previous target, advance directly to PACKAGE
+    const canReuseSaved =
+      Boolean(activePreviousTarget) &&
+      activePreviousTarget?.platform?.toLowerCase() === safePlat.toLowerCase() &&
+      normalizedUsername.toLowerCase() === (activePreviousTarget?.username || '').replace(/^@+/, '').toLowerCase();
+
+    if (canReuseSaved) {
+      setFlowStep('PACKAGE');
+      return;
+    }
+
+    // New/changed target: do NOT automatically advance to PACKAGE.
+    // Keep user in PREFILL awaiting explicit "Yes, This is my profile" confirmation.
+    setFlowStep('PREFILL');
   };
 
   const cancelPolling = () => {
@@ -1071,6 +1085,8 @@ export default function OfferLandingPage() {
           setTargetPlatform={(p) => {
             setTargetPlatform(p);
             setLookupError(null);
+            // Invalidate confirmed/resolved profile if network changed
+            setVerifiedProfile(null);
             const validServices = PLATFORM_SERVICES[p as CommercialPlatform] || ['followers', 'likes', 'views'];
             if (!validServices.includes(targetService as CommercialService)) {
               setTargetService(validServices[0] as ServiceKey);
@@ -1082,6 +1098,8 @@ export default function OfferLandingPage() {
             const safeService = validServices.includes(s as CommercialService) ? s : (validServices[0] as ServiceKey);
             setTargetService(safeService);
             setLookupError(null);
+            // Invalidate confirmed/resolved profile if service changed
+            setVerifiedProfile(null);
           }}
           emailValue={customerEmail}
           setEmailValue={setCustomerEmail}

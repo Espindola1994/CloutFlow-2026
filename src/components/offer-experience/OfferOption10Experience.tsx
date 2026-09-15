@@ -320,7 +320,7 @@ export function OfferOption10Experience(props: Props) {
     if (
       !cfIsAnalyzing ||
       cfAnalyzeSavedFlowRef.current ||
-      (flowStep !== 'PREVIEW' && flowStep !== 'PACKAGE') ||
+      !verifiedProfile ||
       cfAnalyzeCompletedRef.current
     ) {
       return;
@@ -334,7 +334,8 @@ export function OfferOption10Experience(props: Props) {
     let finishingProgress = cfAnalyzeProgress;
 
     cfAnalyzeTimerRef.current = setInterval(() => {
-      finishingProgress = Math.min(100, finishingProgress + 1);
+      const step = finishingProgress < 60 ? 14 : finishingProgress < 88 ? 8 : 4;
+      finishingProgress = Math.min(100, finishingProgress + step);
       setCfAnalyzeProgress(finishingProgress);
 
       if (finishingProgress >= 100 && !cfAnalyzeCompletedRef.current) {
@@ -345,15 +346,12 @@ export function OfferOption10Experience(props: Props) {
           cfAnalyzeTimerRef.current = null;
         }
 
-        // 100% must be visible before the parent is allowed to switch to Step 2.
+        // 100% must be visible briefly, then stop analyzing and await explicit confirmation via "Yes, This is my profile".
         window.setTimeout(() => {
           setCfIsAnalyzing(false);
-          if (flowStep === 'PREVIEW') {
-            onConfirmFound();
-          }
-        }, 420);
+        }, 150);
       }
-    }, 55);
+    }, 25);
 
     return () => {
       if (cfAnalyzeTimerRef.current && cfAnalyzeCompletedRef.current) {
@@ -361,7 +359,7 @@ export function OfferOption10Experience(props: Props) {
         cfAnalyzeTimerRef.current = null;
       }
     };
-  }, [cfIsAnalyzing, flowStep, cfAnalyzeProgress, onConfirmFound]);
+  }, [cfIsAnalyzing, verifiedProfile, cfAnalyzeProgress]);
 
   const username = (identity.username || 'cloutflow.preview').replace(/^@+/, '');
   const avatar = avatarFrom(verifiedProfile, liveAvatarUrl || previousTarget?.avatarUrl || null);
@@ -607,31 +605,32 @@ export function OfferOption10Experience(props: Props) {
                     </div>
                   )}
 
-                  {verifiedProfile && (
+                  {verifiedProfile && !cfIsAnalyzing && (
                     <div
                       style={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 10,
+                        gap: 12,
                         marginBottom: 12,
-                        padding: '8px 12px',
-                        minHeight: 48,
-                        border: '1px solid #cce8d7',
-                        borderRadius: 10,
-                        background: '#f6fbf8'
+                        padding: '10px 14px',
+                        minHeight: 52,
+                        border: '1.5px solid #d0f0de',
+                        borderRadius: 12,
+                        background: '#f4fbf7'
                       }}
                     >
                       <div
                         style={{
                           position: 'relative',
-                          width: 36,
-                          height: 36,
-                          minWidth: 36,
+                          width: 38,
+                          height: 38,
+                          minWidth: 38,
                           borderRadius: '50%',
                           overflow: 'hidden',
-                          background: '#e8f0ec',
+                          background: '#e2f0e8',
                           display: 'grid',
-                          placeItems: 'center'
+                          placeItems: 'center',
+                          border: '1.5px solid #a3e3c0'
                         }}
                       >
                         {avatar ? (
@@ -641,17 +640,34 @@ export function OfferOption10Experience(props: Props) {
                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                           />
                         ) : (
-                          <UserRound size={18} />
+                          <UserRound size={20} color="#0b9467" />
                         )}
                       </div>
-                      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                        <strong style={{ color: '#111a2e', fontSize: 13, lineHeight: 1.2 }}>
+                      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <strong style={{ color: '#111a2e', fontSize: 13.5, lineHeight: 1.2, fontWeight: 750 }}>
                           @{username}
                         </strong>
+                        <span style={{ color: '#55657e', fontSize: 12, lineHeight: 1.1, fontWeight: 600 }}>
+                          {targetService === 'followers' ? 'Followers' : targetService === 'likes' ? 'Likes' : 'Views'}
+                        </span>
                       </div>
-                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, color: '#07875e', fontSize: 11, fontWeight: 700 }}>
-                        <BadgeCheck size={16} />
-                        <span>Confirmed</span>
+                      <div
+                        style={{
+                          marginLeft: 'auto',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 6,
+                          color: '#07875e',
+                          fontSize: 12,
+                          fontWeight: 700
+                        }}
+                      >
+                        <Image
+                          src={NETWORKS.find((n) => n.key === targetPlatform)?.icon || instagramIcon}
+                          alt=""
+                          width={20}
+                          height={20}
+                        />
                       </div>
                     </div>
                   )}
@@ -720,26 +736,41 @@ export function OfferOption10Experience(props: Props) {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    className={`cf-o10-gb-analyze ${cfIsAnalyzing ? 'is-analyzing' : ''}`}
-                    onClick={cfRunAnalyzeProfile}
-                    aria-label="Analyze Profile"
-                  >
-                    {cfIsAnalyzing && (
-                      <span
-                        className="cf-o10-analyze-button-progress"
-                        style={{ width: `${cfAnalyzeProgress}%` }}
-                        aria-hidden="true"
-                      />
-                    )}
-                    <span className="cf-o10-analyze-button-content">
-                      <ScanSearch />
-                      <strong>
-                        {cfIsAnalyzing ? `Analyzing Profile... ${cfAnalyzeProgress}%` : 'Analyze Profile'}
-                      </strong>
-                    </span>
-                  </button>
+                  {(() => {
+                    const isConfirmedReady = !cfIsAnalyzing && Boolean(verifiedProfile);
+                    return (
+                      <button
+                        type="button"
+                        className={`cf-o10-gb-analyze ${cfIsAnalyzing ? 'is-analyzing' : ''} ${isConfirmedReady ? 'is-confirmed' : ''}`}
+                        onClick={() => {
+                          if (isConfirmedReady) {
+                            onConfirmFound();
+                          } else {
+                            cfRunAnalyzeProfile();
+                          }
+                        }}
+                        aria-label={isConfirmedReady ? 'Yes, This is my profile' : 'Analyze Profile'}
+                      >
+                        {cfIsAnalyzing && (
+                          <span
+                            className="cf-o10-analyze-button-progress"
+                            style={{ width: `${cfAnalyzeProgress}%` }}
+                            aria-hidden="true"
+                          />
+                        )}
+                        <span className="cf-o10-analyze-button-content">
+                          {isConfirmedReady ? <Check /> : <ScanSearch />}
+                          <strong>
+                            {cfIsAnalyzing
+                              ? `Analyzing Profile... ${cfAnalyzeProgress}%`
+                              : isConfirmedReady
+                                ? 'Yes, This is my profile'
+                                : 'Analyze Profile'}
+                          </strong>
+                        </span>
+                      </button>
+                    );
+                  })()}
                   {lookupError && <div className="cf-o10-error" style={{ marginTop: 10 }}>{lookupError}</div>}
                 </section>
               </div>
