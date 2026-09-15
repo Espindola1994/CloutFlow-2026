@@ -159,20 +159,39 @@ export async function GET(
       return [];
     });
 
-    // Resolve unified packages for Step 3 surface
-    // Determine platform & service context from previousTarget if available, or resolve all canonical platforms
-    const targetPlatform = previousTarget?.platform || 'instagram';
-    const targetService = previousTarget?.service || 'followers';
+    // Resolve packages for Step 3 surface across all supported platforms & services
+    const { searchParams } = new URL(request.url);
+    const queryPlatform = searchParams.get('platform');
+    const queryService = searchParams.get('service');
 
-    const resolvedStep3Cards = resolveCommercialCardsForService(
-      targetPlatform,
-      targetService,
-      activeOffers,
-      'offer_step3'
-    );
+    let allResolvedCards: ReturnType<typeof resolveCommercialCardsForService>;
+
+    if (queryPlatform && queryService) {
+      allResolvedCards = resolveCommercialCardsForService(
+        queryPlatform,
+        queryService,
+        activeOffers,
+        'offer_step3'
+      );
+    } else {
+      const allPlatforms = ['instagram', 'tiktok', 'twitter', 'youtube'] as const;
+      const platformServices: Record<string, string[]> = {
+        instagram: ['followers', 'likes', 'views'],
+        tiktok: ['followers', 'likes', 'views'],
+        twitter: ['followers', 'likes', 'views'],
+        youtube: ['likes', 'views'],
+      };
+
+      allResolvedCards = allPlatforms.flatMap((plat) => {
+        const services = platformServices[plat] || [];
+        return services.flatMap((serv) =>
+          resolveCommercialCardsForService(plat, serv, activeOffers, 'offer_step3')
+        );
+      });
+    }
 
     // Sanitize packages: strip sensitive backend fields, keep only public display & selection data
-    const sanitizedPackages = resolvedStep3Cards.map((rc, idx) => ({
+    const sanitizedPackages = allResolvedCards.map((rc, idx) => ({
       id: rc.id || `step3-${rc.platform}-${rc.service}-${rc.plan}`,
       platform: rc.platform,
       service: rc.service,
@@ -181,9 +200,10 @@ export async function GET(
       quantity: rc.quantity,
       bonusQuantity: rc.bonusQuantity,
       priceCents: rc.priceCents,
+      oldPriceCents: rc.compareAtPriceCents,
       currency: 'USD',
       badge: rc.badge,
-      isPopular: idx === 3 || idx === 5,
+      isPopular: rc.plan === 'pro' || rc.plan === 'max',
     }));
 
     // 5. Build Safe Public Response (NO PII, NO DB IDs, NO INTERNAL KEYS)

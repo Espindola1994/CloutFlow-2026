@@ -35,7 +35,7 @@ describe('Public Offer Landing API (/api/offers/[code])', () => {
     metadata: { isPopular: true },
   };
 
-  it('A. Valid active CF25 offer returns 200 with FLOW25 coupon and sanitized packages', async () => {
+  it('A. Valid active CF25 offer returns 200 with FLOW25 coupon and sanitized packages across all 11 network/service combinations', async () => {
     const activeCustomerOffer = {
       id: 'cust-off-1',
       customerEmail: 'customer@example.com',
@@ -61,8 +61,27 @@ describe('Public Offer Landing API (/api/offers/[code])', () => {
     expect(json.data.couponCode).toBe('FLOW25');
     expect(json.data.discountPercent).toBe(25);
     expect(json.data.status).toBe('ACTIVE');
-    expect(json.data.packages).toHaveLength(6);
+    // Exactly 66 canonical plans across all 11 valid network/service combinations:
+    // Instagram (18), TikTok (18), Twitter/X (18), YouTube (12: Likes and Views only)
+    expect(json.data.packages).toHaveLength(66);
     expect(json.data.packages[0].name).toBe('Starter');
+
+    // Verify YouTube does not include followers
+    const ytFollowers = json.data.packages.filter(
+      (p: any) => p.platform === 'youtube' && p.service === 'followers'
+    );
+    expect(ytFollowers).toHaveLength(0);
+
+    // Verify each network has the correct number of packages
+    const igPackages = json.data.packages.filter((p: any) => p.platform === 'instagram');
+    const ttPackages = json.data.packages.filter((p: any) => p.platform === 'tiktok');
+    const xPackages = json.data.packages.filter((p: any) => p.platform === 'twitter');
+    const ytPackages = json.data.packages.filter((p: any) => p.platform === 'youtube');
+
+    expect(igPackages).toHaveLength(18);
+    expect(ttPackages).toHaveLength(18);
+    expect(xPackages).toHaveLength(18);
+    expect(ytPackages).toHaveLength(12);
 
     // Sensitive fields MUST NOT be exposed
     expect(json.data.packages[0].externalCheckoutUrl).toBeUndefined();

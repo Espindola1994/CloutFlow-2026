@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { OFFER_PLATFORM_THEMES, OfferPlatformTheme } from '@/components/offer-experience/theme';
-import { PLATFORM_SERVICES, CommercialPlatform, CommercialService } from '@/services/commercial-offer.resolver';
+import { PLATFORM_SERVICES, CommercialPlatform, CommercialService, resolveCommercialCardsForService } from '@/services/commercial-offer.resolver';
 import { OfferHeader } from '@/components/offer-experience/OfferHeader';
 import { OfferWelcomeStage } from '@/components/offer-experience/OfferWelcomeStage';
 import { OfferLookupStage } from '@/components/offer-experience/OfferLookupStage';
@@ -58,86 +58,26 @@ const LOCAL_PREVIEW_PROFILE = {
   maskedEmail: 'lo*****@gmail.com',
 };
 
-const LOCAL_PREVIEW_PACKAGES: SanitizedPackage[] = [
-  {
-    id: 'preview-instagram-followers-1000',
-    platform: 'instagram',
-    service: 'followers',
-    name: '1,000 Followers',
-    slug: 'preview-instagram-followers-1000',
-    quantity: 1000,
-    bonusQuantity: 0,
-    priceCents: 1999,
-    currency: 'USD',
-    badge: null,
-    isPopular: false,
-  },
-  {
-    id: 'preview-instagram-followers-2000',
-    platform: 'instagram',
-    service: 'followers',
-    name: '2,000 Followers',
-    slug: 'preview-instagram-followers-2000',
-    quantity: 2000,
-    bonusQuantity: 200,
-    priceCents: 2999,
-    currency: 'USD',
-    badge: 'BEST VALUE',
-    isPopular: true,
-  },
-  {
-    id: 'preview-instagram-followers-5000',
-    platform: 'instagram',
-    service: 'followers',
-    name: '5,000 Followers',
-    slug: 'preview-instagram-followers-5000',
-    quantity: 5000,
-    bonusQuantity: 500,
-    priceCents: 4999,
-    currency: 'USD',
-    badge: null,
-    isPopular: false,
-  },
-  {
-    id: 'preview-instagram-followers-10000',
-    platform: 'instagram',
-    service: 'followers',
-    name: '10,000 Followers',
-    slug: 'preview-instagram-followers-10000',
-    quantity: 10000,
-    bonusQuantity: 1000,
-    priceCents: 7999,
-    currency: 'USD',
-    badge: null,
-    isPopular: false,
-  },
-  {
-    id: 'preview-instagram-followers-20000',
-    platform: 'instagram',
-    service: 'followers',
-    name: '20,000 Followers',
-    slug: 'preview-instagram-followers-20000',
-    quantity: 20000,
-    bonusQuantity: 2000,
-    priceCents: 12999,
-    currency: 'USD',
-    badge: null,
-    isPopular: false,
-  },
-  {
-    id: 'preview-instagram-followers-50000',
-    platform: 'instagram',
-    service: 'followers',
-    name: '50,000 Followers',
-    slug: 'preview-instagram-followers-50000',
-    quantity: 50000,
-    bonusQuantity: 5000,
-    priceCents: 24999,
-    currency: 'USD',
-    badge: null,
-    isPopular: false,
-  },
-];
+const LOCAL_PREVIEW_PACKAGES: SanitizedPackage[] = (['instagram', 'tiktok', 'twitter', 'youtube'] as CommercialPlatform[]).flatMap((plat) => {
+  const services = PLATFORM_SERVICES[plat];
+  return services.flatMap((serv) => {
+    const cards = resolveCommercialCardsForService(plat, serv, [], 'offer_step3');
+    return cards.map((rc) => ({
+      id: rc.id || `step3-${rc.platform}-${rc.service}-${rc.plan}`,
+      platform: rc.platform,
+      service: rc.service,
+      name: rc.planDisplayName,
+      slug: `${rc.platform}-${rc.service}-${rc.plan}`,
+      quantity: rc.quantity,
+      bonusQuantity: rc.bonusQuantity,
+      priceCents: rc.priceCents,
+      oldPriceCents: rc.compareAtPriceCents,
+      currency: 'USD',
+      badge: rc.badge,
+      isPopular: rc.plan === 'pro' || rc.plan === 'max',
+    }));
+  });
+});
 
 function isLocalOfferPreview(): boolean {
   if (process.env.NODE_ENV === 'production') return false;
@@ -747,17 +687,26 @@ export default function OfferLandingPage() {
     const exact = offerData.packages.filter(
       (p) =>
         p.platform.toLowerCase() === safePlat.toLowerCase() &&
-        String(p.service || '').toLowerCase() === s
+        String(p.service || '').toLowerCase() === s.toLowerCase()
     );
 
     const eligible =
       exact.length > 0
         ? exact
-        : offerData.packages.filter(
-            (p) =>
-              p.platform.toLowerCase() === 'instagram' &&
-              String(p.service || '').toLowerCase() === s
-          );
+        : resolveCommercialCardsForService(safePlat, s, [], 'offer_step3').map((rc) => ({
+            id: rc.id || `step3-${rc.platform}-${rc.service}-${rc.plan}`,
+            platform: rc.platform,
+            service: rc.service,
+            name: rc.planDisplayName,
+            slug: `${rc.platform}-${rc.service}-${rc.plan}`,
+            quantity: rc.quantity,
+            bonusQuantity: rc.bonusQuantity,
+            priceCents: rc.priceCents,
+            oldPriceCents: rc.compareAtPriceCents,
+            currency: 'USD',
+            badge: rc.badge,
+            isPopular: rc.plan === 'pro' || rc.plan === 'max',
+          }));
 
     const match =
       eligible.find((p) => p.id === selectedPackageId) ||
@@ -792,17 +741,26 @@ export default function OfferLandingPage() {
     const exact = offerData.packages.filter(
       (p) =>
         p.platform.toLowerCase() === targetPlatform.toLowerCase() &&
-        String(p.service || '').toLowerCase() === targetService
+        String(p.service || '').toLowerCase() === targetService.toLowerCase()
     );
 
     const eligible =
       exact.length > 0
         ? exact
-        : offerData.packages.filter(
-            (p) =>
-              p.platform.toLowerCase() === 'instagram' &&
-              String(p.service || '').toLowerCase() === targetService
-          );
+        : resolveCommercialCardsForService(targetPlatform, targetService, [], 'offer_step3').map((rc) => ({
+            id: rc.id || `step3-${rc.platform}-${rc.service}-${rc.plan}`,
+            platform: rc.platform,
+            service: rc.service,
+            name: rc.planDisplayName,
+            slug: `${rc.platform}-${rc.service}-${rc.plan}`,
+            quantity: rc.quantity,
+            bonusQuantity: rc.bonusQuantity,
+            priceCents: rc.priceCents,
+            oldPriceCents: rc.compareAtPriceCents,
+            currency: 'USD',
+            badge: rc.badge,
+            isPopular: rc.plan === 'pro' || rc.plan === 'max',
+          }));
 
     const match =
       eligible.find((p) => p.id === selectedPackageId) ||
@@ -841,17 +799,21 @@ export default function OfferLandingPage() {
       }
     } catch {}
 
+    const isContent = targetService === 'likes' || targetService === 'views';
     const normalizedUsername = (verifiedProfile.username || '').replace(/^@+/, '').trim();
-    const targetType = 'profile';
+    const canonicalProfileUrl = buildCanonicalProfileUrl(targetPlatform, normalizedUsername);
+    const resolvedTargetUrl = verifiedProfile.resolvedTargetUrl || (isContent ? (lookupInput.trim() || verifiedProfile.profile_url) : canonicalProfileUrl);
+    const resolvedTargetType = verifiedProfile.resolvedTargetType || (isContent ? (targetPlatform === 'youtube' || targetPlatform === 'tiktok' || (targetPlatform === 'twitter' && targetService === 'views') || (targetPlatform === 'instagram' && targetService === 'views') ? 'video' : 'post') : (targetPlatform === 'youtube' ? 'channel' : 'profile'));
+    const resolvedTargetValue = verifiedProfile.resolvedTargetValue || (isContent ? (lookupInput.trim() || normalizedUsername) : normalizedUsername);
 
     try {
       const payload = {
         offerId,
-        targetType,
-        targetValue: normalizedUsername,
-        targetUrl: verifiedProfile.profile_url || null,
-        socialUsername: normalizedUsername,
-        profileUrl: verifiedProfile.profile_url || null,
+        targetType: resolvedTargetType,
+        targetValue: resolvedTargetValue,
+        targetUrl: resolvedTargetUrl || null,
+        socialUsername: normalizedUsername || (isContent ? 'content_order' : null),
+        profileUrl: verifiedProfile.profile_url || canonicalProfileUrl || null,
         email: customerEmail.trim() || null,
         offerCode: offerData.code,
       };
@@ -877,10 +839,8 @@ export default function OfferLandingPage() {
 
   const currentTheme: OfferPlatformTheme = OFFER_PLATFORM_THEMES[targetPlatform] || OFFER_PLATFORM_THEMES.instagram;
 
-  // Step 2 always uses the same six Instagram card/package templates.
-  // If the API does not return platform-specific packages for TikTok/X/YouTube,
-  // reuse the Instagram follower packages as visual/package templates so the
-  // grid never disappears when switching networks.
+  // Canonical resolution of plans for the selected platform + service.
+  // Reuses the real plans from the offer payload, with fallback to the central commercial resolver.
   const getPackagesForPlatform = (
     platform: PlatformKey,
     service: ServiceKey
@@ -889,23 +849,26 @@ export default function OfferLandingPage() {
 
     const exact = offerData.packages.filter(
       (p) =>
-        p.platform.toLowerCase() === platform &&
-        String(p.service || '').toLowerCase() === service
+        p.platform.toLowerCase() === platform.toLowerCase() &&
+        String(p.service || '').toLowerCase() === service.toLowerCase()
     );
 
     if (exact.length > 0) return exact;
 
-    const instagramTemplates = offerData.packages.filter(
-      (p) =>
-        p.platform.toLowerCase() === 'instagram' &&
-        String(p.service || '').toLowerCase() === service
-    );
-
-    // Preserve the real package IDs so the existing selection/checkout flow
-    // remains wired exactly as before; only the visual network theme changes.
-    return instagramTemplates.map((p) => ({
-      ...p,
-      platform,
+    const fallbackCards = resolveCommercialCardsForService(platform, service, [], 'offer_step3');
+    return fallbackCards.map((rc) => ({
+      id: rc.id || `step3-${rc.platform}-${rc.service}-${rc.plan}`,
+      platform: rc.platform,
+      service: rc.service,
+      name: rc.planDisplayName,
+      slug: `${rc.platform}-${rc.service}-${rc.plan}`,
+      quantity: rc.quantity,
+      bonusQuantity: rc.bonusQuantity,
+      priceCents: rc.priceCents,
+      oldPriceCents: rc.compareAtPriceCents,
+      currency: 'USD',
+      badge: rc.badge,
+      isPopular: rc.plan === 'pro' || rc.plan === 'max',
     }));
   };
 
@@ -1153,7 +1116,7 @@ export default function OfferLandingPage() {
             setUseSavedTarget(true);
             setFlowStep('PREFILL');
           }}
-          onSelectPackage={(pkgId) => { setSelectedPackageId(pkgId); setFlowStep('PACKAGE'); }}
+          onSelectPackage={(pkgId) => { setSelectedPackageId(pkgId); setFlowStep('REVIEW'); }}
           onChangeProfile={() => {
             pollingRef.current.active = false;
             searchGenerationRef.current += 1;

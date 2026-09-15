@@ -115,6 +115,10 @@ export function OfferOption10Experience(props: Props) {
   const cfAnalyzeSavedFlowRef = useRef(false);
   const cfAnalyzeCompletedRef = useRef(false);
 
+  useEffect(() => {
+    setCfGoalSelection(props.targetService);
+  }, [props.targetService]);
+
   const cfSaveFlow25Coupon = () => {
     try {
       localStorage.setItem("cloutflow_coupon", "FLOW25");
@@ -878,7 +882,7 @@ export function OfferOption10Experience(props: Props) {
                   </ul>
 
                   <div className="cf-o10-package-assurance">
-                    <div><ShieldCheck /><span>100% real followers</span></div>
+                    <div><ShieldCheck /><span>100% real {pkg.service}</span></div>
                     <div><RefreshCw /><span>Refill guaranteed</span></div>
                   </div>
 
@@ -921,7 +925,7 @@ export function OfferOption10Experience(props: Props) {
                 <div>
                   <small>02</small>
                   <strong>Package</strong>
-                  <em>{selectedPkg?.name || '2,000 Followers'}</em>
+                  <em>{selectedPkg ? `${selectedPkg.quantity.toLocaleString('en-US')} ${selectedPkg.service.charAt(0).toUpperCase() + selectedPkg.service.slice(1)}` : 'Growth Package'}</em>
                 </div>
               </div>
               <span className="cf-checkout3-line" />
