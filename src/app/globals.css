@@ -5891,7 +5891,7 @@ body:has(.cf-fixed-plans-page) {
   .cf-plans-v1::after { top: 61px !important; }
   .cf-plans-logo { font-size: 28px !important; }
   .cf-plans-logo svg { width: 15px !important; height: 15px !important; }
-  .cf-plans-shell { padding-top: 16px !important; padding-bottom: 22px !important; }
+  .cf-plans-shell { padding-top: 1px !important; padding-bottom: 22px !important; }
 
   .cf-plans-trusted-pill {
     max-width: 600px !important;
