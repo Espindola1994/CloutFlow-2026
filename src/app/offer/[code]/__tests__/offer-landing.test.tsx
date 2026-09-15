@@ -168,6 +168,177 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();
   });
 
+  it('Directly opens package cards on successful analysis without Validating Offer or Profile found intermediate screens', async () => {
+    global.fetch = vi.fn().mockImplementation((url: string, options?: any) => {
+      if (url.includes('/api/offers/')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockActiveOfferResponse,
+        } as any);
+      }
+      if (url.includes('/api/search/resolve')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            resolvedType: 'profile',
+            data: mockResolvedInstagramProfile,
+          }),
+        } as any);
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    render(<OfferLandingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Analyze Profile')).toBeDefined();
+    });
+
+    fireEvent.click(screen.getByText('Analyze Profile'));
+
+    // Wait for auto-advancement to PACKAGE step (packages grid)
+    await waitFor(() => {
+      expect(screen.getByText('Choose your')).toBeDefined();
+      expect(screen.getByText('growth package')).toBeDefined();
+    }, { timeout: 4000 });
+
+    // Ensure neither "Validating Offer" nor "Profile found!" nor "Continue to packages" appeared
+    expect(screen.queryByText('Validating Offer')).toBeNull();
+    expect(screen.queryByText('Retrieving your verified 25% repeat purchase discount...')).toBeNull();
+    expect(screen.queryByText('Profile found!')).toBeNull();
+    expect(screen.queryByText('Continue to packages')).toBeNull();
+  });
+
+  it('Error on search resolution prevents advancement to package cards', async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/api/offers/')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockActiveOfferResponse,
+        } as any);
+      }
+      if (url.includes('/api/search/resolve')) {
+        return Promise.resolve({
+          ok: false,
+          status: 404,
+          json: async () => ({
+            success: false,
+            message: "We couldn't find this profile. Check the @ or link and try again.",
+          }),
+        } as any);
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    render(<OfferLandingPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('@guilhermeterraaa')).toBeDefined();
+    });
+
+    // Switch to another platform so canReuseSavedProfile is false and it executes onSearch
+    fireEvent.click(screen.getByText('TikTok'));
+
+    // Click Analyze Profile
+    fireEvent.click(screen.getByText('Analyze Profile'));
+
+    // Wait for error message
+    await waitFor(() => {
+      expect(screen.getByText("We couldn't find this profile. Check the @ or link and try again.")).toBeDefined();
+    });
+
+    // Ensure it did NOT advance to PACKAGE
+    expect(screen.queryByText('growth package')).toBeNull();
+    expect(screen.queryByText('Continue to packages')).toBeNull();
+  });
+
+  it('Matrix: Instagram Followers, Likes, Views - Analyze Profile navigates directly to matching plans', async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/api/offers/')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockActiveOfferResponse,
+        } as any);
+      }
+      if (url.includes('/api/search/resolve')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            resolvedType: 'profile',
+            data: mockResolvedInstagramProfile,
+          }),
+        } as any);
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    const { unmount } = render(<OfferLandingPage />);
+    await waitFor(() => expect(screen.getByText('Analyze Profile')).toBeDefined());
+
+    // Select goal likes
+    const goalBtn = screen.getByRole('button', { name: /Likes/i });
+    fireEvent.click(goalBtn);
+
+    // Click Analyze Profile
+    fireEvent.click(screen.getByText('Analyze Profile'));
+
+    await waitFor(() => {
+      expect(screen.getByText('growth package')).toBeDefined();
+    }, { timeout: 4000 });
+
+    // Verify no intermediate screens
+    expect(screen.queryByText('Validating Offer')).toBeNull();
+    expect(screen.queryByText('Profile found!')).toBeNull();
+    expect(screen.queryByText('Continue to packages')).toBeNull();
+
+    unmount();
+  }, 10000);
+
+  it('Matrix: TikTok, YouTube, Twitter/X - Analyze Profile navigates directly to matching plans', async () => {
+    global.fetch = vi.fn().mockImplementation((url: string) => {
+      if (url.includes('/api/offers/')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => mockActiveOfferResponse,
+        } as any);
+      }
+      if (url.includes('/api/search/resolve')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            resolvedType: 'profile',
+            data: { platform: 'tiktok', username: 'tiktokuser', avatar_url: null, is_private: false },
+          }),
+        } as any);
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    const { unmount } = render(<OfferLandingPage />);
+    await waitFor(() => expect(screen.getByText('Analyze Profile')).toBeDefined());
+
+    // Select TikTok network button
+    const netBtn = screen.getByRole('button', { name: /TikTok/i });
+    fireEvent.click(netBtn);
+
+    // Click Analyze Profile
+    fireEvent.click(screen.getByText('Analyze Profile'));
+
+    await waitFor(() => {
+      expect(screen.getByText('growth package')).toBeDefined();
+    }, { timeout: 4000 });
+
+    // Verify no intermediate screens
+    expect(screen.queryByText('Validating Offer')).toBeNull();
+    expect(screen.queryByText('Profile found!')).toBeNull();
+    expect(screen.queryByText('Continue to packages')).toBeNull();
+
+    unmount();
+  }, 10000);
+
   it('C. "Change profile" / "Back to saved profile" allows interacting with profile selection', async () => {
     global.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes('/api/offers/')) {

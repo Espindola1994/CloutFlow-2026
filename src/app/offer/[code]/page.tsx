@@ -494,7 +494,8 @@ export default function OfferLandingPage() {
       });
       setTargetPlatform(previewPlatform);
       setIsProfileRestricted(false);
-      startValidationTransitionToPackages();
+      setSelectedPackageId(LOCAL_PREVIEW_PACKAGES[1].id);
+      setFlowStep('PACKAGE');
       return;
     }
 
@@ -523,7 +524,8 @@ export default function OfferLandingPage() {
         });
         setTargetPlatform((['instagram', 'tiktok', 'twitter', 'youtube'].includes(platform.toLowerCase()) ? platform.toLowerCase() : 'instagram') as PlatformKey);
         setIsProfileRestricted(false);
-        setFlowStep('PREVIEW');
+        setSelectedPackageId(LOCAL_PREVIEW_PACKAGES[1].id);
+        setFlowStep('PACKAGE');
       }, 650);
       return;
     }
@@ -607,7 +609,43 @@ export default function OfferLandingPage() {
     setVerifiedProfile(profileWithEmail);
     const safePlat = (['instagram', 'tiktok', 'twitter', 'youtube'].includes(platform.toLowerCase()) ? platform.toLowerCase() : 'instagram') as PlatformKey;
     setTargetPlatform(safePlat);
-    setFlowStep('PREVIEW');
+
+    if (restricted) {
+      setLookupError('This profile is private or restricted. Please choose a public profile to continue.');
+      setFlowStep('LOOKUP');
+      return;
+    }
+
+    if (!offerData) {
+      setFlowStep('PACKAGE');
+      return;
+    }
+
+    const exact = offerData.packages.filter(
+      (p) =>
+        p.platform.toLowerCase() === safePlat.toLowerCase() &&
+        String(p.service || '').toLowerCase() === targetService
+    );
+
+    const eligible =
+      exact.length > 0
+        ? exact
+        : offerData.packages.filter(
+            (p) =>
+              p.platform.toLowerCase() === 'instagram' &&
+              String(p.service || '').toLowerCase() === targetService
+          );
+
+    const match =
+      eligible.find((p) => p.id === selectedPackageId) ||
+      eligible.find((p) => p.isPopular) ||
+      eligible[0];
+
+    if (match) {
+      setSelectedPackageId(match.id);
+    }
+
+    setFlowStep('PACKAGE');
   };
 
   const cancelPolling = () => {
@@ -652,7 +690,7 @@ export default function OfferLandingPage() {
       setSelectedPackageId(match.id);
     }
 
-    startValidationTransitionToPackages();
+    setFlowStep('PACKAGE');
   };
 
   const executeCheckout = async (offerId: string) => {

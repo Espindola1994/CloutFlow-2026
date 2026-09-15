@@ -298,10 +298,22 @@ export function OfferOption10Experience(props: Props) {
   const identity = verifiedProfile || previousTarget || {};
 
   useEffect(() => {
+    if (lookupError && cfIsAnalyzing) {
+      if (cfAnalyzeTimerRef.current) {
+        clearInterval(cfAnalyzeTimerRef.current);
+        cfAnalyzeTimerRef.current = null;
+      }
+      setCfIsAnalyzing(false);
+      setCfAnalyzeProgress(0);
+      cfAnalyzeCompletedRef.current = false;
+    }
+  }, [lookupError, cfIsAnalyzing]);
+
+  useEffect(() => {
     if (
       !cfIsAnalyzing ||
       cfAnalyzeSavedFlowRef.current ||
-      flowStep !== 'PREVIEW' ||
+      (flowStep !== 'PREVIEW' && flowStep !== 'PACKAGE') ||
       cfAnalyzeCompletedRef.current
     ) {
       return;
@@ -329,7 +341,9 @@ export function OfferOption10Experience(props: Props) {
         // 100% must be visible before the parent is allowed to switch to Step 2.
         window.setTimeout(() => {
           setCfIsAnalyzing(false);
-          onConfirmFound();
+          if (flowStep === 'PREVIEW') {
+            onConfirmFound();
+          }
         }, 420);
       }
     }, 55);
@@ -632,6 +646,7 @@ export function OfferOption10Experience(props: Props) {
                       </strong>
                     </span>
                   </button>
+                  {lookupError && <div className="cf-o10-error" style={{ marginTop: 10 }}>{lookupError}</div>}
                 </section>
               </div>
             </>
