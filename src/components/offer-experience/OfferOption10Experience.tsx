@@ -364,6 +364,24 @@ export function OfferOption10Experience(props: Props) {
   const profileReady = Boolean(verifiedProfile);
   const profileMode = !cfIsAnalyzing && (flowStep === 'LOOKUP' || flowStep === 'LOADING' || flowStep === 'PREVIEW');
 
+  const getInputPlaceholder = () => {
+    if (targetService === 'followers') {
+      if (targetPlatform === 'youtube') return '@username or channel link...';
+      return '@username or profile link...';
+    }
+    switch (targetPlatform) {
+      case 'tiktok':
+        return 'https://www.tiktok.com/@username/video/...';
+      case 'twitter':
+        return 'https://x.com/username/status/...';
+      case 'youtube':
+        return 'https://www.youtube.com/watch?v=...';
+      case 'instagram':
+      default:
+        return 'https://www.instagram.com/p/... or /reel/...';
+    }
+  };
+
   return (
     <section className={`cf-o10-master cf-o10-platform-${targetPlatform}`} data-stage={flowStep.toLowerCase()} data-platform={targetPlatform}>
       <div className={`cf-o10-columns cf-o10-page-${flowStep.toLowerCase()}`}>
@@ -593,11 +611,7 @@ export function OfferOption10Experience(props: Props) {
                         type="button"
                         className="cf-o10-gb-unlink"
                         onClick={() => {
-                          setEmailValue('');
-                          window.setTimeout(() => {
-                            const input = document.getElementById('cf-o10-repurchase-email') as HTMLInputElement | null;
-                            input?.focus();
-                          }, 0);
+                          onChooseAnother();
                         }}
                       >
                         <span>×</span>
@@ -695,7 +709,7 @@ export function OfferOption10Experience(props: Props) {
                       </button>
                     ))}
                   </div>
-                  <div className="cf-o10-search-input"><Search /><input data-clarity-mask="true" className="clarity-mask" value={lookupInput} disabled={flowStep === 'LOADING'} onChange={(e) => setLookupInput(e.target.value)} placeholder="@username or profile link" onKeyDown={(e) => e.key === 'Enter' && flowStep !== 'LOADING' && onSearch(lookupInput, targetPlatform)} /></div>
+                  <div className="cf-o10-search-input"><Search /><input data-clarity-mask="true" className="clarity-mask" value={lookupInput} disabled={flowStep === 'LOADING'} onChange={(e) => setLookupInput(e.target.value)} placeholder={getInputPlaceholder()} onKeyDown={(e) => e.key === 'Enter' && flowStep !== 'LOADING' && onSearch(lookupInput, targetPlatform)} /></div>
                   {lookupError && <div className="cf-o10-error">{lookupError}</div>}
                   <small className="cf-o10-public-note"><ShieldCheck /> Public data only. No password required.</small>
                 </>

@@ -14,6 +14,7 @@ import { OfferPackageStage, SanitizedPackage } from '@/components/offer-experien
 import { OfferReviewStage } from '@/components/offer-experience/OfferReviewStage';
 import { OfferStatusCard, OfferValidatingCard } from '@/components/offer-experience/OfferStatusCards';
 import { OfferOption10Experience } from '@/components/offer-experience/OfferOption10Experience';
+import { buildCanonicalProfileUrl } from '@/lib/social/normalize';
 
 interface OfferData {
   code: string;
@@ -504,15 +505,18 @@ export default function OfferLandingPage() {
     // If already auto-resolved and identity matches, reuse result directly!
     const cachedProfile = autoResolvedProfileRef.current;
     if (cachedProfile && isMatchingIdentity(username, cachedProfile.username)) {
-      checkRestrictionAndSetProfile(cachedProfile, platform);
+      checkRestrictionAndSetProfile(cachedProfile, platform, username, targetService);
       return;
     }
 
     // Otherwise trigger normal lookup
-    handleStartLookup(username, platform);
+    handleStartLookup(username, platform, targetService);
   };
 
-  const handleStartLookup = async (inputStr: string, platform: string) => {
+  const handleStartLookup = async (inputStr: string, platform: string, serviceParam?: string) => {
+    const activeService = serviceParam || targetService;
+    const isContent = activeService === 'likes' || activeService === 'views';
+
     if (isLocalPreview) {
       setLookupError(null);
       setFlowStep('LOADING');
@@ -521,6 +525,11 @@ export default function OfferLandingPage() {
           ...LOCAL_PREVIEW_PROFILE,
           username: inputStr.trim().replace(/^@+/, '') || LOCAL_PREVIEW_PROFILE.username,
           platform,
+          resolvedTargetUrl: isContent ? inputStr.trim() : `https://instagram.com/${inputStr.trim().replace(/^@+/, '')}`,
+          resolvedTargetValue: isContent ? inputStr.trim() : (inputStr.trim().replace(/^@+/, '') || LOCAL_PREVIEW_PROFILE.username),
+          resolvedTargetType: isContent
+            ? ((platform === 'youtube' || platform === 'tiktok' || (platform === 'twitter' && activeService === 'views') || (platform === 'instagram' && activeService === 'views')) ? 'video' : 'post')
+            : (platform === 'youtube' ? 'channel' : 'profile'),
         });
         setTargetPlatform((['instagram', 'tiktok', 'twitter', 'youtube'].includes(platform.toLowerCase()) ? platform.toLowerCase() : 'instagram') as PlatformKey);
         setIsProfileRestricted(false);
@@ -531,49 +540,119 @@ export default function OfferLandingPage() {
     }
 
     if (!inputStr.trim()) {
-      setLookupError('Please enter your @username or profile link.');
+      setLookupError(isContent ? 'Paste the exact public post or video link.' : 'Enter an @username or profile/channel link.');
       return;
+    }
+
+    // Client-side format validation identical to HOME (growth-package-builder)
+    // Only perform URL syntax check if input looks like a URL or is not a handle/test input
+    if (isContent && (inputStr.trim().startsWith('http://') || inputStr.trim().startsWith('https://'))) {
+      try {
+        const u = new URL(inputStr.trim());
+        if (!/^https?:$/.test(u.protocol)) throw new Error();
+
+        const hostname = u.hostname.toLowerCase();
+        const pathname = u.pathname.toLowerCase();
+
+        if (platform === 'instagram') {
+          const isStory = pathname.includes('/stories/');
+          const isPost = pathname.includes('/p/');
+          const isVideo = pathname.includes('/reel/') || pathname.includes('/reels/') || pathname.includes('/tv/');
+
+          if (isStory || (activeService === 'views' ? !isVideo : !(isPost || isVideo))) {
+            setLookupError(
+              activeService === 'views'
+                ? 'Instagram Views accepts only public video/reel links. Photo posts and Stories are not accepted.'
+                : 'Instagram Likes accepts public feed posts, videos and reels. Stories are not accepted.'
+            );
+            return;
+          }
+        }
+
+        if (platform === 'tiktok') {
+          const isVideo = pathname.includes('/video/') || hostname === 'vm.tiktok.com' || hostname === 'vt.tiktok.com';
+          if (!isVideo) {
+            setLookupError('TikTok Likes or Views requires a direct public video link.');
+            return;
+          }
+        }
+
+        if (platform === 'twitter') {
+          const isPost = pathname.includes('/status/') || pathname.includes('/statuses/');
+          if (!isPost) {
+            setLookupError('X / Twitter Likes or Views requires a direct post/video status link.');
+            return;
+          }
+        }
+
+        if (platform === 'youtube') {
+          const isChannel = pathname.includes('/channel/') || pathname.includes('/@') || pathname.includes('/c/') || pathname.includes('/user/');
+          const isVideo = pathname.includes('/watch') || hostname === 'youtu.be' || pathname.includes('/shorts/');
+          if (isChannel || !isVideo) {
+            setLookupError('YouTube Likes or Views requires a direct video or Shorts link. Channel links are not accepted.');
+            return;
+          }
+        }
+      } catch {
+        setLookupError('For Likes or Views, paste a valid public post/video URL.');
+        return;
+      }
     }
 
     setLookupError(null);
     setFlowStep('LOADING');
     pollingRef.current.active = true;
 
+    // Optional service param: pass service to /api/search/resolve if provided and valid
+    const searchBody: Record<string, any> = { input: inputStr.trim(), selectedPlatform: platform };
+    if (activeService) {
+      searchBody.service = activeService;
+    }
+
     try {
       const res = await fetch('/api/search/resolve', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: inputStr.trim(), selectedPlatform: platform }),
+        body: JSON.stringify(searchBody),
       });
       const data = await res.json();
 
       if (res.ok && data.success && data.data && data.resolvedType === 'profile') {
-        checkRestrictionAndSetProfile(data.data, platform);
+        checkRestrictionAndSetProfile(data.data, platform, inputStr.trim(), activeService);
         return;
       }
 
       if (res.ok && data.success && data.status === 'pending' && data.requestId) {
         let currentRequestId = data.requestId;
         const startTime = Date.now();
-        const maxPollDuration = 45000;
+        const maxPollDuration = 10 * 60 * 1000;
 
         while (pollingRef.current.active && Date.now() - startTime < maxPollDuration) {
           await new Promise((r) => setTimeout(r, 2500));
           if (!pollingRef.current.active) break;
 
-          const statusRes = await fetch(`/api/search/status?requestId=${encodeURIComponent(currentRequestId)}`);
+          const statusRes = await fetch(
+            `/api/search/status?requestId=${encodeURIComponent(currentRequestId)}&service=${encodeURIComponent(activeService)}`,
+            { cache: 'no-store' }
+          );
           const statusJson = await statusRes.json().catch(() => null);
 
+          if (!statusRes.ok) {
+            setLookupError(statusJson?.message || 'Search failed. Please try again.');
+            setFlowStep('LOOKUP');
+            return;
+          }
           if (!statusJson) continue;
+
           if (statusJson.status === 'pending' && statusJson.requestId) {
             currentRequestId = statusJson.requestId;
           }
           if (statusJson.status === 'complete' && statusJson.data) {
-            checkRestrictionAndSetProfile(statusJson.data, platform);
+            checkRestrictionAndSetProfile(statusJson.data, platform, inputStr.trim(), activeService);
             return;
           }
-          if (statusJson.status === 'failed') {
-            setLookupError(statusJson.message || "We couldn't find this profile. Check the @ or link and try again.");
+          if (statusJson.status === 'failed' || statusJson.success === false) {
+            setLookupError(statusJson.message || "We couldn't find this profile.");
             setFlowStep('LOOKUP');
             return;
           }
@@ -587,13 +666,18 @@ export default function OfferLandingPage() {
 
       setLookupError(data.message || "We couldn't find this profile. Check the @ or link and try again.");
       setFlowStep('LOOKUP');
-    } catch {
-      setLookupError('The search is taking longer than expected. Please try again.');
+    } catch (e: any) {
+      setLookupError(e instanceof Error ? e.message : 'The search is taking longer than expected. Please try again.');
       setFlowStep('LOOKUP');
     }
   };
 
-  const checkRestrictionAndSetProfile = (profile: any, platform: string) => {
+  const checkRestrictionAndSetProfile = (
+    profile: any,
+    platform: string,
+    rawInput?: string,
+    activeService?: string
+  ) => {
     let restricted = false;
     if (profile.platform === 'instagram' && profile.is_private) restricted = true;
     if (profile.platform === 'tiktok' && (profile.is_private || profile.private_account || profile.privateAccount)) restricted = true;
@@ -601,10 +685,22 @@ export default function OfferLandingPage() {
     if (profile.platform === 'youtube' && (profile.is_private || profile.is_hidden)) restricted = true;
 
     setIsProfileRestricted(restricted);
-    // Merge server-side masked email if available on offerData
+
+    const s = activeService || targetService;
+    const isContent = s === 'likes' || s === 'views';
+    const normalizedUsername = (profile.username || '').replace(/^@+/, '').trim();
+    const canonicalProfileUrl = buildCanonicalProfileUrl(platform, normalizedUsername);
+    const targetUrl = isContent ? (rawInput || lookupInput).trim() : canonicalProfileUrl;
+    const targetType = isContent
+      ? ((platform === 'youtube' || platform === 'tiktok' || (platform === 'twitter' && s === 'views') || (platform === 'instagram' && s === 'views')) ? 'video' : 'post')
+      : (platform === 'youtube' ? 'channel' : 'profile');
+
     const profileWithEmail = {
       ...profile,
       maskedEmail: offerData?.previousTarget?.maskedEmail || profile.maskedEmail || null,
+      resolvedTargetType: targetType,
+      resolvedTargetValue: isContent ? (rawInput || lookupInput).trim() : normalizedUsername,
+      resolvedTargetUrl: targetUrl,
     };
     setVerifiedProfile(profileWithEmail);
     const safePlat = (['instagram', 'tiktok', 'twitter', 'youtube'].includes(platform.toLowerCase()) ? platform.toLowerCase() : 'instagram') as PlatformKey;
@@ -624,7 +720,7 @@ export default function OfferLandingPage() {
     const exact = offerData.packages.filter(
       (p) =>
         p.platform.toLowerCase() === safePlat.toLowerCase() &&
-        String(p.service || '').toLowerCase() === targetService
+        String(p.service || '').toLowerCase() === s
     );
 
     const eligible =
@@ -633,7 +729,7 @@ export default function OfferLandingPage() {
         : offerData.packages.filter(
             (p) =>
               p.platform.toLowerCase() === 'instagram' &&
-              String(p.service || '').toLowerCase() === targetService
+              String(p.service || '').toLowerCase() === s
           );
 
     const match =
