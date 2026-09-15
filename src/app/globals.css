@@ -34446,5 +34446,47 @@ html body .cf-pricing-subtitle-mobile {
     width: 25px !important;
     height: 25px !important;
   }
+
+  /* Plan cards desktop-only styling (>= 901px) */
+  html body .cf-o10-package-ref-head p {
+    color: #75839a !important;
+    font-size: 15px !important;
+    margin: 3px 0 0 !important;
+  }
+
+  html body .cf-o10-flow25-network-icon {
+    object-fit: contain !important;
+    flex: 0 0 17px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  html body .cf-o10-package-ref-bonus {
+    font-size: 13px !important;
+    line-height: 1.1 !important;
+  }
+
+  html body .cf-o10-package-ref-coupon {
+    min-height: 17px !important;
+    margin: 2px 0 9px !important;
+    font-size: 12.5px !important;
+  }
+
+  html body .cf-o10-package-ref-benefits li {
+    color: #5d6878 !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 12.5px !important;
+  }
+
+  html body .cf-o10-package-assurance > div {
+    font-size: 12.5px !important;
+  }
+
+  html body .cf-o10-package-ref-head {
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    margin: 0 0 16px !important;
+  }
 }
 
