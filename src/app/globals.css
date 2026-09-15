@@ -34356,3 +34356,46 @@ html body .cf-pricing-subtitle-mobile {
   pointer-events: auto !important;
   isolation: isolate;
 }
+
+/* =====================================================================
+   /offer Flame Visual Parity with HOME Flame
+   Replicates exact computed styles of .cf-plans-header-flame from HOME
+   across desktop and mobile breakpoints.
+   ===================================================================== */
+@media (min-width: 901px) {
+  html body .cf-header-tagline589 .cf-offer-header-flame,
+  html body .cf-header-tagline589 svg.cf-plans-header-flame {
+    width: 17px !important;
+    height: 17px !important;
+    color: #ff2d72 !important;
+    fill: #ff2d72 !important;
+    stroke: #ff2d72 !important;
+    stroke-width: 1.5 !important;
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+    filter: drop-shadow(0 1px 4px rgba(255, 45, 114, 0.28)) !important;
+  }
+}
+
+@media (max-width: 900px) {
+  html body .cf-header-tagline589 .cf-offer-header-flame,
+  html body .cf-header-tagline589 svg.cf-plans-header-flame {
+    width: 13px !important;
+    height: 13px !important;
+    color: #ff2d72 !important;
+    fill: #ff2d72 !important;
+    stroke: #ff2d72 !important;
+    stroke-width: 1.5 !important;
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+    filter: drop-shadow(0 1px 3px rgba(255, 45, 114, 0.28)) !important;
+  }
+}
+
+@media (max-width: 350px) {
+  html body .cf-header-tagline589 .cf-offer-header-flame,
+  html body .cf-header-tagline589 svg.cf-plans-header-flame {
+    width: 12px !important;
+    height: 12px !important;
+  }
+}

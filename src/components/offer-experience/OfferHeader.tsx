@@ -103,7 +103,7 @@ export function OfferHeader({ timeLeft, isExpiredLocally }: OfferHeaderProps) {
 
         <div className="cf-offer-nav-meta">
           <div className="cf-header-tagline589" aria-label="Post. Engage. Grow Faster.">
-            <Flame className="cf-plans-header-flame" aria-hidden="true" />
+            <Flame className="cf-plans-header-flame cf-offer-header-flame" aria-hidden="true" />
             <strong>Post. Engage. Grow Faster.</strong>
           </div>
         </div>
