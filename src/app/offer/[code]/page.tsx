@@ -237,7 +237,10 @@ export default function OfferLandingPage() {
           setCustomerEmail(String(json.data.previousTarget.email || ''));
           setLookupInput(json.data.previousTarget.username ? `@${String(json.data.previousTarget.username).replace(/^@+/, '')}` : '');
         } else {
-          setFlowStep('LOOKUP');
+          // Offer without previousTarget: starts in PREFILL on the main screen with empty lookup
+          setFlowStep('PREFILL');
+          setTargetPlatform('instagram');
+          setTargetService('followers');
         }
       } else {
         setErrorMsg(json.error?.message || 'This offer is no longer available.');
@@ -1107,7 +1110,8 @@ export default function OfferLandingPage() {
             setLookupInput('');
             setLiveAvatarUrl(null);
             setIsProfileRestricted(false);
-            setFlowStep('LOOKUP');
+            // Stay in PREFILL so the UI stays entirely on "Ready to Take Your Growth Further?"
+            setFlowStep('PREFILL');
           }}
           onSearch={handleStartLookup}
           onCancelSearch={cancelPolling}
@@ -1127,10 +1131,11 @@ export default function OfferLandingPage() {
             setLookupInput('');
             setLiveAvatarUrl(null);
             setIsProfileRestricted(false);
-            setFlowStep('LOOKUP');
+            // Stay in PREFILL so the UI stays entirely on "Ready to Take Your Growth Further?"
+            setFlowStep('PREFILL');
           }}
           onCopyCoupon={handleCopyCouponOnly}
-          onExecuteCheckout={(pkgId) => { setFlowStep('PACKAGE'); executeCheckout(pkgId); }}
+          onExecuteCheckout={(pkgId) => { executeCheckout(pkgId); }}
         />
       </div>
 

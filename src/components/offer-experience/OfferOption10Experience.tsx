@@ -215,16 +215,15 @@ export function OfferOption10Experience(props: Props) {
 
 
   const cfRunAnalyzeProfile = () => {
-    if (cfIsAnalyzing) return;
+    // If analyzing, reset first to allow fresh search if called again
+    if (cfIsAnalyzing && cfAnalyzeTimerRef.current) {
+      clearInterval(cfAnalyzeTimerRef.current);
+      cfAnalyzeTimerRef.current = null;
+    }
 
     setCfAnalyzeProgress(0);
     setCfIsAnalyzing(true);
     cfAnalyzeCompletedRef.current = false;
-
-    if (cfAnalyzeTimerRef.current) {
-      clearInterval(cfAnalyzeTimerRef.current);
-      cfAnalyzeTimerRef.current = null;
-    }
 
     const previousPlatform = previousTarget?.platform?.toLowerCase();
     const canReuseSavedProfile =
@@ -370,8 +369,6 @@ export function OfferOption10Experience(props: Props) {
   const selectedPkg = eligiblePackages.find((p) => p.id === selectedPackageId) || eligiblePackages[1] || eligiblePackages[0] || null;
   const selectedNetwork = NETWORKS.find((network) => network.key === targetPlatform) || NETWORKS[0];
   const profileReady = Boolean(verifiedProfile);
-  const profileMode = !cfIsAnalyzing && (flowStep === 'LOOKUP' || flowStep === 'LOADING' || flowStep === 'PREVIEW');
-
   const getInputPlaceholder = () => {
     if (targetService === 'followers') {
       if (targetPlatform === 'youtube') return '@username or channel link...';
@@ -394,24 +391,22 @@ export function OfferOption10Experience(props: Props) {
     <section className={`cf-o10-master cf-o10-platform-${targetPlatform}`} data-stage={flowStep.toLowerCase()} data-platform={targetPlatform}>
       <div className={`cf-o10-columns cf-o10-page-${flowStep.toLowerCase()}`}>
         {flowStep !== 'PACKAGE' && flowStep !== 'REVIEW' && <article className="cf-o10-panel cf-o10-profile-panel">
-          {!profileMode ? (
-            <>
-              <div className="cf-o10-profile-hero-row">
-                <div>
-                  <h1>Ready to Take Your Growth <em>Further?</em></h1>
-                  <p>Your 25% reward is ready.<br />Keep growing with CloutFlow.</p>
-                </div>
-                <Image
-                  className="cf-o10-rocket-image"
-                  src={rocketArt}
-                  alt=""
-                  width={1309}
-                  height={1201}
-                  sizes="(max-width: 700px) 138px, (max-width: 900px) 120px, 205px"
-                  quality={100}
-                  priority
-                />
-              </div>
+          <div className="cf-o10-profile-hero-row">
+            <div>
+              <h1>Ready to Take Your Growth <em>Further?</em></h1>
+              <p>Your 25% reward is ready.<br />Keep growing with CloutFlow.</p>
+            </div>
+            <Image
+              className="cf-o10-rocket-image"
+              src={rocketArt}
+              alt=""
+              width={1309}
+              height={1201}
+              sizes="(max-width: 700px) 138px, (max-width: 900px) 120px, 205px"
+              quality={100}
+              priority
+            />
+          </div>
 
               <div className="cf-o10-goal-builder" data-network={targetPlatform}>
                 <section className="cf-o10-gb-section cf-o10-gb-goal">
@@ -488,7 +483,7 @@ export function OfferOption10Experience(props: Props) {
                   <div className="cf-o10-gb-head">
                     <span className="cf-o10-gb-num">2</span>
                     <div>
-                      <h2>Choose the network</h2>
+                      <h2>Choose your network</h2>
                       <p>We support all 4 platforms below</p>
                     </div>
                   </div>
@@ -512,7 +507,7 @@ export function OfferOption10Experience(props: Props) {
                     ))}
                   </div>
 
-                  {previousTarget && (
+                  {previousTarget && !verifiedProfile && (
                     <div
                       style={{
                         display: 'flex',
@@ -583,6 +578,84 @@ export function OfferOption10Experience(props: Props) {
                     </div>
                   )}
 
+                  {(!previousTarget || verifiedProfile) && (
+                    <div style={{ marginBottom: 12 }}>
+                      <label className="cf-o10-gb-field-label" htmlFor="cf-o10-new-target-input">
+                        {targetService === 'followers'
+                          ? 'Profile or @username'
+                          : targetService === 'views'
+                            ? (targetPlatform === 'youtube' ? 'Video or Short URL' : targetPlatform === 'tiktok' ? 'TikTok video URL' : targetPlatform === 'twitter' ? 'Post/status URL' : 'Reel or video URL')
+                            : 'Post, video or content URL'} <span className="cf-o10-email-required">(required)</span>
+                      </label>
+                      <div className="cf-o10-search-input">
+                        <Search />
+                        <input
+                          id="cf-o10-new-target-input"
+                          data-clarity-mask="true"
+                          className="clarity-mask"
+                          value={lookupInput}
+                          onChange={(e) => setLookupInput(e.target.value)}
+                          placeholder={getInputPlaceholder()}
+                          aria-label="Profile username or link"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              cfRunAnalyzeProfile();
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {verifiedProfile && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        marginBottom: 12,
+                        padding: '8px 12px',
+                        minHeight: 48,
+                        border: '1px solid #cce8d7',
+                        borderRadius: 10,
+                        background: '#f6fbf8'
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'relative',
+                          width: 36,
+                          height: 36,
+                          minWidth: 36,
+                          borderRadius: '50%',
+                          overflow: 'hidden',
+                          background: '#e8f0ec',
+                          display: 'grid',
+                          placeItems: 'center'
+                        }}
+                      >
+                        {avatar ? (
+                          <img
+                            src={avatar}
+                            alt={username || "profile avatar"}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <UserRound size={18} />
+                        )}
+                      </div>
+                      <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <strong style={{ color: '#111a2e', fontSize: 13, lineHeight: 1.2 }}>
+                          @{username}
+                        </strong>
+                      </div>
+                      <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 5, color: '#07875e', fontSize: 11, fontWeight: 700 }}>
+                        <BadgeCheck size={16} />
+                        <span>Confirmed</span>
+                      </div>
+                    </div>
+                  )}
+
                   <label className="cf-o10-gb-field-label">Email <span className="cf-o10-email-required">(required)</span></label>
                   <div className="cf-o10-gb-linked-row">
                     <div className="cf-o10-gb-input cf-o10-gb-linked-input">
@@ -594,7 +667,7 @@ export function OfferOption10Experience(props: Props) {
                         className="clarity-mask"
                         value={emailValue}
                         onChange={(e) => setEmailValue(e.target.value)}
-                        placeholder={previousTarget?.maskedEmail || 'Enter your email'}
+                        placeholder="Enter your email"
                         autoComplete="email"
                         inputMode="email"
                         aria-label="Email"
@@ -611,7 +684,7 @@ export function OfferOption10Experience(props: Props) {
                           fontWeight: 500
                         }}
                       />
-                      {previousTarget && emailValue.trim().length > 0 && <em>Linked</em>}
+                      {previousTarget && !verifiedProfile && emailValue.trim().length > 0 && <em>Linked</em>}
                     </div>
 
                     {previousTarget && (
@@ -628,7 +701,7 @@ export function OfferOption10Experience(props: Props) {
                     )}
                   </div>
 
-                  {previousTarget && (
+                  {previousTarget && !verifiedProfile && (
                     <div className="cf-o10-gb-helper cf-o10-gb-auto-helper">
                       <ShieldCheck />
                       <span>
@@ -651,8 +724,7 @@ export function OfferOption10Experience(props: Props) {
                     type="button"
                     className={`cf-o10-gb-analyze ${cfIsAnalyzing ? 'is-analyzing' : ''}`}
                     onClick={cfRunAnalyzeProfile}
-                    disabled={cfIsAnalyzing}
-                    aria-label={cfIsAnalyzing ? `Analyzing profile ${cfAnalyzeProgress}%` : 'Analyze Profile'}
+                    aria-label="Analyze Profile"
                   >
                     {cfIsAnalyzing && (
                       <span
@@ -671,95 +743,6 @@ export function OfferOption10Experience(props: Props) {
                   {lookupError && <div className="cf-o10-error" style={{ marginTop: 10 }}>{lookupError}</div>}
                 </section>
               </div>
-            </>
-          ) : (
-            <div className="cf-o10-search-mode">
-              <div className="cf-o10-profile-hero-row compact">
-                <div>
-                  <h1>{flowStep === 'PREVIEW' ? <>Profile <em>found!</em></> : <>Find your <em>profile.</em></>}</h1>
-                  <p>{flowStep === 'PREVIEW' ? 'Confirm the destination before continuing.' : 'Choose a network and enter your public profile.'}</p>
-                </div>
-                <Image
-                  className="cf-o10-rocket-image"
-                  src={rocketArt}
-                  alt=""
-                  width={1309}
-                  height={1201}
-                  sizes="(max-width: 700px) 138px, (max-width: 900px) 120px, 205px"
-                  quality={100}
-                  priority
-                />
-              </div>
-
-              {flowStep !== 'PREVIEW' && (
-                <>
-                  <div className="cf-o10-label">Choose your goal</div>
-                  <div className="cf-o10-service-quick">
-                    {(PLATFORM_SERVICES[targetPlatform as CommercialPlatform] || ['followers', 'likes', 'views']).map((service) => (
-                      <button
-                        type="button"
-                        key={service}
-                        onClick={() => setTargetService(service)}
-                        className={targetService === service ? 'is-active' : ''}
-                      >
-                        {service === 'followers' ? 'Followers' : service === 'likes' ? 'Likes' : 'Views'}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="cf-o10-label">Choose your network</div>
-                  <div className="cf-o10-net-grid">
-                    {NETWORKS.map((n) => (
-                      <button key={n.key} type="button" className={targetPlatform === n.key ? 'active' : ''} disabled={flowStep === 'LOADING'} onClick={() => handleNetworkSelection(n.key)}>
-                        <Image src={n.icon} alt="" width={20} height={20} />
-                        <span>{n.label}</span>
-                        {targetPlatform === n.key && <BadgeCheck />}
-                      </button>
-                    ))}
-                  </div>
-                  <div className="cf-o10-search-input"><Search /><input data-clarity-mask="true" className="clarity-mask" value={lookupInput} disabled={flowStep === 'LOADING'} onChange={(e) => setLookupInput(e.target.value)} placeholder={getInputPlaceholder()} aria-label="Profile username or link" onKeyDown={(e) => e.key === 'Enter' && flowStep !== 'LOADING' && onSearch(lookupInput, targetPlatform)} /></div>
-                  <label className="cf-o10-label" htmlFor="cf-o10-search-email">Email <span className="cf-o10-email-required">(required)</span></label>
-                  <div className="cf-o10-gb-input cf-o10-gb-linked-input">
-                    <Mail />
-                    <input
-                      id="cf-o10-search-email"
-                      type="email"
-                      data-clarity-mask="true"
-                      className="clarity-mask"
-                      value={emailValue}
-                      onChange={(e) => setEmailValue(e.target.value)}
-                      placeholder="Enter your email"
-                      autoComplete="email"
-                      inputMode="email"
-                      aria-label="Email"
-                    />
-                  </div>
-                  {lookupError && <div className="cf-o10-error">{lookupError}</div>}
-                  <small className="cf-o10-public-note"><ShieldCheck /> Public data only. No password required.</small>
-                </>
-              )}
-
-              {flowStep === 'LOADING' && (
-                <div className="cf-o10-analyzing"><Loader2 /><strong>Locating profile...</strong><span>Checking public account data.</span></div>
-              )}
-
-              {flowStep === 'PREVIEW' && verifiedProfile && (
-                <div className="cf-o10-profile-box confirm">
-                  <div className="cf-o10-avatar-wrap">
-                    {avatar ? <img src={avatar} alt="" /> : <UserRound />}
-                    <Image src={NETWORKS.find((n) => n.key === targetPlatform)?.icon || instagramIcon} alt="" width={18} height={18} />
-                  </div>
-                  <div className="cf-o10-profile-id"><strong>@{username}</strong><span>{maskedEmail}</span></div>
-                  <b>{isProfileRestricted ? 'Restricted' : 'Confirmed'}</b>
-                </div>
-              )}
-
-              {flowStep === 'LOOKUP' && <button type="button" className="cf-o10-purple-btn" aria-label="Analyze Profile" onClick={() => onSearch(lookupInput, targetPlatform)}><Search /> Analyze profile <ArrowRight /></button>}
-              {flowStep === 'LOADING' && <button type="button" className="cf-o10-outline-btn" onClick={onCancelSearch}><ArrowLeft /> Cancel search</button>}
-              {flowStep === 'PREVIEW' && <button type="button" className="cf-o10-purple-btn" disabled={isProfileRestricted} onClick={onConfirmFound}><Check /> Continue to packages <ArrowRight /></button>}
-              <button type="button" className="cf-o10-text-btn" onClick={onBackToSaved}><ArrowLeft /> Back to saved profile</button>
-            </div>
-          )}
         </article>}
 
         {flowStep === 'PACKAGE' && <article className="cf-o10-panel cf-o10-package-panel cf-o10-package-ref">

@@ -491,7 +491,6 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     await waitFor(() => expect(resolveInputs).toContain('@perfilA'));
 
     // Start B before A resolves. A is then deliberately released late.
-    fireEvent.click(screen.getByRole('button', { name: /Cancel search/i }));
     fireEvent.change(screen.getByRole('textbox', { name: 'Profile username or link' }), { target: { value: '@perfilB' } });
     fireEvent.click(screen.getByRole('button', { name: 'Analyze Profile' }));
     await waitFor(() => expect(screen.getByText('growth package')).toBeDefined(), { timeout: 4000 });
@@ -621,7 +620,11 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
 
     fireEvent.click(screen.getByText('Change profile'));
 
-    expect(screen.getByText('Find your')).toBeDefined();
+    // As mandated, Change Profile keeps the user on the same screen ("Ready to Take Your Growth Further?")
+    // and displays the new target input field without navigating to "Find your profile."
+    expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();
+    expect(screen.queryByText('Find your')).toBeNull();
+    expect(screen.getByRole('textbox', { name: 'Profile username or link' })).toBeDefined();
   });
 
   it('F, G, H. Resolves TikTok, YouTube, and Twitter/X profiles seamlessly', async () => {
