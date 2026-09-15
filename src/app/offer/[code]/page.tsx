@@ -189,6 +189,9 @@ export default function OfferLandingPage() {
 
   // Flow State
   const [flowStep, setFlowStep] = useState<FlowStep>('PREFILL');
+  // Keep the offer's previousTarget as history, but track whether it is still
+  // the target the customer chose to reuse in this experience.
+  const [useSavedTarget, setUseSavedTarget] = useState(true);
 
   // Silent Auto-Resolution State (Step 01 Live Avatar Enrichment)
   const [liveAvatarUrl, setLiveAvatarUrl] = useState<string | null>(null);
@@ -205,6 +208,7 @@ export default function OfferLandingPage() {
   const [isProfileRestricted, setIsProfileRestricted] = useState(false);
   const [lookupError, setLookupError] = useState<string | null>(null);
   const pollingRef = useRef({ active: false });
+  const searchGenerationRef = useRef(0);
 
   // Package & Checkout State
   const [selectedPackageId, setSelectedPackageId] = useState<string | null>(null);
@@ -233,6 +237,7 @@ export default function OfferLandingPage() {
       setLoading(false);
       setErrorMsg(null);
       setIsExpiredLocally(false);
+      setUseSavedTarget(true);
       setOfferData(previewOffer);
       setTargetPlatform('instagram');
       setTargetService('followers');
@@ -268,6 +273,7 @@ export default function OfferLandingPage() {
 
       if (res.ok && json.success && json.data) {
         setOfferData(json.data);
+        setUseSavedTarget(Boolean(json.data.previousTarget));
         if (json.data.previousTarget) {
           setFlowStep('PREFILL');
           const rawPlat = (json.data.previousTarget.platform || 'instagram').toLowerCase();
@@ -372,10 +378,16 @@ export default function OfferLandingPage() {
     return cleanExpected === cleanResolved;
   };
 
+  // The offer history remains immutable; only this UI-facing target can be
+  // disabled when the customer chooses to search for another profile.
+  const activePreviousTarget = useSavedTarget ? offerData?.previousTarget ?? null : null;
+
   // Step 01 Silent Auto-Resolution of Live Avatar
+
   useEffect(() => {
     const prev = offerData?.previousTarget;
     if (
+      !useSavedTarget ||
       !offerData ||
       offerData.status !== 'ACTIVE' ||
       !prev ||
@@ -388,6 +400,7 @@ export default function OfferLandingPage() {
 
     autoResolutionStartedRef.current = true;
     let isCancelled = false;
+    const autoResolutionGeneration = searchGenerationRef.current;
 
     const performSilentAutoResolution = async () => {
       const requestedUsername = prev.username.trim();
@@ -406,7 +419,7 @@ export default function OfferLandingPage() {
         });
         const data = await res.json().catch(() => null);
 
-        if (isCancelled) return;
+        if (isCancelled || searchGenerationRef.current !== autoResolutionGeneration || !useSavedTarget) return;
 
         if (res.ok && data?.success && data?.data && data?.resolvedType === 'profile') {
           if (isMatchingIdentity(requestedUsername, data.data.username)) {
@@ -434,6 +447,7 @@ export default function OfferLandingPage() {
             );
             const statusJson = await statusRes.json().catch(() => null);
 
+            if (isCancelled || searchGenerationRef.current !== autoResolutionGeneration || !useSavedTarget) return;
             if (!statusJson) continue;
             if (statusJson.status === 'pending' && statusJson.requestId) {
               currentRequestId = statusJson.requestId;
@@ -468,7 +482,7 @@ export default function OfferLandingPage() {
     return () => {
       isCancelled = true;
     };
-  }, [offerData]);
+  }, [offerData, useSavedTarget]);
 
   const handleCopyCouponOnly = async () => {
     if (!offerData?.couponCode) return;
@@ -480,7 +494,7 @@ export default function OfferLandingPage() {
   };
 
   const handleConfirmWelcome = async () => {
-    if (!offerData?.previousTarget) return;
+    if (!offerData || !activePreviousTarget) return;
 
     if (isLocalPreview) {
       const previewPlatform = (
@@ -500,7 +514,7 @@ export default function OfferLandingPage() {
       return;
     }
 
-    const { username, platform } = offerData.previousTarget;
+    const { username, platform } = activePreviousTarget;
 
     // If already auto-resolved and identity matches, reuse result directly!
     const cachedProfile = autoResolvedProfileRef.current;
@@ -516,6 +530,8 @@ export default function OfferLandingPage() {
   const handleStartLookup = async (inputStr: string, platform: string, serviceParam?: string) => {
     const activeService = serviceParam || targetService;
     const isContent = activeService === 'likes' || activeService === 'views';
+    const searchGeneration = searchGenerationRef.current + 1;
+    searchGenerationRef.current = searchGeneration;
 
     if (isLocalPreview) {
       setLookupError(null);
@@ -617,6 +633,9 @@ export default function OfferLandingPage() {
       });
       const data = await res.json();
 
+      // A response from a superseded search must never update this flow.
+      if (searchGenerationRef.current !== searchGeneration || !pollingRef.current.active) return;
+
       if (res.ok && data.success && data.data && data.resolvedType === 'profile') {
         checkRestrictionAndSetProfile(data.data, platform, inputStr.trim(), activeService);
         return;
@@ -627,15 +646,21 @@ export default function OfferLandingPage() {
         const startTime = Date.now();
         const maxPollDuration = 10 * 60 * 1000;
 
-        while (pollingRef.current.active && Date.now() - startTime < maxPollDuration) {
+        while (
+          pollingRef.current.active &&
+          searchGenerationRef.current === searchGeneration &&
+          Date.now() - startTime < maxPollDuration
+        ) {
           await new Promise((r) => setTimeout(r, 2500));
-          if (!pollingRef.current.active) break;
+          if (!pollingRef.current.active || searchGenerationRef.current !== searchGeneration) return;
 
           const statusRes = await fetch(
             `/api/search/status?requestId=${encodeURIComponent(currentRequestId)}&service=${encodeURIComponent(activeService)}`,
             { cache: 'no-store' }
           );
           const statusJson = await statusRes.json().catch(() => null);
+
+          if (searchGenerationRef.current !== searchGeneration || !pollingRef.current.active) return;
 
           if (!statusRes.ok) {
             setLookupError(statusJson?.message || 'Search failed. Please try again.');
@@ -657,16 +682,18 @@ export default function OfferLandingPage() {
             return;
           }
         }
-        if (pollingRef.current.active) {
+        if (pollingRef.current.active && searchGenerationRef.current === searchGeneration) {
           setLookupError('The search is taking longer than expected. Please try again.');
           setFlowStep('LOOKUP');
         }
         return;
       }
 
+      if (searchGenerationRef.current !== searchGeneration || !pollingRef.current.active) return;
       setLookupError(data.message || "We couldn't find this profile. Check the @ or link and try again.");
       setFlowStep('LOOKUP');
     } catch (e: any) {
+      if (searchGenerationRef.current !== searchGeneration || !pollingRef.current.active) return;
       setLookupError(e instanceof Error ? e.message : 'The search is taking longer than expected. Please try again.');
       setFlowStep('LOOKUP');
     }
@@ -697,7 +724,7 @@ export default function OfferLandingPage() {
 
     const profileWithEmail = {
       ...profile,
-      maskedEmail: offerData?.previousTarget?.maskedEmail || profile.maskedEmail || null,
+      maskedEmail: activePreviousTarget?.maskedEmail || profile.maskedEmail || null,
       resolvedTargetType: targetType,
       resolvedTargetValue: isContent ? (rawInput || lookupInput).trim() : normalizedUsername,
       resolvedTargetUrl: targetUrl,
@@ -1071,7 +1098,7 @@ export default function OfferLandingPage() {
       <div className="cf-offer-main flex-1 max-w-[1440px] w-full mx-auto z-10">
         <OfferOption10Experience
           flowStep={flowStep}
-          previousTarget={offerData.previousTarget}
+          previousTarget={activePreviousTarget}
           liveAvatarUrl={liveAvatarUrl}
           isLoadingLiveAvatar={isLoadingLiveAvatar}
           targetPlatform={targetPlatform}
@@ -1107,17 +1134,38 @@ export default function OfferLandingPage() {
           checkoutError={checkoutError}
           onUseSavedProfile={handleConfirmWelcome}
           onChooseAnother={() => {
+            // Invalidate every in-flight search before opening a fresh lookup.
+            pollingRef.current.active = false;
+            searchGenerationRef.current += 1;
+            autoResolvedProfileRef.current = null;
+            setUseSavedTarget(false);
             setLookupError(null);
             setVerifiedProfile(null);
             setLookupInput('');
-            setFlowStep('PREFILL');
+            setLiveAvatarUrl(null);
+            setIsProfileRestricted(false);
+            setFlowStep('LOOKUP');
           }}
           onSearch={handleStartLookup}
           onCancelSearch={cancelPolling}
           onConfirmFound={confirmProfile}
-          onBackToSaved={() => setFlowStep('PREFILL')}
+          onBackToSaved={() => {
+            setUseSavedTarget(true);
+            setFlowStep('PREFILL');
+          }}
           onSelectPackage={(pkgId) => { setSelectedPackageId(pkgId); setFlowStep('PACKAGE'); }}
-          onChangeProfile={() => setFlowStep('PREFILL')}
+          onChangeProfile={() => {
+            pollingRef.current.active = false;
+            searchGenerationRef.current += 1;
+            autoResolvedProfileRef.current = null;
+            setUseSavedTarget(false);
+            setLookupError(null);
+            setVerifiedProfile(null);
+            setLookupInput('');
+            setLiveAvatarUrl(null);
+            setIsProfileRestricted(false);
+            setFlowStep('LOOKUP');
+          }}
           onCopyCoupon={handleCopyCouponOnly}
           onExecuteCheckout={(pkgId) => { setFlowStep('PACKAGE'); executeCheckout(pkgId); }}
         />

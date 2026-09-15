@@ -40,6 +40,7 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
         profileUrl: null,
         avatarUrl: 'https://example.com/historical-avatar.jpg',
         maskedEmail: 'gui*****@gmail.com',
+        email: 'email@email.com',
         previousPackageName: '2,000 Followers',
       },
       packages: [
@@ -339,12 +340,22 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     unmount();
   }, 10000);
 
-  it('C. "Change profile" / "Back to saved profile" allows interacting with profile selection', async () => {
+  it('C. clicking the real Change profile button immediately opens a fresh editable lookup', async () => {
     global.fetch = vi.fn().mockImplementation((url: string) => {
       if (url.includes('/api/offers/')) {
         return Promise.resolve({
           ok: true,
           json: async () => mockActiveOfferResponse,
+        } as any);
+      }
+      if (url.includes('/api/search/resolve')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            resolvedType: 'profile',
+            data: mockResolvedInstagramProfile,
+          }),
         } as any);
       }
       return Promise.reject(new Error('Unknown URL'));
@@ -353,13 +364,154 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
     render(<OfferLandingPage />);
 
     await waitFor(() => {
-      expect(screen.getByText('Change profile')).toBeDefined();
+      expect(screen.getByText('Last purchased profile')).toBeDefined();
+      expect(screen.getByText('@guilhermeterraaa')).toBeDefined();
+      expect(screen.getByText('Linked')).toBeDefined();
+      expect(screen.getByRole('button', { name: /Change profile/i })).toBeDefined();
     });
 
-    fireEvent.click(screen.getByText('Change profile'));
+    fireEvent.click(screen.getByRole('button', { name: /Change profile/i }));
 
-    expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();
+    // This is the observable contract of the real click, not an isolated callback test.
+    expect(screen.queryByText('Last purchased profile')).toBeNull();
+    expect(screen.queryByText('@guilhermeterraaa')).toBeNull();
+    expect(screen.queryByText('Linked')).toBeNull();
+    expect(screen.queryByRole('button', { name: /Change profile/i })).toBeNull();
+    expect(screen.getByRole('textbox', { name: 'Profile username or link' })).toBeDefined();
+    expect(screen.getByRole('textbox', { name: 'Email' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'Analyze Profile' })).toBeDefined();
   });
+
+  it('Change profile sends a new target to resolve and advances directly to packages', async () => {
+    const resolveCalls: Array<{ input: string; body: any }> = [];
+    global.fetch = vi.fn().mockImplementation((url: string, options?: any) => {
+      if (url.includes('/api/offers/')) {
+        return Promise.resolve({ ok: true, json: async () => mockActiveOfferResponse } as any);
+      }
+      if (url.includes('/api/search/resolve')) {
+        const body = options?.body ? JSON.parse(options.body) : {};
+        resolveCalls.push({ input: body.input, body });
+        const resolvedUsername = body.input === '@novoperfil' ? 'novoperfil' : 'guilhermeterraaa';
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            resolvedType: 'profile',
+            data: { ...mockResolvedInstagramProfile, username: resolvedUsername },
+          }),
+        } as any);
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    render(<OfferLandingPage />);
+    await waitFor(() => expect(screen.getByRole('button', { name: /Change profile/i })).toBeDefined());
+
+    fireEvent.click(screen.getByRole('button', { name: /Change profile/i }));
+    const callsAfterChange = resolveCalls.length;
+    const input = screen.getByRole('textbox', { name: 'Profile username or link' });
+    fireEvent.change(input, { target: { value: '@novoperfil' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Analyze Profile' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('growth package')).toBeDefined();
+    }, { timeout: 4000 });
+
+    const newSearchCalls = resolveCalls.slice(callsAfterChange);
+    expect(newSearchCalls.some((call) => call.input === '@novoperfil')).toBe(true);
+    expect(newSearchCalls.every((call) => call.input !== '@guilhermeterraaa')).toBe(true);
+    expect(screen.getByText('#FLOW25')).toBeDefined();
+    expect(screen.queryByText('Validating Offer')).toBeNull();
+    expect(screen.queryByText('Profile found!')).toBeNull();
+    expect(screen.queryByText('Continue to packages')).toBeNull();
+  }, 10000);
+
+  it('Change profile does not fall back to the historical target when the new input is empty', async () => {
+    const resolveInputs: string[] = [];
+    global.fetch = vi.fn().mockImplementation((url: string, options?: any) => {
+      if (url.includes('/api/offers/')) {
+        return Promise.resolve({ ok: true, json: async () => mockActiveOfferResponse } as any);
+      }
+      if (url.includes('/api/search/resolve')) {
+        const body = options?.body ? JSON.parse(options.body) : {};
+        resolveInputs.push(body.input);
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ success: true, resolvedType: 'profile', data: mockResolvedInstagramProfile }),
+        } as any);
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    render(<OfferLandingPage />);
+    await waitFor(() => expect(screen.getByRole('button', { name: /Change profile/i })).toBeDefined());
+    fireEvent.click(screen.getByRole('button', { name: /Change profile/i }));
+    const callsAfterChange = resolveInputs.length;
+
+    fireEvent.click(screen.getByRole('button', { name: 'Analyze Profile' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Enter an @username or profile/channel link.')).toBeDefined();
+    });
+    expect(resolveInputs.slice(callsAfterChange)).toEqual([]);
+    expect(screen.queryByText('@guilhermeterraaa')).toBeNull();
+  });
+
+  it('ignores a late response from a search started before Change profile', async () => {
+    let resolveSearchA: ((value: any) => void) | null = null;
+    const resolveInputs: string[] = [];
+    global.fetch = vi.fn().mockImplementation((url: string, options?: any) => {
+      if (url.includes('/api/offers/')) {
+        return Promise.resolve({ ok: true, json: async () => mockActiveOfferResponse } as any);
+      }
+      if (url.includes('/api/search/resolve')) {
+        const body = options?.body ? JSON.parse(options.body) : {};
+        resolveInputs.push(body.input);
+        if (body.input === '@perfilA') {
+          return new Promise((resolve) => { resolveSearchA = resolve; });
+        }
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({
+            success: true,
+            resolvedType: 'profile',
+            data: { ...mockResolvedInstagramProfile, username: 'perfilB' },
+          }),
+        } as any);
+      }
+      return Promise.reject(new Error('Unknown URL'));
+    });
+
+    render(<OfferLandingPage />);
+    await waitFor(() => expect(screen.getByRole('button', { name: /Change profile/i })).toBeDefined());
+    fireEvent.click(screen.getByRole('button', { name: /Change profile/i }));
+
+    fireEvent.change(screen.getByRole('textbox', { name: 'Profile username or link' }), { target: { value: '@perfilA' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Analyze Profile' }));
+    await waitFor(() => expect(resolveInputs).toContain('@perfilA'));
+
+    // Start B before A resolves. A is then deliberately released late.
+    fireEvent.click(screen.getByRole('button', { name: /Cancel search/i }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Profile username or link' }), { target: { value: '@perfilB' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Analyze Profile' }));
+    await waitFor(() => expect(screen.getByText('growth package')).toBeDefined(), { timeout: 4000 });
+
+    const releaseSearchA: any = resolveSearchA;
+    if (releaseSearchA) {
+      releaseSearchA({
+        ok: true,
+        json: async () => ({
+          success: true,
+          resolvedType: 'profile',
+          data: { ...mockResolvedInstagramProfile, username: 'perfilA' },
+        }),
+      });
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(screen.getByText('growth package')).toBeDefined();
+    expect(screen.queryByText('@perfilA')).toBeNull();
+  }, 10000);
 
   it('D, E, I, J, N, O. Resolves profile, provides coupon and shows eligible packages', async () => {
     global.fetch = vi.fn().mockImplementation((url: string, options?: any) => {
@@ -469,7 +621,7 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
 
     fireEvent.click(screen.getByText('Change profile'));
 
-    expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();
+    expect(screen.getByText('Find your')).toBeDefined();
   });
 
   it('F, G, H. Resolves TikTok, YouTube, and Twitter/X profiles seamlessly', async () => {

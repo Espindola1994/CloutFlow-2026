@@ -240,6 +240,10 @@ export function OfferOption10Experience(props: Props) {
     // For a saved database profile, DO NOT navigate yet; visually confirm 0→100 first.
     if (!canReuseSavedProfile) {
       onSearch(selectedNetworkInput, targetPlatform);
+      if (!selectedNetworkInput.trim()) {
+        setCfIsAnalyzing(false);
+        return;
+      }
     }
 
     let progress = 0;
@@ -709,7 +713,23 @@ export function OfferOption10Experience(props: Props) {
                       </button>
                     ))}
                   </div>
-                  <div className="cf-o10-search-input"><Search /><input data-clarity-mask="true" className="clarity-mask" value={lookupInput} disabled={flowStep === 'LOADING'} onChange={(e) => setLookupInput(e.target.value)} placeholder={getInputPlaceholder()} onKeyDown={(e) => e.key === 'Enter' && flowStep !== 'LOADING' && onSearch(lookupInput, targetPlatform)} /></div>
+                  <div className="cf-o10-search-input"><Search /><input data-clarity-mask="true" className="clarity-mask" value={lookupInput} disabled={flowStep === 'LOADING'} onChange={(e) => setLookupInput(e.target.value)} placeholder={getInputPlaceholder()} aria-label="Profile username or link" onKeyDown={(e) => e.key === 'Enter' && flowStep !== 'LOADING' && onSearch(lookupInput, targetPlatform)} /></div>
+                  <label className="cf-o10-label" htmlFor="cf-o10-search-email">Email <span className="cf-o10-email-required">(required)</span></label>
+                  <div className="cf-o10-gb-input cf-o10-gb-linked-input">
+                    <Mail />
+                    <input
+                      id="cf-o10-search-email"
+                      type="email"
+                      data-clarity-mask="true"
+                      className="clarity-mask"
+                      value={emailValue}
+                      onChange={(e) => setEmailValue(e.target.value)}
+                      placeholder="Enter your email"
+                      autoComplete="email"
+                      inputMode="email"
+                      aria-label="Email"
+                    />
+                  </div>
                   {lookupError && <div className="cf-o10-error">{lookupError}</div>}
                   <small className="cf-o10-public-note"><ShieldCheck /> Public data only. No password required.</small>
                 </>
@@ -730,7 +750,7 @@ export function OfferOption10Experience(props: Props) {
                 </div>
               )}
 
-              {flowStep === 'LOOKUP' && <button type="button" className="cf-o10-purple-btn" onClick={() => onSearch(lookupInput, targetPlatform)}><Search /> Analyze profile <ArrowRight /></button>}
+              {flowStep === 'LOOKUP' && <button type="button" className="cf-o10-purple-btn" aria-label="Analyze Profile" onClick={() => onSearch(lookupInput, targetPlatform)}><Search /> Analyze profile <ArrowRight /></button>}
               {flowStep === 'LOADING' && <button type="button" className="cf-o10-outline-btn" onClick={onCancelSearch}><ArrowLeft /> Cancel search</button>}
               {flowStep === 'PREVIEW' && <button type="button" className="cf-o10-purple-btn" disabled={isProfileRestricted} onClick={onConfirmFound}><Check /> Continue to packages <ArrowRight /></button>}
               <button type="button" className="cf-o10-text-btn" onClick={onBackToSaved}><ArrowLeft /> Back to saved profile</button>
