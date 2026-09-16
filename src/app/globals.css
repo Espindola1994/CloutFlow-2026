@@ -32365,6 +32365,12 @@ html body .cf-final-copy-mobile {
     padding-left: 4px !important;
     padding-right: 4px !important;
   }
+
+  /* PACKAGE ONLY: 15px lateral spacing isolated strictly to package step */
+  html body .cf-o10-package-panel.cf-o10-package-ref {
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+  }
 }
 
 @media (max-width: 900px) {
