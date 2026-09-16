@@ -22022,11 +22022,11 @@ html body .cf-offer-header-new .cf-offer-brand-logo{display:block!important;widt
   }
 
   html body .cf-o10-package-ref-head {
-    margin:0 0 26px!important;
-    padding:0!important;
-    display:flex!important;
-    align-items:flex-start!important;
-    justify-content:space-between!important;
+    margin: 0 0 16px !important;
+    padding: 0 !important;
+    display: flex !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
   }
 
   html body .cf-o10-package-ref-head h2 {
@@ -22039,10 +22039,10 @@ html body .cf-offer-header-new .cf-offer-brand-logo{display:block!important;widt
   }
 
   html body .cf-o10-package-ref-head p {
-    margin:8px 0 0!important;
-    color:#75839a!important;
-    font-size:12px!important;
-    font-weight:520!important;
+    margin: 3px 0 0 !important;
+    color: #75839a !important;
+    font-size: 15px !important;
+    font-weight: 520 !important;
   }
 
   html body .cf-o10-package-ref-grid {
@@ -22777,15 +22777,15 @@ html body .cf-o10-discount-badge--scale {
 /* V500 — exact requested desktop typography/spacing adjustments */
 @media (min-width: 901px) {
   html body .cf-o10-package-ref-benefits li {
-    color:#5d6878!important;
-    align-items:center!important;
-    gap:8px!important;
-    font-size:11.5px!important;
+    color: #5d6878 !important;
+    align-items: center !important;
+    gap: 8px !important;
+    font-size: 12.5px !important;
   }
 
   html body .cf-o10-package-ref-bonus {
-    font-size:11.5px!important;
-    line-height:1.1!important;
+    font-size: 13px !important;
+    line-height: 1.1 !important;
   }
 
   html body .cf-o10-package-ref-card h3 {
@@ -22794,9 +22794,9 @@ html body .cf-o10-discount-badge--scale {
   }
 
   html body .cf-o10-package-ref-coupon {
-    min-height:17px!important;
-    margin:2px 0 9px!important;
-    font-size:10.5px!important;
+    min-height: 17px !important;
+    margin: 2px 0 9px !important;
+    font-size: 12.5px !important;
   }
 
   html body .cf-o10-package-ref-price del {
@@ -22825,7 +22825,7 @@ html body .cf-o10-discount-badge--scale {
     align-items:center!important;
     gap:9px!important;
     color:#243044!important;
-    font-size:11.5px!important;
+    font-size: 12.5px !important;
     font-weight:750!important;
     line-height:1.2!important;
   }
@@ -23033,8 +23033,9 @@ html body .cf-o10-package-title-gradient {
 /* V510 — requested package subtitle typography */
 @media (min-width: 901px) {
   html body .cf-o10-package-ref-head p {
-    color:rgb(117,131,154)!important;
-    font-size:14px!important;
+    color: #75839a !important;
+    font-size: 15px !important;
+    margin: 3px 0 0 !important;
   }
 }
 
@@ -28571,6 +28572,15 @@ html body .cf-o10-flow25-network-icon {
   height: 17px !important;
   object-fit: contain !important;
   flex: 0 0 17px !important;
+}
+
+@media (min-width: 901px) {
+  html body .cf-o10-flow25-network-icon {
+    object-fit: contain !important;
+    flex: 0 0 17px !important;
+    width: 20px !important;
+    height: 20px !important;
+  }
 }
 
 html body .cf-o10-flow25-code {
