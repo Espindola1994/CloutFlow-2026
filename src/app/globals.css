@@ -32367,7 +32367,7 @@ html body .cf-final-copy-mobile {
   }
 
   /* PACKAGE ONLY: 15px lateral spacing isolated strictly to package step */
-  html body .cf-o10-package-panel.cf-o10-package-ref {
+  html body .cf-offer-main:has(.cf-o10-master[data-stage="package"]) {
     padding-left: 15px !important;
     padding-right: 15px !important;
   }
