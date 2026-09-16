@@ -29644,7 +29644,7 @@ html body .cf-o10-email-required {
   html body .cf-o10-panel.cf-o10-profile-panel {
     width: 100% !important;
     min-height: 0 !important;
-    padding: 18px 14px 14px !important;
+    padding: 8px 14px 14px !important;
     border-radius: 18px !important;
   }
 
@@ -32362,8 +32362,8 @@ html body .cf-final-copy-mobile {
 /* V667 — MOBILE ONLY: offer main padding + package grid spacing */
 @media (max-width: 420px) {
   html body .cf-offer-main {
-    padding-left: 4px !important;
-    padding-right: 4px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
   }
 
   /* PACKAGE ONLY: 15px lateral spacing isolated strictly to package step */
