@@ -107,3 +107,57 @@ export function formatOfferDateTime(
 
   return `${formatted} (UTC-03)`;
 }
+
+/**
+ * Formats remaining duration into US natural countdown format for offer timer badges.
+ *
+ * Rules:
+ * >= 24 hours (diffMs >= 24 * 3600 * 1000):
+ *   {days} day/days + {hours} hr/hrs
+ *   (e.g., "1 day 4 hrs", "2 days 1 hr")
+ *
+ * < 24 hours and >= 1 hour (diffMs >= 3600 * 1000):
+ *   {hours} hr/hrs + {minutes} min
+ *   (e.g., "23 hrs 59 min", "4 hrs 30 min", "1 hr 5 min")
+ *
+ * < 1 hour and >= 1 minute (diffMs >= 60 * 1000):
+ *   {minutes} min + {seconds} sec
+ *   (e.g., "59 min 42 sec", "15 min 8 sec", "1 min 5 sec")
+ *
+ * < 1 minute (diffMs < 60 * 1000):
+ *   {seconds} sec
+ *   (e.g., "45 sec", "1 sec", "0 sec")
+ *
+ * Non-positive or negative values are clamped to "0 sec".
+ */
+export function formatOfferCountdown(diffMs: number): string {
+  if (diffMs <= 0 || isNaN(diffMs)) {
+    return '0 sec';
+  }
+
+  const totalSeconds = Math.floor(diffMs / 1000);
+  const totalMinutes = Math.floor(totalSeconds / 60);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const days = Math.floor(totalHours / 24);
+
+  if (days >= 1) {
+    const remHours = totalHours % 24;
+    const dayStr = days === 1 ? '1 day' : `${days} days`;
+    const hrStr = remHours === 1 ? '1 hr' : `${remHours} hrs`;
+    return `${dayStr} ${hrStr}`;
+  }
+
+  if (totalHours >= 1) {
+    const remMinutes = totalMinutes % 60;
+    const hrStr = totalHours === 1 ? '1 hr' : `${totalHours} hrs`;
+    return `${hrStr} ${remMinutes} min`;
+  }
+
+  if (totalMinutes >= 1) {
+    const remSeconds = totalSeconds % 60;
+    return `${totalMinutes} min ${remSeconds} sec`;
+  }
+
+  return `${totalSeconds} sec`;
+}
+

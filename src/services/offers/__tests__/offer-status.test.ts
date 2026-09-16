@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getEffectiveOfferStatus, isOfferActive, formatOfferDateTime } from '../offer-status';
+import { getEffectiveOfferStatus, isOfferActive, formatOfferDateTime, formatOfferCountdown } from '../offer-status';
 import { getPostPurchaseOfferTemplate } from '@/services/lifecycle/templates.service';
 
 describe('Canonical Offer Expiration & Status Derivation', () => {
@@ -75,7 +75,106 @@ describe('Canonical Offer Expiration & Status Derivation', () => {
       expiresAt: testInstant.toISOString()
     }, { customerEmail: 'test@example.com' });
 
-    expect(template.html).toContain('Offer expires: Aug 23, 8:31 PM (UTC-03)');
+    expect(template.html).toContain(emailDisplay);
     expect(template.html).toContain('/offer/TEST25');
+  });
+
+  describe('formatOfferCountdown - US Natural Format for Countdown Badge', () => {
+    it('>= 24 hours: formats as {days} day/days + {hours} hr/hrs', () => {
+      // 28 hours = 28 * 3600 * 1000 ms -> "1 day 4 hrs"
+      const ms28h = 28 * 3600 * 1000;
+      expect(formatOfferCountdown(ms28h)).toBe('1 day 4 hrs');
+
+      // 49 hours = 49 * 3600 * 1000 ms -> "2 days 1 hr"
+      const ms49h = 49 * 3600 * 1000;
+      expect(formatOfferCountdown(ms49h)).toBe('2 days 1 hr');
+
+      // 72 hours + 8 hours = 3 days 8 hrs
+      const ms80h = (3 * 24 + 8) * 3600 * 1000;
+      expect(formatOfferCountdown(ms80h)).toBe('3 days 8 hrs');
+
+      // Exactly 24 hours = 1 day 0 hrs
+      const ms24h = 24 * 3600 * 1000;
+      expect(formatOfferCountdown(ms24h)).toBe('1 day 0 hrs');
+
+      // 48 hours = 2 days 0 hrs
+      const ms48h = 48 * 3600 * 1000;
+      expect(formatOfferCountdown(ms48h)).toBe('2 days 0 hrs');
+    });
+
+    it('< 24 hours and >= 1 hour: formats as {hours} hr/hrs + {minutes} min', () => {
+      // 23h59m
+      const ms23h59m = (23 * 3600 + 59 * 60) * 1000;
+      expect(formatOfferCountdown(ms23h59m)).toBe('23 hrs 59 min');
+
+      // 4h30m
+      const ms4h30m = (4 * 3600 + 30 * 60) * 1000;
+      expect(formatOfferCountdown(ms4h30m)).toBe('4 hrs 30 min');
+
+      // 1h05m
+      const ms1h5m = (1 * 3600 + 5 * 60) * 1000;
+      expect(formatOfferCountdown(ms1h5m)).toBe('1 hr 5 min');
+
+      // Exactly 1 hour = 1 hr 0 min
+      const ms1h = 3600 * 1000;
+      expect(formatOfferCountdown(ms1h)).toBe('1 hr 0 min');
+    });
+
+    it('< 1 hour and >= 1 minute: formats as {minutes} min + {seconds} sec', () => {
+      // 59m32s
+      const ms59m32s = (59 * 60 + 32) * 1000;
+      expect(formatOfferCountdown(ms59m32s)).toBe('59 min 32 sec');
+
+      // 15m08s
+      const ms15m8s = (15 * 60 + 8) * 1000;
+      expect(formatOfferCountdown(ms15m8s)).toBe('15 min 8 sec');
+
+      // 1m05s
+      const ms1m5s = (1 * 60 + 5) * 1000;
+      expect(formatOfferCountdown(ms1m5s)).toBe('1 min 5 sec');
+
+      // Exactly 1 minute = 1 min 0 sec
+      const ms1m = 60 * 1000;
+      expect(formatOfferCountdown(ms1m)).toBe('1 min 0 sec');
+    });
+
+    it('< 1 minute: formats as {seconds} sec', () => {
+      // 45s
+      const ms45s = 45 * 1000;
+      expect(formatOfferCountdown(ms45s)).toBe('45 sec');
+
+      // 1s
+      const ms1s = 1000;
+      expect(formatOfferCountdown(ms1s)).toBe('1 sec');
+
+      // 0s
+      expect(formatOfferCountdown(0)).toBe('0 sec');
+    });
+
+    it('handles negative or invalid values without crashing or negative numbers', () => {
+      expect(formatOfferCountdown(-5000)).toBe('0 sec');
+      expect(formatOfferCountdown(-1)).toBe('0 sec');
+      expect(formatOfferCountdown(NaN)).toBe('0 sec');
+    });
+
+    it('validates unit boundary transitions without 60 min or 60 sec', () => {
+      // Transition from 24h to 23h59m59s
+      const ms24h = 24 * 3600 * 1000;
+      expect(formatOfferCountdown(ms24h)).toBe('1 day 0 hrs');
+      const ms23h59m59s = (23 * 3600 + 59 * 60 + 59) * 1000;
+      expect(formatOfferCountdown(ms23h59m59s)).toBe('23 hrs 59 min');
+
+      // Transition from 1h to 59m59s
+      const ms1h = 3600 * 1000;
+      expect(formatOfferCountdown(ms1h)).toBe('1 hr 0 min');
+      const ms59m59s = (59 * 60 + 59) * 1000;
+      expect(formatOfferCountdown(ms59m59s)).toBe('59 min 59 sec');
+
+      // Transition from 1m to 59s
+      const ms1m = 60 * 1000;
+      expect(formatOfferCountdown(ms1m)).toBe('1 min 0 sec');
+      const ms59s = 59 * 1000;
+      expect(formatOfferCountdown(ms59s)).toBe('59 sec');
+    });
   });
 });

@@ -21640,6 +21640,8 @@ html body .cf-offer-header-new .cf-offer-brand-logo{display:block!important;widt
   html body .cf-offer-countdown-value {
     display:inline-block!important;
     min-width:34px!important;
+    width:auto!important;
+    white-space:nowrap!important;
     color:inherit!important;
     font:inherit!important;
     font-weight:800!important;
@@ -27531,6 +27533,7 @@ html body .cf-offer-header-clean .cf-offer-progress {
     font-weight:900!important;
     letter-spacing:-.045em!important;
     font-variant-numeric:tabular-nums!important;
+    white-space:nowrap!important;
   }
 
   html body .cf-timer578-divider {

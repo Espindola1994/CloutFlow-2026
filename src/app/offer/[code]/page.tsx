@@ -14,6 +14,7 @@ import { OfferPackageStage, SanitizedPackage } from '@/components/offer-experien
 import { OfferReviewStage } from '@/components/offer-experience/OfferReviewStage';
 import { OfferStatusCard, OfferValidatingCard } from '@/components/offer-experience/OfferStatusCards';
 import { OfferOption10Experience } from '@/components/offer-experience/OfferOption10Experience';
+import { formatOfferCountdown } from '@/services/offers/offer-status';
 import { buildCanonicalProfileUrl } from '@/lib/social/normalize';
 
 interface OfferData {
@@ -402,22 +403,11 @@ export default function OfferLandingPage() {
       const now = new Date().getTime();
       const diff = targetDate - now;
       if (diff <= 0) {
-        setTimeLeft('00:00');
+        setTimeLeft(formatOfferCountdown(0));
         setIsExpiredLocally(true);
         return;
       }
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      if (hours > 24) {
-        const days = Math.floor(hours / 24);
-        const remHours = hours % 24;
-        setTimeLeft(`${days}d ${remHours}h`);
-      } else if (hours > 0) {
-        setTimeLeft(`${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-      } else {
-        setTimeLeft(`${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`);
-      }
+      setTimeLeft(formatOfferCountdown(diff));
     };
     // V622 — countdown temporarily frozen at the initial rendered value.
     updateTimer();
