@@ -114,6 +114,11 @@ describe('OfferLandingPage Repeat Purchase Profile Flow', () => {
 
     render(<OfferLandingPage />);
 
+    // Initially while loading, Validating Offer should NOT be visible
+    expect(screen.queryByText('Validating Offer')).toBeNull();
+    expect(screen.queryByText('Retrieving your verified 25% repeat purchase discount...')).toBeNull();
+    expect(screen.queryByText('Secure & Verified')).toBeNull();
+
     // First renders with previous target info
     await waitFor(() => {
       expect(screen.getByText('Ready to Take Your Growth')).toBeDefined();

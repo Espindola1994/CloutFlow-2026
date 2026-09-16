@@ -915,7 +915,7 @@ export default function OfferLandingPage() {
   // LOADING STATE
   if (loading) {
     return (
-      <main className="min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-hidden font-sans">
+      <main className="cf-offer-page min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-hidden font-sans">
         <OfferHeader
           timeLeft={timeLeft}
           isExpiredLocally={isExpiredLocally}
@@ -923,10 +923,8 @@ export default function OfferLandingPage() {
           platform={targetPlatform}
           theme={currentTheme}
         />
-        <div className="flex-1 flex items-center justify-center p-4">
-          <OfferValidatingCard />
-        </div>
-</main>
+        <div className="flex-1 flex items-center justify-center p-4" aria-busy="true" />
+      </main>
     );
   }
 
