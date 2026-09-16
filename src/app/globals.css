@@ -18061,7 +18061,7 @@ body:has(.cf-fixed-plans-page) {
 .cf-o10-net-grid button>svg{position:absolute;right:4px;top:4px;width:10px;height:10px;color:#7b2cff}
 .cf-o10-search-input{height:43px;border:1px solid #dfe4ec;border-radius:10px;background:#fff;display:flex;align-items:center;gap:8px;padding:0 11px}
 .cf-o10-search-input:focus-within{border-color:#9d56ff;box-shadow:0 0 0 3px rgba(124,44,255,.08)}
-.cf-o10-search-input svg{width:15px;height:15px;color:#8995a8}
+.cf-o10-search-input svg{width:15px;height:15px;color:#8290a8}
 .cf-o10-search-input input{width:100%;border:0;outline:0;background:transparent;font-size:10.5px;color:#1d2436}
 .cf-o10-public-note{display:flex;align-items:center;gap:5px;margin-top:7px;color:#8793a7;font-size:8.5px}
 .cf-o10-public-note svg{width:11px;height:11px;color:#7b2cff}
@@ -34452,7 +34452,7 @@ html body .cf-pricing-subtitle-mobile {
   }
 
   html body .cf-o10-search-input svg {
-    color: #8995a8 !important;
+    color: #8290a8 !important;
     width: 25px !important;
     height: 25px !important;
   }

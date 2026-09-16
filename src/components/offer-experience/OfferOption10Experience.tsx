@@ -17,7 +17,6 @@ import {
   PackageCheck,
   RefreshCw,
   Rocket,
-  Search,
   ShieldCheck,
   Sparkles,
   UserRound,
@@ -586,7 +585,7 @@ export function OfferOption10Experience(props: Props) {
                             : 'Post, video or content URL'} <span className="cf-o10-email-required">(required)</span>
                       </label>
                       <div className="cf-o10-search-input">
-                        <Search />
+                        <ScanSearch />
                         <input
                           id="cf-o10-new-target-input"
                           data-clarity-mask="true"
