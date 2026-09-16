@@ -807,6 +807,8 @@ export function OfferOption10Experience(props: Props) {
             </div>
           </div>
 
+          {checkoutError && <div className="cf-o10-error" style={{ marginBottom: 16 }}>{checkoutError}</div>}
+
           <div className="cf-o10-package-ref-grid">
             {eligiblePackages.slice(0, 6).map((pkg, index) => {
               const selected = selectedPkg?.id === pkg.id;
@@ -828,7 +830,13 @@ export function OfferOption10Experience(props: Props) {
                 <article
                   key={pkg.id}
                   className={`cf-o10-package-ref-card ${selected ? 'is-selected' : ''} ${isBestValue ? 'is-best-value' : ''}`}
-                  onClick={() => onSelectPackage(pkg.id)}
+                  onClick={() => {
+                    if (typeof window !== 'undefined' && window.innerWidth <= 900) {
+                      return;
+                    }
+                    if (checkoutSubmitting) return;
+                    onSelectPackage(pkg.id);
+                  }}
                 >
                   {index === 3 && (
                     <span className="cf-o10-package-ref-best cf-o10-package-ref-best--popular">
@@ -901,171 +909,35 @@ export function OfferOption10Experience(props: Props) {
 
                   <button
                     type="button"
-                    className="cf-o10-package-ref-cta"
+                    className={`cf-o10-package-ref-cta ${checkoutSubmitting && selected ? 'is-mobile-loading' : ''}`}
+                    disabled={checkoutSubmitting}
                     onClick={(e) => {
                       e.stopPropagation();
+                      if (checkoutSubmitting) return;
                       onSelectPackage(pkg.id);
                     }}
                   >
-                    <span className="cf-o10-cta-default">
-                      Get {planQuantity.toLocaleString('en-US')} {serviceLabel} <ArrowRight />
-                    </span>
-                    <span className="cf-o10-cta-hover">
-                      Selected <Check />
-                    </span>
+                    {checkoutSubmitting && selected ? (
+                      <span className="cf-o10-cta-mobile-loading">
+                        <Loader2 className="cf-cta-spinner" />
+                        <span>Opening checkout...</span>
+                      </span>
+                    ) : (
+                      <>
+                        <span className="cf-o10-cta-default">
+                          Get {planQuantity.toLocaleString('en-US')} {serviceLabel} <ArrowRight />
+                        </span>
+                        <span className="cf-o10-cta-hover">
+                          Selected <Check />
+                        </span>
+                      </>
+                    )}
                   </button>
                 </article>
               );
             })}
           </div>
         </article>}
-
-        {flowStep === 'REVIEW' && (
-          <div className="cf-checkout3-shell">
-            <aside className="cf-checkout3-side">
-              <div className="cf-checkout3-step is-done">
-                <span className="cf-checkout3-step-circle"><Check /></span>
-                <div>
-                  <small>01</small>
-                  <strong>Profile</strong>
-                  <em>@{username}</em>
-                </div>
-              </div>
-              <span className="cf-checkout3-line" />
-
-              <div className="cf-checkout3-step is-done">
-                <span className="cf-checkout3-step-circle"><Check /></span>
-                <div>
-                  <small>02</small>
-                  <strong>Package</strong>
-                  <em>{selectedPkg ? `${selectedPkg.quantity.toLocaleString('en-US')} ${selectedPkg.service.charAt(0).toUpperCase() + selectedPkg.service.slice(1)}` : 'Growth Package'}</em>
-                </div>
-              </div>
-              <span className="cf-checkout3-line" />
-
-              <div className="cf-checkout3-step is-current">
-                <span className="cf-checkout3-step-circle">03</span>
-                <div>
-                  <strong>Checkout</strong>
-                  <em>Review & pay</em>
-                </div>
-              </div>
-
-              <div className="cf-checkout3-timer">
-                <span className="cf-checkout3-timer-icon"><Clock3 /></span>
-                <div>
-                  <strong>{timeLeft || '20:57'}</strong>
-                  <small>Offer expires in</small>
-                </div>
-              </div>
-
-              <div className="cf-checkout3-safe">
-                <span><ShieldCheck /></span>
-                <div>
-                  <strong>Safe & Secure</strong>
-                  <small>Your data is protected with bank-level encryption.</small>
-                </div>
-              </div>
-            </aside>
-
-            <main className="cf-checkout3-card">
-              <header className="cf-checkout3-title">
-                <span><ShoppingBag /></span>
-                <div>
-                  <h2>Review & checkout</h2>
-                  <p>You're ready to grow!</p>
-                </div>
-              </header>
-
-              <section className="cf-checkout3-summary">
-                <div className="cf-checkout3-summary-row">
-                  <span className="cf-checkout3-summary-icon profile">
-                    {avatar ? <img src={avatar} alt="" /> : <UserRound />}
-                  </span>
-                  <div className="cf-checkout3-summary-copy">
-                    <small>PROFILE</small>
-                    <strong>@{username}</strong>
-                  </div>
-                  <button type="button" onClick={onChangeProfile}>Change <ArrowRight /></button>
-                </div>
-
-                <div className="cf-checkout3-summary-row">
-                  <span className="cf-checkout3-summary-icon network">
-                    <Image src={selectedNetwork.icon} alt="" />
-                  </span>
-                  <div className="cf-checkout3-summary-copy">
-                    <small>PACKAGE</small>
-                    <strong>{selectedPkg?.name || '2,000 Followers'}</strong>
-                    <em>{selectedNetwork.label}</em>
-                  </div>
-                  <button type="button" onClick={() => selectedPkg && onSelectPackage(selectedPkg.id)}>Change <ArrowRight /></button>
-                </div>
-
-                <div className="cf-checkout3-summary-row">
-                  <span className="cf-checkout3-summary-icon reward"><Gift /></span>
-                  <div className="cf-checkout3-summary-copy">
-                    <small>REWARD</small>
-                    <strong>25% Repeat Reward</strong>
-                  </div>
-                  <span className="cf-checkout3-applied">Applied <Check /></span>
-                </div>
-              </section>
-
-              <section className="cf-checkout3-total">
-                <span className="cf-checkout3-total-icon"><Tag /></span>
-                <div>
-                  <small>Total</small>
-                  <strong>${selectedPkg ? ((selectedPkg.priceCents * 0.75) / 100).toFixed(2) : '0.00'}</strong>
-                </div>
-                <i />
-                <div className="save">
-                  <small>You save</small>
-                  <strong>${selectedPkg ? ((selectedPkg.priceCents * 0.25) / 100).toFixed(2) : '0.00'} (25%)</strong>
-                </div>
-                <button type="button">View details <ArrowRight /></button>
-              </section>
-
-              <button
-                type="button"
-                className="cf-checkout3-cta"
-                disabled={!selectedPkg || checkoutSubmitting || !profileReady}
-                onClick={() => selectedPkg && onExecuteCheckout(selectedPkg.id)}
-              >
-                {checkoutSubmitting
-                  ? <><Loader2 className="animate-spin" /> Preparing checkout...</>
-                  : <><LockKeyhole /> Continue to Secure Checkout <ArrowRight /></>}
-              </button>
-
-              <p className="cf-checkout3-note"><ShieldCheck /> Secure checkout. No password required.</p>
-
-              <section className="cf-checkout3-benefits">
-                <div>
-                  <span className="purple"><ShieldCheck /></span>
-                  <p><strong>100% Secure</strong><small>Bank-level encryption</small></p>
-                </div>
-                <div>
-                  <span className="blue"><LockKeyhole /></span>
-                  <p><strong>Privacy First</strong><small>We never share your data</small></p>
-                </div>
-                <div>
-                  <span className="green"><Zap /></span>
-                  <p><strong>Instant Start</strong><small>Your order will begin immediately</small></p>
-                </div>
-                <div>
-                  <span className="orange"><Headphones /></span>
-                  <p><strong>24/7 Support</strong><small>We're here to help you</small></p>
-                </div>
-              </section>
-
-              {checkoutError && <div className="cf-o10-error">{checkoutError}</div>}
-            </main>
-
-            <footer className="cf-checkout3-footer">
-              <span>© 2025 CloutFlow. All rights reserved.</span>
-              <nav><a href="/terms">Terms of Service</a><a href="/privacy">Privacy Policy</a></nav>
-            </footer>
-          </div>
-        )}
       </div>
     </section>
   );

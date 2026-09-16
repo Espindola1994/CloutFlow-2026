@@ -793,6 +793,7 @@ export default function OfferLandingPage() {
 
   const executeCheckout = async (offerId: string) => {
     if (!offerData || isExpiredLocally || !verifiedProfile) return;
+    if (checkoutSubmitting) return;
 
     if (isLocalPreview) {
       setSelectedPackageId(offerId);
@@ -824,6 +825,9 @@ export default function OfferLandingPage() {
     const resolvedTargetValue = verifiedProfile.resolvedTargetValue || (isContent ? (lookupInput.trim() || normalizedUsername) : normalizedUsername);
 
     try {
+      const sessionId = typeof window !== 'undefined' ? sessionStorage.getItem('cf_asid_v1') : null;
+      const visitorId = typeof window !== 'undefined' ? localStorage.getItem('cf_aid_v1') : null;
+
       const payload = {
         offerId,
         targetType: resolvedTargetType,
@@ -833,6 +837,8 @@ export default function OfferLandingPage() {
         profileUrl: verifiedProfile.profile_url || canonicalProfileUrl || null,
         email: customerEmail.trim() || null,
         offerCode: offerData.code,
+        sessionId: sessionId || undefined,
+        visitorId: visitorId || undefined,
       };
 
       const res = await fetch('/api/checkout/context', {
@@ -1016,7 +1022,7 @@ export default function OfferLandingPage() {
         theme={currentTheme}
       />
 
-      {isLocalPreview && flowStep !== 'REVIEW' && (
+      {isLocalPreview && (
         <div className="cf-local-preview-panel fixed right-2 xl:right-4 top-1/2 -translate-y-1/2 z-[100] max-h-[calc(100vh-24px)] opacity-70 hover:opacity-100 transition-opacity">
           <div className="cf-local-preview-card flex flex-col items-stretch gap-1.5 rounded-2xl border border-[#D8E1EF] bg-white/95 backdrop-blur-md px-2 py-2 shadow-[0_14px_40px_rgba(15,23,42,.14)] whitespace-nowrap">
             <span className="px-2 py-1 text-center text-[10px] font-black tracking-[.08em] text-[#1376FF]">LOCAL PREVIEW</span>
@@ -1136,7 +1142,10 @@ export default function OfferLandingPage() {
             setUseSavedTarget(true);
             setFlowStep('PREFILL');
           }}
-          onSelectPackage={(pkgId) => { setSelectedPackageId(pkgId); setFlowStep('REVIEW'); }}
+          onSelectPackage={(pkgId) => {
+            setSelectedPackageId(pkgId);
+            executeCheckout(pkgId);
+          }}
           onChangeProfile={() => {
             pollingRef.current.active = false;
             searchGenerationRef.current += 1;

@@ -34498,5 +34498,9 @@ html body .cf-pricing-subtitle-mobile {
     align-items: flex-start !important;
     margin: 0 0 16px !important;
   }
+
+  html body .cf-o10-error {
+    font-size: 12.5px !important;
+  }
 }
 

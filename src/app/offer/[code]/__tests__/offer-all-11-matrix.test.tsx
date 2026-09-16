@@ -327,7 +327,7 @@ describe('Offer 11-Combination Service Matrix and Checkout Resolution', () => {
         expect(screen.getByText('growth package')).toBeDefined();
       }, { timeout: 4000 });
 
-      // Find the Starter plan CTA and click to advance to REVIEW step
+      // Find the Starter plan CTA and click to directly trigger checkout
       const planCards = screen.getAllByRole('article').filter((c) => c.classList.contains('cf-o10-package-ref-card'));
       expect(planCards).toHaveLength(6);
 
@@ -341,10 +341,8 @@ describe('Offer 11-Combination Service Matrix and Checkout Resolution', () => {
       expect(starterCta).toBeDefined();
       fireEvent.click(starterCta!);
 
-      // In Step 3 (REVIEW), verify review shell appears and click Continue to Secure Checkout
-      const continueBtn = await screen.findByRole('button', { name: /Continue to Secure Checkout/i });
-      expect(continueBtn).toBeDefined();
-      fireEvent.click(continueBtn);
+      // Direct checkout: REVIEW intermediate step is completely bypassed
+      expect(screen.queryByRole('button', { name: /Continue to Secure Checkout/i })).toBeNull();
 
       await waitFor(() => {
         expect(checkoutPayloadSent).not.toBeNull();

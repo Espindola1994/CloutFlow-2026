@@ -62,17 +62,20 @@ describe('66 Identities Full CTA Checkout Context & Resolver Tests', () => {
         };
       } else {
         // likes or views: requires targetUrl
+        const isInstagramViews = item.platform === 'instagram' && item.service === 'views';
         const contentUrl = item.platform === 'youtube'
           ? 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
           : item.platform === 'twitter'
           ? 'https://x.com/user/status/123456789'
           : item.platform === 'tiktok'
           ? 'https://www.tiktok.com/@user/video/123456789'
+          : isInstagramViews
+          ? 'https://www.instagram.com/reel/C-xyz123/'
           : 'https://www.instagram.com/p/C-xyz123/';
 
         targetPayload = {
           ...targetPayload,
-          targetType: item.platform === 'youtube' || item.platform === 'tiktok' ? 'video' : 'post',
+          targetType: item.platform === 'youtube' || item.platform === 'tiktok' || isInstagramViews ? 'video' : 'post',
           targetValue: contentUrl,
           targetUrl: contentUrl,
         };
