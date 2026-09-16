@@ -32119,11 +32119,13 @@ html body .cf-final-copy-mobile {
   }
 
   html body .cf-o10-package-ref-head p {
+    order: 2 !important;
     color: #75839a !important;
-    margin: 3px 0 0 !important;
+    margin: 5px 0 0 !important;
     font-size: 12px !important;
     font-weight: 560 !important;
     line-height: 1.25 !important;
+    text-align: center !important;
   }
 
   html body .cf-plan-premium-icon img,
@@ -32148,11 +32150,44 @@ html body .cf-final-copy-mobile {
   }
 
   html body .cf-o10-package-ref-head {
-    min-height: 66px !important;
-    margin: 0 0 -14px !important;
-    padding: 0 132px 0 0 !important;
+    min-height: 0 !important;
+    margin: 0 0 18px !important;
+    padding: 0 !important;
     display: block !important;
     position: relative !important;
+    text-align: center !important;
+  }
+
+  html body .cf-o10-package-ref-head > div {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
+  html body .cf-o10-package-ref-head h2 {
+    order: 1 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    color: #111827 !important;
+    font-size: 21px !important;
+    font-weight: 850 !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.04em !important;
+    text-align: center !important;
+  }
+
+  html body .cf-o10-package-panel .cf-o10-flow25-wrap {
+    order: 3 !important;
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 12px auto 0 !important;
+    z-index: 2 !important;
   }
 
   html body .cf-o10-flow25-prefix,
@@ -32327,18 +32362,36 @@ html body .cf-final-copy-mobile {
 /* V667 — MOBILE ONLY: offer main padding + package grid spacing */
 @media (max-width: 420px) {
   html body .cf-offer-main {
-    padding-left: 60px !important;
-    padding-right: 60px !important;
+    padding-left: 4px !important;
+    padding-right: 4px !important;
   }
 }
 
 @media (max-width: 900px) {
   html body .cf-o10-package-ref-grid {
     box-sizing: border-box !important;
+    display: grid !important;
     grid-template-columns: minmax(0, 1fr) !important;
     grid-auto-flow: row !important;
     align-items: stretch !important;
+    width: min(66%, 320px) !important;
+    max-width: 320px !important;
+    inline-size: min(66%, 320px) !important;
+    max-inline-size: 320px !important;
+    min-width: min(240px, 100%) !important;
+    min-inline-size: min(240px, 100%) !important;
     gap: 12px !important;
+    margin: 0 auto !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding: 0 !important;
+  }
+
+  html body .cf-o10-package-panel .cf-o10-package-ref-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin-inline: auto !important;
   }
 }
 
@@ -32375,6 +32428,16 @@ html body .cf-final-copy-mobile {
 @media (max-width: 900px) {
   .cf-offer-page .cf-offer-main h2 {
     font-size: 16px !important;
+  }
+
+  html body .cf-offer-page .cf-o10-package-panel .cf-o10-package-ref-head h2 {
+    font-size: 21px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  html body .cf-offer-page .cf-o10-package-panel .cf-o10-package-ref-head h2 {
+    font-size: 19px !important;
   }
 }
 
