@@ -34613,7 +34613,7 @@ html body .cf-pricing-subtitle-mobile {
 
   /* 2. Goals (Followers / Likes / Views) — distribuição e espaçamento equilibrados */
   html body .cf-o10-gb-goals {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: 1.15fr 0.92fr 0.93fr !important;
     gap: 6px !important;
   }
 
