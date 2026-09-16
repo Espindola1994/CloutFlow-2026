@@ -20,10 +20,20 @@ vi.mock('next/image', () => ({
 describe('Offer 11-Combination Service Matrix and Checkout Resolution', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
+    localStorage.clear();
+    try {
+      window.history.replaceState(null, '');
+    } catch {}
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    sessionStorage.clear();
+    localStorage.clear();
+    try {
+      window.history.replaceState(null, '');
+    } catch {}
   });
 
   // Resolve all 66 packages for the mock active offer
@@ -213,6 +223,11 @@ describe('Offer 11-Combination Service Matrix and Checkout Resolution', () => {
     ];
 
     for (const tc of testCases) {
+      sessionStorage.clear();
+      try {
+        window.history.replaceState(null, '');
+      } catch {}
+
       const canonicalCards = resolveCommercialCardsForService(tc.platform, tc.service, [], 'offer_step3');
       expect(canonicalCards).toHaveLength(6);
       const selectedPlan = canonicalCards[0]; // Starter

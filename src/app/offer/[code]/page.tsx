@@ -44,6 +44,37 @@ type ServiceKey = 'followers' | 'likes' | 'views';
 
 type LocalPreviewStage = 'profile' | 'package' | 'review';
 
+/**
+ * Storage key prefix for completed offer journeys in sessionStorage.
+ * Scoped specifically to a journey ID to avoid blocking new explicit navigations to the same offer code.
+ */
+const OFFER_JOURNEY_STORAGE_PREFIX = 'cf_offer_journey_completed_';
+
+function markOfferJourneyCompleted(journeyId: string) {
+  if (typeof window === 'undefined' || !journeyId) return;
+  try {
+    sessionStorage.setItem(`${OFFER_JOURNEY_STORAGE_PREFIX}${journeyId}`, '1');
+    const currentState = window.history.state || {};
+    window.history.replaceState({ ...currentState, cfOfferJourneyCompleted: true, cfOfferJourneyId: journeyId }, '');
+  } catch {}
+}
+
+function isOfferJourneyMarkedCompleted(journeyId: string | null): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (journeyId && sessionStorage.getItem(`${OFFER_JOURNEY_STORAGE_PREFIX}${journeyId}`) === '1') {
+      return true;
+    }
+    const state = window.history.state;
+    if (state && typeof state === 'object' && state.cfOfferJourneyCompleted === true) {
+      if (!journeyId || state.cfOfferJourneyId === journeyId) {
+        return true;
+      }
+    }
+  } catch {}
+  return false;
+}
+
 const LOCAL_PREVIEW_PROFILE = {
   platform: 'instagram',
   username: 'cloutflow.preview',
@@ -156,6 +187,11 @@ export default function OfferLandingPage() {
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  // Journey Lifecycle & Navigation Isolation
+  const journeyIdRef = useRef<string>('');
+  const journeyCompletedRef = useRef<boolean>(false);
+  const [isJourneyEnded, setIsJourneyEnded] = useState<boolean>(false);
+
   // Timer
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [isExpiredLocally, setIsExpiredLocally] = useState(false);
@@ -164,6 +200,97 @@ export default function OfferLandingPage() {
   const [validationTransitionProgress, setValidationTransitionProgress] = useState(0);
   const validationTransitionTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const validationTransitionDoneRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Initialize journey lifecycle on mount, handle BFCache pageshow & popstate
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Detect navigation type if supported by PerformanceNavigationTiming
+    let navType = 'navigate';
+    try {
+      const navEntries = performance.getEntriesByType('navigation');
+      if (navEntries && navEntries.length > 0) {
+        navType = (navEntries[0] as PerformanceNavigationTiming).type;
+      } else if (performance.navigation) {
+        navType = performance.navigation.type === 2 ? 'back_forward' : performance.navigation.type === 1 ? 'reload' : 'navigate';
+      }
+    } catch {}
+
+    const state = window.history.state;
+    const existingJourneyId = state && typeof state === 'object' ? state.cfOfferJourneyId : null;
+
+    // If returning via back/forward and this entry was completed, block restoration
+    if (navType === 'back_forward' && (isOfferJourneyMarkedCompleted(existingJourneyId) || state?.cfOfferJourneyCompleted)) {
+      journeyCompletedRef.current = true;
+      setIsJourneyEnded(true);
+      return;
+    }
+
+    // Check if current history state or sessionStorage already marked this journey as completed
+    if (existingJourneyId && (isOfferJourneyMarkedCompleted(existingJourneyId) || state?.cfOfferJourneyCompleted)) {
+      journeyCompletedRef.current = true;
+      setIsJourneyEnded(true);
+      return;
+    }
+
+    // Assign a fresh journey ID for a new navigation, or preserve current one for reload
+    if (!existingJourneyId || (navType === 'navigate' && !state?.cfOfferJourneyCompleted)) {
+      const freshJourneyId = `oj_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+      journeyIdRef.current = freshJourneyId;
+      try {
+        window.history.replaceState(
+          { ...(state && typeof state === 'object' ? state : {}), cfOfferJourneyId: freshJourneyId, cfOfferJourneyCompleted: false },
+          ''
+        );
+      } catch {}
+    } else {
+      journeyIdRef.current = existingJourneyId;
+      if (isOfferJourneyMarkedCompleted(existingJourneyId) || state?.cfOfferJourneyCompleted) {
+        journeyCompletedRef.current = true;
+        setIsJourneyEnded(true);
+        return;
+      }
+    }
+
+    // BFCache (Safari/iOS and Chrome back/forward cache) listener
+    const handlePageShow = (event: PageTransitionEvent) => {
+      const currentState = window.history.state;
+      const currentJourneyId = currentState?.cfOfferJourneyId || journeyIdRef.current;
+      if (
+        event.persisted ||
+        journeyCompletedRef.current ||
+        isOfferJourneyMarkedCompleted(currentJourneyId) ||
+        currentState?.cfOfferJourneyCompleted
+      ) {
+        if (journeyCompletedRef.current || isOfferJourneyMarkedCompleted(currentJourneyId) || currentState?.cfOfferJourneyCompleted) {
+          journeyCompletedRef.current = true;
+          setIsJourneyEnded(true);
+        }
+      }
+    };
+
+    // Popstate listener (when user traverses history)
+    const handlePopState = (event: PopStateEvent) => {
+      const poppedState = event.state;
+      const poppedJourneyId = poppedState?.cfOfferJourneyId || journeyIdRef.current;
+      if (
+        journeyCompletedRef.current ||
+        poppedState?.cfOfferJourneyCompleted ||
+        isOfferJourneyMarkedCompleted(poppedJourneyId)
+      ) {
+        journeyCompletedRef.current = true;
+        setIsJourneyEnded(true);
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
 
   const fetchOffer = useCallback(async () => {
     if (!code) return;
@@ -849,7 +976,20 @@ export default function OfferLandingPage() {
 
       const json = await res.json();
       if (res.ok && json.success && json.data?.checkoutUrl) {
-        window.location.href = json.data.checkoutUrl;
+        // Mark current journey as completed prior to redirection so history back cannot restore it
+        const currentJourneyId = journeyIdRef.current;
+        journeyCompletedRef.current = true;
+        markOfferJourneyCompleted(currentJourneyId);
+
+        // Terminate journey in local state as well
+        setIsJourneyEnded(true);
+
+        // Perform external navigation via location replace to avoid creating a new forward history entry for /offer
+        if (typeof window.location.replace === 'function') {
+          window.location.replace(json.data.checkoutUrl);
+        } else {
+          window.location.href = json.data.checkoutUrl;
+        }
       } else {
         setCheckoutError(json.error?.message || 'Unable to prepare checkout. Please try again.');
         setCheckoutSubmitting(false);
@@ -930,6 +1070,27 @@ export default function OfferLandingPage() {
           theme={currentTheme}
         />
         <div className="flex-1 flex items-center justify-center p-4" aria-busy="true" />
+      </main>
+    );
+  }
+
+  // TERMINATED / ENDED JOURNEY STATE (e.g. user pressed Back after initiating external checkout)
+  if (isJourneyEnded) {
+    return (
+      <main className="min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-hidden font-sans">
+        <OfferHeader
+          timeLeft={null}
+          isExpiredLocally={true}
+          currentStepNum={1}
+          platform={targetPlatform}
+          theme={currentTheme}
+        />
+        <div className="flex-1 flex items-center justify-center p-4">
+          <OfferStatusCard
+            title="Session Completed"
+            description="Your previous offer checkout session has ended. To start a new session, please reopen your original link from your email."
+          />
+        </div>
       </main>
     );
   }

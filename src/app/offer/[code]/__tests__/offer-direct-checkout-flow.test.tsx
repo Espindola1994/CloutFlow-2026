@@ -19,10 +19,20 @@ vi.mock('next/image', () => ({
 describe('Offer Direct Checkout E2E: No REVIEW Step, Double-Click Protection, and Exact Target Preservation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    sessionStorage.clear();
+    localStorage.clear();
+    try {
+      window.history.replaceState(null, '');
+    } catch {}
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+    sessionStorage.clear();
+    localStorage.clear();
+    try {
+      window.history.replaceState(null, '');
+    } catch {}
   });
 
   const all66Packages = (['instagram', 'tiktok', 'twitter', 'youtube'] as CommercialPlatform[]).flatMap((plat) => {
