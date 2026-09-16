@@ -12,6 +12,14 @@ vi.mock('next/image', () => ({
 }));
 
 describe('HomePage E2E DOM Interaction & Checkout Flow for TikTok, Twitter, YouTube and Instagram', () => {
+  it('renders UTMify pixel loader script element with correct attributes and id', () => {
+    const { container } = render(<HomePage initialPlatform="instagram" initialService="followers" />);
+    const scriptEl = container.querySelector('#utmify-pixel-loader') || document.getElementById('utmify-pixel-loader') || document.querySelector('script[data-nscript]');
+    // next/script in test environment or custom script container
+    const scripts = document.querySelectorAll('script');
+    const utmifyScript = Array.from(scripts).find(s => s.id === 'utmify-pixel-loader' || s.innerHTML.includes('f_r2n'));
+    expect(utmifyScript).toBeDefined();
+  });
   beforeEach(() => {
     useFunnelStore.getState().reset();
     window.sessionStorage.clear();
