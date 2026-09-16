@@ -719,8 +719,11 @@ export function OfferOption10Experience(props: Props) {
                   {previousTarget && !verifiedProfile && (
                     <div className="cf-o10-gb-helper cf-o10-gb-auto-helper">
                       <ShieldCheck />
-                      <span>
+                      <span className="cf-o10-gb-helper-text-desktop">
                         Last purchase restored: @{username} · {targetService} · {NETWORKS.find((n) => n.key === targetPlatform)?.label || targetPlatform}. You can change the email before continuing.
+                      </span>
+                      <span className="cf-o10-gb-helper-text-mobile">
+                        Last purchase restored. You can change the email before continuing.
                       </span>
                     </div>
                   )}
@@ -731,7 +734,10 @@ export function OfferOption10Experience(props: Props) {
                     <span className="cf-o10-gb-num">3</span>
                     <div>
                       <h2>Analyze profile</h2>
-                      <p>We'll fetch public data and confirm your profile.</p>
+                      <p>
+                        <span className="cf-o10-gb-analyze-sub-desktop">We'll fetch public data and confirm your profile.</span>
+                        <span className="cf-o10-gb-analyze-sub-mobile">We'll confirm your public profile.</span>
+                      </p>
                     </div>
                   </div>
 

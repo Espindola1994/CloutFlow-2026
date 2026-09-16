@@ -29038,6 +29038,16 @@ html body .cf-o10-email-required {
   font-weight: 700 !important;
 }
 
+/* Offer Option 10 responsive text switches (desktop default: show desktop copy, hide mobile copy) */
+.cf-o10-gb-helper-text-desktop,
+.cf-o10-gb-analyze-sub-desktop {
+  display: inline;
+}
+.cf-o10-gb-helper-text-mobile,
+.cf-o10-gb-analyze-sub-mobile {
+  display: none;
+}
+
 
 /* ==========================================================================
    V616 — TRUE MOBILE DESKTOP CLONE
@@ -29636,8 +29646,8 @@ html body .cf-o10-email-required {
   }
 
   html body .cf-o10-profile-hero-row {
-    height: 142px !important;
-    min-height: 142px !important;
+    height: 148px !important;
+    min-height: 148px !important;
     grid-template-columns: minmax(0,1fr) 132px !important;
     gap: 4px !important;
     align-items: start !important;
@@ -29715,7 +29725,7 @@ html body .cf-o10-email-required {
   }
 
   html body .cf-o10-gb-goal-card strong {
-    font-size: 12px !important;
+    font-size: 12.5px !important;
   }
 
   html body .cf-o10-gb-networks {
@@ -29781,6 +29791,16 @@ html body .cf-o10-email-required {
     margin-top: 8px !important;
     font-size: 10.5px !important;
     line-height: 1.35 !important;
+  }
+
+  html body .cf-o10-gb-helper-text-desktop,
+  html body .cf-o10-gb-analyze-sub-desktop {
+    display: none !important;
+  }
+
+  html body .cf-o10-gb-helper-text-mobile,
+  html body .cf-o10-gb-analyze-sub-mobile {
+    display: inline !important;
   }
 
   html body .cf-o10-gb-analyze-section {
@@ -31401,7 +31421,7 @@ html body .cf-o10-email-required {
   /* Actual Offer goal labels, equivalent mobile presentation */
   html body .cf-o10-gb-goal-card > strong {
     color: #172033 !important;
-    font-size: 12px !important;
+    font-size: 12.5px !important;
   }
 }
 
