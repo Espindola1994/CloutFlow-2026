@@ -27713,8 +27713,8 @@ html body .cf-offer-header-clean .cf-offer-progress {
   }
 
   html body .cf-timer579-hourglass svg {
-    width: 28px !important;
-    height: 28px !important;
+    width: 31px !important;
+    height: 31px !important;
     display: block !important;
   }
 }
@@ -29702,9 +29702,9 @@ html body .cf-o10-email-required {
   }
 
   html body .cf-o10-gb-goal-card {
-    height: 56px !important;
+    height: 46px !important;
     padding: 7px 8px !important;
-    gap: 7px !important;
+    gap: 4px !important;
     border-radius: 11px !important;
   }
 
@@ -30910,7 +30910,7 @@ html body .cf-o10-email-required {
   }
 
   html body .cf-o10-gb-head p {
-    font-size: 12px !important;
+    font-size: 13px !important;
   }
 
   html body .cf-o10-goal-builder {
@@ -30984,7 +30984,7 @@ html body .cf-o10-email-required {
 
   html body .cf-timer578-copy strong {
     color: #59677f !important;
-    font-size: 16px !important;
+    font-size: 18px !important;
     font-weight: 850 !important;
   }
 }
@@ -31344,7 +31344,7 @@ html body .cf-o10-email-required {
 
 @media (max-width: 420px) {
   html body .cf-o10-gb-network > strong {
-    font-size: 11.5px !important;
+    font-size: 12.5px !important;
   }
 }
 
@@ -31363,7 +31363,7 @@ html body .cf-o10-email-required {
 
   /* Actual Offer hero copy */
   html body .cf-o10-profile-hero-row p {
-    font-size: 13px !important;
+    font-size: 13.5px !important;
   }
 
   /* Actual restored-profile secondary label */
@@ -32351,7 +32351,7 @@ html body .cf-final-copy-mobile {
 /* V670 — MOBILE ONLY: offer main h2 */
 @media (max-width: 900px) {
   .cf-offer-page .cf-offer-main h2 {
-    font-size: 17px !important;
+    font-size: 16px !important;
   }
 }
 
