@@ -151,7 +151,7 @@ export function PublicPwaInstallBanner() {
       >
         <div className="max-w-4xl mx-auto flex items-center justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-9 h-9 rounded-xl bg-linear-to-br from-[#1E294B] to-[#0A0D18] border border-white/10 flex items-center justify-center shrink-0 shadow-inner overflow-hidden p-1">
+            <div className="w-9 h-9 rounded-xl bg-white border border-white/10 flex items-center justify-center shrink-0 shadow-inner overflow-hidden p-1">
               <Image
                 src="/icon-192.png"
                 alt="CloutFlow App"
