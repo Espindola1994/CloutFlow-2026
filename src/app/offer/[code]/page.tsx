@@ -981,8 +981,10 @@ export default function OfferLandingPage() {
         journeyCompletedRef.current = true;
         markOfferJourneyCompleted(currentJourneyId);
 
-        // Terminate journey in local state as well
-        setIsJourneyEnded(true);
+        // Keep visual PACKAGE state with checkoutSubmitting loading active.
+        // DO NOT call setIsJourneyEnded(true) here, as that causes an immediate React re-render
+        // of "Session Completed" right before window.location.replace, creating an unwanted visual flash.
+        // Back/BFCache/popstate restoration handlers will invoke setIsJourneyEnded(true) if the user returns.
 
         // Perform external navigation via location replace to avoid creating a new forward history entry for /offer
         if (typeof window.location.replace === 'function') {

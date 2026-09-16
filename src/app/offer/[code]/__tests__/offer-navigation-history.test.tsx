@@ -85,7 +85,7 @@ describe('Offer Navigation & Journey Termination: History, Replace, BFCache & Ba
     resolvedTargetUrl: 'https://instagram.com/history_user',
   };
 
-  it('1. Successful checkout uses window.location.replace (not push or href assignment), marks journey completed in sessionStorage and history.state', async () => {
+  it('1. Successful checkout uses window.location.replace, marks journey completed internally, keeps PACKAGE/loading visible without flashing Session Completed before navigation', async () => {
     const replaceMock = vi.fn();
     const originalLocation = window.location;
 
@@ -168,8 +168,16 @@ describe('Offer Navigation & Journey Termination: History, Replace, BFCache & Ba
     // Check history.state has cfOfferJourneyCompleted: true
     expect(window.history.state?.cfOfferJourneyCompleted).toBe(true);
 
-    // Verify UI switched to Session Completed state
-    expect(screen.getByText('Session Completed')).toBeDefined();
+    // CRITICAL: Verify UI does NOT flash "Session Completed", "Offer Expired", "Offer Unavailable", or "REVIEW" before/during navigation
+    expect(screen.queryByText('Session Completed')).toBeNull();
+    expect(screen.queryByText('Offer Expired')).toBeNull();
+    expect(screen.queryByText('Offer Unavailable')).toBeNull();
+    expect(screen.queryByText('Review & checkout')).toBeNull();
+    expect(screen.queryByText('Continue to Secure Checkout')).toBeNull();
+
+    // The user continues to see PACKAGE with active loading/submitting state
+    expect(screen.getByText('growth package')).toBeDefined();
+    expect(starterCta.textContent).toContain('Opening checkout...');
 
     // Restore window.location
     window.location = originalLocation as any;
