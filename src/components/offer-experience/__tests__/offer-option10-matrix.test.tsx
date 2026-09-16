@@ -72,4 +72,34 @@ describe('OfferOption10Experience - YouTube Service Matrix Rules', () => {
     expect(screen.getByText('Likes')).toBeDefined();
     expect(screen.getByText('Views')).toBeDefined();
   });
+
+  it('5. Immediate visual feedback on Network change', () => {
+    const setTargetPlatform = vi.fn();
+    render(<OfferOption10Experience {...baseProps} targetPlatform="instagram" setTargetPlatform={setTargetPlatform} />);
+
+    const tiktokBtn = screen.getByRole('button', { name: /tiktok/i });
+    expect(tiktokBtn.getAttribute('aria-pressed')).toBe('false');
+
+    fireEvent.click(tiktokBtn);
+
+    // Visual selection updates immediately via local state
+    expect(tiktokBtn.getAttribute('aria-pressed')).toBe('true');
+    expect(tiktokBtn.className).toContain('is-active');
+    expect(setTargetPlatform).toHaveBeenCalledWith('tiktok');
+  });
+
+  it('6. Immediate visual feedback on Service/Goal change', () => {
+    const setTargetService = vi.fn();
+    render(<OfferOption10Experience {...baseProps} targetPlatform="instagram" targetService="followers" setTargetService={setTargetService} />);
+
+    const likesBtn = screen.getByRole('button', { name: /likes/i });
+    expect(likesBtn.getAttribute('aria-pressed')).toBe('false');
+
+    fireEvent.click(likesBtn);
+
+    // Visual selection updates immediately
+    expect(likesBtn.getAttribute('aria-pressed')).toBe('true');
+    expect(likesBtn.className).toContain('is-active');
+    expect(setTargetService).toHaveBeenCalledWith('likes');
+  });
 });

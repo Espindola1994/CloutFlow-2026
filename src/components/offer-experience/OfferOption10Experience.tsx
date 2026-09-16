@@ -107,12 +107,17 @@ const avatarFrom = (profile: any, fallback?: string | null) =>
 
 export function OfferOption10Experience(props: Props) {
   const [cfCouponCopied, setCfCouponCopied] = useState(false);
+  const [selectedNetworkKey, setSelectedNetworkKey] = useState<PlatformKey>(props.targetPlatform);
   const [cfGoalSelection, setCfGoalSelection] = useState<ServiceKey>(props.targetService);
   const [cfAnalyzeProgress, setCfAnalyzeProgress] = useState(0);
   const [cfIsAnalyzing, setCfIsAnalyzing] = useState(false);
   const cfAnalyzeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const cfAnalyzeSavedFlowRef = useRef(false);
   const cfAnalyzeCompletedRef = useRef(false);
+
+  useEffect(() => {
+    setSelectedNetworkKey(props.targetPlatform);
+  }, [props.targetPlatform]);
 
   useEffect(() => {
     setCfGoalSelection(props.targetService);
@@ -203,13 +208,13 @@ export function OfferOption10Experience(props: Props) {
   };
 
   const handleNetworkSelection = (plat: PlatformKey) => {
-    setTargetPlatform(plat);
+    setSelectedNetworkKey(plat);
     const validServices = PLATFORM_SERVICES[plat as CommercialPlatform] || ['followers', 'likes', 'views'];
     if (!validServices.includes(targetService as CommercialService)) {
       const safe = validServices[0] as ServiceKey;
       setCfGoalSelection(safe);
-      setTargetService(safe);
     }
+    setTargetPlatform(plat);
   };
 
 
@@ -426,7 +431,6 @@ export function OfferOption10Experience(props: Props) {
                             data-platform={targetPlatform}
                             aria-pressed={cfGoalSelection === 'followers'}
                             onClick={() => cfSelectGoal('followers')}
-                            onTouchEnd={() => cfSelectGoal('followers')}
                             className={`cf-o10-gb-goal-card ${cfGoalSelection === 'followers' ? 'is-active' : ''}`}
                           >
                             <span className="cf-o10-gb-goal-icon cf-o10-gb-goal-icon-reference"><img src={`/offer/goal-followers-${targetPlatform}.png`} alt="" /></span>
@@ -444,7 +448,6 @@ export function OfferOption10Experience(props: Props) {
                             data-platform={targetPlatform}
                             aria-pressed={cfGoalSelection === 'likes'}
                             onClick={() => cfSelectGoal('likes')}
-                            onTouchEnd={() => cfSelectGoal('likes')}
                             className={`cf-o10-gb-goal-card ${cfGoalSelection === 'likes' ? 'is-active' : ''}`}
                           >
                             <span className="cf-o10-gb-goal-icon cf-o10-gb-goal-icon-reference"><img src={`/offer/goal-likes-${targetPlatform}.png`} alt="" /></span>
@@ -462,7 +465,6 @@ export function OfferOption10Experience(props: Props) {
                             data-platform={targetPlatform}
                             aria-pressed={cfGoalSelection === 'views'}
                             onClick={() => cfSelectGoal('views')}
-                            onTouchEnd={() => cfSelectGoal('views')}
                             className={`cf-o10-gb-goal-card ${cfGoalSelection === 'views' ? 'is-active' : ''}`}
                           >
                             <span className="cf-o10-gb-goal-icon cf-o10-gb-goal-icon-reference"><img src={`/offer/goal-views-${targetPlatform}.png`} alt="" /></span>
@@ -486,22 +488,25 @@ export function OfferOption10Experience(props: Props) {
                   </div>
 
                   <div className="cf-o10-gb-networks">
-                    {NETWORKS.map((network) => (
-                      <button
-                        key={network.key}
-                        type="button"
-                        data-network={network.key}
-                        aria-pressed={targetPlatform === network.key}
-                        onClick={() => {
-                          handleNetworkSelection(network.key);
-                        }}
-                        className={`cf-o10-gb-network ${targetPlatform === network.key ? 'is-active' : ''}`}
-                      >
-                        <span><Image src={network.icon} alt="" width={25} height={25} /></span>
-                        <strong>{network.key === 'twitter' ? 'X (Twitter)' : network.label}</strong>
-                        {targetPlatform === network.key && <b className="cf-o10-gb-check"><Check /></b>}
-                      </button>
-                    ))}
+                    {NETWORKS.map((network) => {
+                      const isSelected = selectedNetworkKey === network.key;
+                      return (
+                        <button
+                          key={network.key}
+                          type="button"
+                          data-network={network.key}
+                          aria-pressed={isSelected}
+                          onClick={() => {
+                            handleNetworkSelection(network.key);
+                          }}
+                          className={`cf-o10-gb-network ${isSelected ? 'is-active' : ''}`}
+                        >
+                          <span><Image src={network.icon} alt="" width={25} height={25} /></span>
+                          <strong>{network.key === 'twitter' ? 'X (Twitter)' : network.label}</strong>
+                          {isSelected && <b className="cf-o10-gb-check"><Check /></b>}
+                        </button>
+                      );
+                    })}
                   </div>
 
                   {previousTarget && !verifiedProfile && (
@@ -672,7 +677,7 @@ export function OfferOption10Experience(props: Props) {
                   )}
 
                   <label className="cf-o10-gb-field-label">Email <span className="cf-o10-email-required">(required)</span></label>
-                  <div className="cf-o10-gb-linked-row">
+                  <div className={`cf-o10-gb-linked-row ${!previousTarget ? 'is-unlinked' : ''}`}>
                     <div className="cf-o10-gb-input cf-o10-gb-linked-input">
                       <Mail />
                       <input
