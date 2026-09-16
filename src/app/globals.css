@@ -34524,3 +34524,48 @@ html body .cf-pricing-subtitle-mobile {
   }
 }
 
+/* =====================================================================
+   AJUSTES VISUAIS /OFFER — MOBILE ONLY (<= 900px)
+   1. Esconder "Linked" no mobile liberando largura total para o email
+   2. Ajustar espaçamento dos cards de Goals (Followers/Likes/Views)
+   3. Ajustar distribuição dos cards de Networks (Instagram sem corte)
+   Desktop (>= 901px), tipografia, ícones e funcionalidades 100% intactos.
+   ===================================================================== */
+@media (max-width: 900px) {
+  /* 1. Esconde visualmente o badge 'Linked' e libera 100% da largura para o email */
+  html body .cf-o10-gb-linked-input em {
+    display: none !important;
+  }
+
+  /* 2. Goals (Followers / Likes / Views) — distribuição e espaçamento equilibrados */
+  html body .cf-o10-gb-goals {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  html body .cf-o10-gb-goal-card {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+    gap: 3px !important;
+  }
+
+  /* 3. Networks (Instagram / TikTok / YouTube / X) — 4 em uma linha, sem corte em 'Instagram' */
+  html body .cf-o10-gb-networks {
+    grid-template-columns: 1.14fr 0.90fr 0.96fr 1.10fr !important;
+    gap: 5px !important;
+  }
+
+  html body .cf-o10-gb-network {
+    padding-left: 2px !important;
+    padding-right: 2px !important;
+  }
+
+  html body .cf-o10-gb-network > strong {
+    width: auto !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    text-overflow: clip !important;
+  }
+}
+
+
