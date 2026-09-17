@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import { Download, X, Share, PlusSquare, Smartphone, Check } from "lucide-react";
+import { detectPlatform } from "@/lib/platform";
 
 const DISMISS_KEY = "cf_pwa_public_dismissed_v1";
 
@@ -15,6 +16,7 @@ export function PublicPwaInstallBanner() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isStandalone, setIsStandalone] = useState<boolean>(false);
   const [isIos, setIsIos] = useState<boolean>(false);
+  const [isIosPlatform, setIsIosPlatform] = useState<boolean>(false);
   const [showIosModal, setShowIosModal] = useState<boolean>(false);
   const [isDismissed, setIsDismissed] = useState<boolean>(true); // start true until mounted & checked
   const [mounted, setMounted] = useState<boolean>(false);
@@ -55,6 +57,13 @@ export function PublicPwaInstallBanner() {
     const isIosDevice = /iphone|ipad|ipod/.test(ua);
     const isSafari = /safari/.test(ua) && !/chrome|crios|fxios|edgios|android/.test(ua);
     setIsIos(isIosDevice && isSafari);
+
+    // Platform detection: iPhone/iPod via detectPlatform and html.cf-platform-ios
+    const platform = detectPlatform(window.navigator.userAgent, window.navigator.maxTouchPoints || 0);
+    const hasIosHtmlClass =
+      typeof document !== "undefined" &&
+      document.documentElement.classList.contains("cf-platform-ios");
+    setIsIosPlatform(platform.isIos || hasIosHtmlClass);
 
     // Check if user came from Admin Settings with ?install=public
     if (typeof window !== "undefined") {
@@ -165,7 +174,9 @@ export function PublicPwaInstallBanner() {
                 CloutFlow App
               </div>
               <div className="text-[11px] text-[#8E9BB5] truncate">
-                Get faster access to your profiles, plans and purchases.
+                {isIosPlatform
+                  ? "Grow faster with CloutFlow"
+                  : "Get faster access to your profiles, plans and purchases."}
               </div>
             </div>
           </div>

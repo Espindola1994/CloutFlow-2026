@@ -70,6 +70,7 @@ describe("PublicPwaInstallBanner — UI 5.7.1 Dual PWA", () => {
     expect(screen.getByTestId("public-pwa-banner")).toBeDefined();
     expect(screen.getByText("CloutFlow App")).toBeDefined();
     expect(screen.getByText("Get faster access to your profiles, plans and purchases.")).toBeDefined();
+    expect(screen.queryByText("Grow faster with CloutFlow")).toBeNull();
   });
 
   it("4. clicking Install on Android/Chrome triggers native beforeinstallprompt", async () => {
@@ -109,7 +110,7 @@ describe("PublicPwaInstallBanner — UI 5.7.1 Dual PWA", () => {
     expect(sessionStorage.getItem("cf_pwa_public_dismissed_v1")).toBe("true");
   });
 
-  it("6. renders banner on iOS Safari without beforeinstallprompt", () => {
+  it("6. renders banner on iOS Safari without beforeinstallprompt with iOS-exclusive copy", () => {
     Object.defineProperty(window.navigator, "userAgent", {
       value: "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
       configurable: true,
@@ -119,6 +120,10 @@ describe("PublicPwaInstallBanner — UI 5.7.1 Dual PWA", () => {
 
     expect(screen.getByTestId("public-pwa-banner")).toBeDefined();
     expect(screen.getByText("CloutFlow App")).toBeDefined();
+    expect(screen.getByText("Grow faster with CloutFlow")).toBeDefined();
+    expect(
+      screen.queryByText("Get faster access to your profiles, plans and purchases.")
+    ).toBeNull();
   });
 
   it("7. clicking Install on iOS Safari opens instructions modal for Add to Home Screen", () => {
@@ -152,5 +157,47 @@ describe("PublicPwaInstallBanner — UI 5.7.1 Dual PWA", () => {
 
     fireEvent.click(screen.getByTestId("ios-install-got-it"));
     expect(screen.queryByTestId("ios-install-modal")).toBeNull();
+  });
+
+  it("9. Android User Agent renders original copy and never iOS copy", () => {
+    Object.defineProperty(window.navigator, "userAgent", {
+      value: "Mozilla/5.0 (Linux; Android 14; 2311DRK48G) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.230 Mobile Safari/537.36",
+      configurable: true,
+    });
+
+    render(<PublicPwaInstallBanner />);
+
+    const event = new Event("beforeinstallprompt");
+    Object.assign(event, {
+      prompt: vi.fn().mockResolvedValue(undefined),
+      userChoice: Promise.resolve({ outcome: "accepted", platform: "web" }),
+    });
+    fireEvent(window, event);
+
+    expect(screen.getByTestId("public-pwa-banner")).toBeDefined();
+    expect(screen.getByText("CloutFlow App")).toBeDefined();
+    expect(screen.getByText("Get faster access to your profiles, plans and purchases.")).toBeDefined();
+    expect(screen.queryByText("Grow faster with CloutFlow")).toBeNull();
+  });
+
+  it("10. Desktop User Agent renders original copy and never iOS copy", () => {
+    Object.defineProperty(window.navigator, "userAgent", {
+      value: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      configurable: true,
+    });
+
+    render(<PublicPwaInstallBanner />);
+
+    const event = new Event("beforeinstallprompt");
+    Object.assign(event, {
+      prompt: vi.fn().mockResolvedValue(undefined),
+      userChoice: Promise.resolve({ outcome: "accepted", platform: "web" }),
+    });
+    fireEvent(window, event);
+
+    expect(screen.getByTestId("public-pwa-banner")).toBeDefined();
+    expect(screen.getByText("CloutFlow App")).toBeDefined();
+    expect(screen.getByText("Get faster access to your profiles, plans and purchases.")).toBeDefined();
+    expect(screen.queryByText("Grow faster with CloutFlow")).toBeNull();
   });
 });
