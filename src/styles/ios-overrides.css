@@ -833,7 +833,7 @@
   }
 
   html.cf-platform-ios body .cf-premium-builder-result.cf-pb-result-analyzing .cf-pb-progress b {
-    font-size: 12px !important;
+    font-size: 11px !important;
   }
 
   html.cf-platform-ios body .cf-premium-builder-result.cf-pb-result-analyzing .cf-pb-statuses > div {
