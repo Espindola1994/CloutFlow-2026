@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { inter } from "@/lib/fonts";
 import "./globals.css";
+import "@/styles/ios-overrides.css";
 import { Toaster } from "@/components/ui/sonner";
 import { DesktopSmoothScroll } from "@/components/DesktopSmoothScroll";
 import ClarityProvider from "@/components/analytics/ClarityProvider";
 import PresenceHeartbeat from "@/components/analytics/PresenceHeartbeat";
 import { DiagnosticsConditionalMount } from "@/components/diagnostics/DiagnosticsConditionalMount";
+import { PlatformBootstrapScript } from "@/components/platform/PlatformBootstrapScript";
 
 
 export const viewport: Viewport = {
@@ -56,7 +58,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`dark ${inter.variable}`}>
+    <html lang="en" className={`dark ${inter.variable}`} suppressHydrationWarning>
+      <head>
+        <PlatformBootstrapScript />
+      </head>
       <body className={`${inter.className} font-sans antialiased bg-background text-foreground min-h-screen selection:bg-primary/30 selection:text-primary-foreground`}>
         <ClarityProvider />
         <PresenceHeartbeat />

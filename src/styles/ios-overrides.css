@@ -1,0 +1,38 @@
+/**
+ * CloutFlow iPhone/iOS Platform Overrides Layer
+ *
+ * PHASE 3B: INFRASTRUCTURE ONLY — NEUTRAL FILE.
+ *
+ * This file serves as the canonical location for future iPhone-exclusive visual overrides.
+ * It contains NO VISUAL OVERRIDES in Phase 3B.
+ *
+ * RULES FOR FUTURE OVERRIDES (Phase 3C+):
+ * 1. Scope all rules under `html.cf-platform-ios` or `.cf-platform-ios`.
+ *    Example:
+ *    html.cf-platform-ios .my-selector {
+ *      font-size: 16px;
+ *    }
+ *
+ * 2. Scope combined with responsive width when targeting specific iPhone sizes:
+ *    @media (max-width: 390px) {
+ *      html.cf-platform-ios .my-selector { ... }
+ *    }
+ *    @media (min-width: 391px) and (max-width: 430px) {
+ *      html.cf-platform-ios .my-selector { ... }
+ *    }
+ *
+ * 3. NEVER apply rules to Android or Desktop. They do not have `cf-platform-ios`.
+ * 4. NEVER apply storefront iPhone overrides to Admin.
+ *    Any rule that might conflict must exclude `.cloutflow-admin` or stay scoped to storefront components:
+ *    html.cf-platform-ios:not(:has(.cloutflow-admin)) .storefront-selector { ... }
+ *    or explicitly target storefront containers.
+ *
+ * 5. Specificity & Cascade Note:
+ *    `globals.css` contains some existing `!important` declarations.
+ *    When overriding such rules in Phase 3C+, use:
+ *    `html.cf-platform-ios body .selector { ... !important; }`
+ *    Because `ios-overrides.css` is imported after other rules or loaded in the document cascade,
+ *    an equal-or-higher-specificity rule will cleanly take precedence.
+ *
+ * DO NOT ADD ANY ACTIVE CSS OVERRIDES IN THIS FILE DURING PHASE 3B.
+ */
