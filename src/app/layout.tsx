@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { inter } from "@/lib/fonts";
 import "./globals.css";
-import "@/styles/ios-overrides.css";
+import "@/styles/platform/ios-storefront.css";
 import { Toaster } from "@/components/ui/sonner";
 import { DesktopSmoothScroll } from "@/components/DesktopSmoothScroll";
 import ClarityProvider from "@/components/analytics/ClarityProvider";
