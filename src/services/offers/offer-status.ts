@@ -161,3 +161,28 @@ export function formatOfferCountdown(diffMs: number): string {
   return `${totalSeconds} sec`;
 }
 
+/**
+ * Formats an offer's expiration timestamp into US 12-hour clock format (e.g., "5:10 PM", "9:35 AM").
+ * Uses the client/browser's local timezone by default, unless explicitly overridden (useful for deterministic tests).
+ */
+export function formatOfferExpirationClock(
+  dateInput: Date | string | null | undefined,
+  timeZone?: string
+): string | null {
+  if (!dateInput) return null;
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
+  if (isNaN(date.getTime())) return null;
+
+  const options: Intl.DateTimeFormatOptions = {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  };
+
+  if (timeZone) {
+    options.timeZone = timeZone;
+  }
+
+  return new Intl.DateTimeFormat('en-US', options).format(date);
+}
+

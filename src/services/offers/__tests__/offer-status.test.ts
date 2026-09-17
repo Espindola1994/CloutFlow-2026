@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getEffectiveOfferStatus, isOfferActive, formatOfferDateTime, formatOfferCountdown } from '../offer-status';
+import { getEffectiveOfferStatus, isOfferActive, formatOfferDateTime, formatOfferCountdown, formatOfferExpirationClock } from '../offer-status';
 import { getPostPurchaseOfferTemplate } from '@/services/lifecycle/templates.service';
 
 describe('Canonical Offer Expiration & Status Derivation', () => {
@@ -175,6 +175,39 @@ describe('Canonical Offer Expiration & Status Derivation', () => {
       expect(formatOfferCountdown(ms1m)).toBe('1 min 0 sec');
       const ms59s = 59 * 1000;
       expect(formatOfferCountdown(ms59s)).toBe('59 sec');
+    });
+  });
+
+  describe('formatOfferExpirationClock - US 12h Format with AM/PM', () => {
+    it('formats exact hours and minutes without seconds or date', () => {
+      // 00:00 UTC -> 12:00 AM
+      expect(formatOfferExpirationClock('2026-09-17T00:00:00.000Z', 'UTC')).toBe('12:00 AM');
+
+      // 05:10 UTC -> 5:10 AM
+      expect(formatOfferExpirationClock('2026-09-17T05:10:00.000Z', 'UTC')).toBe('5:10 AM');
+
+      // 12:00 UTC -> 12:00 PM
+      expect(formatOfferExpirationClock('2026-09-17T12:00:00.000Z', 'UTC')).toBe('12:00 PM');
+
+      // 17:10 UTC -> 5:10 PM
+      expect(formatOfferExpirationClock('2026-09-17T17:10:00.000Z', 'UTC')).toBe('5:10 PM');
+
+      // 21:45 UTC -> 9:45 PM
+      expect(formatOfferExpirationClock('2026-09-17T21:45:00.000Z', 'UTC')).toBe('9:45 PM');
+    });
+
+    it('returns null for null, undefined, or invalid inputs', () => {
+      expect(formatOfferExpirationClock(null)).toBeNull();
+      expect(formatOfferExpirationClock(undefined)).toBeNull();
+      expect(formatOfferExpirationClock('invalid-date')).toBeNull();
+    });
+
+    it('uses local environment timezone when timeZone override is not provided', () => {
+      const date = new Date('2026-09-17T17:10:00.000Z');
+      const formatted = formatOfferExpirationClock(date);
+      expect(formatted).not.toBeNull();
+      // Must match h:mm AM/PM pattern
+      expect(formatted).toMatch(/^(1[0-2]|[1-9]):[0-5][0-9]\s?(AM|PM)$/);
     });
   });
 });

@@ -13,6 +13,7 @@ import youtubeIcon from '@/assets/home-icons-vector/youtube.svg';
 
 interface OfferHeaderProps {
   timeLeft: string | null;
+  expirationClock?: string | null;
   isExpiredLocally: boolean;
   currentStepNum: number;
   platform: 'instagram' | 'tiktok' | 'twitter' | 'youtube';
@@ -20,7 +21,8 @@ interface OfferHeaderProps {
 }
 
 
-export function OfferHeader({ timeLeft, isExpiredLocally }: OfferHeaderProps) {
+export function OfferHeader({ timeLeft, expirationClock, isExpiredLocally }: OfferHeaderProps) {
+  const displayTime = expirationClock || timeLeft;
   return (
     <header className="cf-offer-header-new cf-offer-header-clean">
       <div className="cf-offer-nav">
@@ -29,8 +31,8 @@ export function OfferHeader({ timeLeft, isExpiredLocally }: OfferHeaderProps) {
         </Link>
 
         <div className="cf-offer-header-timer-slot">
-          {timeLeft && !isExpiredLocally && (
-            <div className="cf-timer578" aria-label={`Offer expires in ${timeLeft}`}>
+          {displayTime && !isExpiredLocally && (
+            <div className="cf-timer578" aria-label={`Offer expires at ${displayTime}`}>
               <span className="cf-timer578-particles cf-timer578-particles-left" aria-hidden="true" />
 
               <div className="cf-timer578-card">
@@ -86,7 +88,7 @@ export function OfferHeader({ timeLeft, isExpiredLocally }: OfferHeaderProps) {
 
                 <div className="cf-timer578-copy">
                   <small>TIME REMAINING</small>
-                  <strong key={timeLeft} className="cf-offer-countdown-value">{timeLeft}</strong>
+                  <strong key={displayTime} className="cf-offer-countdown-value">{displayTime}</strong>
                 </div>
 
                 <span className="cf-timer578-divider" aria-hidden="true" />

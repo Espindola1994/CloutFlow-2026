@@ -14,7 +14,7 @@ import { OfferPackageStage, SanitizedPackage } from '@/components/offer-experien
 import { OfferReviewStage } from '@/components/offer-experience/OfferReviewStage';
 import { OfferStatusCard, OfferValidatingCard } from '@/components/offer-experience/OfferStatusCards';
 import { OfferOption10Experience } from '@/components/offer-experience/OfferOption10Experience';
-import { formatOfferCountdown } from '@/services/offers/offer-status';
+import { formatOfferCountdown, formatOfferExpirationClock } from '@/services/offers/offer-status';
 import { buildCanonicalProfileUrl } from '@/lib/social/normalize';
 
 interface OfferData {
@@ -195,6 +195,7 @@ export default function OfferLandingPage() {
 
   // Timer
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
+  const [expirationClock, setExpirationClock] = useState<string | null>(null);
   const [isExpiredLocally, setIsExpiredLocally] = useState(false);
   const [isLocalPreview, setIsLocalPreview] = useState(false);
   const [isValidationTransition, setIsValidationTransition] = useState(false);
@@ -397,7 +398,11 @@ export default function OfferLandingPage() {
 
 
   useEffect(() => {
-    if (!offerData?.expiresAt) return;
+    if (!offerData?.expiresAt) {
+      setExpirationClock(null);
+      return;
+    }
+    setExpirationClock(formatOfferExpirationClock(offerData.expiresAt));
     const targetDate = new Date(offerData.expiresAt).getTime();
     const updateTimer = () => {
       const now = new Date().getTime();
@@ -1056,6 +1061,7 @@ export default function OfferLandingPage() {
       <main className="cf-offer-page min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-hidden font-sans">
         <OfferHeader
           timeLeft={timeLeft}
+          expirationClock={expirationClock}
           isExpiredLocally={isExpiredLocally}
           currentStepNum={1}
           platform={targetPlatform}
@@ -1072,6 +1078,7 @@ export default function OfferLandingPage() {
       <main className="min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-hidden font-sans">
         <OfferHeader
           timeLeft={null}
+          expirationClock={null}
           isExpiredLocally={true}
           currentStepNum={1}
           platform={targetPlatform}
@@ -1093,6 +1100,7 @@ export default function OfferLandingPage() {
       <main className="min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-hidden font-sans">
         <OfferHeader
           timeLeft={null}
+          expirationClock={null}
           isExpiredLocally={true}
           currentStepNum={1}
           platform={targetPlatform}
@@ -1113,6 +1121,7 @@ export default function OfferLandingPage() {
       <main className="min-h-[100dvh] bg-white text-[#081126] flex flex-col justify-between relative overflow-hidden font-sans">
         <OfferHeader
           timeLeft={timeLeft}
+          expirationClock={expirationClock}
           isExpiredLocally={isExpiredLocally}
           currentStepNum={1}
           platform={targetPlatform}
@@ -1169,6 +1178,7 @@ export default function OfferLandingPage() {
       {/* 2.5D Sticky Header & Stepper */}
       <OfferHeader
         timeLeft={timeLeft}
+        expirationClock={expirationClock}
         isExpiredLocally={isExpiredLocally}
         currentStepNum={currentStepNum}
         platform={targetPlatform}
