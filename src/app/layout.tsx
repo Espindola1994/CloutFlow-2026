@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { DesktopSmoothScroll } from "@/components/DesktopSmoothScroll";
 import ClarityProvider from "@/components/analytics/ClarityProvider";
 import PresenceHeartbeat from "@/components/analytics/PresenceHeartbeat";
+import { DiagnosticsConditionalMount } from "@/components/diagnostics/DiagnosticsConditionalMount";
 
 
 export const viewport: Viewport = {
@@ -60,6 +61,7 @@ export default function RootLayout({
         <ClarityProvider />
         <PresenceHeartbeat />
         <DesktopSmoothScroll />
+        <DiagnosticsConditionalMount />
         {children}
         <Toaster theme="dark" position="top-right" />
       </body>

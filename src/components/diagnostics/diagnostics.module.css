@@ -1,0 +1,265 @@
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 16px;
+  background-color: #0b0f19;
+  color: #f1f5f9;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+
+.container *, .container *::before, .container *::after {
+  box-sizing: border-box;
+}
+
+.header {
+  border-bottom: 2px solid #3b82f6;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0 0 8px 0;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.section {
+  background: #111827;
+  border: 1px solid #1f2937;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.sectionTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: #60a5fa;
+  margin: 0 0 12px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.kvItem {
+  background: #1e293b;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #334155;
+  display: flex;
+  flex-direction: column;
+  word-break: break-word;
+}
+
+.kvKey {
+  font-size: 11px;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.kvVal {
+  font-size: 13px;
+  font-weight: 500;
+  color: #f8fafc;
+  font-family: monospace;
+}
+
+.button {
+  background-color: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 12px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s ease;
+  min-height: 48px;
+  touch-action: manipulation;
+}
+
+.button:active {
+  background-color: #1d4ed8;
+}
+
+.buttonSuccess {
+  background-color: #16a34a;
+}
+
+.buttonSuccess:active {
+  background-color: #15803d;
+}
+
+.buttonSecondary {
+  background-color: #374151;
+  color: #e5e7eb;
+}
+
+.buttonSecondary:active {
+  background-color: #4b5563;
+}
+
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  background: #1e293b;
+  border: 1px solid #475569;
+  border-radius: 6px;
+  color: #f8fafc;
+  font-size: 15px;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+
+.tableWrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: monospace;
+}
+
+.table th, .table td {
+  border: 1px solid #334155;
+  padding: 6px 8px;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.table th {
+  background: #1e293b;
+  color: #94a3b8;
+}
+
+.table tr:nth-child(even) {
+  background: #131d2e;
+}
+
+/* Typography controlled tests */
+.typoSample {
+  padding: 10px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  margin-bottom: 12px;
+}
+
+.typoText {
+  color: #ffffff;
+  display: inline-block;
+  margin-bottom: 6px;
+  word-break: break-all;
+}
+
+.typoMeta {
+  font-size: 11px;
+  color: #94a3b8;
+  font-family: monospace;
+}
+
+.badgeTrue {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #15803d;
+  color: #dcfce7;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.badgeFalse {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #991b1b;
+  color: #fee2e2;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+/* Zoom test boxes */
+.zoomTestWrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.zoomBox {
+  width: 200px;
+  height: 100px;
+  background: #2563eb;
+  color: #ffffff;
+  padding: 8px;
+  border: 2px solid #60a5fa;
+  box-sizing: border-box;
+}
+
+/* Subpixel test boxes */
+.subpixelRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* Floating inspector */
+.floatingWidget {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 999999;
+  background: #0f172a;
+  border: 2px solid #3b82f6;
+  border-radius: 10px;
+  padding: 12px;
+  color: #ffffff;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.7);
+  max-width: 90vw;
+  width: 320px;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 12px;
+}
+
+.floatingHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #60a5fa;
+}
+
+.floatingActions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
