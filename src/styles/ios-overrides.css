@@ -12,14 +12,16 @@
  */
 
 /* ==========================================================================
-   1. HOME — HEADER & LOGO PARITY
+   1. HOME — HEADER & LOGO PARITY (GROUP 24)
    Poco baseline (375px): height 32px, max-width 132px.
-   iPhone >390px was receiving height 48px, max-width 145px due to L7785.
+   Approved iPhone value: height 37px, max-width 132px.
    ========================================================================== */
 @media (max-width: 900px) {
-  html.cf-platform-ios body .cf-plans-header-clean .cf-plans-logo.cf-plans-logo-image > img {
-    height: 32px !important;
+  html.cf-platform-ios body
+  .cf-plans-header-clean
+  .cf-plans-logo.cf-plans-logo-image > img {
     max-width: 132px !important;
+    height: 37px !important;
   }
 }
 
@@ -350,5 +352,332 @@
     width: 16px !important;
     height: 16px !important;
     min-width: 16px !important;
+  }
+}
+
+/* ==========================================================================
+   7. iPHONE FINE-TUNING — MANUALLY ADJUSTED & APPROVED VALUES
+   Scope: html.cf-platform-ios exclusively
+   All values applied verbatim per user specification.
+   ========================================================================== */
+
+/* 1. HERO SUBTITLE */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-plans-shell .cf-plans-hero p {
+    color: #66779a !important;
+    max-width: 350px !important;
+    margin: 5px auto 0 !important;
+    padding: 0 4px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* 2. PREMIUM BUILDER HEAD SMALL */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-premium-builder-head small {
+    color: #ff2d72 !important;
+    letter-spacing: .11em !important;
+    margin-bottom: 6px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* 3. PREMIUM BUILDER HEAD DESCRIPTION */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-premium-builder-head p {
+    color: #73809a !important;
+    margin: 3px 0 0 !important;
+    font-size: 15px !important;
+  }
+}
+
+/* 4. PB LABEL B */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-label b {
+    color: #111827 !important;
+    font-size: 15.5px !important;
+  }
+}
+
+/* 5. PB LABEL SMALL */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-label small {
+    color: #78859d !important;
+    font-size: 14.5px !important;
+  }
+}
+
+/* 6. GOAL BUTTON LABEL */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-goals button b {
+    color: #172033 !important;
+    font-size: 14px !important;
+  }
+}
+
+/* 7. GOAL BUTTON */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-goals button {
+    gap: 7px !important;
+    padding: 0 4px !important;
+  }
+}
+
+/* 8. GOAL BUTTON SVG */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-goals button > svg {
+    color: #fff !important;
+    background: linear-gradient(
+      145deg,
+      var(--pb-icon-alt),
+      var(--pb-icon-main)
+    ) !important;
+    width: 22px !important;
+    height: 22px !important;
+  }
+}
+
+/* 9. GOAL SERVICE ICON */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-goals button .cf-pb-service-icon {
+    border-radius: 12px !important;
+    width: 41px !important;
+    height: 41px !important;
+  }
+}
+
+/* 10. GOAL GLYPH */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-goals button .cf-pb-glyph {
+    width: 30px !important;
+    height: 30px !important;
+  }
+}
+
+/* 11. PLATFORM BUTTON SVG */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-platforms button > svg {
+    width: 21px !important;
+    height: 21px !important;
+  }
+}
+
+/* 12. PB LABEL ICON */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-label > i {
+    color: #fff !important;
+    background: linear-gradient(
+      145deg,
+      #ff367b,
+      #bc22db 58%,
+      #6a2df5
+    ) !important;
+    border-radius: 50% !important;
+    flex: 0 0 30px !important;
+    place-items: center !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* 13. PLATFORM ICON IMAGE */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-platform-icon img {
+    object-fit: contain !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+}
+
+/* 14. PLATFORM BUTTON LABEL <=480 */
+@media (max-width: 480px) {
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-platforms button b {
+    font-size: 14px !important;
+  }
+}
+
+/* 15. PLATFORM BUTTON */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-platforms button {
+    border-radius: 12px !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0 !important;
+    height: 80px !important;
+  }
+}
+
+/* 16. FIELD LABEL */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-field-label {
+    color: #1a2233 !important;
+    margin: 10px 0 5px !important;
+    font-size: 15px !important;
+  }
+}
+
+/* 17. INPUT SVG */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-input svg {
+    color: #7786a1 !important;
+    flex: none !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+}
+
+/* 18. INPUT TEXT */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-input input {
+    appearance: none !important;
+    -webkit-box-shadow: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    font-size: 13.5px !important;
+  }
+}
+
+/* 19. PRIVACY TEXT */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-privacy {
+    color: #7a879e !important;
+    align-items: center !important;
+    gap: 6px !important;
+    margin: 7px 0 0 !important;
+    font-size: 14px !important;
+  }
+}
+
+/* 20. ANALYZE BUTTON SVG */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-o10-gb-analyze svg,
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-analyze-btn svg {
+    width: 28px !important;
+    min-width: 28px !important;
+    height: 28px !important;
+  }
+}
+
+/* 21. ANALYZE BUTTON TEXT */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-o10-gb-analyze,
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-analyze-btn {
+    font-size: 15.7px !important;
+  }
+}
+
+/* 22. MOBILE HEADER TAGLINE */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-plans-header-tagline .cf-tagline-text-mobile {
+    letter-spacing: -.5px !important;
+    color: #24334f !important;
+    font-size: 14.5px !important;
+  }
+}
+
+/* 23. HEADER FLAME */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-plans-header-tagline .cf-plans-header-flame,
+  html.cf-platform-ios body .cf-plans-header-tagline > svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+}
+
+/* 24. HEADER LOGO — iPHONE ONLY is consolidated at Section 1 (height: 37px !important; max-width: 132px !important;) */
+
+/* 25. SUMMARY TITLE */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-summary b {
+    color: #182033 !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    font-size: 14.5px !important;
+  }
+}
+
+/* 26. SUMMARY SMALL */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-summary small {
+    color: #8591a6 !important;
+    margin-top: 1px !important;
+    font-size: 13.8px !important;
+  }
+}
+
+/* 27. SUMMARY SERVICE GLYPH */
+@media (max-width: 900px) {
+  html.cf-platform-ios body
+  .cf-pb-summary .cf-pb-service-icon .cf-pb-glyph {
+    width: 30px !important;
+    max-width: 30px !important;
+    height: 30px !important;
+    max-height: 30px !important;
+  }
+}
+
+/* 28. SUMMARY SERVICE / PLATFORM ICON CONTAINER */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-summary .cf-pb-service-icon,
+  html.cf-platform-ios body .cf-pb-summary .cf-pb-platform-icon {
+    box-sizing: border-box !important;
+    border-radius: 9px !important;
+    flex: 0 0 41px !important;
+    align-self: center !important;
+    place-items: center !important;
+    width: 41px !important;
+    min-width: 41px !important;
+    height: 41px !important;
+    min-height: 41px !important;
+  }
+}
+
+/* 29. SUMMARY PLATFORM IMAGE */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-summary .cf-pb-platform-icon img {
+    object-fit: contain !important;
+    object-position: center !important;
+    width: 35px !important;
+    max-width: 35px !important;
+    height: 35px !important;
+    max-height: 35px !important;
+  }
+}
+
+/* 30. EMPTY STATE TITLE */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-empty h3 {
+    color: #182033 !important;
+    margin: 10px 0 4px !important;
+    font-size: 15.5px !important;
+  }
+}
+
+/* 31. EMPTY STATE DESCRIPTION */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-empty p {
+    max-width: 300px !important;
+    margin: 0 !important;
+    font-size: 14.5px !important;
+    line-height: 1.45 !important;
+  }
+}
+
+/* 32. EMPTY STATE ICON */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-empty > span {
+    color: #a044e8 !important;
+    background: linear-gradient(
+      145deg,
+      #fff0f7,
+      #f0ebff
+    ) !important;
+    border-radius: 15px !important;
+    place-items: center !important;
+    width: 59px !important;
+    height: 59px !important;
+    font-size: 38px !important;
   }
 }
