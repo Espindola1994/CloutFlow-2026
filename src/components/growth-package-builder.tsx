@@ -10,6 +10,7 @@ import youtubeIcon from "@/assets/home-icons-vector/youtube.svg";
 import { Platform, Service } from "@/config/service-sales.config";
 import { PLATFORM_SERVICES, CommercialPlatform, CommercialService } from "@/services/commercial-offer.resolver";
 import { validateEmailFormat, buildCanonicalProfileUrl } from "@/lib/social/normalize";
+import { detectPlatform, IOS_PLATFORM_CLASS } from "@/lib/platform";
 import type { VerifiedSocialProfile } from "@/lib/social/types";
 import { useFunnelStore } from "@/stores/funnel.store";
 import { InstagramPreview, TikTokPreview, TwitterPreview, YouTubePreview } from "./social-preview";
@@ -173,6 +174,7 @@ export default function GrowthPackageBuilder({
   const [creatorLabel, setCreatorLabel] = useState<string | null>(null);
   const [profile, setProfile] = useState<VerifiedSocialProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isIosPlatform, setIsIosPlatform] = useState<boolean>(false);
   const polling = useRef(false);
   const previewTimers = useRef<number[]>([]);
   const analysisRunId = useRef(0);
@@ -193,6 +195,12 @@ export default function GrowthPackageBuilder({
 
   useEffect(() => setPlatformLocal(initialPlatform), [initialPlatform]);
   useEffect(() => setGoalLocal(initialGoal), [initialGoal]);
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const p = detectPlatform(window.navigator.userAgent, window.navigator.maxTouchPoints || 0);
+    const hasClass = document.documentElement.classList.contains(IOS_PLATFORM_CLASS);
+    setIsIosPlatform(p.isIos || hasClass);
+  }, []);
   useEffect(() => {
     if (!resetToken) return;
     polling.current = false;
@@ -248,13 +256,22 @@ export default function GrowthPackageBuilder({
     }
 
     const profileDone = displayAnalysisPhase === "compiling";
+    if (isIosPlatform) {
+      return [
+        { label: "Checking profile", state: "done", status: "Completed" },
+        { label: "Searching profile", state: profileDone ? "done" : "current", status: profileDone ? "Completed" : "In progress" },
+        { label: "Loading profile data", state: profileDone ? "done" : "pending", status: profileDone ? "Completed" : "Pending" },
+        { label: "Compiling results", state: profileDone ? "current" : "pending", status: profileDone ? "In progress" : "Pending" },
+      ] as const;
+    }
+
     return [
       { label: "Checking profile address", state: "done", status: "Completed" },
       { label: "Searching social profile", state: profileDone ? "done" : "current", status: profileDone ? "Completed" : "In progress" },
       { label: "Loading public profile data", state: profileDone ? "done" : "pending", status: profileDone ? "Completed" : "Pending" },
       { label: "Compiling results", state: profileDone ? "current" : "pending", status: profileDone ? "In progress" : "Pending" },
     ] as const;
-  }, [creatorLabel, displayAnalysisPhase, isContent, platform]);
+  }, [creatorLabel, displayAnalysisPhase, isContent, isIosPlatform, platform]);
 
   const scrollMobileToElement = useCallback((targetElement: HTMLElement | null, offsetPadding: number = 14) => {
     if (typeof window === "undefined" || window.innerWidth > 900 || !targetElement) {

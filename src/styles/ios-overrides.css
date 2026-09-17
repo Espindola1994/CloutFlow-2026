@@ -705,3 +705,139 @@
   }
 }
 
+/* ==========================================================================
+   9. ANALYSIS PROGRESS PANEL — iPHONE/iOS TYPOGRAPHY & LAYOUT REFINEMENT
+   Scope: html.cf-platform-ios body .cf-pb-loading
+   Breakpoint: @media (max-width: 900px)
+   Target: CloutFlow.co iPhone Safari & iPhone Chrome (CriOS)
+   Desktop, Android (Poco), iPad, and Admin remain untouched.
+   ========================================================================== */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-pb-loading {
+    display: grid !important;
+    grid-template-columns: 80px minmax(0, 1fr) !important;
+    gap: 8px !important;
+    padding: 12px 6px !important;
+    align-items: center !important;
+    text-align: left !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-loading > div:last-child {
+    min-width: 0 !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-progress {
+    width: 80px !important;
+    height: 80px !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-loading h3 {
+    font-size: 15.5px !important;
+    line-height: 1.25 !important;
+    white-space: nowrap !important;
+    margin: 0 !important;
+    color: #172033 !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-loading p {
+    font-size: 14.5px !important;
+    line-height: 1.35 !important;
+    margin: 4px 0 10px !important;
+    color: #7b879b !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-statuses {
+    display: grid !important;
+    gap: 6px !important;
+    width: 100% !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-statuses > div {
+    display: grid !important;
+    grid-template-columns: 14px minmax(0, 1fr) auto !important;
+    align-items: center !important;
+    gap: 6px !important;
+    min-width: 0 !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-statuses > div > span {
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+    display: grid !important;
+    place-items: center !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-statuses svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-statuses b {
+    font-size: 13.5px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    color: #253047 !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-statuses small {
+    font-size: 13.5px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap !important;
+    color: #8a96a9 !important;
+    text-align: right !important;
+    margin-left: auto !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-statuses .done small {
+    color: #19a466 !important;
+  }
+}
+
+/* Compact iPhone 360px viewport adjustment */
+@media (max-width: 360px) {
+  html.cf-platform-ios body .cf-pb-loading {
+    grid-template-columns: 66px minmax(0, 1fr) !important;
+    padding: 10px 5px !important;
+    gap: 6px !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-progress {
+    width: 66px !important;
+    height: 66px !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-progress b {
+    font-size: 13.5px !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-statuses > div {
+    grid-template-columns: 13px minmax(0, 1fr) auto !important;
+    gap: 5px !important;
+  }
+}
+
+/* Legacy compact iPhone (320px / iPhone SE 1st gen) fine-tuning */
+@media (max-width: 330px) {
+  html.cf-platform-ios body .cf-pb-loading {
+    grid-template-columns: 50px minmax(0, 1fr) !important;
+    padding: 10px 4px !important;
+    gap: 5px !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-progress {
+    width: 50px !important;
+    height: 50px !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-progress b {
+    font-size: 12px !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-statuses > div {
+    grid-template-columns: 12px minmax(0, 1fr) auto !important;
+    gap: 4px !important;
+  }
+}
+
+

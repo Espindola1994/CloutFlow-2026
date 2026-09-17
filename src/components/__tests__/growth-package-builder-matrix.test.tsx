@@ -264,4 +264,61 @@ describe('GrowthPackageBuilder - YouTube Matrix & Normalization', () => {
     expect(useFunnelStore.getState().verifiedTargetData).toBeNull();
     expect(useFunnelStore.getState().planId).toBeNull();
   });
+
+  it('7. Renders iOS copy when cf-platform-ios is present on html, and original copy when absent', async () => {
+    // 7a. Non-iOS (Desktop / Android / Poco baseline)
+    document.documentElement.classList.remove('cf-platform-ios');
+    const { container: containerAndroid, unmount: unmountAndroid } = render(
+      <GrowthPackageBuilder
+        initialPlatform="instagram"
+        initialGoal="followers"
+        onPlatformChange={vi.fn()}
+        onGoalChange={vi.fn()}
+        onContinue={vi.fn()}
+      />
+    );
+
+    const inputsAndroid = containerAndroid.querySelectorAll('.cf-pb-input input');
+    fireEvent.change(inputsAndroid[0], { target: { value: '@creator' } });
+    fireEvent.change(inputsAndroid[1], { target: { value: 'creator@example.com' } });
+
+    // Switch devScene to 2 (analyzing) to inspect progress rows
+    const devSceneBtnAndroid = containerAndroid.querySelector('.cf-pb-dev-scenes button:nth-child(2)');
+    if (devSceneBtnAndroid) {
+      fireEvent.click(devSceneBtnAndroid);
+      expect(containerAndroid.querySelector('.cf-pb-loading')).not.toBeNull();
+      expect(containerAndroid.querySelector('.cf-pb-statuses')).toHaveTextContent('Checking profile address');
+      expect(containerAndroid.querySelector('.cf-pb-statuses')).toHaveTextContent('Searching social profile');
+      expect(containerAndroid.querySelector('.cf-pb-statuses')).toHaveTextContent('Loading public profile data');
+      expect(containerAndroid.querySelector('.cf-pb-statuses')).toHaveTextContent('Compiling results');
+    }
+    unmountAndroid();
+
+    // 7b. iPhone / iOS (html.cf-platform-ios)
+    document.documentElement.classList.add('cf-platform-ios');
+    const { container: containerIos, unmount: unmountIos } = render(
+      <GrowthPackageBuilder
+        initialPlatform="instagram"
+        initialGoal="followers"
+        onPlatformChange={vi.fn()}
+        onGoalChange={vi.fn()}
+        onContinue={vi.fn()}
+      />
+    );
+
+    const devSceneBtnIos = containerIos.querySelector('.cf-pb-dev-scenes button:nth-child(2)');
+    if (devSceneBtnIos) {
+      fireEvent.click(devSceneBtnIos);
+      expect(containerIos.querySelector('.cf-pb-loading')).not.toBeNull();
+      expect(containerIos.querySelector('.cf-pb-statuses')).toHaveTextContent('Checking profile');
+      expect(containerIos.querySelector('.cf-pb-statuses')).not.toHaveTextContent('Checking profile address');
+      expect(containerIos.querySelector('.cf-pb-statuses')).toHaveTextContent('Searching profile');
+      expect(containerIos.querySelector('.cf-pb-statuses')).not.toHaveTextContent('Searching social profile');
+      expect(containerIos.querySelector('.cf-pb-statuses')).toHaveTextContent('Loading profile data');
+      expect(containerIos.querySelector('.cf-pb-statuses')).not.toHaveTextContent('Loading public profile data');
+      expect(containerIos.querySelector('.cf-pb-statuses')).toHaveTextContent('Compiling results');
+    }
+    unmountIos();
+    document.documentElement.classList.remove('cf-platform-ios');
+  });
 });
