@@ -27632,8 +27632,8 @@ html body .cf-offer-header-clean .cf-offer-progress {
     align-items: center !important;
     gap: 8px !important;
     min-width: 112px !important;
-    height: 42px !important;
-    padding: 0 9px !important;
+    height: 48px !important;
+    padding: 0 8px !important;
     display: flex !important;
     box-shadow: 0 6px 14px rgba(53,37,88,.06) !important;
   }
@@ -31007,7 +31007,7 @@ html body .cf-o10-email-required {
 
   html body .cf-timer578-copy strong {
     color: #59677f !important;
-    font-size: 18px !important;
+    font-size: 20px !important;
     font-weight: 850 !important;
   }
 }
@@ -31391,8 +31391,8 @@ html body .cf-o10-email-required {
 
   /* Actual restored-profile secondary label */
   html body .cf-o10-last-profile-label {
-    color: rgb(138, 150, 170) !important;
-    font-size: 12px !important;
+    color: #8a96aa !important;
+    font-size: 12.5px !important;
     font-weight: 500 !important;
   }
 
@@ -34678,6 +34678,7 @@ html body .cf-pricing-subtitle-mobile {
 /* Logo Header — Mobile <= 520px */
 @media (max-width: 520px) {
   html body .cf-offer-header-new .cf-offer-brand-logo {
+    height: 38px !important;
     max-width: 250px !important;
   }
 }
