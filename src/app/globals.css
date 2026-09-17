@@ -34767,6 +34767,37 @@ html body .cf-pricing-subtitle-mobile {
     max-height: 26px !important;
   }
 
+  /* High-definition crisp icon assets for mobile (<=900px, Package only) */
+  html body .cf-o10-master[data-stage="package"] .cf-plan-premium-icon--starter img,
+  html body .cf-o10-package-panel .cf-plan-premium-icon--starter img {
+    content: url('/offer/package-plan-icons/high-res-starter.png') !important;
+  }
+
+  html body .cf-o10-master[data-stage="package"] .cf-plan-premium-icon--growth img,
+  html body .cf-o10-package-panel .cf-plan-premium-icon--growth img {
+    content: url('/offer/package-plan-icons/growth.svg') !important;
+  }
+
+  html body .cf-o10-master[data-stage="package"] .cf-plan-premium-icon--pro img,
+  html body .cf-o10-package-panel .cf-plan-premium-icon--pro img {
+    content: url('/offer/package-plan-icons/high-res-pro.png') !important;
+  }
+
+  html body .cf-o10-master[data-stage="package"] .cf-plan-premium-icon--authority img,
+  html body .cf-o10-package-panel .cf-plan-premium-icon--authority img {
+    content: url('/offer/package-plan-icons/high-res-authority.png') !important;
+  }
+
+  html body .cf-o10-master[data-stage="package"] .cf-plan-premium-icon--influencer img,
+  html body .cf-o10-package-panel .cf-plan-premium-icon--influencer img {
+    content: url('/offer/package-plan-icons/influencer.svg') !important;
+  }
+
+  html body .cf-o10-master[data-stage="package"] .cf-plan-premium-icon--scale img,
+  html body .cf-o10-package-panel .cf-plan-premium-icon--scale img {
+    content: url('/offer/package-plan-icons/high-res-scale.png') !important;
+  }
+
   /* 8. PROMO / BONUS TEXT */
   html body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-bonus,
   html body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-no-bonus,
