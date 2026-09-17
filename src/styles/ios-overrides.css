@@ -681,3 +681,27 @@
     font-size: 38px !important;
   }
 }
+
+/* ==========================================================================
+   8. PUBLIC PWA INSTALL BANNER — iPHONE FINE-TUNING
+   Scope: html.cf-platform-ios body [data-testid="public-pwa-banner"]
+   Breakpoint: @media (max-width: 900px)
+   ========================================================================== */
+@media (max-width: 900px) {
+  html.cf-platform-ios body [data-testid="public-pwa-banner"] .text-xs {
+    font-size: 15px !important;
+  }
+
+  html.cf-platform-ios body [data-testid="public-pwa-banner"] .w-3\.5 {
+    width: 18px !important;
+  }
+
+  html.cf-platform-ios body [data-testid="public-pwa-banner"] .h-3\.5 {
+    height: 18px !important;
+  }
+
+  html.cf-platform-ios body [data-testid="public-pwa-banner"] .text-\[11px\] {
+    font-size: 13.5px !important;
+  }
+}
+
