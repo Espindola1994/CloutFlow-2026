@@ -1,38 +1,354 @@
 /**
  * CloutFlow iPhone/iOS Platform Overrides Layer
  *
- * PHASE 3B: INFRASTRUCTURE ONLY — NEUTRAL FILE.
+ * FASE 3C-B — POCO -> iPHONE VISUAL PARITY
+ * Target: CloutFlow.co
+ * Platform scope: strictly html.cf-platform-ios (active ONLY on iPhone/iPod handheld devices)
+ * Desktop, Android (Poco baseline), iPad, and Admin remain 100% untouched.
  *
- * This file serves as the canonical location for future iPhone-exclusive visual overrides.
- * It contains NO VISUAL OVERRIDES in Phase 3B.
- *
- * RULES FOR FUTURE OVERRIDES (Phase 3C+):
- * 1. Scope all rules under `html.cf-platform-ios` or `.cf-platform-ios`.
- *    Example:
- *    html.cf-platform-ios .my-selector {
- *      font-size: 16px;
- *    }
- *
- * 2. Scope combined with responsive width when targeting specific iPhone sizes:
- *    @media (max-width: 390px) {
- *      html.cf-platform-ios .my-selector { ... }
- *    }
- *    @media (min-width: 391px) and (max-width: 430px) {
- *      html.cf-platform-ios .my-selector { ... }
- *    }
- *
- * 3. NEVER apply rules to Android or Desktop. They do not have `cf-platform-ios`.
- * 4. NEVER apply storefront iPhone overrides to Admin.
- *    Any rule that might conflict must exclude `.cloutflow-admin` or stay scoped to storefront components:
- *    html.cf-platform-ios:not(:has(.cloutflow-admin)) .storefront-selector { ... }
- *    or explicitly target storefront containers.
- *
- * 5. Specificity & Cascade Note:
- *    `globals.css` contains some existing `!important` declarations.
- *    When overriding such rules in Phase 3C+, use:
- *    `html.cf-platform-ios body .selector { ... !important; }`
- *    Because `ios-overrides.css` is imported after other rules or loaded in the document cascade,
- *    an equal-or-higher-specificity rule will cleanly take precedence.
- *
- * DO NOT ADD ANY ACTIVE CSS OVERRIDES IN THIS FILE DURING PHASE 3B.
+ * Based on canonical audit: docs/mobile/poco-ios-visual-parity-audit.md
+ * Applies Category A (Safe Parity) and Category B (Responsive Parity) overrides
+ * for verified divergences across iPhone handheld viewports (320px–440px).
  */
+
+/* ==========================================================================
+   1. HOME — HEADER & LOGO PARITY
+   Poco baseline (375px): height 32px, max-width 132px.
+   iPhone >390px was receiving height 48px, max-width 145px due to L7785.
+   ========================================================================== */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-plans-header-clean .cf-plans-logo.cf-plans-logo-image > img {
+    height: 32px !important;
+    max-width: 132px !important;
+  }
+}
+
+/* ==========================================================================
+   2. HOME — REVIEWS / TESTIMONIALS CAROUSEL
+   Ensures smooth WebKit touch momentum, no scrollbar artifact, and clean
+   visual card framing on iOS handheld devices.
+   ========================================================================== */
+@media (max-width: 900px) {
+  html.cf-platform-ios body .cf-plans-reviews {
+    overflow: visible !important;
+  }
+
+  html.cf-platform-ios body .cf-plans-review-track {
+    -webkit-overflow-scrolling: touch !important;
+    scrollbar-width: none !important;
+  }
+
+  html.cf-platform-ios body .cf-plans-review-track::-webkit-scrollbar {
+    display: none !important;
+    width: 0 !important;
+    height: 0 !important;
+    -webkit-appearance: none !important;
+  }
+}
+
+/* ==========================================================================
+   3. HOME — FINAL CTA & ROCKET ARTWORK PARITY
+   Poco baseline (375px): grid-template-columns 78px minmax(0, 1fr), padding 12px 11px.
+   Prevents wider iPhones (391px–440px) from blowing out to 160px/110px.
+   ========================================================================== */
+@media (max-width: 559px) {
+  html.cf-platform-ios body .cf-plans-final-cta {
+    grid-template-columns: 78px minmax(0, 1fr) !important;
+    padding-left: 11px !important;
+    padding-right: 11px !important;
+  }
+
+  html.cf-platform-ios body .cf-plans-final-cta .cf-plans-rocket-art {
+    width: 78px !important;
+    height: 78px !important;
+  }
+
+  html.cf-platform-ios body .cf-plans-final-copy h2 {
+    font-size: 17.5px !important;
+  }
+}
+
+/* ==========================================================================
+   4. OFFER HEADER — NAV, LOGO, TIMER & TAGLINE PARITY
+   Poco baseline (375px): nav min-height 56px, gap 8px, timer slot 220px x 72px,
+   timer scale(.7436) translateY(-50%) with transform-origin: 144%, tagline max 72px.
+   Without override, iPhones >420px jump to 74px nav, 100% slot, scale(.42).
+   Synchronize all handheld iPhones (up to 440px) to the approved Poco presentation.
+   ========================================================================== */
+@media (max-width: 440px) {
+  html.cf-platform-ios body .cf-offer-header-clean {
+    height: 56px !important;
+    min-height: 56px !important;
+  }
+
+  html.cf-platform-ios body .cf-offer-header-clean .cf-offer-nav {
+    height: 56px !important;
+    min-height: 56px !important;
+    gap: 8px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  html.cf-platform-ios body .cf-offer-header-clean .cf-offer-header-timer-slot {
+    position: relative !important;
+    right: 0 !important;
+    width: 220px !important;
+    height: 72px !important;
+  }
+
+  html.cf-platform-ios body .cf-timer578 {
+    position: absolute !important;
+    left: auto !important;
+    right: -57px !important;
+    top: 50% !important;
+    transform: translateY(-50%) scale(.7436) !important;
+    transform-origin: 144% !important;
+  }
+
+  html.cf-platform-ios body .cf-header-tagline589 {
+    max-width: 88px !important;
+    gap: 4px !important;
+  }
+
+  html.cf-platform-ios body .cf-header-tagline589 strong {
+    font-size: 8px !important;
+    max-width: 72px !important;
+    line-height: 1.15 !important;
+  }
+}
+
+/* ==========================================================================
+   5. OFFER PREFILL (STEP 1) — PROPORTIONS & ELEMENT GEOMETRY
+   Poco baseline:
+   - Lateral container padding: 8px
+   - Hero grid: minmax(0, 1fr) 114px
+   - Rocket image: 120px
+   - Hero subtitle: max-width 205px
+   - Change profile button (unlink): min-width 118px
+   - Linked row: gap 7px, grid minmax(0, 1fr) 116px
+   - Network icon span: 29px x 29px
+   - Network label: 12.5px
+   ========================================================================== */
+@media (max-width: 440px) {
+  html.cf-platform-ios body .cf-offer-main {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-profile-hero-row {
+    grid-template-columns: minmax(0, 1fr) 114px !important;
+    gap: 4px !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-profile-hero-row > div:first-child > p {
+    max-width: 205px !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-rocket-image {
+    width: 120px !important;
+    height: auto !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-gb-linked-row {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) 116px !important;
+    gap: 7px !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-gb-unlink {
+    min-width: 118px !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-gb-network {
+    height: 62px !important;
+    padding: 6px 2px !important;
+    gap: 4px !important;
+    border-radius: 10px !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-gb-network > span {
+    width: 29px !important;
+    height: 29px !important;
+    min-width: 29px !important;
+    flex-basis: 29px !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-gb-network > strong {
+    font-size: 12.5px !important;
+    line-height: 1 !important;
+    width: auto !important;
+    overflow: visible !important;
+  }
+}
+
+/* ==========================================================================
+   6. OFFER PACKAGE (STEP 3) — CARD GEOMETRY & TYPOGRAPHY PARITY
+   Mandatory invariant: width min(66%, 320px) !important; max-width 320px !important.
+   Poco baseline:
+   - Card padding: 18px 18px 18px
+   - Plan-name gap: 8px
+   - Plan icons: 26px x 26px
+   - Plan name strong: 16px, weight 850
+   - Quantity (qty): 15px, weight 850
+   - Bonus / promo text: 13px, weight 700
+   - Discount badge text: 12.5px, weight 700
+   - Coupon text line: 12px
+   - Benefits items li: 12.5px
+   - Assurance div: 12.5px
+   - Prices: del 14.5px (600), strong 21px (850)
+   - CTA button default: 13.5px, weight 700
+   - Best badge: 12px, height 22px, min-width 94px
+   ========================================================================== */
+@media (max-width: 440px) {
+  /* Enforce package width invariant */
+  html.cf-platform-ios body .cf-o10-package-ref-grid {
+    width: min(66%, 320px) !important;
+    max-width: 320px !important;
+    inline-size: min(66%, 320px) !important;
+    max-inline-size: 320px !important;
+  }
+
+  /* 18px padding across handheld iPhone viewport */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-card,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-card {
+    padding: 18px 18px 18px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Plan name gap parity */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-plan-name,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-plan-name {
+    gap: 8px !important;
+  }
+
+  /* Plan name typography */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-plan-name strong,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-plan-name strong {
+    font-size: 16px !important;
+    font-weight: 850 !important;
+    line-height: 1 !important;
+    letter-spacing: -0.02em !important;
+    color: #111827 !important;
+  }
+
+  /* Plan icons exact geometry */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-plan-premium-icon img,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-plan-premium-icon img {
+    width: 26px !important;
+    min-width: 26px !important;
+    max-width: 26px !important;
+    height: 26px !important;
+    min-height: 26px !important;
+    max-height: 26px !important;
+    object-fit: contain !important;
+  }
+
+  /* Quantity */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-qty,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-qty {
+    font-size: 15px !important;
+    font-weight: 850 !important;
+    letter-spacing: -0.025em !important;
+    color: #101827 !important;
+    margin: 0 0 3px !important;
+  }
+
+  /* Bonus / Promo text */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-bonus,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-bonus {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #e63877 !important;
+    gap: 4px !important;
+    white-space: nowrap !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-bonus svg,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-bonus svg {
+    width: 14px !important;
+    height: 14px !important;
+    min-width: 14px !important;
+  }
+
+  /* Discount badge */
+  html.cf-platform-ios body .cf-o10-discount-badge span {
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-discount-badge svg {
+    width: 14px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+    stroke-width: 2.1px !important;
+  }
+
+  /* Coupon line */
+  html.cf-platform-ios body .cf-o10-package-ref-coupon {
+    font-size: 12px !important;
+    color: #7a8799 !important;
+    min-height: 15px !important;
+    margin: 2px 0 9px !important;
+  }
+
+  /* Benefits list */
+  html.cf-platform-ios body .cf-o10-package-ref-benefits li {
+    font-size: 12.5px !important;
+    color: #5d6878 !important;
+    gap: 6px !important;
+    min-height: 15px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Assurance row */
+  html.cf-platform-ios body .cf-o10-package-assurance > div {
+    font-size: 12.5px !important;
+    color: #243044 !important;
+    gap: 6px !important;
+    white-space: nowrap !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-package-assurance svg {
+    width: 15px !important;
+    height: 15px !important;
+  }
+
+  /* Prices */
+  html.cf-platform-ios body .cf-o10-package-ref-price del {
+    font-size: 14.5px !important;
+    font-weight: 600 !important;
+    color: #9ba6b6 !important;
+    white-space: nowrap !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-package-ref-price strong {
+    font-size: 21px !important;
+    font-weight: 850 !important;
+    color: #111827 !important;
+  }
+
+  /* CTA Button */
+  html.cf-platform-ios body .cf-o10-package-ref-cta .cf-o10-cta-default {
+    font-size: 13.5px !important;
+    font-weight: 700 !important;
+    width: 100% !important;
+    gap: 5px !important;
+    white-space: nowrap !important;
+  }
+
+  /* Best Badge */
+  html.cf-platform-ios body .cf-o10-package-ref-best {
+    font-size: 12px !important;
+    font-weight: 900 !important;
+    height: 22px !important;
+    min-width: 94px !important;
+    top: -11px !important;
+  }
+
+  html.cf-platform-ios body .cf-o10-package-ref-best svg {
+    width: 16px !important;
+    height: 16px !important;
+    min-width: 16px !important;
+  }
+}
