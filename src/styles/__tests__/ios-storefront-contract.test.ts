@@ -126,6 +126,7 @@ describe("iOS Storefront Contract & Canonical Layer Invariants", () => {
     expect(cssContent).toContain(`width: ${IOS_STOREFRONT_CONTRACT.networks.buttonSvgSize} !important;`);
     expect(cssContent).toContain(`width: ${IOS_STOREFRONT_CONTRACT.networks.platformImageSize} !important;`);
     expect(cssContent).toContain(`height: ${IOS_STOREFRONT_CONTRACT.networks.buttonHeight} !important;`);
+    expect(cssContent).toContain(`font-size: ${IOS_STOREFRONT_CONTRACT.networks.labelFontSizeNarrow} !important;`);
 
     // Inputs & CTA
     expect(cssContent).toContain(`font-size: ${IOS_STOREFRONT_CONTRACT.inputs.fieldLabelFontSize} !important;`);
@@ -216,5 +217,66 @@ describe("iOS Storefront Contract & Canonical Layer Invariants", () => {
     expect(IOS_STOREFRONT_CONTRACT.pwaBanner.iconSize).toBe("18px");
     expect(IOS_STOREFRONT_CONTRACT.pwaBanner.subtitleFontSize).toBe("13.5px");
     expect(IOS_STOREFRONT_CONTRACT.pwaBanner.copy).toBe("Grow faster with CloutFlow");
+  });
+
+  it("12. Validates all critical calibration points from user specification", () => {
+    // 15px hero
+    expect(IOS_STOREFRONT_CONTRACT.hero.subtitleFontSize).toBe("15px");
+    // 15px builder eyebrow
+    expect(IOS_STOREFRONT_CONTRACT.builder.headSmallFontSize).toBe("15px");
+    // 15px builder description
+    expect(IOS_STOREFRONT_CONTRACT.builder.headDescriptionFontSize).toBe("15px");
+    // 15.5px label
+    expect(IOS_STOREFRONT_CONTRACT.builder.labelBFontSize).toBe("15.5px");
+    // 14.5px helper
+    expect(IOS_STOREFRONT_CONTRACT.builder.labelSmallFontSize).toBe("14.5px");
+    // 14px goal
+    expect(IOS_STOREFRONT_CONTRACT.goals.labelFontSize).toBe("14px");
+    // 41px goal icon
+    expect(IOS_STOREFRONT_CONTRACT.goals.serviceIconSize).toBe("41px");
+    // 30px glyph
+    expect(IOS_STOREFRONT_CONTRACT.goals.glyphSize).toBe("30px");
+    // 40px platform image
+    expect(IOS_STOREFRONT_CONTRACT.networks.platformImageSize).toBe("40px");
+    // 80px platform button
+    expect(IOS_STOREFRONT_CONTRACT.networks.buttonHeight).toBe("80px");
+    // 15px field label
+    expect(IOS_STOREFRONT_CONTRACT.inputs.fieldLabelFontSize).toBe("15px");
+    // 13.5px input
+    expect(IOS_STOREFRONT_CONTRACT.inputs.inputTextFontSize).toBe("13.5px");
+    // 14px privacy
+    expect(IOS_STOREFRONT_CONTRACT.inputs.privacyFontSize).toBe("14px");
+    // 28px Analyze SVG
+    expect(IOS_STOREFRONT_CONTRACT.analyzeCta.svgSize).toBe("28px");
+    // 15.7px Analyze text
+    expect(IOS_STOREFRONT_CONTRACT.analyzeCta.textFontSize).toBe("15.7px");
+    // 14.5px tagline
+    expect(IOS_STOREFRONT_CONTRACT.header.taglineFontSize).toBe("14.5px");
+    // 18px flame
+    expect(IOS_STOREFRONT_CONTRACT.header.flameSize).toBe("18px");
+    // 37px logo
+    expect(IOS_STOREFRONT_CONTRACT.header.logoHeight).toBe("37px");
+    // 14.5px summary
+    expect(IOS_STOREFRONT_CONTRACT.summary.titleFontSize).toBe("14.5px");
+    // 13.8px summary helper
+    expect(IOS_STOREFRONT_CONTRACT.summary.smallFontSize).toBe("13.8px");
+    // 41px summary icon
+    expect(IOS_STOREFRONT_CONTRACT.summary.iconContainerSize).toBe("41px");
+    // 35px summary platform
+    expect(IOS_STOREFRONT_CONTRACT.summary.platformImageSize).toBe("35px");
+    // 15.5px empty title
+    expect(IOS_STOREFRONT_CONTRACT.emptyState.titleFontSize).toBe("15.5px");
+    // 14.5px empty description
+    expect(IOS_STOREFRONT_CONTRACT.emptyState.descriptionFontSize).toBe("14.5px");
+    // 59px empty icon
+    expect(IOS_STOREFRONT_CONTRACT.emptyState.iconSize).toBe("59px");
+    // 38px empty glyph
+    expect(IOS_STOREFRONT_CONTRACT.emptyState.iconFontSize).toBe("38px");
+    // 15px PWA title
+    expect(IOS_STOREFRONT_CONTRACT.pwaBanner.titleFontSize).toBe("15px");
+    // 18px PWA icon
+    expect(IOS_STOREFRONT_CONTRACT.pwaBanner.iconSize).toBe("18px");
+    // 13.5px PWA subtitle
+    expect(IOS_STOREFRONT_CONTRACT.pwaBanner.subtitleFontSize).toBe("13.5px");
   });
 });
