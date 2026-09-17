@@ -46,13 +46,13 @@ describe("ios-storefront.css - Analysis Progress Isolation Invariant", () => {
     }
   });
 
-  it("ensures step labels and statuses are preserved at 13.5px and never reduced to 12px", () => {
+  it("ensures step labels and statuses use the fluid token --ios-type-analyzing-step", () => {
     const section10Marker = "10 — ANALYSIS PROGRESS PANEL";
     const section10Content = cssContent.slice(cssContent.indexOf(section10Marker));
 
-    // Confirm 13.5px font-size for labels and statuses
-    expect(section10Content).toMatch(/\.cf-pb-statuses\s+b\s*\{[^}]*font-size:\s*13\.5px/);
-    expect(section10Content).toMatch(/\.cf-pb-statuses\s+small\s*\{[^}]*font-size:\s*13\.5px/);
+    // Confirm fluid token for labels and statuses
+    expect(section10Content).toMatch(/\.cf-pb-statuses\s+b\s*\{[^}]*font-size:\s*var\(--ios-type-analyzing-step\)/);
+    expect(section10Content).toMatch(/\.cf-pb-statuses\s+small\s*\{[^}]*font-size:\s*var\(--ios-type-analyzing-step\)/);
 
     // Confirm that inside media queries (like max-width: 330px), labels and status are NOT reduced to 12px
     const media330Marker = "@media (max-width: 330px)";

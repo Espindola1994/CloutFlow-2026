@@ -1,12 +1,29 @@
 /**
- * CloutFlow iOS Storefront Visual Contract
+ * CloutFlow iOS Storefront Visual Contract & Fluid Scaling Definition (Contract V2)
  *
  * Source of truth for approved iPhone/iOS visual calibrations.
  * Every critical value in `src/styles/platform/ios-storefront.css`
  * MUST match this contract.
  *
+ * Golden Viewport: 393px (iPhone standard reference = 1.000).
+ * Fluid scaling adapts smoothly between compact (320px-375px) and larger iPhones (430px-440px)
+ * using clamp(min, calc(golden + (100vw - 393px) * rate), max).
+ *
  * Regression guards enforce exact parity in `ios-storefront-contract.test.ts`.
  */
+
+export interface FluidTokenDefinition {
+  readonly goldenViewport: 393;
+  readonly golden: number;
+  readonly min: number;
+  readonly max: number;
+  readonly rate: number;
+  readonly unit: "px";
+}
+
+export function buildFluidClamp(token: FluidTokenDefinition): string {
+  return `clamp(${token.min}${token.unit}, calc(${token.golden}${token.unit} + ((100vw - 393px) * ${token.rate})), ${token.max}${token.unit})`;
+}
 
 export const IOS_STOREFRONT_CONTRACT = {
   header: {
@@ -14,6 +31,8 @@ export const IOS_STOREFRONT_CONTRACT = {
     logoMaxWidth: "132px",
     taglineFontSize: "14.5px",
     flameSize: "18px",
+    taglineLetterSpacing: "-0.5px",
+    taglineColor: "#24334f",
   },
 
   hero: {
@@ -25,6 +44,7 @@ export const IOS_STOREFRONT_CONTRACT = {
   builder: {
     headSmallFontSize: "15px",
     headSmallColor: "#ff2d72",
+    headSmallLetterSpacing: "0.11em",
     headDescriptionFontSize: "15px",
     headDescriptionColor: "#73809a",
     labelBFontSize: "15.5px",
@@ -39,6 +59,7 @@ export const IOS_STOREFRONT_CONTRACT = {
     labelFontSize: "14px",
     labelColor: "#172033",
     buttonGap: "7px",
+    buttonPadding: "0 4px",
     buttonSvgSize: "22px",
     serviceIconSize: "41px",
     serviceIconBorderRadius: "12px",
@@ -143,6 +164,56 @@ export const IOS_STOREFRONT_CONTRACT = {
     ctaDefaultFontSize: "13.5px",
     bestBadgeFontSize: "12px",
     bestBadgeHeight: "22px",
+  },
+
+  /* ==========================================================================
+     FLUID SCALE TOKENS CONTRACT (393px = 1.000 Golden Viewport)
+     ========================================================================== */
+  fluid: {
+    typography: {
+      heroSubtitle: { goldenViewport: 393, golden: 15, min: 14, max: 16.5, rate: 0.02, unit: "px" } as const,
+      builderEyebrow: { goldenViewport: 393, golden: 15, min: 14, max: 16.5, rate: 0.02, unit: "px" } as const,
+      builderDescription: { goldenViewport: 393, golden: 15, min: 14, max: 16.5, rate: 0.02, unit: "px" } as const,
+      builderLabelB: { goldenViewport: 393, golden: 15.5, min: 14.5, max: 17, rate: 0.02, unit: "px" } as const,
+      builderLabelSmall: { goldenViewport: 393, golden: 14.5, min: 13.5, max: 16, rate: 0.02, unit: "px" } as const,
+      goalLabel: { goldenViewport: 393, golden: 14, min: 13, max: 15.5, rate: 0.02, unit: "px" } as const,
+      platformLabelNarrow: { goldenViewport: 393, golden: 14, min: 13, max: 15.5, rate: 0.02, unit: "px" } as const,
+      fieldLabel: { goldenViewport: 393, golden: 15, min: 14, max: 16.5, rate: 0.02, unit: "px" } as const,
+      inputText: { goldenViewport: 393, golden: 13.5, min: 12.5, max: 15, rate: 0.02, unit: "px" } as const,
+      privacyText: { goldenViewport: 393, golden: 14, min: 13, max: 15.5, rate: 0.02, unit: "px" } as const,
+      analyzeText: { goldenViewport: 393, golden: 15.7, min: 14.7, max: 17.2, rate: 0.02, unit: "px" } as const,
+      summaryTitle: { goldenViewport: 393, golden: 14.5, min: 13.5, max: 16, rate: 0.02, unit: "px" } as const,
+      summarySmall: { goldenViewport: 393, golden: 13.8, min: 12.8, max: 15.2, rate: 0.02, unit: "px" } as const,
+      emptyTitle: { goldenViewport: 393, golden: 15.5, min: 14.5, max: 17, rate: 0.02, unit: "px" } as const,
+      emptyDescription: { goldenViewport: 393, golden: 14.5, min: 13.5, max: 16, rate: 0.02, unit: "px" } as const,
+      pwaTitle: { goldenViewport: 393, golden: 15, min: 14, max: 16.5, rate: 0.02, unit: "px" } as const,
+      pwaSubtitle: { goldenViewport: 393, golden: 13.5, min: 12.5, max: 15, rate: 0.02, unit: "px" } as const,
+      analyzingTitle: { goldenViewport: 393, golden: 15.5, min: 14.5, max: 17, rate: 0.02, unit: "px" } as const,
+      analyzingSubtitle: { goldenViewport: 393, golden: 14.5, min: 13.5, max: 16, rate: 0.02, unit: "px" } as const,
+      analyzingStep: { goldenViewport: 393, golden: 13.5, min: 12.5, max: 15, rate: 0.02, unit: "px" } as const,
+      finalCtaTitle: { goldenViewport: 393, golden: 17.5, min: 16, max: 19.5, rate: 0.03, unit: "px" } as const,
+    },
+    icons: {
+      builderLabelIcon: { goldenViewport: 393, golden: 30, min: 28, max: 34, rate: 0.04, unit: "px" } as const,
+      builderLabelIconFont: { goldenViewport: 393, golden: 15, min: 14, max: 16.5, rate: 0.02, unit: "px" } as const,
+      goalCheckmark: { goldenViewport: 393, golden: 22, min: 20, max: 25, rate: 0.03, unit: "px" } as const,
+      goalServiceIcon: { goldenViewport: 393, golden: 41, min: 38, max: 45, rate: 0.06, unit: "px" } as const,
+      goalGlyph: { goldenViewport: 393, golden: 30, min: 28, max: 34, rate: 0.04, unit: "px" } as const,
+      platformCheckmark: { goldenViewport: 393, golden: 21, min: 19, max: 24, rate: 0.03, unit: "px" } as const,
+      platformImage: { goldenViewport: 393, golden: 40, min: 37, max: 44, rate: 0.05, unit: "px" } as const,
+      inputSvg: { goldenViewport: 393, golden: 28, min: 26, max: 32, rate: 0.04, unit: "px" } as const,
+      analyzeSvg: { goldenViewport: 393, golden: 28, min: 26, max: 32, rate: 0.04, unit: "px" } as const,
+      summaryGlyph: { goldenViewport: 393, golden: 30, min: 28, max: 34, rate: 0.04, unit: "px" } as const,
+      summaryIconContainer: { goldenViewport: 393, golden: 41, min: 38, max: 45, rate: 0.06, unit: "px" } as const,
+      summaryPlatformImage: { goldenViewport: 393, golden: 35, min: 32, max: 39, rate: 0.05, unit: "px" } as const,
+      emptyIcon: { goldenViewport: 393, golden: 59, min: 54, max: 65, rate: 0.08, unit: "px" } as const,
+      emptyIconFont: { goldenViewport: 393, golden: 38, min: 35, max: 42, rate: 0.05, unit: "px" } as const,
+      pwaIcon: { goldenViewport: 393, golden: 18, min: 16, max: 20, rate: 0.03, unit: "px" } as const,
+      finalCtaRocket: { goldenViewport: 393, golden: 78, min: 72, max: 86, rate: 0.1, unit: "px" } as const,
+    },
+    controls: {
+      platformButtonHeight: { goldenViewport: 393, golden: 80, min: 76, max: 88, rate: 0.1, unit: "px" } as const,
+    },
   },
 } as const;
 

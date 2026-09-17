@@ -144,56 +144,56 @@ describe("Computed Style & Rule Matching Smoke Tests (Emulated iPhone Handheld V
     const heroP = doc.querySelector(".cf-plans-hero p")!;
     const heroRules = getAllMatchedRules(doc, heroP);
     expect(heroRules.length).toBeGreaterThan(0);
-    expect(heroRules.some((r) => r.style.fontSize === IOS_STOREFRONT_CONTRACT.hero.subtitleFontSize)).toBe(true);
+    expect(heroRules.some((r) => r.style.fontSize === "var(--ios-type-hero-subtitle)")).toBe(true);
 
     // 3. Step Label B & Small
     const labelB = doc.querySelector(".cf-pb-label b")!;
     const labelBRules = getAllMatchedRules(doc, labelB);
-    expect(labelBRules.some((r) => r.style.fontSize === IOS_STOREFRONT_CONTRACT.builder.labelBFontSize)).toBe(true);
+    expect(labelBRules.some((r) => r.style.fontSize === "var(--ios-type-builder-label-b)")).toBe(true);
 
     const labelSmall = doc.querySelector(".cf-pb-label small")!;
     const labelSmallRules = getAllMatchedRules(doc, labelSmall);
-    expect(labelSmallRules.some((r) => r.style.fontSize === IOS_STOREFRONT_CONTRACT.builder.labelSmallFontSize)).toBe(true);
+    expect(labelSmallRules.some((r) => r.style.fontSize === "var(--ios-type-builder-label-small)")).toBe(true);
 
     // 4. Goal Button Label
     const goalBtnB = doc.querySelector(".cf-pb-goals button b")!;
     const goalBtnRules = getAllMatchedRules(doc, goalBtnB);
-    expect(goalBtnRules.some((r) => r.style.fontSize === IOS_STOREFRONT_CONTRACT.goals.labelFontSize)).toBe(true);
+    expect(goalBtnRules.some((r) => r.style.fontSize === "var(--ios-type-goal-label)")).toBe(true);
 
     // 5. Networks Button & Label
     const platformBtn = doc.querySelector(".cf-pb-platforms button")!;
     const platformBtnRules = getAllMatchedRules(doc, platformBtn);
-    expect(platformBtnRules.some((r) => r.style.height === IOS_STOREFRONT_CONTRACT.networks.buttonHeight)).toBe(true);
+    expect(platformBtnRules.some((r) => r.style.height === "var(--ios-control-platform-height)")).toBe(true);
 
     // 6. Analyzing Progress Title, Subtitle, Labels, Statuses
     const analyzingH3 = doc.querySelector(".cf-premium-builder-result.cf-pb-result-analyzing .cf-pb-loading h3")!;
     const analyzingH3Rules = getAllMatchedRules(doc, analyzingH3);
-    expect(analyzingH3Rules.some((r) => r.style.fontSize === IOS_STOREFRONT_CONTRACT.analyzing.titleFontSize)).toBe(true);
+    expect(analyzingH3Rules.some((r) => r.style.fontSize === "var(--ios-type-analyzing-title)")).toBe(true);
 
     const analyzingP = doc.querySelector(".cf-premium-builder-result.cf-pb-result-analyzing .cf-pb-loading p")!;
     const analyzingPRules = getAllMatchedRules(doc, analyzingP);
-    expect(analyzingPRules.some((r) => r.style.fontSize === IOS_STOREFRONT_CONTRACT.analyzing.subtitleFontSize)).toBe(true);
+    expect(analyzingPRules.some((r) => r.style.fontSize === "var(--ios-type-analyzing-subtitle)")).toBe(true);
 
     const analyzingStatusB = doc.querySelector(".cf-premium-builder-result.cf-pb-result-analyzing .cf-pb-statuses b")!;
     const analyzingStatusBRules = getAllMatchedRules(doc, analyzingStatusB);
-    expect(analyzingStatusBRules.some((r) => r.style.fontSize === IOS_STOREFRONT_CONTRACT.analyzing.stepLabelsFontSize)).toBe(true);
+    expect(analyzingStatusBRules.some((r) => r.style.fontSize === "var(--ios-type-analyzing-step)")).toBe(true);
 
     const analyzingStatusSmall = doc.querySelector(".cf-premium-builder-result.cf-pb-result-analyzing .cf-pb-statuses small")!;
     const analyzingStatusSmallRules = getAllMatchedRules(doc, analyzingStatusSmall);
-    expect(analyzingStatusSmallRules.some((r) => r.style.fontSize === IOS_STOREFRONT_CONTRACT.analyzing.statusesFontSize)).toBe(true);
+    expect(analyzingStatusSmallRules.some((r) => r.style.fontSize === "var(--ios-type-analyzing-step)")).toBe(true);
 
     // 7. PWA Banner
     const pwaTitle = doc.querySelector('[data-testid="public-pwa-banner"] .text-xs')!;
     const pwaTitleRules = getAllMatchedRules(doc, pwaTitle);
-    expect(pwaTitleRules.some((r) => r.style.fontSize === IOS_STOREFRONT_CONTRACT.pwaBanner.titleFontSize)).toBe(true);
+    expect(pwaTitleRules.some((r) => r.style.fontSize === "var(--ios-type-pwa-title)")).toBe(true);
 
     const pwaIcon = doc.querySelector('[data-testid="public-pwa-banner"] .w-3\\.5')!;
     const pwaIconRules = getAllMatchedRules(doc, pwaIcon);
-    expect(pwaIconRules.some((r) => r.style.width === IOS_STOREFRONT_CONTRACT.pwaBanner.iconSize)).toBe(true);
+    expect(pwaIconRules.some((r) => r.style.width === "var(--ios-icon-pwa)")).toBe(true);
 
     const pwaSubtitle = doc.querySelector('[data-testid="public-pwa-banner"] .text-\\[11px\\]')!;
     const pwaSubtitleRules = getAllMatchedRules(doc, pwaSubtitle);
-    expect(pwaSubtitleRules.some((r) => r.style.fontSize === IOS_STOREFRONT_CONTRACT.pwaBanner.subtitleFontSize)).toBe(true);
+    expect(pwaSubtitleRules.some((r) => r.style.fontSize === "var(--ios-type-pwa-subtitle)")).toBe(true);
   });
 
   it("2. On Non-iOS (cf-platform-ios absent), iOS storefront rules match ZERO elements", () => {
