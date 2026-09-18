@@ -138,9 +138,9 @@ describe("Computed Style & Rule Matching Smoke Tests (Canonical Frame: 430px, 39
     const logoImg = doc.querySelector(".cf-plans-header-clean .cf-plans-logo-image > img")!;
     const logoRules = getAllMatchedRules(doc, logoImg);
     expect(logoRules.length).toBeGreaterThan(0);
-    const logoRule = logoRules.find((r) => r.style.height === IOS_STOREFRONT_CONTRACT.header.logoHeight);
+    const logoRule = logoRules.find((r) => r.style.height === "var(--ios-icon-header-logo-height)");
     expect(logoRule).toBeDefined();
-    expect(logoRule!.style.maxWidth).toBe(IOS_STOREFRONT_CONTRACT.header.logoMaxWidth);
+    expect(logoRule!.style.maxWidth).toBe("var(--ios-icon-header-logo-max-width)");
 
     // 2. Hero Subtitle
     const heroP = doc.querySelector(".cf-plans-hero p")!;

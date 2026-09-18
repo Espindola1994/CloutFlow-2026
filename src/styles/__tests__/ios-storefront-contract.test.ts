@@ -92,15 +92,15 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
 
   it("6. Critical values strictly correspond to IOS_STOREFRONT_CONTRACT (Golden Baseline & Var Links)", () => {
     // Header
-    expect(cssContent).toContain(`height: ${IOS_STOREFRONT_CONTRACT.header.logoHeight} !important;`);
-    expect(cssContent).toContain(`max-width: ${IOS_STOREFRONT_CONTRACT.header.logoMaxWidth} !important;`);
-    expect(cssContent).toContain(`font-size: ${IOS_STOREFRONT_CONTRACT.header.taglineFontSize} !important;`);
-    expect(cssContent).toContain(`width: ${IOS_STOREFRONT_CONTRACT.header.flameSize} !important;`);
-    expect(cssContent).toContain(`height: ${IOS_STOREFRONT_CONTRACT.header.flameSize} !important;`);
+    expect(cssContent).toContain("height: var(--ios-icon-header-logo-height) !important;");
+    expect(cssContent).toContain("max-width: var(--ios-icon-header-logo-max-width) !important;");
+    expect(cssContent).toContain("font-size: var(--ios-type-header-tagline) !important;");
+    expect(cssContent).toContain("width: var(--ios-icon-header-flame) !important;");
+    expect(cssContent).toContain("height: var(--ios-icon-header-flame) !important;");
 
     // Hero
     expect(cssContent).toContain("font-size: var(--ios-type-hero-subtitle) !important;");
-    expect(cssContent).toContain(`max-width: ${IOS_STOREFRONT_CONTRACT.hero.subtitleMaxWidth} !important;`);
+    expect(cssContent).toContain("max-width: var(--ios-hero-subtitle-max-width) !important;");
     expect(cssContent).toContain(`color: ${IOS_STOREFRONT_CONTRACT.hero.subtitleColor} !important;`);
 
     // Builder Head & Labels
@@ -117,7 +117,7 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
 
     // Goals
     expect(cssContent).toContain("font-size: var(--ios-type-goal-label) !important;");
-    expect(cssContent).toContain(`gap: ${IOS_STOREFRONT_CONTRACT.goals.buttonGap} !important;`);
+    expect(cssContent).toContain("gap: var(--cf-ios-goal-gap) !important;");
     expect(cssContent).toContain("width: var(--ios-icon-goal-checkmark) !important;");
     expect(cssContent).toContain("width: var(--ios-icon-goal-service) !important;");
     expect(cssContent).toContain("width: var(--ios-icon-goal-glyph) !important;");
@@ -126,7 +126,7 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
     expect(cssContent).toContain("width: var(--ios-icon-platform-checkmark) !important;");
     expect(cssContent).toContain("width: var(--ios-icon-platform-image) !important;");
     expect(cssContent).toContain("height: var(--ios-control-platform-height) !important;");
-    expect(cssContent).toContain("font-size: var(--ios-type-platform-label-narrow) !important;");
+    expect(cssContent).toContain("font-size: var(--ios-type-platform-label) !important;");
 
     // Inputs & CTA
     expect(cssContent).toContain("font-size: var(--ios-type-field-label) !important;");

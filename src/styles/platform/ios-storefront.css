@@ -13,20 +13,14 @@
  * - Viewport queries enforce handheld mobile breakpoints (@media (max-width: 900px), etc.)
  * - iPadOS uses cf-platform-ipados and NEVER matches this stylesheet
  *
- * ARCHITECTURAL PRINCIPLE — iOS CANONICAL STOREFRONT FRAME:
- * - BACKGROUND: Full bleed 100% viewport (decorations, page backgrounds, header blur).
- * - CONTENT: Bounded inside canonical content frame (`--cf-ios-content-max: 393px`).
- * - GOLDEN REFERENCE VIEWPORT: 393px.
- * - iPhones <= 374px (SE / compact): Fluid fit, width: 100%, 10px safe gutters.
- * - iPhones 375px–393px (standard): Exact Golden composition, 14px gutters.
- * - iPhones >= 394px (Pro / Pro Max, 402px, 414px, 430px, 440px): Content is bounded to min(100%, 393px)
- *   and centered via margin-inline: auto, preserving the exact approved Golden typography, icon sizes,
- *   control geometry, and card proportions without stretching or blowing out spacing.
+ * ARCHITECTURAL PRINCIPLE — 3 RESPONSIVE VISUAL CONTRACTS:
+ * - CONTRACT A — COMPACT (<= 374px): Prioritizes legibility, tightens gutters (10px) and gaps
+ * - CONTRACT B — STANDARD (375px - 413px): GOLDEN REFERENCE (iPhone 16 @ 393px, UNCHANGED)
+ * - CONTRACT C — LARGE (414px - 900px): Pro & Pro Max rich visual density (typography ×1.10–1.15, icons ×1.08–1.13, controls ×1.08–1.12)
  *
  * SECTIONS:
- * 00 — Canonical Frame Tokens (Scoped to html.cf-platform-ios)
- * 01 — Header & Logo (Full bleed header, bounded content)
- * 02 — Hero (Full bleed background, bounded copy)
+ * 01 — Header & Logo
+ * 02 — Hero
  * 03 — Growth Package Builder (Head, Step Labels & Card Frame)
  * 04 — Goals (Step 1 - 3 Columns Grid)
  * 05 — Networks (Step 2 - 4 Columns Grid)
@@ -39,92 +33,18 @@
  * 12 — Reviews / Testimonials Carousel
  * 13 — Final CTA & Rocket Art
  * 14 — Offer Page Calibrations (Step 1 Prefill & Step 3 Packages)
+ *
+ * RESPONSIVE VISUAL CONTRACT ARCHITECTURE (End of stylesheet):
+ * - iOS VISUAL CONTRACT — BASE
+ * - iOS VISUAL CONTRACT — COMPACT <=374
+ * - iOS VISUAL CONTRACT — STANDARD 375-413 (GOLDEN)
+ * - iOS VISUAL CONTRACT — LARGE 414-900
  */
 
 /* ==========================================================================
-   00 — CANONICAL FRAME TOKENS (SCOPED STRICTLY TO html.cf-platform-ios)
-   Replaces Fluid V1/V2 growing curves with Stable Canonical Composition Frame.
-   393px is our Golden design width reference.
-   ========================================================================== */
-html.cf-platform-ios {
-  /* Canonical Frame Geometry */
-  --cf-ios-content-max: 393px;
-  --cf-ios-page-gutter: 14px;
-  --cf-ios-builder-padding: 14px;
-  --cf-ios-step-padding: 13px;
-  --cf-ios-goal-gap: 7px;
-  --cf-ios-platform-gap: 6px;
-
-  /* Golden Typography Tokens (Stable across 393px, 430px, 440px) */
-  --ios-type-hero-subtitle: 15px;
-  --ios-type-builder-eyebrow: 15px;
-  --ios-type-builder-description: 15px;
-  --ios-type-builder-label-b: 15.5px;
-  --ios-type-builder-label-small: 14.5px;
-  --ios-type-goal-label: 14px;
-  --ios-type-platform-label-narrow: 14px;
-  --ios-type-field-label: 15px;
-  --ios-type-input-text: 13.5px;
-  --ios-type-privacy-text: 14px;
-  --ios-type-analyze-text: 15.7px;
-  --ios-type-summary-title: 14.5px;
-  --ios-type-summary-small: 13.8px;
-  --ios-type-empty-title: 15.5px;
-  --ios-type-empty-description: 14.5px;
-  --ios-type-pwa-title: 15px;
-  --ios-type-pwa-subtitle: 13.5px;
-  --ios-type-analyzing-title: 15.5px;
-  --ios-type-analyzing-subtitle: 14.5px;
-  --ios-type-analyzing-step: 13.5px;
-  --ios-type-final-cta-title: 17.5px;
-
-  /* Golden Icon & Artwork Tokens */
-  --ios-icon-builder-label: 30px;
-  --ios-icon-builder-label-font: 15px;
-  --ios-icon-goal-checkmark: 22px;
-  --ios-icon-goal-service: 41px;
-  --ios-icon-goal-glyph: 30px;
-  --ios-icon-platform-checkmark: 21px;
-  --ios-icon-platform-image: 40px;
-  --ios-icon-input-svg: 28px;
-  --ios-icon-analyze-svg: 28px;
-  --ios-icon-summary-glyph: 30px;
-  --ios-icon-summary-container: 41px;
-  --ios-icon-summary-platform: 35px;
-  --ios-icon-empty-container: 59px;
-  --ios-icon-empty-font: 38px;
-  --ios-icon-pwa: 18px;
-  --ios-icon-final-cta-rocket: 78px;
-
-  /* Golden Control Dimensions */
-  --ios-control-platform-height: 80px;
-  --ios-control-input-height: 41px;
-  --ios-control-analyze-height: 44px;
-}
-
-/* Compact iPhone responsive adaptations (<= 374px, e.g. iPhone SE) */
-@media (max-width: 374px) {
-  html.cf-platform-ios {
-    --cf-ios-page-gutter: 10px;
-    --cf-ios-builder-padding: 11px;
-    --cf-ios-step-padding: 11px;
-    --cf-ios-goal-gap: 5px;
-    --cf-ios-platform-gap: 4px;
-  }
-}
-
-/* Large iPhone adaptations (>= 394px, e.g. 402px, 414px, 430px, 440px Pro & Pro Max) */
-@media (min-width: 394px) and (max-width: 900px) {
-  html.cf-platform-ios {
-    --cf-ios-page-gutter: 20px;
-  }
-}
-
-/* ==========================================================================
    01 — HEADER & LOGO
-   Full bleed bar, canonical bounded contents aligned with storefront frame.
-   Baseline (375px): height 32px, max-width 132px.
-   Approved iPhone calibration: height 37px, max-width 132px.
+   Full bleed bar, responsive bounded contents aligned with storefront frame.
+   Standard baseline (375px-413px): height 37px, max-width 132px.
    Tagline: font-size 14.5px, letter-spacing -0.5px, color #24334f.
    Flame: 18px x 18px.
    ========================================================================== */
@@ -137,27 +57,27 @@ html.cf-platform-ios {
   }
 
   html.cf-platform-ios body .cf-plans-header-clean .cf-plans-logo.cf-plans-logo-image > img {
-    max-width: 132px !important;
-    height: 37px !important;
+    max-width: var(--ios-icon-header-logo-max-width) !important;
+    height: var(--ios-icon-header-logo-height) !important;
   }
 
   html.cf-platform-ios body .cf-plans-header-tagline .cf-tagline-text-mobile {
-    letter-spacing: -0.5px !important;
+    letter-spacing: var(--ios-header-tagline-letter-spacing) !important;
     color: #24334f !important;
-    font-size: 14.5px !important;
+    font-size: var(--ios-type-header-tagline) !important;
   }
 
   html.cf-platform-ios body .cf-plans-header-tagline .cf-plans-header-flame,
   html.cf-platform-ios body .cf-plans-header-tagline > svg {
-    width: 18px !important;
-    height: 18px !important;
+    width: var(--ios-icon-header-flame) !important;
+    height: var(--ios-icon-header-flame) !important;
   }
 }
 
 /* ==========================================================================
    02 — HERO
-   Full bleed section, canonical bounded copy.
-   Approved iPhone calibration: font-size 15px, max-width 350px, color #66779a.
+   Full bleed section, responsive bounded copy.
+   Standard baseline: font-size 15px, max-width 350px, color #66779a.
    ========================================================================== */
 @media (max-width: 900px) {
   html.cf-platform-ios body .cf-plans-shell .cf-plans-hero {
@@ -166,27 +86,35 @@ html.cf-platform-ios {
     margin-inline: auto !important;
   }
 
+  html.cf-platform-ios body .cf-plans-shell .cf-plans-hero h1 {
+    line-height: var(--ios-type-hero-h1-line-height) !important;
+    letter-spacing: var(--ios-type-hero-h1-letter-spacing) !important;
+  }
+
+  html.cf-platform-ios body .cf-plans-shell .cf-plans-hero h1 span {
+    font-size: var(--ios-type-hero-h1-span) !important;
+  }
+
+  html.cf-platform-ios body .cf-plans-shell .cf-plans-hero h1 b {
+    font-size: var(--ios-type-hero-h1-b) !important;
+  }
+
   html.cf-platform-ios body .cf-plans-shell .cf-plans-hero p {
     color: #66779a !important;
-    max-width: 350px !important;
+    max-width: var(--ios-hero-subtitle-max-width) !important;
     margin: 5px auto 0 !important;
     padding: 0 4px !important;
     font-size: var(--ios-type-hero-subtitle) !important;
+    line-height: var(--ios-hero-subtitle-line-height) !important;
   }
 }
 
 /* ==========================================================================
    03 — GROWTH PACKAGE BUILDER (HEAD, STEP LABELS & CARD FRAME)
-   Canonical Content Frame applies to .cf-plans-shell and .cf-premium-builder:
+   Storefront Content Frame applies to .cf-plans-shell and .cf-premium-builder:
    - Width: min(100%, var(--cf-ios-content-max))
    - margin-inline: auto
-   - Preserves exact card proportions, padding and density on Pro & Pro Max
-   Approved iPhone calibrations:
-   - Head small: font-size 15px, color #ff2d72, letter-spacing 0.11em
-   - Head description: font-size 15px, color #73809a
-   - Step label b: font-size 15.5px, color #111827
-   - Step label small: font-size 14.5px, color #78859d
-   - Step label icon (i): 30px x 30px, font-size 15px, circular gradient
+   - Preserves exact card density across Compact, Standard Golden, and Large Pro Max
    ========================================================================== */
 @media (max-width: 900px) {
   html.cf-platform-ios body .cf-plans-shell {
@@ -213,25 +141,36 @@ html.cf-platform-ios {
 
   html.cf-platform-ios body .cf-premium-builder-head small {
     color: #ff2d72 !important;
-    letter-spacing: 0.11em !important;
+    letter-spacing: var(--ios-builder-eyebrow-letter-spacing) !important;
     margin-bottom: 6px !important;
     font-size: var(--ios-type-builder-eyebrow) !important;
+  }
+
+  html.cf-platform-ios body .cf-premium-builder-head h2 {
+    font-size: var(--ios-type-builder-title) !important;
+    font-weight: 900 !important;
+    line-height: var(--ios-builder-title-line-height) !important;
+    letter-spacing: var(--ios-builder-title-letter-spacing) !important;
+    margin: 0 !important;
   }
 
   html.cf-platform-ios body .cf-premium-builder-head p {
     color: #73809a !important;
     margin: 3px 0 0 !important;
     font-size: var(--ios-type-builder-description) !important;
+    line-height: var(--ios-builder-description-line-height) !important;
   }
 
   html.cf-platform-ios body .cf-pb-label b {
     color: #111827 !important;
     font-size: var(--ios-type-builder-label-b) !important;
+    line-height: var(--ios-builder-label-b-line-height) !important;
   }
 
   html.cf-platform-ios body .cf-pb-label small {
     color: #78859d !important;
     font-size: var(--ios-type-builder-label-small) !important;
+    line-height: var(--ios-builder-label-small-line-height) !important;
   }
 
   html.cf-platform-ios body .cf-pb-label > i {
@@ -254,12 +193,6 @@ html.cf-platform-ios {
 /* ==========================================================================
    04 — GOALS (STEP 1)
    Preserve 3 columns grid with minmax(0, 1fr) for overflow safety.
-   Approved iPhone calibrations:
-   - Goal button label: font-size 14px, color #172033
-   - Goal button: gap 7px, padding 0 4px
-   - Goal button SVG checkmark: 22px x 22px
-   - Goal service icon: 41px x 41px, border-radius 12px
-   - Goal glyph: 30px x 30px
    ========================================================================== */
 @media (max-width: 900px) {
   html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-goals {
@@ -274,8 +207,9 @@ html.cf-platform-ios {
   }
 
   html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-goals button {
-    gap: 7px !important;
-    padding: 0 4px !important;
+    gap: var(--cf-ios-goal-gap) !important;
+    padding: var(--ios-control-goal-padding) !important;
+    min-height: var(--ios-control-goal-height) !important;
   }
 
   html.cf-platform-ios body .cf-pb-goals button > svg {
@@ -303,12 +237,7 @@ html.cf-platform-ios {
 
 /* ==========================================================================
    05 — NETWORKS (STEP 2)
-   Preserve 4 columns grid with minmax(0, 1fr).
-   Approved iPhone calibrations:
-   - Platform button: height 80px, border-radius 12px, flex column center, gap 0
-   - Platform button SVG checkmark: 21px x 21px
-   - Platform icon image: 40px x 40px, object-fit contain
-   - Platform button label <=480px: font-size 14px
+   Preserve 4 columns grid with minmax(0, 1fr). Single source of truth.
    ========================================================================== */
 @media (max-width: 900px) {
   html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-platforms {
@@ -336,31 +265,14 @@ html.cf-platform-ios {
     gap: 0 !important;
     height: var(--ios-control-platform-height) !important;
   }
-}
-
-@media (max-width: 480px) {
-  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-platforms button {
-    border-radius: 12px !important;
-    flex-direction: column !important;
-    justify-content: center !important;
-    align-items: center !important;
-    gap: 0 !important;
-    height: var(--ios-control-platform-height) !important;
-  }
 
   html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-platforms button b {
-    font-size: var(--ios-type-platform-label-narrow) !important;
+    font-size: var(--ios-type-platform-label) !important;
   }
 }
 
 /* ==========================================================================
    06 — INPUTS (FIELDS & PRIVACY)
-   Approved iPhone calibrations:
-   - Field label: font-size 15px, color #1a2233, margin 10px 0 5px
-   - Input SVG icon: 28px x 28px, color #7786a1, flex none
-   - Input container height: 41px
-   - Input text: font-size 13.5px, appearance none, no shadow, border-radius 0
-   - Privacy text: font-size 14px, color #7a879e, gap 6px, margin 7px 0 0
    ========================================================================== */
 @media (max-width: 900px) {
   html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-field-label {
@@ -400,10 +312,6 @@ html.cf-platform-ios {
 
 /* ==========================================================================
    07 — ANALYZE CTA BUTTON
-   Approved iPhone calibrations:
-   - SVG icon: 28px x 28px (min-width 28px)
-   - Button text: font-size 15.7px
-   - Button height: 44px
    ========================================================================== */
 @media (max-width: 900px) {
   html.cf-platform-ios body .cf-o10-gb-analyze svg,
@@ -422,12 +330,6 @@ html.cf-platform-ios {
 
 /* ==========================================================================
    08 — RESULT / SUMMARY CARD
-   Approved iPhone calibrations:
-   - Summary title: font-size 14.5px, color #182033
-   - Summary small: font-size 13.8px, color #8591a6, margin-top 1px
-   - Summary service glyph: 30px x 30px (max 30px x 30px)
-   - Summary service / platform icon container: 41px x 41px, border-radius 9px
-   - Summary platform image: 35px x 35px, object-fit contain
    ========================================================================== */
 @media (max-width: 900px) {
   html.cf-platform-ios body .cf-pb-summary b {
@@ -475,10 +377,6 @@ html.cf-platform-ios {
 
 /* ==========================================================================
    09 — EMPTY STATE
-   Approved iPhone calibrations:
-   - Empty state title: font-size 15.5px, color #182033, margin 10px 0 4px
-   - Empty state description: font-size 14.5px, max-width 300px, line-height 1.45
-   - Empty state icon container: 59px x 59px, font-size 38px, border-radius 15px
    ========================================================================== */
 @media (max-width: 900px) {
   html.cf-platform-ios body .cf-pb-empty h3 {
@@ -491,7 +389,7 @@ html.cf-platform-ios {
     max-width: 300px !important;
     margin: 0 !important;
     font-size: var(--ios-type-empty-description) !important;
-    line-height: 1.45 !important;
+    line-height: var(--ios-empty-description-line-height) !important;
   }
 
   html.cf-platform-ios body .cf-pb-empty > span {
@@ -511,14 +409,6 @@ html.cf-platform-ios {
 
 /* ==========================================================================
    10 — ANALYSIS PROGRESS PANEL (STRICTLY SCOPED TO .cf-pb-result-analyzing)
-   Approved iPhone calibrations:
-   - Layout: 2-column grid 80px minmax(0, 1fr), gap 8px, padding 12px 6px
-   - Progress ring: 80px x 80px
-   - Title h3: font-size 15.5px, line-height 1.25, color #172033
-   - Subtitle p: font-size 14.5px, line-height 1.35, color #7b879b
-   - Step labels b: font-size 13.5px, line-height 1.2, color #253047
-   - Statuses small: font-size 13.5px, line-height 1.2, color #8a96a9 (done: #19a466)
-   - Status row icons: 14px x 14px, SVG 13px x 13px
    Invariant: Strictly scoped to .cf-pb-result-analyzing to guarantee zero bleed
    into idle/result/normal builder state.
    ========================================================================== */
@@ -652,10 +542,6 @@ html.cf-platform-ios {
 
 /* ==========================================================================
    11 — PUBLIC PWA INSTALL BANNER (STRICTLY SCOPED TO [data-testid="public-pwa-banner"])
-   Approved iPhone calibrations:
-   - Title (.text-xs): font-size 15px
-   - Download Icon (.w-3.5, .h-3.5): 18px x 18px
-   - Subtitle (.text-[11px]): font-size 13.5px
    ========================================================================== */
 @media (max-width: 900px) {
   html.cf-platform-ios body [data-testid="public-pwa-banner"] .text-xs {
@@ -677,8 +563,6 @@ html.cf-platform-ios {
 
 /* ==========================================================================
    12 — REVIEWS / TESTIMONIALS CAROUSEL
-   Ensures smooth WebKit touch momentum, no scrollbar artifact, and clean
-   visual card framing on iOS handheld devices.
    ========================================================================== */
 @media (max-width: 900px) {
   html.cf-platform-ios body .cf-plans-reviews {
@@ -700,9 +584,6 @@ html.cf-platform-ios {
 
 /* ==========================================================================
    13 — FINAL CTA & ROCKET ARTWORK
-   Bounded inside canonical storefront width with centered margin.
-   Poco baseline (375px): grid-template-columns 78px minmax(0, 1fr), padding 12px 11px.
-   Prevents wider iPhones (391px–440px) from blowing out to 160px/110px.
    ========================================================================== */
 @media (max-width: 900px) {
   html.cf-platform-ios body .cf-plans-final-cta {
@@ -726,7 +607,7 @@ html.cf-platform-ios {
   }
 }
 
-/* Canonical content bounding for PlanSelector & Value Row */
+/* Storefront content bounding for PlanSelector & Value Row */
 @media (max-width: 900px) {
   html.cf-platform-ios body .cf-plans-grid-section,
   html.cf-platform-ios body .cf-plans-pricing-section,
@@ -743,6 +624,7 @@ html.cf-platform-ios {
    14 — OFFER PAGE CALIBRATIONS (STEP 1 PREFILL & STEP 3 PACKAGES)
    Synchronizes handheld iPhones (up to 440px) to approved presentation.
    Mandatory invariant: package width min(66%, 320px) !important; max-width 320px !important.
+   FREEZE: Intentionally isolated and protected from Home modifications.
    ========================================================================== */
 @media (max-width: 440px) {
   /* Offer Header */
@@ -974,5 +856,408 @@ html.cf-platform-ios {
     width: 16px !important;
     height: 16px !important;
     min-width: 16px !important;
+  }
+}
+
+/* ========================================
+   iOS VISUAL CONTRACT — BASE
+   ======================================== */
+html.cf-platform-ios {
+  /* Fallback / Baseline Geometry Tokens (matches Standard Golden) */
+  --cf-ios-content-max: 393px;
+  --cf-ios-page-gutter: 14px;
+  --cf-ios-builder-padding: 14px;
+  --cf-ios-step-padding: 13px;
+  --cf-ios-goal-gap: 7px;
+  --cf-ios-platform-gap: 6px;
+
+  /* Header */
+  --ios-icon-header-logo-height: 37px;
+  --ios-icon-header-logo-max-width: 132px;
+  --ios-type-header-tagline: 14.5px;
+  --ios-header-tagline-letter-spacing: -0.5px;
+  --ios-icon-header-flame: 18px;
+
+  /* Hero */
+  --ios-type-hero-h1-span: 34px;
+  --ios-type-hero-h1-b: 32px;
+  --ios-type-hero-h1-line-height: 1.02;
+  --ios-type-hero-h1-letter-spacing: -1.2px;
+  --ios-type-hero-subtitle: 15px;
+  --ios-hero-subtitle-max-width: 350px;
+  --ios-hero-subtitle-line-height: 1.45;
+
+  /* Builder Head & Step Labels */
+  --ios-type-builder-eyebrow: 15px;
+  --ios-builder-eyebrow-letter-spacing: 0.11em;
+  --ios-type-builder-title: 24px;
+  --ios-builder-title-line-height: 1.05;
+  --ios-builder-title-letter-spacing: -1.1px;
+  --ios-type-builder-description: 15px;
+  --ios-builder-description-line-height: 1.4;
+  --ios-type-builder-label-b: 15.5px;
+  --ios-builder-label-b-line-height: 1.25;
+  --ios-type-builder-label-small: 14.5px;
+  --ios-builder-label-small-line-height: 1.3;
+  --ios-icon-builder-label: 30px;
+  --ios-icon-builder-label-font: 15px;
+
+  /* Goals */
+  --ios-type-goal-label: 14px;
+  --ios-icon-goal-checkmark: 22px;
+  --ios-icon-goal-service: 41px;
+  --ios-icon-goal-glyph: 30px;
+  --ios-control-goal-height: 68px;
+  --ios-control-goal-padding: 0 4px;
+
+  /* Networks */
+  --ios-type-platform-label: 14px;
+  --ios-type-platform-label-narrow: 14px;
+  --ios-icon-platform-checkmark: 21px;
+  --ios-icon-platform-image: 40px;
+  --ios-control-platform-height: 80px;
+
+  /* Inputs */
+  --ios-type-field-label: 15px;
+  --ios-icon-input-svg: 28px;
+  --ios-control-input-height: 41px;
+  --ios-type-input-text: 13.5px;
+  --ios-type-privacy-text: 14px;
+
+  /* Analyze CTA */
+  --ios-icon-analyze-svg: 28px;
+  --ios-type-analyze-text: 15.7px;
+  --ios-control-analyze-height: 44px;
+
+  /* Summary Card */
+  --ios-type-summary-title: 14.5px;
+  --ios-type-summary-small: 13.8px;
+  --ios-icon-summary-glyph: 30px;
+  --ios-icon-summary-container: 41px;
+  --ios-icon-summary-platform: 35px;
+
+  /* Empty State */
+  --ios-type-empty-title: 15.5px;
+  --ios-type-empty-description: 14.5px;
+  --ios-empty-description-line-height: 1.45;
+  --ios-icon-empty-container: 59px;
+  --ios-icon-empty-font: 38px;
+
+  /* Analyzing Panel */
+  --ios-type-analyzing-title: 15.5px;
+  --ios-type-analyzing-subtitle: 14.5px;
+  --ios-type-analyzing-step: 13.5px;
+
+  /* PWA Banner */
+  --ios-type-pwa-title: 15px;
+  --ios-icon-pwa: 18px;
+  --ios-type-pwa-subtitle: 13.5px;
+
+  /* Final CTA */
+  --ios-type-final-cta-title: 17.5px;
+  --ios-icon-final-cta-rocket: 78px;
+}
+
+/* ========================================
+   iOS VISUAL CONTRACT — COMPACT <=374
+   ======================================== */
+@media (max-width: 374px) {
+  html.cf-platform-ios {
+    /* Compact Geometry */
+    --cf-ios-content-max: 100%;
+    --cf-ios-page-gutter: 10px;
+    --cf-ios-builder-padding: 11px;
+    --cf-ios-step-padding: 11px;
+    --cf-ios-goal-gap: 5px;
+    --cf-ios-platform-gap: 4px;
+
+    /* Header */
+    --ios-icon-header-logo-height: 35px;
+    --ios-icon-header-logo-max-width: 125px;
+    --ios-type-header-tagline: 13.5px;
+    --ios-header-tagline-letter-spacing: -0.4px;
+    --ios-icon-header-flame: 17px;
+
+    /* Hero */
+    --ios-type-hero-h1-span: 31px;
+    --ios-type-hero-h1-b: 29px;
+    --ios-type-hero-h1-line-height: 1.02;
+    --ios-type-hero-h1-letter-spacing: -1px;
+    --ios-type-hero-subtitle: 14.5px;
+    --ios-hero-subtitle-max-width: 320px;
+    --ios-hero-subtitle-line-height: 1.45;
+
+    /* Builder Head & Step Labels */
+    --ios-type-builder-eyebrow: 14.5px;
+    --ios-builder-eyebrow-letter-spacing: 0.11em;
+    --ios-type-builder-title: 22px;
+    --ios-builder-title-line-height: 1.05;
+    --ios-builder-title-letter-spacing: -1px;
+    --ios-type-builder-description: 14.5px;
+    --ios-builder-description-line-height: 1.4;
+    --ios-type-builder-label-b: 15px;
+    --ios-builder-label-b-line-height: 1.25;
+    --ios-type-builder-label-small: 14px;
+    --ios-builder-label-small-line-height: 1.3;
+    --ios-icon-builder-label: 28px;
+    --ios-icon-builder-label-font: 14px;
+
+    /* Goals */
+    --ios-type-goal-label: 13.5px;
+    --ios-icon-goal-checkmark: 20px;
+    --ios-icon-goal-service: 38px;
+    --ios-icon-goal-glyph: 28px;
+    --ios-control-goal-height: 64px;
+    --ios-control-goal-padding: 0 3px;
+
+    /* Networks */
+    --ios-type-platform-label: 13.5px;
+    --ios-type-platform-label-narrow: 13.5px;
+    --ios-icon-platform-checkmark: 20px;
+    --ios-icon-platform-image: 38px;
+    --ios-control-platform-height: 76px;
+
+    /* Inputs */
+    --ios-type-field-label: 14.5px;
+    --ios-icon-input-svg: 26px;
+    --ios-control-input-height: 40px;
+    --ios-type-input-text: 13px;
+    --ios-type-privacy-text: 13.5px;
+
+    /* Analyze CTA */
+    --ios-icon-analyze-svg: 26px;
+    --ios-type-analyze-text: 15px;
+    --ios-control-analyze-height: 42px;
+
+    /* Summary Card */
+    --ios-type-summary-title: 14px;
+    --ios-type-summary-small: 13.5px;
+    --ios-icon-summary-glyph: 28px;
+    --ios-icon-summary-container: 38px;
+    --ios-icon-summary-platform: 33px;
+
+    /* Empty State */
+    --ios-type-empty-title: 15px;
+    --ios-type-empty-description: 14px;
+    --ios-empty-description-line-height: 1.45;
+    --ios-icon-empty-container: 54px;
+    --ios-icon-empty-font: 35px;
+
+    /* Analyzing Panel */
+    --ios-type-analyzing-title: 15px;
+    --ios-type-analyzing-subtitle: 14px;
+    --ios-type-analyzing-step: 13px;
+
+    /* PWA Banner */
+    --ios-type-pwa-title: 14.5px;
+    --ios-icon-pwa: 17px;
+    --ios-type-pwa-subtitle: 13px;
+
+    /* Final CTA */
+    --ios-type-final-cta-title: 16.5px;
+    --ios-icon-final-cta-rocket: 72px;
+  }
+}
+
+/* ========================================
+   iOS VISUAL CONTRACT — STANDARD 375-413
+   GOLDEN
+   ======================================== */
+@media (min-width: 375px) and (max-width: 413px) {
+  html.cf-platform-ios {
+    /* Standard Golden Geometry */
+    --cf-ios-content-max: 393px;
+    --cf-ios-page-gutter: 14px;
+    --cf-ios-builder-padding: 14px;
+    --cf-ios-step-padding: 13px;
+    --cf-ios-goal-gap: 7px;
+    --cf-ios-platform-gap: 6px;
+
+    /* Header */
+    --ios-icon-header-logo-height: 37px;
+    --ios-icon-header-logo-max-width: 132px;
+    --ios-type-header-tagline: 14.5px;
+    --ios-header-tagline-letter-spacing: -0.5px;
+    --ios-icon-header-flame: 18px;
+
+    /* Hero */
+    --ios-type-hero-h1-span: 34px;
+    --ios-type-hero-h1-b: 32px;
+    --ios-type-hero-h1-line-height: 1.02;
+    --ios-type-hero-h1-letter-spacing: -1.2px;
+    --ios-type-hero-subtitle: 15px;
+    --ios-hero-subtitle-max-width: 350px;
+    --ios-hero-subtitle-line-height: 1.45;
+
+    /* Builder Head & Step Labels */
+    --ios-type-builder-eyebrow: 15px;
+    --ios-builder-eyebrow-letter-spacing: 0.11em;
+    --ios-type-builder-title: 24px;
+    --ios-builder-title-line-height: 1.05;
+    --ios-builder-title-letter-spacing: -1.1px;
+    --ios-type-builder-description: 15px;
+    --ios-builder-description-line-height: 1.4;
+    --ios-type-builder-label-b: 15.5px;
+    --ios-builder-label-b-line-height: 1.25;
+    --ios-type-builder-label-small: 14.5px;
+    --ios-builder-label-small-line-height: 1.3;
+    --ios-icon-builder-label: 30px;
+    --ios-icon-builder-label-font: 15px;
+
+    /* Goals */
+    --ios-type-goal-label: 14px;
+    --ios-icon-goal-checkmark: 22px;
+    --ios-icon-goal-service: 41px;
+    --ios-icon-goal-glyph: 30px;
+    --ios-control-goal-height: 68px;
+    --ios-control-goal-padding: 0 4px;
+
+    /* Networks */
+    --ios-type-platform-label: 14px;
+    --ios-type-platform-label-narrow: 14px;
+    --ios-icon-platform-checkmark: 21px;
+    --ios-icon-platform-image: 40px;
+    --ios-control-platform-height: 80px;
+
+    /* Inputs */
+    --ios-type-field-label: 15px;
+    --ios-icon-input-svg: 28px;
+    --ios-control-input-height: 41px;
+    --ios-type-input-text: 13.5px;
+    --ios-type-privacy-text: 14px;
+
+    /* Analyze CTA */
+    --ios-icon-analyze-svg: 28px;
+    --ios-type-analyze-text: 15.7px;
+    --ios-control-analyze-height: 44px;
+
+    /* Summary Card */
+    --ios-type-summary-title: 14.5px;
+    --ios-type-summary-small: 13.8px;
+    --ios-icon-summary-glyph: 30px;
+    --ios-icon-summary-container: 41px;
+    --ios-icon-summary-platform: 35px;
+
+    /* Empty State */
+    --ios-type-empty-title: 15.5px;
+    --ios-type-empty-description: 14.5px;
+    --ios-empty-description-line-height: 1.45;
+    --ios-icon-empty-container: 59px;
+    --ios-icon-empty-font: 38px;
+
+    /* Analyzing Panel */
+    --ios-type-analyzing-title: 15.5px;
+    --ios-type-analyzing-subtitle: 14.5px;
+    --ios-type-analyzing-step: 13.5px;
+
+    /* PWA Banner */
+    --ios-type-pwa-title: 15px;
+    --ios-icon-pwa: 18px;
+    --ios-type-pwa-subtitle: 13.5px;
+
+    /* Final CTA */
+    --ios-type-final-cta-title: 17.5px;
+    --ios-icon-final-cta-rocket: 78px;
+  }
+}
+
+/* ========================================
+   iOS VISUAL CONTRACT — LARGE 414-900
+   ======================================== */
+@media (min-width: 414px) and (max-width: 900px) {
+  html.cf-platform-ios {
+    /* Large Geometry (Preserves ~92.8% Golden ratio on Pro Max 440px / 430px) */
+    --cf-ios-content-max: 428px;
+    --cf-ios-page-gutter: 16px;
+    --cf-ios-builder-padding: 16px;
+    --cf-ios-step-padding: 15px;
+    --cf-ios-goal-gap: 8px;
+    --cf-ios-platform-gap: 7px;
+
+    /* Header */
+    --ios-icon-header-logo-height: 40px;
+    --ios-icon-header-logo-max-width: 144px;
+    --ios-type-header-tagline: 15.5px;
+    --ios-header-tagline-letter-spacing: -0.5px;
+    --ios-icon-header-flame: 20px;
+
+    /* Hero */
+    --ios-type-hero-h1-span: 38px;
+    --ios-type-hero-h1-b: 36px;
+    --ios-type-hero-h1-line-height: 1.03;
+    --ios-type-hero-h1-letter-spacing: -1.3px;
+    --ios-type-hero-subtitle: 16.8px;
+    --ios-hero-subtitle-max-width: 380px;
+    --ios-hero-subtitle-line-height: 1.45;
+
+    /* Builder Head & Step Labels */
+    --ios-type-builder-eyebrow: 16.5px;
+    --ios-builder-eyebrow-letter-spacing: 0.11em;
+    --ios-type-builder-title: 26.5px;
+    --ios-builder-title-line-height: 1.06;
+    --ios-builder-title-letter-spacing: -1.15px;
+    --ios-type-builder-description: 16.2px;
+    --ios-builder-description-line-height: 1.4;
+    --ios-type-builder-label-b: 17px;
+    --ios-builder-label-b-line-height: 1.25;
+    --ios-type-builder-label-small: 15.5px;
+    --ios-builder-label-small-line-height: 1.3;
+    --ios-icon-builder-label: 33px;
+    --ios-icon-builder-label-font: 16.5px;
+
+    /* Goals */
+    --ios-type-goal-label: 15.5px;
+    --ios-icon-goal-checkmark: 24px;
+    --ios-icon-goal-service: 45px;
+    --ios-icon-goal-glyph: 33px;
+    --ios-control-goal-height: 74px;
+    --ios-control-goal-padding: 0 5px;
+
+    /* Networks */
+    --ios-type-platform-label: 15px;
+    --ios-type-platform-label-narrow: 15px;
+    --ios-icon-platform-checkmark: 23px;
+    --ios-icon-platform-image: 44px;
+    --ios-control-platform-height: 86px;
+
+    /* Inputs */
+    --ios-type-field-label: 16px;
+    --ios-icon-input-svg: 31px;
+    --ios-control-input-height: 45px;
+    --ios-type-input-text: 14.5px;
+    --ios-type-privacy-text: 15px;
+
+    /* Analyze CTA */
+    --ios-icon-analyze-svg: 31px;
+    --ios-type-analyze-text: 17.2px;
+    --ios-control-analyze-height: 49px;
+
+    /* Summary Card */
+    --ios-type-summary-title: 16px;
+    --ios-type-summary-small: 15px;
+    --ios-icon-summary-glyph: 33px;
+    --ios-icon-summary-container: 45px;
+    --ios-icon-summary-platform: 38px;
+
+    /* Empty State */
+    --ios-type-empty-title: 17px;
+    --ios-type-empty-description: 15.5px;
+    --ios-empty-description-line-height: 1.45;
+    --ios-icon-empty-container: 64px;
+    --ios-icon-empty-font: 41px;
+
+    /* Analyzing Panel */
+    --ios-type-analyzing-title: 17px;
+    --ios-type-analyzing-subtitle: 15.5px;
+    --ios-type-analyzing-step: 14.5px;
+
+    /* PWA Banner */
+    --ios-type-pwa-title: 16px;
+    --ios-icon-pwa: 20px;
+    --ios-type-pwa-subtitle: 14.5px;
+
+    /* Final CTA */
+    --ios-type-final-cta-title: 19px;
+    --ios-icon-final-cta-rocket: 86px;
   }
 }
