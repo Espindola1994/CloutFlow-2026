@@ -1395,4 +1395,159 @@ html.cf-platform-ios {
     width: 18px !important;
     height: 18px !important;
   }
+
+  /* ==========================================================================
+     iOS LARGE UNIFIED PRICING + HOME PLAN CARDS + /OFFER PACKAGE CARDS
+     Strictly scoped to iOS LARGE (min-width: 414px) and (max-width: 900px).
+     /offer PREFILL remains completely frozen / untouched.
+     ========================================================================== */
+
+  /* 1. HOME — PRICING TITLE */
+  html.cf-platform-ios body .cf-plans-section-title h2 span {
+    font-size: 25px !important;
+  }
+
+  /* 2. HOME — PRICING SUBTITLE */
+  html.cf-platform-ios body .cf-plans-pricing .cf-plans-section-title.cf-pricing-title p {
+    font-size: 16.5px !important;
+  }
+
+  /* 3. PLAN NAME (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-plan-name strong,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-plan-name strong {
+    font-size: 17.5px !important;
+  }
+
+  /* 4. PLAN QUANTITY (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-qty,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-qty {
+    font-size: 16.5px !important;
+  }
+
+  /* 5. BONUS TEXT (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-bonus,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-bonus {
+    font-size: 15.2px !important;
+  }
+
+  /* 6. BONUS ICON (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-bonus svg,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-bonus svg {
+    width: 16px !important;
+    min-width: 16px !important;
+    height: 16px !important;
+  }
+
+  /* 7. OLD PRICE / DEL (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-price del,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-price del {
+    color: #9ba6b6 !important;
+    white-space: nowrap !important;
+    font-size: 16.5px !important;
+  }
+
+  /* 8. COUPON (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-coupon,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-coupon {
+    color: #7a8799 !important;
+    min-height: 15px !important;
+    margin: 2px 0 9px !important;
+    font-size: 15px !important;
+  }
+
+  /* 9. BENEFITS TEXT (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-benefits li,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-benefits li {
+    font-size: 15px !important;
+  }
+
+  /* 10. BENEFIT ICON CONTAINER (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-home-offer-card-host .cf-o10-package-ref-benefits li > span,
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-benefits li > span,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-benefits li > span {
+    border-radius: 999px !important;
+    flex: 0 0 18px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 18px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+    min-height: 18px !important;
+  }
+
+  /* 11. BENEFIT SVG (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-home-offer-card-host .cf-o10-package-ref-benefits li > span svg,
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-benefits li > span svg,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-benefits li > span svg,
+  html.cf-platform-ios body .cf-home-offer-card-host .cf-o10-package-ref-benefits li svg,
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-benefits li svg,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-benefits li svg {
+    width: 12px !important;
+    height: 12px !important;
+  }
+
+  /* 12. ASSURANCE TEXT (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-assurance > div,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-assurance > div {
+    font-size: 15px !important;
+  }
+
+  /* 13. ASSURANCE SVG (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-assurance svg,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-assurance svg {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* 14. CTA TEXT (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-cta .cf-o10-cta-default,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-cta .cf-o10-cta-default {
+    font-size: 16px !important;
+  }
+
+  /* 15. DISCOUNT BADGE TEXT (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-discount-badge span,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-discount-badge span {
+    white-space: nowrap !important;
+    font-size: 15px !important;
+  }
+
+  /* 16. DISCOUNT BADGE SVG (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-discount-badge svg,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-discount-badge svg {
+    stroke-width: 2.1px !important;
+    width: 16px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* 17. PLAN GRID GAP — HOME */
+  html.cf-platform-ios body .cf-home-offer-card-host .cf-o10-package-ref-grid {
+    gap: 22px !important;
+  }
+
+  /* 17B. PLAN GRID GAP — /OFFER PACKAGE */
+  /* Preserves frozen one-column width invariant min(66%, 320px) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-grid,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-grid {
+    gap: 22px !important;
+    width: min(66%, 320px) !important;
+    max-width: 320px !important;
+    margin: 0 auto !important;
+  }
+
+  /* 18. BEST BADGE TEXT (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-best,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-best {
+    font-size: 15px !important;
+    height: 24px !important;
+  }
+
+  /* 20. BEST BADGE SVG (Home + /offer PACKAGE) */
+  html.cf-platform-ios body .cf-o10-master[data-stage="package"] .cf-o10-package-ref-best svg,
+  html.cf-platform-ios body .cf-o10-package-panel .cf-o10-package-ref-best svg {
+    width: 18px !important;
+    min-width: 18px !important;
+    height: 18px !important;
+  }
 }

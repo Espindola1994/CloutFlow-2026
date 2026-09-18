@@ -618,6 +618,43 @@ export const IOS_STOREFRONT_CONTRACT = {
     bestBadgeHeight: "22px",
   },
 
+  /**
+   * Approved iOS LARGE calibration for Home Pricing + Home Plan Cards + /offer PACKAGE Cards.
+   * Viewport: 414px - 900px under html.cf-platform-ios.
+   */
+  largePricingAndPackageCards: {
+    pricingTitleSpanFontSize: "25px",
+    pricingSubtitleFontSize: "16.5px",
+    planNameFontSize: "17.5px",
+    qtyFontSize: "16.5px",
+    bonusFontSize: "15.2px",
+    bonusSvgSize: "16px",
+    oldPriceDelFontSize: "16.5px",
+    oldPriceDelColor: "#9ba6b6",
+    couponFontSize: "15px",
+    couponColor: "#7a8799",
+    couponMinHeight: "15px",
+    couponMargin: "2px 0 9px",
+    benefitsLiFontSize: "15px",
+    benefitIconContainerSize: "18px",
+    benefitIconBorderRadius: "999px",
+    benefitSvgSize: "12px",
+    assuranceFontSize: "15px",
+    assuranceSvgSize: "20px",
+    ctaDefaultFontSize: "16px",
+    discountBadgeSpanFontSize: "15px",
+    discountBadgeSvgWidth: "16px",
+    discountBadgeSvgMinWidth: "18px",
+    discountBadgeSvgHeight: "18px",
+    discountBadgeSvgStrokeWidth: "2.1px",
+    gridGap: "22px",
+    bestBadgeFontSize: "15px",
+    bestBadgeHeight: "24px",
+    bestBadgeSvgSize: "18px",
+    packageGridWidthInvariant: "min(66%, 320px)",
+    packageGridMaxWidthInvariant: "320px",
+  },
+
   /* ==========================================================================
      CANONICAL GOLDEN BASELINE TOKENS (Preserved identically in Standard 375-413)
      ========================================================================== */

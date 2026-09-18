@@ -365,4 +365,33 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
     expect(largeMediaBlock).toContain("width: 18px !important;");
     expect(largeMediaBlock).toContain("height: 18px !important;");
   });
+
+  it("12. Large Contract: Pricing and Plan Cards calibration matches tokens", () => {
+    const largeTokens = IOS_STOREFRONT_CONTRACT.largePricingAndPackageCards;
+    expect(largeTokens.pricingTitleSpanFontSize).toBe("25px");
+    expect(largeTokens.pricingSubtitleFontSize).toBe("16.5px");
+    expect(largeTokens.planNameFontSize).toBe("17.5px");
+    expect(largeTokens.qtyFontSize).toBe("16.5px");
+    expect(largeTokens.bonusFontSize).toBe("15.2px");
+    expect(largeTokens.bonusSvgSize).toBe("16px");
+    expect(largeTokens.oldPriceDelFontSize).toBe("16.5px");
+    expect(largeTokens.couponFontSize).toBe("15px");
+    expect(largeTokens.benefitsLiFontSize).toBe("15px");
+    expect(largeTokens.benefitIconContainerSize).toBe("18px");
+    expect(largeTokens.benefitSvgSize).toBe("12px");
+    expect(largeTokens.assuranceFontSize).toBe("15px");
+    expect(largeTokens.assuranceSvgSize).toBe("20px");
+    expect(largeTokens.ctaDefaultFontSize).toBe("16px");
+    expect(largeTokens.discountBadgeSpanFontSize).toBe("15px");
+    expect(largeTokens.discountBadgeSvgWidth).toBe("16px");
+    expect(largeTokens.discountBadgeSvgMinWidth).toBe("18px");
+    expect(largeTokens.discountBadgeSvgHeight).toBe("18px");
+    expect(largeTokens.discountBadgeSvgStrokeWidth).toBe("2.1px");
+    expect(largeTokens.gridGap).toBe("22px");
+    expect(largeTokens.bestBadgeFontSize).toBe("15px");
+    expect(largeTokens.bestBadgeHeight).toBe("24px");
+    expect(largeTokens.bestBadgeSvgSize).toBe("18px");
+    expect(largeTokens.packageGridWidthInvariant).toBe("min(66%, 320px)");
+    expect(largeTokens.packageGridMaxWidthInvariant).toBe("320px");
+  });
 });

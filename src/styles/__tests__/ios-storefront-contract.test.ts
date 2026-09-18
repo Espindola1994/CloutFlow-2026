@@ -315,4 +315,58 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
     expect(cssContent).toContain("width: 18px !important;");
     expect(cssContent).toContain("height: 18px !important;");
   });
+
+  it("16. Unified Large Pricing & Plan Cards (Home + /offer PACKAGE) regression guard", () => {
+    // Pricing title and subtitle
+    expect(cssContent).toContain(".cf-plans-section-title h2 span {\n    font-size: 25px !important;");
+    expect(cssContent).toContain(".cf-plans-pricing .cf-plans-section-title.cf-pricing-title p {\n    font-size: 16.5px !important;");
+
+    // Plan name 17.5px
+    expect(cssContent).toContain(".cf-o10-package-ref-plan-name strong {\n    font-size: 17.5px !important;");
+
+    // Plan qty 16.5px
+    expect(cssContent).toContain(".cf-o10-package-ref-qty {\n    font-size: 16.5px !important;");
+
+    // Bonus 15.2px, SVG 16px
+    expect(cssContent).toContain(".cf-o10-package-ref-bonus {\n    font-size: 15.2px !important;");
+    expect(cssContent).toContain("width: 16px !important;\n    min-width: 16px !important;\n    height: 16px !important;");
+
+    // Del 16.5px, #9ba6b6
+    expect(cssContent).toContain(".cf-o10-package-ref-price del {\n    color: #9ba6b6 !important;\n    white-space: nowrap !important;\n    font-size: 16.5px !important;");
+
+    // Coupon 15px, #7a8799
+    expect(cssContent).toContain(".cf-o10-package-ref-coupon {\n    color: #7a8799 !important;\n    min-height: 15px !important;\n    margin: 2px 0 9px !important;\n    font-size: 15px !important;");
+
+    // Benefits li 15px
+    expect(cssContent).toContain(".cf-o10-package-ref-benefits li {\n    font-size: 15px !important;");
+
+    // Benefit icon container 18px x 18px
+    expect(cssContent).toContain("flex: 0 0 18px !important;");
+    expect(cssContent).toContain("width: 18px !important;\n    min-width: 18px !important;\n    height: 18px !important;\n    min-height: 18px !important;");
+
+    // Benefit SVG 12px
+    expect(cssContent).toContain("width: 12px !important;\n    height: 12px !important;");
+
+    // Assurance 15px, SVG 20px
+    expect(cssContent).toContain(".cf-o10-package-assurance > div {\n    font-size: 15px !important;");
+    expect(cssContent).toContain(".cf-o10-package-assurance svg {\n    width: 20px !important;\n    height: 20px !important;");
+
+    // CTA 16px
+    expect(cssContent).toContain(".cf-o10-package-ref-cta .cf-o10-cta-default {\n    font-size: 16px !important;");
+
+    // Discount badge 15px, SVG requested dimensions
+    expect(cssContent).toContain(".cf-o10-discount-badge span {\n    white-space: nowrap !important;\n    font-size: 15px !important;");
+    expect(cssContent).toContain("stroke-width: 2.1px !important;\n    width: 16px !important;\n    min-width: 18px !important;\n    height: 18px !important;");
+
+    // Grid gap 22px
+    expect(cssContent).toContain("gap: 22px !important;");
+
+    // /offer package width invariant preserved
+    expect(cssContent).toContain("width: min(66%, 320px) !important;");
+    expect(cssContent).toContain("max-width: 320px !important;");
+
+    // Best badge 15px, height 24px, SVG 18px
+    expect(cssContent).toContain(".cf-o10-package-ref-best {\n    font-size: 15px !important;\n    height: 24px !important;");
+    expect(cssContent).toContain(".cf-o10-package-ref-best svg {\n    width: 18px !important;\n    min-width: 18px !important;\n    height: 18px !important;");
+  });
 });
