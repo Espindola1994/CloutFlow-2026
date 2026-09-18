@@ -1111,13 +1111,13 @@ html.cf-platform-ios {
    ======================================== */
 @media (min-width: 375px) and (max-width: 413px) {
   html.cf-platform-ios {
-    /* Standard Geometry (Mirrored from Large Approved) */
+    /* Standard Geometry (Refined Fit for Standard 375-413) */
     --cf-ios-content-max: 440px;
     --cf-ios-page-gutter: 8px;
     --cf-ios-builder-padding: 8px;
     --cf-ios-step-padding: 15px;
-    --cf-ios-goal-gap: 8px;
-    --cf-ios-platform-gap: 7px;
+    --cf-ios-goal-gap: 6px;
+    --cf-ios-platform-gap: 5px;
 
     /* Header */
     --ios-icon-header-logo-height: 40px;
@@ -1156,7 +1156,7 @@ html.cf-platform-ios {
     --ios-icon-goal-service: 45px;
     --ios-icon-goal-glyph: 33px;
     --ios-control-goal-height: 64px;
-    --ios-control-goal-padding: 0 5px;
+    --ios-control-goal-padding: 0 4px;
 
     /* Networks */
     --ios-type-platform-label: 15px;
@@ -1241,7 +1241,7 @@ html.cf-platform-ios {
 
   /* Goal Cards Grid Balance for iOS STANDARD */
   html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-goals {
-    grid-template-columns: minmax(0, 1.14fr) minmax(0, 0.93fr) minmax(0, 0.93fr) !important;
+    grid-template-columns: minmax(0, 1.20fr) minmax(0, 0.90fr) minmax(0, 0.90fr) !important;
     gap: var(--cf-ios-goal-gap) !important;
   }
 
@@ -1277,6 +1277,20 @@ html.cf-platform-ios {
     overflow: visible !important;
     text-align: center !important;
     letter-spacing: -0.2px !important;
+  }
+
+  /* Public PWA Banner padding and gap refinement for iOS STANDARD */
+  html.cf-platform-ios body [data-testid="public-pwa-banner"] {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  html.cf-platform-ios body [data-testid="public-pwa-banner"] > div {
+    gap: 8px !important;
+  }
+
+  html.cf-platform-ios body [data-testid="public-pwa-banner"] > div > div:first-child {
+    gap: 8px !important;
   }
 
   /* Result Action Buttons for iOS STANDARD */
@@ -1655,6 +1669,22 @@ html.cf-platform-ios {
     gap: 11px !important;
     width: 100% !important;
     margin-top: 6px !important;
+  }
+}
+
+/* ==========================================================================
+   iOS STANDARD SUB-RANGE (375px - 389px)
+   Micro-adjustment strictly for subtitle line break in 375px.
+   Typography is 100% preserved at 16.5px.
+   Breaks naturally into two lines:
+   "Three quick steps. Analyze." / "Choose. Grow."
+   avoiding orphan "Grow." without overflow.
+   ========================================================================== */
+@media (min-width: 375px) and (max-width: 389px) {
+  html.cf-platform-ios body .cf-premium-builder-head p {
+    max-width: 250px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
   }
 }
 

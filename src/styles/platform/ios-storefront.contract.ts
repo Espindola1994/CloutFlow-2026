@@ -248,8 +248,8 @@ export const CONTRACT_STANDARD: VisualContractTokens = {
     pageGutter: "8px",
     builderPadding: "8px",
     stepPadding: "15px",
-    goalGap: "8px",
-    platformGap: "7px",
+    goalGap: "6px",
+    platformGap: "5px",
     builderWidthRatioApprox: 0.959, // (393 - 16) / 393 = 377 / 393 = 95.9%
   },
   header: {
@@ -292,8 +292,8 @@ export const CONTRACT_STANDARD: VisualContractTokens = {
     glyphSize: "33px",
     checkmarkSize: "24px",
     buttonHeight: "64px",
-    buttonGap: "8px",
-    buttonPadding: "0 5px",
+    buttonGap: "6px",
+    buttonPadding: "0 4px",
   },
   networks: {
     labelFontSize: "15px",
@@ -710,9 +710,28 @@ export const IOS_STOREFRONT_CONTRACT = {
     spacing: {
       builderPadding: 8,
       stepPadding: 15,
-      goalGap: 8,
-      platformGap: 7,
+      goalGap: 6,
+      platformGap: 5,
     },
+  },
+
+  /**
+   * STANDARD FIT GEOMETRY
+   * 375–413 typography mirrors approved LARGE scale.
+   * Geometry compacts goal gap (6px) and platform gap (5px) with proportional columns
+   * to comfortably fit narrower viewports (375-413px) without clipping or text shrinking.
+   * 414–900 remains independent and absolutely frozen.
+   */
+  standardFitGeometry: {
+    goalGap: "6px",
+    goalCardPadding: "0 4px",
+    goalGridColumns: "minmax(0, 1.20fr) minmax(0, 0.90fr) minmax(0, 0.90fr)",
+    platformGap: "5px",
+    platformCardPadding: "6px 2px",
+    platformGridColumns: "repeat(4, minmax(0, 1fr))",
+    builderSubtitleMaxWidth375: "250px",
+    pwaPaddingHorizontal: "10px",
+    pwaGap: "8px",
   },
 } as const;
 
