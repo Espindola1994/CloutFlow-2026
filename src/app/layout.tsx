@@ -8,6 +8,7 @@ import ClarityProvider from "@/components/analytics/ClarityProvider";
 import PresenceHeartbeat from "@/components/analytics/PresenceHeartbeat";
 import { DiagnosticsConditionalMount } from "@/components/diagnostics/DiagnosticsConditionalMount";
 import { PlatformBootstrapScript } from "@/components/platform/PlatformBootstrapScript";
+import { PlatformClassSync } from "@/components/platform/PlatformClassSync";
 
 
 export const viewport: Viewport = {
@@ -63,6 +64,7 @@ export default function RootLayout({
         <PlatformBootstrapScript />
       </head>
       <body className={`${inter.className} font-sans antialiased bg-background text-foreground min-h-screen selection:bg-primary/30 selection:text-primary-foreground`}>
+        <PlatformClassSync />
         <ClarityProvider />
         <PresenceHeartbeat />
         <DesktopSmoothScroll />
