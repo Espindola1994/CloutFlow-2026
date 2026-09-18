@@ -1,31 +1,35 @@
 /**
- * CloutFlow iOS Storefront Visual Contract & Fluid Scaling Definition (Contract V2)
+ * CloutFlow iOS Storefront Visual & Composition Contract (Contract V3 - Canonical Storefront Frame)
  *
- * Source of truth for approved iPhone/iOS visual calibrations.
- * Every critical value in `src/styles/platform/ios-storefront.css`
- * MUST match this contract.
+ * Source of truth for approved iPhone/iOS visual calibrations and composition frame.
+ * Every critical value in `src/styles/platform/ios-storefront.css` MUST match this contract.
  *
  * Golden Viewport: 393px (iPhone standard reference = 1.000).
- * Fluid scaling adapts smoothly between compact (320px-375px) and larger iPhones (430px-440px)
- * using clamp(min, calc(golden + (100vw - 393px) * rate), max).
+ * Architecture: iOS CANONICAL STOREFRONT FRAME
+ * - Content bounded to canonical frame width: min(100%, 393px)
+ * - Full-bleed background, bounded content
+ * - Golden typography, icon, control, and grid geometry preserved across 393px, 430px, 440px
+ * - Compact adaptivity on small viewports (<=375px) via safe responsive gutters without aggressive font shrinkage
  *
- * Regression guards enforce exact parity in `ios-storefront-contract.test.ts`.
+ * Regression guards enforce exact parity in `ios-storefront-contract.test.ts` and `ios-composition-contract.test.ts`.
  */
 
-export interface FluidTokenDefinition {
-  readonly goldenViewport: 393;
-  readonly golden: number;
-  readonly min: number;
-  readonly max: number;
-  readonly rate: number;
-  readonly unit: "px";
-}
-
-export function buildFluidClamp(token: FluidTokenDefinition): string {
-  return `clamp(${token.min}${token.unit}, calc(${token.golden}${token.unit} + ((100vw - 393px) * ${token.rate})), ${token.max}${token.unit})`;
+export interface CanonicalTokenDefinition {
+  readonly canonicalWidth: 393;
+  readonly gutterCompact: number;
+  readonly gutterCanonical: number;
+  readonly gutterLarge: number;
 }
 
 export const IOS_STOREFRONT_CONTRACT = {
+  canonicalFrame: {
+    referenceWidth: 393,
+    maxWidth: "393px",
+    gutterCompact: "10px",   // <= 374px
+    gutterCanonical: "14px", // 375px - 393px
+    gutterLarge: "20px",     // >= 394px (Pro / Pro Max)
+  },
+
   header: {
     logoHeight: "37px",
     logoMaxWidth: "132px",
@@ -53,6 +57,8 @@ export const IOS_STOREFRONT_CONTRACT = {
     labelSmallColor: "#78859d",
     labelIconSize: "30px",
     labelIconFontSize: "15px",
+    padding: "14px",
+    stepPadding: "13px",
   },
 
   goals: {
@@ -64,6 +70,7 @@ export const IOS_STOREFRONT_CONTRACT = {
     serviceIconSize: "41px",
     serviceIconBorderRadius: "12px",
     glyphSize: "30px",
+    gridColumns: "repeat(3, minmax(0, 1fr))",
   },
 
   networks: {
@@ -72,6 +79,7 @@ export const IOS_STOREFRONT_CONTRACT = {
     buttonBorderRadius: "12px",
     platformImageSize: "40px",
     labelFontSizeNarrow: "14px", // <=480px
+    gridColumns: "repeat(4, minmax(0, 1fr))",
   },
 
   inputs: {
@@ -79,6 +87,7 @@ export const IOS_STOREFRONT_CONTRACT = {
     fieldLabelColor: "#1a2233",
     inputSvgSize: "28px",
     inputSvgColor: "#7786a1",
+    inputHeight: "41px",
     inputTextFontSize: "13.5px",
     privacyFontSize: "14px",
     privacyColor: "#7a879e",
@@ -87,6 +96,7 @@ export const IOS_STOREFRONT_CONTRACT = {
   analyzeCta: {
     svgSize: "28px",
     textFontSize: "15.7px",
+    height: "44px",
   },
 
   summary: {
@@ -167,61 +177,62 @@ export const IOS_STOREFRONT_CONTRACT = {
   },
 
   /* ==========================================================================
-     FLUID SCALE TOKENS CONTRACT (393px = 1.000 Golden Viewport) - V2.1
+     CANONICAL GOLDEN BASELINE TOKENS (Preserved identically across 393/430/440)
      ========================================================================== */
-  fluid: {
+  goldenTokens: {
     typography: {
-      heroSubtitle: { goldenViewport: 393, golden: 15, min: 14.5, max: 16.8, rate: 0.035, unit: "px" } as const,
-      builderEyebrow: { goldenViewport: 393, golden: 15, min: 14.5, max: 16.8, rate: 0.035, unit: "px" } as const,
-      builderDescription: { goldenViewport: 393, golden: 15, min: 14.5, max: 16.8, rate: 0.035, unit: "px" } as const,
-      builderLabelB: { goldenViewport: 393, golden: 15.5, min: 15.0, max: 17.3, rate: 0.036, unit: "px" } as const,
-      builderLabelSmall: { goldenViewport: 393, golden: 14.5, min: 14.0, max: 16.2, rate: 0.034, unit: "px" } as const,
-      goalLabel: { goldenViewport: 393, golden: 14, min: 13.5, max: 15.6, rate: 0.032, unit: "px" } as const,
-      platformLabelNarrow: { goldenViewport: 393, golden: 14, min: 13.5, max: 15.6, rate: 0.032, unit: "px" } as const,
-      fieldLabel: { goldenViewport: 393, golden: 15, min: 14.5, max: 16.8, rate: 0.035, unit: "px" } as const,
-      inputText: { goldenViewport: 393, golden: 13.5, min: 13.0, max: 15.2, rate: 0.032, unit: "px" } as const,
-      privacyText: { goldenViewport: 393, golden: 14, min: 13.5, max: 15.6, rate: 0.032, unit: "px" } as const,
-      analyzeText: { goldenViewport: 393, golden: 15.7, min: 15.2, max: 17.5, rate: 0.036, unit: "px" } as const,
-      summaryTitle: { goldenViewport: 393, golden: 14.5, min: 14.0, max: 16.2, rate: 0.034, unit: "px" } as const,
-      summarySmall: { goldenViewport: 393, golden: 13.8, min: 13.3, max: 15.4, rate: 0.032, unit: "px" } as const,
-      emptyTitle: { goldenViewport: 393, golden: 15.5, min: 15.0, max: 17.3, rate: 0.036, unit: "px" } as const,
-      emptyDescription: { goldenViewport: 393, golden: 14.5, min: 14.0, max: 16.2, rate: 0.034, unit: "px" } as const,
-      pwaTitle: { goldenViewport: 393, golden: 15, min: 14.5, max: 16.8, rate: 0.035, unit: "px" } as const,
-      pwaSubtitle: { goldenViewport: 393, golden: 13.5, min: 13.0, max: 15.2, rate: 0.032, unit: "px" } as const,
-      analyzingTitle: { goldenViewport: 393, golden: 15.5, min: 15.0, max: 17.3, rate: 0.036, unit: "px" } as const,
-      analyzingSubtitle: { goldenViewport: 393, golden: 14.5, min: 14.0, max: 16.2, rate: 0.034, unit: "px" } as const,
-      analyzingStep: { goldenViewport: 393, golden: 13.5, min: 13.0, max: 15.2, rate: 0.032, unit: "px" } as const,
-      finalCtaTitle: { goldenViewport: 393, golden: 17.5, min: 17.0, max: 19.8, rate: 0.045, unit: "px" } as const,
+      heroSubtitle: 15,
+      builderEyebrow: 15,
+      builderDescription: 15,
+      builderLabelB: 15.5,
+      builderLabelSmall: 14.5,
+      goalLabel: 14,
+      platformLabelNarrow: 14,
+      fieldLabel: 15,
+      inputText: 13.5,
+      privacyText: 14,
+      analyzeText: 15.7,
+      summaryTitle: 14.5,
+      summarySmall: 13.8,
+      emptyTitle: 15.5,
+      emptyDescription: 14.5,
+      pwaTitle: 15,
+      pwaSubtitle: 13.5,
+      analyzingTitle: 15.5,
+      analyzingSubtitle: 14.5,
+      analyzingStep: 13.5,
+      finalCtaTitle: 17.5,
+      headerTagline: 14.5,
     },
     icons: {
-      builderLabelIcon: { goldenViewport: 393, golden: 30, min: 29, max: 33.5, rate: 0.07, unit: "px" } as const,
-      builderLabelIconFont: { goldenViewport: 393, golden: 15, min: 14.5, max: 16.8, rate: 0.035, unit: "px" } as const,
-      goalCheckmark: { goldenViewport: 393, golden: 22, min: 21.2, max: 24.5, rate: 0.05, unit: "px" } as const,
-      goalServiceIcon: { goldenViewport: 393, golden: 41, min: 40, max: 45.5, rate: 0.09, unit: "px" } as const,
-      goalGlyph: { goldenViewport: 393, golden: 30, min: 29, max: 33.5, rate: 0.07, unit: "px" } as const,
-      platformCheckmark: { goldenViewport: 393, golden: 21, min: 20.2, max: 23.5, rate: 0.05, unit: "px" } as const,
-      platformImage: { goldenViewport: 393, golden: 40, min: 39, max: 44.5, rate: 0.09, unit: "px" } as const,
-      inputSvg: { goldenViewport: 393, golden: 28, min: 27, max: 31.5, rate: 0.07, unit: "px" } as const,
-      analyzeSvg: { goldenViewport: 393, golden: 28, min: 27, max: 31.5, rate: 0.07, unit: "px" } as const,
-      summaryGlyph: { goldenViewport: 393, golden: 30, min: 29, max: 33.5, rate: 0.07, unit: "px" } as const,
-      summaryIconContainer: { goldenViewport: 393, golden: 41, min: 40, max: 45.5, rate: 0.09, unit: "px" } as const,
-      summaryPlatformImage: { goldenViewport: 393, golden: 35, min: 34, max: 39, rate: 0.08, unit: "px" } as const,
-      emptyIcon: { goldenViewport: 393, golden: 59, min: 57, max: 65.5, rate: 0.13, unit: "px" } as const,
-      emptyIconFont: { goldenViewport: 393, golden: 38, min: 37, max: 42, rate: 0.08, unit: "px" } as const,
-      pwaIcon: { goldenViewport: 393, golden: 18, min: 17.5, max: 20, rate: 0.04, unit: "px" } as const,
-      finalCtaRocket: { goldenViewport: 393, golden: 78, min: 76, max: 86.5, rate: 0.17, unit: "px" } as const,
+      builderLabelIcon: 30,
+      builderLabelIconFont: 15,
+      goalCheckmark: 22,
+      goalServiceIcon: 41,
+      goalGlyph: 30,
+      platformCheckmark: 21,
+      platformImage: 40,
+      inputSvg: 28,
+      analyzeSvg: 28,
+      summaryGlyph: 30,
+      summaryIconContainer: 41,
+      summaryPlatformImage: 35,
+      emptyIcon: 59,
+      emptyIconFont: 38,
+      pwaIcon: 18,
+      finalCtaRocket: 78,
+      headerFlame: 18,
     },
     controls: {
-      platformButtonHeight: { goldenViewport: 393, golden: 80, min: 78, max: 88, rate: 0.16, unit: "px" } as const,
-      inputHeight: { goldenViewport: 393, golden: 41, min: 40, max: 46, rate: 0.09, unit: "px" } as const,
-      analyzeButtonHeight: { goldenViewport: 393, golden: 44, min: 43, max: 49.5, rate: 0.1, unit: "px" } as const,
+      platformButtonHeight: 80,
+      inputHeight: 41,
+      analyzeButtonHeight: 44,
     },
     spacing: {
-      builderPadding: { goldenViewport: 393, golden: 14, min: 13, max: 17, rate: 0.05, unit: "px" } as const,
-      stepPadding: { goldenViewport: 393, golden: 13, min: 12, max: 15.5, rate: 0.04, unit: "px" } as const,
-      goalGap: { goldenViewport: 393, golden: 6, min: 6, max: 8, rate: 0.03, unit: "px" } as const,
-      platformGap: { goldenViewport: 393, golden: 5, min: 5, max: 7, rate: 0.03, unit: "px" } as const,
-      shellPadding: { goldenViewport: 393, golden: 12, min: 10, max: 16, rate: 0.06, unit: "px" } as const,
+      builderPadding: 14,
+      stepPadding: 13,
+      goalGap: 7,
+      platformGap: 6,
     },
   },
 } as const;

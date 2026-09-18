@@ -5,7 +5,7 @@ import path from "path";
 import { JSDOM } from "jsdom";
 import { IOS_STOREFRONT_CONTRACT } from "../platform/ios-storefront.contract";
 
-describe("Computed Style & Rule Matching Smoke Tests (Emulated iPhone Handheld Viewports: 430px & 375px)", () => {
+describe("Computed Style & Rule Matching Smoke Tests (Canonical Frame: 430px, 393px & 375px)", () => {
   const canonicalCssPath = path.resolve(__dirname, "../platform/ios-storefront.css");
   const canonicalCss = fs.readFileSync(canonicalCssPath, "utf-8");
 
@@ -32,59 +32,61 @@ describe("Computed Style & Rule Matching Smoke Tests (Emulated iPhone Handheld V
           <div class="cf-plans-hero">
             <p>Real people. Real results.</p>
           </div>
-          <div class="cf-premium-builder-head">
-            <small>START HERE</small>
-            <p>Three quick steps</p>
-          </div>
-          <div class="cf-premium-builder-controls">
-            <div class="cf-pb-label">
-              <i>1</i>
-              <div><b>Choose your goal</b><small>What do you want to achieve?</small></div>
+          <div class="cf-premium-builder">
+            <div class="cf-premium-builder-head">
+              <small>START HERE</small>
+              <p>Three quick steps</p>
             </div>
-            <div class="cf-pb-goals">
-              <button class="active">
-                <span class="cf-pb-service-icon"><svg class="cf-pb-glyph"></svg></span>
-                <b>Followers</b>
-                <svg class="check-svg"></svg>
-              </button>
-            </div>
-            <div class="cf-pb-platforms">
-              <button class="active">
-                <span class="cf-pb-platform-icon"><img src="/ig.svg" /></span>
-                <b>Instagram</b>
-                <svg class="check-svg"></svg>
-              </button>
-            </div>
-            <label class="cf-pb-field-label">Username</label>
-            <div class="cf-pb-input"><svg></svg><input value="" /></div>
-            <p class="cf-pb-privacy">Privacy</p>
-            <button class="cf-pb-analyze-btn"><svg></svg>Analyze Profile</button>
-          </div>
-          <div class="cf-premium-builder-result cf-pb-result-idle">
-            <div class="cf-pb-summary">
-              <div>
-                <span class="cf-pb-service-icon"><svg class="cf-pb-glyph"></svg></span>
-                <span><b>Followers</b><small>Goal</small></span>
+            <div class="cf-premium-builder-controls">
+              <div class="cf-pb-label">
+                <i>1</i>
+                <div><b>Choose your goal</b><small>What do you want to achieve?</small></div>
               </div>
-              <div>
-                <span class="cf-pb-platform-icon"><img src="/ig.svg" /></span>
-                <span><b>Instagram</b><small>Platform</small></span>
+              <div class="cf-pb-goals">
+                <button class="active">
+                  <span class="cf-pb-service-icon"><svg class="cf-pb-glyph"></svg></span>
+                  <b>Followers</b>
+                  <svg class="check-svg"></svg>
+                </button>
+              </div>
+              <div class="cf-pb-platforms">
+                <button class="active">
+                  <span class="cf-pb-platform-icon"><img src="/ig.svg" /></span>
+                  <b>Instagram</b>
+                  <svg class="check-svg"></svg>
+                </button>
+              </div>
+              <label class="cf-pb-field-label">Username</label>
+              <div class="cf-pb-input"><svg></svg><input value="" /></div>
+              <p class="cf-pb-privacy">Privacy</p>
+              <button class="cf-pb-analyze-btn"><svg></svg>Analyze Profile</button>
+            </div>
+            <div class="cf-premium-builder-result cf-pb-result-idle">
+              <div class="cf-pb-summary">
+                <div>
+                  <span class="cf-pb-service-icon"><svg class="cf-pb-glyph"></svg></span>
+                  <span><b>Followers</b><small>Goal</small></span>
+                </div>
+                <div>
+                  <span class="cf-pb-platform-icon"><img src="/ig.svg" /></span>
+                  <span><b>Instagram</b><small>Platform</small></span>
+                </div>
+              </div>
+              <div class="cf-pb-empty">
+                <span>✦</span>
+                <h3>Ready when you are</h3>
+                <p>Select your goal</p>
               </div>
             </div>
-            <div class="cf-pb-empty">
-              <span>✦</span>
-              <h3>Ready when you are</h3>
-              <p>Select your goal</p>
-            </div>
-          </div>
-          <div class="cf-premium-builder-result cf-pb-result-analyzing">
-            <div class="cf-pb-loading">
-              <div class="cf-pb-progress"><b>45%</b></div>
-              <div>
-                <h3>Analyzing profile...</h3>
-                <p>Please wait while we fetch public data.</p>
-                <div class="cf-pb-statuses">
-                  <div class="done"><span><svg></svg></span><b>Checking profile</b><small>Completed</small></div>
+            <div class="cf-premium-builder-result cf-pb-result-analyzing">
+              <div class="cf-pb-loading">
+                <div class="cf-pb-progress"><b>45%</b></div>
+                <div>
+                  <h3>Analyzing profile...</h3>
+                  <p>Please wait while we fetch public data.</p>
+                  <div class="cf-pb-statuses">
+                    <div class="done"><span><svg></svg></span><b>Checking profile</b><small>Completed</small></div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -219,29 +221,15 @@ describe("Computed Style & Rule Matching Smoke Tests (Emulated iPhone Handheld V
     expect(getAllMatchedRules(doc, analyzingH3)).toHaveLength(0);
   });
 
-  it("3. Real DOM Computed Table: 393px vs 440px Assertions with Geometry", () => {
-    // Evaluates fluid tokens mathematically and validates DOM presence
-    const checkTokens = [
-      { name: "Hero Subtitle", golden: 15, v440: 16.64, minGrowth: 0.10 },
-      { name: "Builder Eyebrow", golden: 15, v440: 16.64, minGrowth: 0.10 },
-      { name: "Builder Step Label", golden: 15.5, v440: 17.19, minGrowth: 0.10 },
-      { name: "Goal Label", golden: 14, v440: 15.5, minGrowth: 0.10 },
-      { name: "Platform Narrow Label", golden: 14, v440: 15.5, minGrowth: 0.10 },
-      { name: "Field Label", golden: 15, v440: 16.64, minGrowth: 0.10 },
-      { name: "Input Text", golden: 13.5, v440: 15.0, minGrowth: 0.10 },
-      { name: "Analyze Text", golden: 15.7, v440: 17.39, minGrowth: 0.10 },
-      { name: "Goal Service Icon", golden: 41, v440: 45.23, minGrowth: 0.10 },
-      { name: "Platform Image", golden: 40, v440: 44.23, minGrowth: 0.10 },
-      { name: "Input Height", golden: 41, v440: 45.23, minGrowth: 0.10 },
-      { name: "Analyze Height", golden: 44, v440: 48.7, minGrowth: 0.10 },
-      { name: "Platform Height", golden: 80, v440: 87.52, minGrowth: 0.09 },
-      { name: "Builder Padding", golden: 14, v440: 16.35, minGrowth: 0.10 },
-    ];
+  it("3. Canonical Frame Invariant: Builder has bounded width min(100%, var(--cf-ios-content-max)) and auto margins", () => {
+    const dom = createDom(true);
+    const doc = dom.window.document;
 
-    for (const t of checkTokens) {
-      const deltaPx = t.v440 - t.golden;
-      const deltaPct = deltaPx / t.golden;
-      expect(deltaPct, `${t.name} must grow by at least ${t.minGrowth * 100}%`).toBeGreaterThanOrEqual(t.minGrowth);
-    }
+    const builder = doc.querySelector(".cf-premium-builder")!;
+    const builderRules = getAllMatchedRules(doc, builder);
+    expect(builderRules.length).toBeGreaterThan(0);
+
+    expect(builderRules.some((r) => r.style.maxWidth === "var(--cf-ios-content-max)")).toBe(true);
+    expect(builderRules.some((r) => r.style.marginLeft === "auto" && r.style.marginRight === "auto")).toBe(true);
   });
 });

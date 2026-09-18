@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import fs from "fs";
 import path from "path";
-import { IOS_STOREFRONT_CONTRACT, buildFluidClamp, FluidTokenDefinition } from "../platform/ios-storefront.contract";
+import { IOS_STOREFRONT_CONTRACT } from "../platform/ios-storefront.contract";
 
-describe("iOS Storefront Contract V2 & Fluid Canonical Layer Invariants", () => {
+describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
   const canonicalCssPath = path.resolve(__dirname, "../platform/ios-storefront.css");
   const contractTsPath = path.resolve(__dirname, "../platform/ios-storefront.contract.ts");
   const layoutPath = path.resolve(__dirname, "../../app/layout.tsx");
@@ -188,7 +188,7 @@ describe("iOS Storefront Contract V2 & Fluid Canonical Layer Invariants", () => 
     }
   });
 
-  it("9. Analyzing progress typography uses fluid tokens scoped to analyzing contract", () => {
+  it("9. Analyzing progress typography uses stable tokens scoped to analyzing contract", () => {
     const analyzingSectionMarker = "10 — ANALYSIS PROGRESS PANEL";
     const nextSectionMarker = "11 — PUBLIC PWA INSTALL BANNER";
     const block = cssContent.slice(cssContent.indexOf(analyzingSectionMarker), cssContent.indexOf(nextSectionMarker));
@@ -208,7 +208,7 @@ describe("iOS Storefront Contract V2 & Fluid Canonical Layer Invariants", () => 
     ]);
   });
 
-  it("11. PWA banner contract defines fluid tokens and approved copy", () => {
+  it("11. PWA banner contract defines tokens and approved copy", () => {
     expect(IOS_STOREFRONT_CONTRACT.pwaBanner.titleFontSize).toBe("15px");
     expect(IOS_STOREFRONT_CONTRACT.pwaBanner.iconSize).toBe("18px");
     expect(IOS_STOREFRONT_CONTRACT.pwaBanner.subtitleFontSize).toBe("13.5px");
@@ -216,83 +216,50 @@ describe("iOS Storefront Contract V2 & Fluid Canonical Layer Invariants", () => 
   });
 
   it("12. Validates all critical calibration points from user specification at Golden 393px", () => {
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.heroSubtitle.golden).toBe(15);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.builderEyebrow.golden).toBe(15);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.builderDescription.golden).toBe(15);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.builderLabelB.golden).toBe(15.5);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.builderLabelSmall.golden).toBe(14.5);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.goalLabel.golden).toBe(14);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.icons.goalServiceIcon.golden).toBe(41);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.icons.goalGlyph.golden).toBe(30);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.icons.platformImage.golden).toBe(40);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.controls.platformButtonHeight.golden).toBe(80);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.fieldLabel.golden).toBe(15);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.inputText.golden).toBe(13.5);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.privacyText.golden).toBe(14);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.icons.analyzeSvg.golden).toBe(28);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.analyzeText.golden).toBe(15.7);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.heroSubtitle).toBe(15);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.builderEyebrow).toBe(15);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.builderDescription).toBe(15);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.builderLabelB).toBe(15.5);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.builderLabelSmall).toBe(14.5);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.goalLabel).toBe(14);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.icons.goalServiceIcon).toBe(41);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.icons.goalGlyph).toBe(30);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.icons.platformImage).toBe(40);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.controls.platformButtonHeight).toBe(80);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.fieldLabel).toBe(15);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.inputText).toBe(13.5);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.privacyText).toBe(14);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.icons.analyzeSvg).toBe(28);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.analyzeText).toBe(15.7);
     expect(IOS_STOREFRONT_CONTRACT.header.taglineFontSize).toBe("14.5px");
     expect(IOS_STOREFRONT_CONTRACT.header.flameSize).toBe("18px");
     expect(IOS_STOREFRONT_CONTRACT.header.logoHeight).toBe("37px");
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.summaryTitle.golden).toBe(14.5);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.summarySmall.golden).toBe(13.8);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.icons.summaryIconContainer.golden).toBe(41);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.icons.summaryPlatformImage.golden).toBe(35);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.emptyTitle.golden).toBe(15.5);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.emptyDescription.golden).toBe(14.5);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.icons.emptyIcon.golden).toBe(59);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.icons.emptyIconFont.golden).toBe(38);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.pwaTitle.golden).toBe(15);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.icons.pwaIcon.golden).toBe(18);
-    expect(IOS_STOREFRONT_CONTRACT.fluid.typography.pwaSubtitle.golden).toBe(13.5);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.summaryTitle).toBe(14.5);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.summarySmall).toBe(13.8);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.icons.summaryIconContainer).toBe(41);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.icons.summaryPlatformImage).toBe(35);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.emptyTitle).toBe(15.5);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.emptyDescription).toBe(14.5);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.icons.emptyIcon).toBe(59);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.icons.emptyIconFont).toBe(38);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.pwaTitle).toBe(15);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.icons.pwaIcon).toBe(18);
+    expect(IOS_STOREFRONT_CONTRACT.goldenTokens.typography.pwaSubtitle).toBe(13.5);
   });
 
-  it("13. Contract V2: Fluid token mathematical assertions (Golden, Monotonic Scaling, Clamp Limits)", () => {
-    function evaluateFluidToken(token: FluidTokenDefinition, vw: number): number {
-      const raw = token.golden + (vw - token.goldenViewport) * token.rate;
-      return Math.min(token.max, Math.max(token.min, Number(raw.toFixed(4))));
-    }
-
-    const allTokens: Record<string, FluidTokenDefinition> = {
-      ...IOS_STOREFRONT_CONTRACT.fluid.typography,
-      ...IOS_STOREFRONT_CONTRACT.fluid.icons,
-      ...IOS_STOREFRONT_CONTRACT.fluid.controls,
-      ...IOS_STOREFRONT_CONTRACT.fluid.spacing,
-    };
-
-    for (const [tokenName, tokenDef] of Object.entries(allTokens)) {
-      // 1. Golden Viewport 393px identity assertion: Must equal exactly golden value
-      const at393 = evaluateFluidToken(tokenDef, 393);
-      expect(at393, `${tokenName} at 393px must equal golden`).toBe(tokenDef.golden);
-
-      // 2. Monotonic Scaling: 375px <= 393px <= 430px
-      const at375 = evaluateFluidToken(tokenDef, 375);
-      const at430 = evaluateFluidToken(tokenDef, 430);
-      expect(at375, `${tokenName} at 375px must be <= 393px`).toBeLessThanOrEqual(at393);
-      expect(at393, `${tokenName} at 393px must be <= 430px`).toBeLessThanOrEqual(at430);
-
-      // 3. Limit assertions at 320px and 440px (must never breach min or max)
-      const at320 = evaluateFluidToken(tokenDef, 320);
-      const at440 = evaluateFluidToken(tokenDef, 440);
-      expect(at320, `${tokenName} at 320px must be >= min`).toBeGreaterThanOrEqual(tokenDef.min);
-      expect(at320, `${tokenName} at 320px must be <= max`).toBeLessThanOrEqual(tokenDef.max);
-      expect(at440, `${tokenName} at 440px must be <= max`).toBeLessThanOrEqual(tokenDef.max);
-      expect(at440, `${tokenName} at 440px must be >= min`).toBeGreaterThanOrEqual(tokenDef.min);
-    }
+  it("13. Contract V3: Canonical frame definitions are present in CSS", () => {
+    expect(cssContent).toContain("--cf-ios-content-max: 393px;");
+    expect(cssContent).toContain("--cf-ios-page-gutter: 14px;");
+    expect(cssContent).toContain("--cf-ios-builder-padding: 14px;");
+    expect(cssContent).toContain("width: min(100%, var(--cf-ios-content-max)) !important;");
+    expect(cssContent).toContain("max-width: var(--cf-ios-content-max) !important;");
+    expect(cssContent).toContain("margin-left: auto !important;");
+    expect(cssContent).toContain("margin-right: auto !important;");
   });
 
-  it("14. CSS canonical declarations match contract fluid clamp definitions", () => {
-    // Check key fluid variables inside html.cf-platform-ios
-    expect(cssContent).toContain("--ios-type-hero-subtitle: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.typography.heroSubtitle) + ";");
-    expect(cssContent).toContain("--ios-type-builder-eyebrow: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.typography.builderEyebrow) + ";");
-    expect(cssContent).toContain("--ios-type-goal-label: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.typography.goalLabel) + ";");
-    expect(cssContent).toContain("--ios-icon-goal-service: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.icons.goalServiceIcon) + ";");
-    expect(cssContent).toContain("--ios-icon-platform-image: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.icons.platformImage) + ";");
-    expect(cssContent).toContain("--ios-control-platform-height: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.controls.platformButtonHeight) + ";");
-    expect(cssContent).toContain("--ios-control-input-height: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.controls.inputHeight) + ";");
-    expect(cssContent).toContain("--ios-control-analyze-height: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.controls.analyzeButtonHeight) + ";");
-    expect(cssContent).toContain("--ios-space-builder-padding: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.spacing.builderPadding) + ";");
-    expect(cssContent).toContain("--ios-type-analyze-text: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.typography.analyzeText) + ";");
-    expect(cssContent).toContain("--ios-icon-analyze-svg: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.icons.analyzeSvg) + ";");
+  it("14. Contract V3: CSS contains NO fluid clamp() formulas on typography or controls", () => {
+    expect(cssContent).not.toContain("calc(15px + ((100vw - 393px)");
+    expect(cssContent).not.toContain("calc(80px + ((100vw - 393px)");
+    expect(cssContent).not.toContain("calc(15.5px + ((100vw - 393px)");
   });
 });
