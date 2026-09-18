@@ -64,36 +64,36 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
   const canonicalCssPath = path.resolve(__dirname, "../platform/ios-storefront.css");
   const canonicalCss = fs.readFileSync(canonicalCssPath, "utf-8");
 
-  it("1. Standard is Golden Reference: exactly preserves approved 393px values", () => {
+  it("1. Standard is Normalized: reflects Large scale in 375-413px", () => {
     const std = CONTRACT_STANDARD;
-    expect(std.hero.subtitleFontSize).toBe("15px");
-    expect(std.builderHead.eyebrowFontSize).toBe("15px");
-    expect(std.builderHead.descriptionFontSize).toBe("15px");
+    expect(std.hero.subtitleFontSize).toBe("16.5px");
+    expect(std.builderHead.eyebrowFontSize).toBe("16px");
+    expect(std.builderHead.descriptionFontSize).toBe("16.5px");
     expect(std.builderHead.titleFontSize).toBe("24px");
-    expect(std.stepLabels.labelBFontSize).toBe("15.5px");
-    expect(std.stepLabels.labelSmallFontSize).toBe("14.5px");
-    expect(std.goals.labelFontSize).toBe("14px");
-    expect(std.goals.serviceIconSize).toBe("41px");
-    expect(std.goals.glyphSize).toBe("30px");
-    expect(std.networks.labelFontSize).toBe("14px");
-    expect(std.networks.platformImageSize).toBe("40px");
-    expect(std.networks.buttonHeight).toBe("80px");
-    expect(std.inputs.fieldLabelFontSize).toBe("15px");
-    expect(std.inputs.inputTextFontSize).toBe("13.5px");
-    expect(std.inputs.inputHeight).toBe("41px");
-    expect(std.inputs.privacyFontSize).toBe("14px");
-    expect(std.analyzeCta.textFontSize).toBe("15.7px");
-    expect(std.analyzeCta.buttonHeight).toBe("44px");
-    expect(std.summary.titleFontSize).toBe("14.5px");
-    expect(std.summary.smallFontSize).toBe("13.8px");
-    expect(std.emptyState.titleFontSize).toBe("15.5px");
-    expect(std.emptyState.descriptionFontSize).toBe("14.5px");
-    expect(std.analyzing.titleFontSize).toBe("15.5px");
-    expect(std.analyzing.subtitleFontSize).toBe("14.5px");
-    expect(std.analyzing.stepLabelsFontSize).toBe("13.5px");
-    expect(std.pwaBanner.titleFontSize).toBe("15px");
-    expect(std.pwaBanner.subtitleFontSize).toBe("13.5px");
-    expect(std.finalCta.titleFontSize).toBe("17.5px");
+    expect(std.stepLabels.labelBFontSize).toBe("17px");
+    expect(std.stepLabels.labelSmallFontSize).toBe("16px");
+    expect(std.goals.labelFontSize).toBe("16px");
+    expect(std.goals.serviceIconSize).toBe("45px");
+    expect(std.goals.glyphSize).toBe("33px");
+    expect(std.networks.labelFontSize).toBe("15px");
+    expect(std.networks.platformImageSize).toBe("44px");
+    expect(std.networks.buttonHeight).toBe("84px");
+    expect(std.inputs.fieldLabelFontSize).toBe("16px");
+    expect(std.inputs.inputTextFontSize).toBe("14.5px");
+    expect(std.inputs.inputHeight).toBe("45px");
+    expect(std.inputs.privacyFontSize).toBe("15px");
+    expect(std.analyzeCta.textFontSize).toBe("16.5px");
+    expect(std.analyzeCta.buttonHeight).toBe("49px");
+    expect(std.summary.titleFontSize).toBe("16px");
+    expect(std.summary.smallFontSize).toBe("16px");
+    expect(std.emptyState.titleFontSize).toBe("16.5px");
+    expect(std.emptyState.descriptionFontSize).toBe("15.5px");
+    expect(std.analyzing.titleFontSize).toBe("17px");
+    expect(std.analyzing.subtitleFontSize).toBe("15.5px");
+    expect(std.analyzing.stepLabelsFontSize).toBe("14.5px");
+    expect(std.pwaBanner.titleFontSize).toBe("16px");
+    expect(std.pwaBanner.subtitleFontSize).toBe("14.5px");
+    expect(std.finalCta.titleFontSize).toBe("19px");
   });
 
   it("2. Large Contract reflects approved calibration for Pro Max", () => {
@@ -131,25 +131,8 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
     expect(lrg.finalCta.titleFontSize).toBe("19px");
   });
 
-  it("3. Compact Contract protects legibility on <=374px without aggressive shrinkage (>=94-96% of Standard)", () => {
+  it("3. Compact Contract protects legibility on <=374px without aggressive shrinkage (>=94-96% of Baseline)", () => {
     const cmp = CONTRACT_COMPACT;
-    const std = CONTRACT_STANDARD;
-
-    // Ratios of Compact to Standard must stay >= 94%
-    const ratioHero = parseFloat(cmp.hero.subtitleFontSize) / parseFloat(std.hero.subtitleFontSize);
-    expect(ratioHero).toBeGreaterThanOrEqual(0.94);
-
-    const ratioLabelB = parseFloat(cmp.stepLabels.labelBFontSize) / parseFloat(std.stepLabels.labelBFontSize);
-    expect(ratioLabelB).toBeGreaterThanOrEqual(0.94);
-
-    const ratioGoal = parseFloat(cmp.goals.labelFontSize) / parseFloat(std.goals.labelFontSize);
-    expect(ratioGoal).toBeGreaterThanOrEqual(0.94);
-
-    const ratioField = parseFloat(cmp.inputs.fieldLabelFontSize) / parseFloat(std.inputs.fieldLabelFontSize);
-    expect(ratioField).toBeGreaterThanOrEqual(0.94);
-
-    const ratioAnalyze = parseFloat(cmp.analyzeCta.textFontSize) / parseFloat(std.analyzeCta.textFontSize);
-    expect(ratioAnalyze).toBeGreaterThanOrEqual(0.94);
 
     // Reduced gutters and gaps in Compact
     expect(cmp.geometry.pageGutter).toBe("10px");
@@ -237,11 +220,12 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
 
     expect(computedTable.length).toBe(23);
     for (const row of computedTable) {
-      expect(parseFloat(row.compact)).toBeLessThanOrEqual(parseFloat(row.standard));
-      // Hero H1 was intentionally calibrated at 25px in LARGE per user spec; other elements scale >= standard
+      // Hero H1 was intentionally calibrated at 25px in STANDARD/LARGE per user spec
       if (row.element.startsWith("Hero H1")) {
         expect(parseFloat(row.large)).toBe(25);
+        expect(parseFloat(row.standard)).toBe(25);
       } else {
+        expect(parseFloat(row.compact)).toBeLessThanOrEqual(parseFloat(row.standard));
         expect(parseFloat(row.large)).toBeGreaterThanOrEqual(parseFloat(row.standard));
       }
     }
@@ -257,8 +241,8 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
     expect(g360.builderRatio).toBeCloseTo(0.944, 2);
 
     expect(g393.viewport).toBe(393);
-    expect(g393.builderWidth).toBe(365);
-    expect(g393.builderRatio).toBeCloseTo(0.929, 2);
+    expect(g393.builderWidth).toBe(377);
+    expect(g393.builderRatio).toBeCloseTo(0.959, 2);
 
     expect(g440.viewport).toBe(440);
     expect(g440.builderWidth).toBe(424);

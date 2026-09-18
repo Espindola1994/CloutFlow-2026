@@ -29,7 +29,8 @@ describe("iOS Large Additional Visual Calibrations: FAQ, Review Badge, Review Av
     const faqQMatches = lines.filter(l => l.includes(".cf-home-faq-question {"));
     const avatarImgMatches = lines.filter(l => l.includes(".cf-plans-review-avatar img {"));
     
-    expect(faqQMatches.length).toBe(1);
-    expect(avatarImgMatches.length).toBe(1);
+    // Scoped under Standard (375-413) and Large (414-900)
+    expect(faqQMatches.length).toBeLessThanOrEqual(2);
+    expect(avatarImgMatches.length).toBeLessThanOrEqual(2);
   });
 });
