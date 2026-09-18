@@ -446,7 +446,10 @@ export default function HomePage({
             <span>Choose the Perfect Plan</span>
             <b>to Accelerate Your Growth</b>
           </h1>
-          <p>Real people. Real results. Growth made simple.</p>
+          <p>
+            <span className="cf-hero-subtitle-default">Real people. Real results. Growth made simple.</span>
+            <span className="cf-hero-subtitle-ios-large">Real people. Real results. Simple growth.</span>
+          </p>
         </div>
         {checkoutError && (
           <div className="cf-plans-error">

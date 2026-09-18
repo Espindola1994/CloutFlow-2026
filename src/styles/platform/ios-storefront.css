@@ -107,6 +107,15 @@
     font-size: var(--ios-type-hero-subtitle) !important;
     line-height: var(--ios-hero-subtitle-line-height) !important;
   }
+
+  /* Default copy toggle visibility */
+  html.cf-platform-ios body .cf-hero-subtitle-default {
+    display: inline !important;
+  }
+
+  html.cf-platform-ios body .cf-hero-subtitle-ios-large {
+    display: none !important;
+  }
 }
 
 /* ==========================================================================
@@ -171,6 +180,15 @@
     color: #78859d !important;
     font-size: var(--ios-type-builder-label-small) !important;
     line-height: var(--ios-builder-label-small-line-height) !important;
+  }
+
+  /* Default analyze copy toggle visibility */
+  html.cf-platform-ios body .cf-pb-analyze-desc-default {
+    display: inline !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-analyze-desc-ios-large {
+    display: none !important;
   }
 
   html.cf-platform-ios body .cf-pb-label > i {
@@ -1166,10 +1184,10 @@ html.cf-platform-ios {
    ======================================== */
 @media (min-width: 414px) and (max-width: 900px) {
   html.cf-platform-ios {
-    /* Large Geometry (Preserves ~92.8% Golden ratio on Pro Max 440px / 430px) */
-    --cf-ios-content-max: 428px;
-    --cf-ios-page-gutter: 16px;
-    --cf-ios-builder-padding: 16px;
+    /* Large Geometry (Approved Calibration) */
+    --cf-ios-content-max: 440px;
+    --cf-ios-page-gutter: 8px;
+    --cf-ios-builder-padding: 8px;
     --cf-ios-step-padding: 15px;
     --cf-ios-goal-gap: 8px;
     --cf-ios-platform-gap: 7px;
@@ -1182,43 +1200,43 @@ html.cf-platform-ios {
     --ios-icon-header-flame: 20px;
 
     /* Hero */
-    --ios-type-hero-h1-span: 38px;
-    --ios-type-hero-h1-b: 36px;
+    --ios-type-hero-h1-span: 25px;
+    --ios-type-hero-h1-b: 25px;
     --ios-type-hero-h1-line-height: 1.03;
     --ios-type-hero-h1-letter-spacing: -1.3px;
-    --ios-type-hero-subtitle: 16.8px;
+    --ios-type-hero-subtitle: 16.5px;
     --ios-hero-subtitle-max-width: 380px;
     --ios-hero-subtitle-line-height: 1.45;
 
     /* Builder Head & Step Labels */
-    --ios-type-builder-eyebrow: 16.5px;
+    --ios-type-builder-eyebrow: 16px;
     --ios-builder-eyebrow-letter-spacing: 0.11em;
-    --ios-type-builder-title: 26.5px;
+    --ios-type-builder-title: 24px;
     --ios-builder-title-line-height: 1.06;
     --ios-builder-title-letter-spacing: -1.15px;
-    --ios-type-builder-description: 16.2px;
+    --ios-type-builder-description: 16.5px;
     --ios-builder-description-line-height: 1.4;
     --ios-type-builder-label-b: 17px;
     --ios-builder-label-b-line-height: 1.25;
-    --ios-type-builder-label-small: 15.5px;
+    --ios-type-builder-label-small: 16px;
     --ios-builder-label-small-line-height: 1.3;
     --ios-icon-builder-label: 33px;
     --ios-icon-builder-label-font: 16.5px;
 
     /* Goals */
-    --ios-type-goal-label: 15.5px;
+    --ios-type-goal-label: 16px;
     --ios-icon-goal-checkmark: 24px;
     --ios-icon-goal-service: 45px;
     --ios-icon-goal-glyph: 33px;
-    --ios-control-goal-height: 74px;
+    --ios-control-goal-height: 64px;
     --ios-control-goal-padding: 0 5px;
 
     /* Networks */
     --ios-type-platform-label: 15px;
     --ios-type-platform-label-narrow: 15px;
-    --ios-icon-platform-checkmark: 23px;
+    --ios-icon-platform-checkmark: 22px;
     --ios-icon-platform-image: 44px;
-    --ios-control-platform-height: 86px;
+    --ios-control-platform-height: 84px;
 
     /* Inputs */
     --ios-type-field-label: 16px;
@@ -1229,18 +1247,18 @@ html.cf-platform-ios {
 
     /* Analyze CTA */
     --ios-icon-analyze-svg: 31px;
-    --ios-type-analyze-text: 17.2px;
+    --ios-type-analyze-text: 16.5px;
     --ios-control-analyze-height: 49px;
 
     /* Summary Card */
     --ios-type-summary-title: 16px;
-    --ios-type-summary-small: 15px;
-    --ios-icon-summary-glyph: 33px;
-    --ios-icon-summary-container: 45px;
-    --ios-icon-summary-platform: 38px;
+    --ios-type-summary-small: 16px;
+    --ios-icon-summary-glyph: 31px;
+    --ios-icon-summary-container: 35px;
+    --ios-icon-summary-platform: 35px;
 
     /* Empty State */
-    --ios-type-empty-title: 17px;
+    --ios-type-empty-title: 16.5px;
     --ios-type-empty-description: 15.5px;
     --ios-empty-description-line-height: 1.45;
     --ios-icon-empty-container: 64px;
@@ -1259,5 +1277,60 @@ html.cf-platform-ios {
     /* Final CTA */
     --ios-type-final-cta-title: 19px;
     --ios-icon-final-cta-rocket: 86px;
+  }
+
+  /* Responsive copy swaps strictly scoped to iOS LARGE */
+  html.cf-platform-ios body .cf-hero-subtitle-default {
+    display: none !important;
+  }
+
+  html.cf-platform-ios body .cf-hero-subtitle-ios-large {
+    display: inline !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-analyze-desc-default {
+    display: none !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-analyze-desc-ios-large {
+    display: inline !important;
+  }
+
+  /* Goal Cards Grid Balance for iOS LARGE:
+     Followers receives a larger fraction so icon + text breath comfortably without clipping.
+     Likes and Views center neatly. */
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-goals {
+    grid-template-columns: minmax(0, 1.14fr) minmax(0, 0.93fr) minmax(0, 0.93fr) !important;
+    gap: var(--cf-ios-goal-gap) !important;
+  }
+
+  html.cf-platform-ios body .cf-premium-builder[data-platform="youtube"] .cf-premium-builder-controls .cf-pb-goals {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  /* Social Network Cards Grid Balance for iOS LARGE:
+     Preserves 7px gap, 44px icon, 84px height, 15px label.
+     Ensures uniform distribution, no overlap, box-sizing containment. */
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-platforms {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: var(--cf-ios-platform-gap) !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-platforms button {
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    padding: 6px 2px !important;
+    width: 100% !important;
+    overflow: hidden !important;
+  }
+
+  html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-platforms button b {
+    white-space: nowrap !important;
+    overflow: visible !important;
+    text-align: center !important;
+    letter-spacing: -0.2px !important;
   }
 }

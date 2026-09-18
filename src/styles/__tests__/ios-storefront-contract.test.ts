@@ -262,4 +262,41 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
     expect(cssContent).not.toContain("calc(80px + ((100vw - 393px)");
     expect(cssContent).not.toContain("calc(15.5px + ((100vw - 393px)");
   });
+
+  it("15. LARGE contract variables and responsive copies regression guard", () => {
+    // 1. LARGE variables
+    expect(cssContent).toContain("--cf-ios-content-max: 440px;");
+    expect(cssContent).toContain("--cf-ios-page-gutter: 8px;");
+    expect(cssContent).toContain("--cf-ios-builder-padding: 8px;");
+    expect(cssContent).toContain("--cf-ios-step-padding: 15px;");
+    expect(cssContent).toContain("--cf-ios-goal-gap: 8px;");
+    expect(cssContent).toContain("--cf-ios-platform-gap: 7px;");
+    expect(cssContent).toContain("--ios-type-hero-h1-span: 25px;");
+    expect(cssContent).toContain("--ios-type-hero-h1-b: 25px;");
+    expect(cssContent).toContain("--ios-type-hero-h1-letter-spacing: -1.3px;");
+    expect(cssContent).toContain("--ios-type-hero-subtitle: 16.5px;");
+    expect(cssContent).toContain("--ios-type-builder-eyebrow: 16px;");
+    expect(cssContent).toContain("--ios-type-builder-title: 24px;");
+    expect(cssContent).toContain("--ios-type-builder-description: 16.5px;");
+    expect(cssContent).toContain("--ios-type-builder-label-small: 16px;");
+    expect(cssContent).toContain("--ios-type-goal-label: 16px;");
+    expect(cssContent).toContain("--ios-control-goal-height: 64px;");
+    expect(cssContent).toContain("--ios-type-platform-label: 15px;");
+    expect(cssContent).toContain("--ios-icon-platform-image: 44px;");
+    expect(cssContent).toContain("--ios-control-platform-height: 84px;");
+    expect(cssContent).toContain("--ios-type-analyze-text: 16.5px;");
+
+    // Negative guard: ht: 86px must NEVER exist
+    expect(cssContent).not.toContain("ht: 86px");
+    expect(cssContent).not.toContain("ht:86px");
+
+    // Responsive copy selectors scoped to LARGE
+    expect(cssContent).toContain(".cf-hero-subtitle-default");
+    expect(cssContent).toContain(".cf-hero-subtitle-ios-large");
+    expect(cssContent).toContain(".cf-pb-analyze-desc-default");
+    expect(cssContent).toContain(".cf-pb-analyze-desc-ios-large");
+
+    // Goal and Platform grid balance scoped to LARGE
+    expect(cssContent).toContain("grid-template-columns: minmax(0, 1.14fr) minmax(0, 0.93fr) minmax(0, 0.93fr) !important;");
+  });
 });

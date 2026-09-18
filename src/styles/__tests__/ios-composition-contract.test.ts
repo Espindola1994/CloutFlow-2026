@@ -96,32 +96,32 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
     expect(std.finalCta.titleFontSize).toBe("17.5px");
   });
 
-  it("2. Large Contract is unconservative for Pro Max: typography ×1.08–1.15, controls ×1.08–1.12", () => {
+  it("2. Large Contract reflects approved calibration for Pro Max", () => {
     const lrg = CONTRACT_LARGE;
-    expect(lrg.hero.subtitleFontSize).toBe("16.8px");
-    expect(lrg.builderHead.eyebrowFontSize).toBe("16.5px");
-    expect(lrg.builderHead.descriptionFontSize).toBe("16.2px");
-    expect(lrg.builderHead.titleFontSize).toBe("26.5px");
+    expect(lrg.hero.subtitleFontSize).toBe("16.5px");
+    expect(lrg.builderHead.eyebrowFontSize).toBe("16px");
+    expect(lrg.builderHead.descriptionFontSize).toBe("16.5px");
+    expect(lrg.builderHead.titleFontSize).toBe("24px");
     expect(lrg.stepLabels.labelBFontSize).toBe("17px");
-    expect(lrg.stepLabels.labelSmallFontSize).toBe("15.5px");
-    expect(lrg.goals.labelFontSize).toBe("15.5px");
+    expect(lrg.stepLabels.labelSmallFontSize).toBe("16px");
+    expect(lrg.goals.labelFontSize).toBe("16px");
     expect(lrg.goals.serviceIconSize).toBe("45px");
     expect(lrg.goals.glyphSize).toBe("33px");
     expect(lrg.goals.checkmarkSize).toBe("24px");
-    expect(lrg.goals.buttonHeight).toBe("74px");
+    expect(lrg.goals.buttonHeight).toBe("64px");
     expect(lrg.networks.labelFontSize).toBe("15px");
     expect(lrg.networks.platformImageSize).toBe("44px");
-    expect(lrg.networks.checkmarkSize).toBe("23px");
-    expect(lrg.networks.buttonHeight).toBe("86px");
+    expect(lrg.networks.checkmarkSize).toBe("22px");
+    expect(lrg.networks.buttonHeight).toBe("84px");
     expect(lrg.inputs.fieldLabelFontSize).toBe("16px");
     expect(lrg.inputs.inputTextFontSize).toBe("14.5px");
     expect(lrg.inputs.inputHeight).toBe("45px");
     expect(lrg.inputs.privacyFontSize).toBe("15px");
-    expect(lrg.analyzeCta.textFontSize).toBe("17.2px");
+    expect(lrg.analyzeCta.textFontSize).toBe("16.5px");
     expect(lrg.analyzeCta.buttonHeight).toBe("49px");
     expect(lrg.summary.titleFontSize).toBe("16px");
-    expect(lrg.summary.smallFontSize).toBe("15px");
-    expect(lrg.emptyState.titleFontSize).toBe("17px");
+    expect(lrg.summary.smallFontSize).toBe("16px");
+    expect(lrg.emptyState.titleFontSize).toBe("16.5px");
     expect(lrg.emptyState.descriptionFontSize).toBe("15.5px");
     expect(lrg.analyzing.titleFontSize).toBe("17px");
     expect(lrg.analyzing.subtitleFontSize).toBe("15.5px");
@@ -196,8 +196,8 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
 
     // Builder width transition is smooth (no drastic drop or blowout)
     // 413 available: 413 - 28 = 385px. Capped at 393px = 385px.
-    // 414 available: 414 - 32 = 382px. Capped at 428px = 382px.
-    expect(Math.abs(g414.builderWidth - g413.builderWidth)).toBeLessThanOrEqual(10);
+    // 414 available: 414 - 16 = 398px. Capped at 440px = 398px.
+    expect(Math.abs(g414.builderWidth - g413.builderWidth)).toBeLessThanOrEqual(15);
 
     // Both preserve healthy builder width ratio ~92.5-93.5%
     expect(g413.builderRatio).toBeGreaterThan(0.92);
@@ -238,7 +238,12 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
     expect(computedTable.length).toBe(23);
     for (const row of computedTable) {
       expect(parseFloat(row.compact)).toBeLessThanOrEqual(parseFloat(row.standard));
-      expect(parseFloat(row.large)).toBeGreaterThanOrEqual(parseFloat(row.standard));
+      // Hero H1 was intentionally calibrated at 25px in LARGE per user spec; other elements scale >= standard
+      if (row.element.startsWith("Hero H1")) {
+        expect(parseFloat(row.large)).toBe(25);
+      } else {
+        expect(parseFloat(row.large)).toBeGreaterThanOrEqual(parseFloat(row.standard));
+      }
     }
   });
 
@@ -256,8 +261,8 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
     expect(g393.builderRatio).toBeCloseTo(0.929, 2);
 
     expect(g440.viewport).toBe(440);
-    expect(g440.builderWidth).toBe(408);
-    expect(g440.builderRatio).toBeCloseTo(0.927, 2);
+    expect(g440.builderWidth).toBe(424);
+    expect(g440.builderRatio).toBeCloseTo(0.964, 2);
   });
 
   it("8. Negative Test: Android (no cf-platform-ios) NEVER matches iOS canonical rules", () => {

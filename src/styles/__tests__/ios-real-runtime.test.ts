@@ -164,13 +164,13 @@ describe("iOS Real Runtime & Synchronous Bootstrap Integration Tests", () => {
 
     // 3. Contract C (LARGE @ 440px) values match exactly
     const largeContract = IOS_STOREFRONT_CONTRACT.contracts.large;
-    expect(largeContract.builderHead.titleFontSize).toBe("26.5px");
+    expect(largeContract.builderHead.titleFontSize).toBe("24px");
     expect(largeContract.stepLabels.labelBFontSize).toBe("17px");
-    expect(largeContract.stepLabels.labelSmallFontSize).toBe("15.5px");
-    expect(largeContract.goals.labelFontSize).toBe("15.5px");
+    expect(largeContract.stepLabels.labelSmallFontSize).toBe("16px");
+    expect(largeContract.goals.labelFontSize).toBe("16px");
     expect(largeContract.inputs.fieldLabelFontSize).toBe("16px");
     expect(largeContract.inputs.inputTextFontSize).toBe("14.5px");
-    expect(largeContract.analyzeCta.textFontSize).toBe("17.2px");
+    expect(largeContract.analyzeCta.textFontSize).toBe("16.5px");
   });
 
   it("4. Negative Test: Synchronous script does NOT add cf-platform-ios on Android / Poco", () => {
