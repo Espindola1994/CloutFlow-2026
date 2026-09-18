@@ -1593,6 +1593,15 @@ html.cf-platform-ios {
     stroke: #fff !important;
     width: 20px !important;
     height: 20px !important;
+    align-self: center !important;
+    margin: -17px 0 8px -7px !important;
+  }
+
+  /* 5b. REVIEW AVATAR IMAGE */
+  html.cf-platform-ios body .cf-plans-review-avatar img {
+    object-fit: cover !important;
+    width: 41px !important;
+    height: 41px !important;
   }
 
   /* 6. REVIEW BODY */
@@ -1656,6 +1665,11 @@ html.cf-platform-ios {
   html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-question-copy {
     color: #20283b !important;
     font-size: 15.5px !important;
+  }
+
+  /* 15b. FAQ QUESTION CONTAINER */
+  html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-question {
+    min-height: 68px !important;
   }
 
   /* 16. FAQ QUESTION ICON CONTAINER */

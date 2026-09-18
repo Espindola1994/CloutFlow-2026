@@ -384,7 +384,10 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
     expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-review-head small,\n  html.cf-platform-ios body .cf-universal-target-compact small {\n    font-size: 13.4px !important;\n  }");
 
     // 5. Review verified badge SVG
-    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-review-head > svg {\n    color: #168cff !important;\n    fill: #168cff !important;\n    stroke: #fff !important;\n    width: 20px !important;\n    height: 20px !important;\n  }");
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-review-head > svg {\n    color: #168cff !important;\n    fill: #168cff !important;\n    stroke: #fff !important;\n    width: 20px !important;\n    height: 20px !important;\n    align-self: center !important;\n    margin: -17px 0 8px -7px !important;\n  }");
+
+    // 5b. Review avatar image
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-review-avatar img {\n    object-fit: cover !important;\n    width: 41px !important;\n    height: 41px !important;\n  }");
 
     // 6. Review body
     expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-review-card p {\n    font-size: 12.5px !important;\n    line-height: 1.35 !important;\n  }");
@@ -415,6 +418,9 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
 
     // 15. FAQ question text
     expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-question-copy {\n    color: #20283b !important;\n    font-size: 15.5px !important;\n  }");
+
+    // 15b. FAQ question container
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-question {\n    min-height: 68px !important;\n  }");
 
     // 16. FAQ question icon container
     expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-icon {\n    border-radius: 9px !important;\n    width: 33px !important;\n    height: 33px !important;\n  }");

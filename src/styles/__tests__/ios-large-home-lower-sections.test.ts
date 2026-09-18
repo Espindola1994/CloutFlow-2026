@@ -33,6 +33,13 @@ describe("iOS Large Home Lower Sections Computed Style Simulation & Validation",
     expect(largeCss).toContain("stroke: #fff !important;");
     expect(largeCss).toContain("width: 20px !important;");
     expect(largeCss).toContain("height: 20px !important;");
+    expect(largeCss).toContain("align-self: center !important;");
+    expect(largeCss).toContain("margin: -17px 0 8px -7px !important;");
+
+    expect(largeCss).toContain(".cf-plans-review-avatar img");
+    expect(largeCss).toContain("object-fit: cover !important;");
+    expect(largeCss).toContain("width: 41px !important;");
+    expect(largeCss).toContain("height: 41px !important;");
 
     expect(largeCss).toContain(".cf-plans-review-card p");
     expect(largeCss).toContain("font-size: 12.5px !important;");
@@ -73,6 +80,9 @@ describe("iOS Large Home Lower Sections Computed Style Simulation & Validation",
     expect(largeCss).toContain(".cf-home-faq-compact .cf-home-faq-question-copy");
     expect(largeCss).toContain("color: #20283b !important;");
     expect(largeCss).toContain("font-size: 15.5px !important;");
+
+    expect(largeCss).toContain(".cf-home-faq-compact .cf-home-faq-question");
+    expect(largeCss).toContain("min-height: 68px !important;");
 
     expect(largeCss).toContain(".cf-home-faq-compact .cf-home-faq-icon");
     expect(largeCss).toContain("border-radius: 9px !important;");
