@@ -82,6 +82,7 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
     expect(std.inputs.inputTextFontSize).toBe("14px");
     expect(std.inputs.inputHeight).toBe("45px");
     expect(std.inputs.privacyFontSize).toBe("14px");
+    expect(std.inputs.errorFontSize).toBe("13px");
     expect(std.analyzeCta.textFontSize).toBe("16.5px");
     expect(std.analyzeCta.buttonHeight).toBe("49px");
     expect(std.summary.titleFontSize).toBe("16px");
@@ -117,6 +118,7 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
     expect(lrg.inputs.inputTextFontSize).toBe("14.5px");
     expect(lrg.inputs.inputHeight).toBe("45px");
     expect(lrg.inputs.privacyFontSize).toBe("15px");
+    expect(lrg.inputs.errorFontSize).toBe("14px");
     expect(lrg.analyzeCta.textFontSize).toBe("16.5px");
     expect(lrg.analyzeCta.buttonHeight).toBe("49px");
     expect(lrg.summary.titleFontSize).toBe("16px");
@@ -207,6 +209,7 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
       { element: "Field label", compact: c360.inputs.fieldLabelFontSize, standard: c393.inputs.fieldLabelFontSize, large: c440.inputs.fieldLabelFontSize },
       { element: "Input text", compact: c360.inputs.inputTextFontSize, standard: c393.inputs.inputTextFontSize, large: c440.inputs.inputTextFontSize },
       { element: "Privacy", compact: c360.inputs.privacyFontSize, standard: c393.inputs.privacyFontSize, large: c440.inputs.privacyFontSize },
+      { element: "Error message", compact: c360.inputs.errorFontSize, standard: c393.inputs.errorFontSize, large: c440.inputs.errorFontSize },
       { element: "Analyze title", compact: c360.analyzing.titleFontSize, standard: c393.analyzing.titleFontSize, large: c440.analyzing.titleFontSize },
       { element: "Analyze subtitle", compact: c360.analyzing.subtitleFontSize, standard: c393.analyzing.subtitleFontSize, large: c440.analyzing.subtitleFontSize },
       { element: "Analyze CTA text", compact: c360.analyzeCta.textFontSize, standard: c393.analyzeCta.textFontSize, large: c440.analyzeCta.textFontSize },
@@ -218,7 +221,7 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
       { element: "PWA subtitle", compact: c360.pwaBanner.subtitleFontSize, standard: c393.pwaBanner.subtitleFontSize, large: c440.pwaBanner.subtitleFontSize },
     ];
 
-    expect(computedTable.length).toBe(23);
+    expect(computedTable.length).toBe(24);
     for (const row of computedTable) {
       // Hero H1 was intentionally calibrated at 25px in STANDARD/LARGE per user spec
       if (row.element.startsWith("Hero H1")) {

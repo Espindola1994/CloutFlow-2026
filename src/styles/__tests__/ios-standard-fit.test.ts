@@ -50,6 +50,7 @@ describe("iOS Standard Fit Geometry & Regression Suite (375px - 413px)", () => {
     expect(CONTRACT_STANDARD.inputs.fieldLabelFontSize).toBe("15px");
     expect(CONTRACT_STANDARD.inputs.inputTextFontSize).toBe("14px");
     expect(CONTRACT_STANDARD.inputs.privacyFontSize).toBe("14px");
+    expect(CONTRACT_STANDARD.inputs.errorFontSize).toBe("13px");
     expect(CONTRACT_STANDARD.analyzeCta.textFontSize).toBe("16.5px");
     expect(CONTRACT_STANDARD.pwaBanner.titleFontSize).toBe("16px");
     expect(CONTRACT_STANDARD.pwaBanner.subtitleFontSize).toBe("14.5px");

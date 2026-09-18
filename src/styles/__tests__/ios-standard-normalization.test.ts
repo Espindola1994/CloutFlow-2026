@@ -27,6 +27,7 @@ describe("iOS Standard Normalization to Large Regression Suite", () => {
     expect(CONTRACT_STANDARD.inputs.inputHeight).toBe("45px");
     expect(CONTRACT_STANDARD.inputs.inputTextFontSize).toBe("14px");
     expect(CONTRACT_STANDARD.inputs.privacyFontSize).toBe("14px");
+    expect(CONTRACT_STANDARD.inputs.errorFontSize).toBe("13px");
     expect(CONTRACT_STANDARD.analyzeCta.buttonHeight).toBe("49px");
     expect(CONTRACT_STANDARD.analyzeCta.textFontSize).toBe("16.5px");
     expect(CONTRACT_STANDARD.pwaBanner.titleFontSize).toBe("16px");

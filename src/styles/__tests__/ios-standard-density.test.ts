@@ -47,13 +47,15 @@ describe("iOS Standard Density Calibration Suite (375px - 413px)", () => {
     expect(stdBlock).toContain("--ios-icon-platform-image: 40px;");
     expect(stdBlock).toContain("--ios-control-platform-height: 78px;");
 
-    // Fields & privacy
+    // Fields, privacy & error
     expect(CONTRACT_STANDARD.inputs.fieldLabelFontSize).toBe("15px");
     expect(CONTRACT_STANDARD.inputs.inputTextFontSize).toBe("14px");
     expect(CONTRACT_STANDARD.inputs.privacyFontSize).toBe("14px");
+    expect(CONTRACT_STANDARD.inputs.errorFontSize).toBe("13px");
     expect(stdBlock).toContain("--ios-type-field-label: 15px;");
     expect(stdBlock).toContain("--ios-type-input-text: 14px;");
     expect(stdBlock).toContain("--ios-type-privacy-text: 14px;");
+    expect(stdBlock).toContain("--ios-type-error-text: 13px;");
   });
 
   it("2. Hero & Builder Top Hierarchy strictly preserved in Standard (ZERO change)", () => {
@@ -100,6 +102,7 @@ describe("iOS Standard Density Calibration Suite (375px - 413px)", () => {
     expect(CONTRACT_LARGE.inputs.fieldLabelFontSize).toBe("16px");
     expect(CONTRACT_LARGE.inputs.inputTextFontSize).toBe("14.5px");
     expect(CONTRACT_LARGE.inputs.privacyFontSize).toBe("15px");
+    expect(CONTRACT_LARGE.inputs.errorFontSize).toBe("14px");
 
     expect(largeBlock).toContain("--ios-type-builder-label-b: 17px;");
     expect(largeBlock).toContain("--ios-type-builder-label-small: 16px;");
@@ -113,6 +116,7 @@ describe("iOS Standard Density Calibration Suite (375px - 413px)", () => {
     expect(largeBlock).toContain("--ios-type-field-label: 16px;");
     expect(largeBlock).toContain("--ios-type-input-text: 14.5px;");
     expect(largeBlock).toContain("--ios-type-privacy-text: 15px;");
+    expect(largeBlock).toContain("--ios-type-error-text: 14px;");
   });
 
   it("5. Boundary Guard: <=374px (COMPACT) does NOT receive Standard density tokens and remains FROZEN", () => {
@@ -128,6 +132,7 @@ describe("iOS Standard Density Calibration Suite (375px - 413px)", () => {
     expect(CONTRACT_COMPACT.inputs.fieldLabelFontSize).toBe("14.5px");
     expect(CONTRACT_COMPACT.inputs.inputTextFontSize).toBe("13px");
     expect(CONTRACT_COMPACT.inputs.privacyFontSize).toBe("13.5px");
+    expect(CONTRACT_COMPACT.inputs.errorFontSize).toBe("13px");
   });
 
   it("6. Documentation Token Object matches contract tokens", () => {

@@ -76,6 +76,7 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
     expect(cssContent).toContain(".cf-pb-input svg");
     expect(cssContent).toContain(".cf-premium-builder-controls .cf-pb-input input");
     expect(cssContent).toContain(".cf-pb-privacy");
+    expect(cssContent).toContain(".cf-pb-error");
     expect(cssContent).toContain(".cf-premium-builder-controls .cf-pb-analyze-btn");
 
     // Summary & Empty
@@ -133,6 +134,7 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
     expect(cssContent).toContain("width: var(--ios-icon-input-svg) !important;");
     expect(cssContent).toContain("font-size: var(--ios-type-input-text) !important;");
     expect(cssContent).toContain("font-size: var(--ios-type-privacy-text) !important;");
+    expect(cssContent).toContain("font-size: var(--ios-type-error-text) !important;");
     expect(cssContent).toContain("font-size: var(--ios-type-analyze-text) !important;");
     expect(cssContent).toContain("width: var(--ios-icon-analyze-svg) !important;");
 
@@ -285,6 +287,7 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
     expect(cssContent).toContain("--ios-icon-platform-image: 44px;");
     expect(cssContent).toContain("--ios-control-platform-height: 84px;");
     expect(cssContent).toContain("--ios-type-analyze-text: 16.5px;");
+    expect(cssContent).toContain("--ios-type-error-text: 14px;");
 
     // Negative guard: ht: 86px must NEVER exist
     expect(cssContent).not.toContain("ht: 86px");

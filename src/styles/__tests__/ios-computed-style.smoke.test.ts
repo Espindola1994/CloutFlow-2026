@@ -59,6 +59,7 @@ describe("Computed Style & Rule Matching Smoke Tests (Canonical Frame: 430px, 39
               <label class="cf-pb-field-label">Username</label>
               <div class="cf-pb-input"><svg></svg><input value="" /></div>
               <p class="cf-pb-privacy">Privacy</p>
+              <div class="cf-pb-error">Error message</div>
               <button class="cf-pb-analyze-btn"><svg></svg>Analyze Profile</button>
             </div>
             <div class="cf-premium-builder-result cf-pb-result-idle">
@@ -176,6 +177,10 @@ describe("Computed Style & Rule Matching Smoke Tests (Canonical Frame: 430px, 39
     const inputRules = getAllMatchedRules(doc, inputDiv);
     expect(inputRules.some((r) => r.style.height === "var(--ios-control-input-height)")).toBe(true);
 
+    const errorDiv = doc.querySelector(".cf-pb-error")!;
+    const errorRules = getAllMatchedRules(doc, errorDiv);
+    expect(errorRules.some((r) => r.style.fontSize === "var(--ios-type-error-text)")).toBe(true);
+
     const analyzeBtn = doc.querySelector(".cf-pb-analyze-btn")!;
     const analyzeRules = getAllMatchedRules(doc, analyzeBtn);
     expect(analyzeRules.some((r) => r.style.height === "var(--ios-control-analyze-height)")).toBe(true);
@@ -231,6 +236,9 @@ describe("Computed Style & Rule Matching Smoke Tests (Canonical Frame: 430px, 39
 
     const analyzingH3 = doc.querySelector(".cf-premium-builder-result.cf-pb-result-analyzing .cf-pb-loading h3")!;
     expect(getAllMatchedRules(doc, analyzingH3)).toHaveLength(0);
+
+    const errorDiv = doc.querySelector(".cf-pb-error")!;
+    expect(getAllMatchedRules(doc, errorDiv)).toHaveLength(0);
   });
 
   it("3. Canonical Frame Invariant: Builder has bounded width min(100%, var(--cf-ios-content-max)) and auto margins", () => {

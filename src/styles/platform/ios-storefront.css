@@ -349,6 +349,10 @@
     margin: 7px 0 0 !important;
     font-size: var(--ios-type-privacy-text) !important;
   }
+
+  html.cf-platform-ios body .cf-pb-error {
+    font-size: var(--ios-type-error-text) !important;
+  }
 }
 
 /* ==========================================================================
@@ -964,6 +968,7 @@ html.cf-platform-ios {
   --ios-control-input-height: 41px;
   --ios-type-input-text: 13.5px;
   --ios-type-privacy-text: 14px;
+  --ios-type-error-text: 13px;
 
   /* Analyze CTA */
   --ios-icon-analyze-svg: 28px;
@@ -1064,6 +1069,7 @@ html.cf-platform-ios {
     --ios-control-input-height: 40px;
     --ios-type-input-text: 13px;
     --ios-type-privacy-text: 13.5px;
+    --ios-type-error-text: 13px;
 
     /* Analyze CTA */
     --ios-icon-analyze-svg: 26px;
@@ -1171,6 +1177,7 @@ html.cf-platform-ios {
     --ios-control-input-height: 45px;
     --ios-type-input-text: 14px;
     --ios-type-privacy-text: 14px;
+    --ios-type-error-text: 13px;
 
     /* Analyze CTA */
     --ios-icon-analyze-svg: 31px;
@@ -1750,6 +1757,7 @@ html.cf-platform-ios {
     --ios-control-input-height: 45px;
     --ios-type-input-text: 14.5px;
     --ios-type-privacy-text: 15px;
+    --ios-type-error-text: 14px;
 
     /* Analyze CTA */
     --ios-icon-analyze-svg: 31px;

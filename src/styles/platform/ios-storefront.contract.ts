@@ -88,6 +88,7 @@ export interface VisualContractTokens {
     readonly inputTextFontSize: string;
     readonly inputSvgSize: string;
     readonly privacyFontSize: string;
+    readonly errorFontSize: string;
   };
   readonly analyzeCta: {
     readonly buttonHeight: string;
@@ -198,6 +199,7 @@ export const CONTRACT_COMPACT: VisualContractTokens = {
     inputTextFontSize: "13px",
     inputSvgSize: "26px",
     privacyFontSize: "13.5px",
+    errorFontSize: "13px",
   },
   analyzeCta: {
     buttonHeight: "42px",
@@ -308,6 +310,7 @@ export const CONTRACT_STANDARD: VisualContractTokens = {
     inputTextFontSize: "14px",
     inputSvgSize: "31px",
     privacyFontSize: "14px",
+    errorFontSize: "13px",
   },
   analyzeCta: {
     buttonHeight: "49px",
@@ -418,6 +421,7 @@ export const CONTRACT_LARGE: VisualContractTokens = {
     inputTextFontSize: "14.5px",
     inputSvgSize: "31px",
     privacyFontSize: "15px",
+    errorFontSize: "14px",
   },
   analyzeCta: {
     buttonHeight: "49px",
@@ -533,6 +537,7 @@ export const IOS_STOREFRONT_CONTRACT = {
     inputTextFontSize: CONTRACT_STANDARD.inputs.inputTextFontSize,
     privacyFontSize: CONTRACT_STANDARD.inputs.privacyFontSize,
     privacyColor: "#7a879e",
+    errorFontSize: CONTRACT_STANDARD.inputs.errorFontSize,
   },
 
   analyzeCta: {
@@ -753,6 +758,7 @@ export const IOS_STOREFRONT_CONTRACT = {
     fieldLabel: "15px",
     inputText: "14px",
     privacyText: "14px",
+    errorText: "13px",
     // Preserved unchanged:
     heroH1Span: "25px",
     heroH1B: "25px",
