@@ -17,8 +17,17 @@ export function PlatformClassSync() {
   useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
 
+    const ua = window.navigator.userAgent || "";
+    const isExplicitIphoneOrIpod = /iPhone|iPod/i.test(ua);
+
+    if (isExplicitIphoneOrIpod) {
+      document.documentElement.classList.add(IOS_PLATFORM_CLASS);
+      document.documentElement.classList.remove(IPADOS_PLATFORM_CLASS);
+      return;
+    }
+
     const platform = detectPlatform(
-      window.navigator.userAgent,
+      ua,
       window.navigator.maxTouchPoints || 0
     );
 
