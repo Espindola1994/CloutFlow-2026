@@ -109,11 +109,33 @@
   }
 
   /* Default copy toggle visibility */
+  .cf-hero-subtitle-default,
   html.cf-platform-ios body .cf-hero-subtitle-default {
     display: inline !important;
   }
 
+  .cf-hero-subtitle-ios-large,
   html.cf-platform-ios body .cf-hero-subtitle-ios-large {
+    display: none !important;
+  }
+
+  .cf-pb-analyze-desc-default,
+  html.cf-platform-ios body .cf-pb-analyze-desc-default {
+    display: inline !important;
+  }
+
+  .cf-pb-analyze-desc-ios-large,
+  html.cf-platform-ios body .cf-pb-analyze-desc-ios-large {
+    display: none !important;
+  }
+
+  .cf-pb-privacy-desc-default,
+  html.cf-platform-ios body .cf-pb-privacy-desc-default {
+    display: inline !important;
+  }
+
+  .cf-pb-privacy-desc-ios-large,
+  html.cf-platform-ios body .cf-pb-privacy-desc-ios-large {
     display: none !important;
   }
 }
@@ -180,15 +202,6 @@
     color: #78859d !important;
     font-size: var(--ios-type-builder-label-small) !important;
     line-height: var(--ios-builder-label-small-line-height) !important;
-  }
-
-  /* Default analyze copy toggle visibility */
-  html.cf-platform-ios body .cf-pb-analyze-desc-default {
-    display: inline !important;
-  }
-
-  html.cf-platform-ios body .cf-pb-analyze-desc-ios-large {
-    display: none !important;
   }
 
   html.cf-platform-ios body .cf-pb-label > i {
@@ -1296,6 +1309,14 @@ html.cf-platform-ios {
     display: inline !important;
   }
 
+  html.cf-platform-ios body .cf-pb-privacy-desc-default {
+    display: none !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-privacy-desc-ios-large {
+    display: inline !important;
+  }
+
   /* Goal Cards Grid Balance for iOS LARGE:
      Followers receives a larger fraction so icon + text breath comfortably without clipping.
      Likes and Views center neatly. */
@@ -1324,7 +1345,13 @@ html.cf-platform-ios {
     min-width: 0 !important;
     padding: 6px 2px !important;
     width: 100% !important;
-    overflow: hidden !important;
+    overflow: visible !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-platforms button > svg {
+    top: -10px !important;
+    right: -10px !important;
+    transform: none !important;
   }
 
   html.cf-platform-ios body .cf-premium-builder-controls .cf-pb-platforms button b {

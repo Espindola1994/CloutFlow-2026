@@ -695,7 +695,7 @@ export default function GrowthPackageBuilder({
                 emailCompletedEmitted.current = true;
                 trackAnalyticsEvent("email_completed", { platform, service: goal });
               }
-            }} placeholder="Enter your email address"/></div><p className="cf-pb-privacy"><span className="cf-pb-privacy-text-desktop">We safely store your searches, orders and updates.</span><span className="cf-pb-privacy-text-mobile">We use this email to safely save your search and orders.</span></p>
+            }} placeholder="Enter your email address"/></div><p className="cf-pb-privacy"><span className="cf-pb-privacy-text-desktop">We safely store your searches, orders and updates.</span><span className="cf-pb-privacy-text-mobile"><span className="cf-pb-privacy-desc-default">We use this email to safely save your search and orders.</span><span className="cf-pb-privacy-desc-ios-large">We safely save your search and orders.</span></span></p>
           </div>
           <div ref={mobileAnalyzePanelRef} className="cf-pb-step cf-pb-analyze"><div className="cf-pb-label"><i>3</i><div><b>Analyze profile</b><small><span className="cf-pb-analyze-desc-default">We'll fetch public data and confirm your profile.</span><span className="cf-pb-analyze-desc-ios-large">We'll verify your public profile.</span></small></div></div>{error&&<div className="cf-pb-error">{error}</div>}<button className="cf-pb-analyze-btn" disabled={stage==="analyzing"} onClick={analyze}>{stage==="analyzing"?<Loader2 className="spin"/>:<ScanSearch/>}{stage==="analyzing"?"Analyzing...":"Analyze Profile"}</button></div>
         </div>
