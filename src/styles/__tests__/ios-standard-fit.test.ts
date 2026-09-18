@@ -26,30 +26,30 @@ describe("iOS Standard Fit Geometry & Regression Suite (375px - 413px)", () => {
     expect(stdBlock).toContain("grid-template-columns: minmax(0, 1.20fr) minmax(0, 0.90fr) minmax(0, 0.90fr) !important;");
   });
 
-  it("2. Network Grid Geometry: Standard uses 5px gap, 4 columns, and preserved height", () => {
+  it("2. Network Grid Geometry: Standard uses 5px gap, 4 columns, and calibrated height", () => {
     expect(CONTRACT_STANDARD.geometry.platformGap).toBe("5px");
-    expect(CONTRACT_STANDARD.networks.buttonHeight).toBe("84px");
-    expect(CONTRACT_STANDARD.networks.labelFontSize).toBe("15px");
+    expect(CONTRACT_STANDARD.networks.buttonHeight).toBe("78px");
+    expect(CONTRACT_STANDARD.networks.labelFontSize).toBe("14px");
 
     expect(stdBlock).toContain("--cf-ios-platform-gap: 5px;");
     expect(stdBlock).toContain("grid-template-columns: repeat(4, minmax(0, 1fr)) !important;");
     expect(stdBlock).toContain("gap: var(--cf-ios-platform-gap) !important;");
   });
 
-  it("3. Typography Unchanged: STANDARD typography remains strictly 100% normalized", () => {
+  it("3. Typography Hierarchy: Hero & Builder Head remain unchanged, internal controls calibrated", () => {
     expect(CONTRACT_STANDARD.hero.h1SpanFontSize).toBe("25px");
     expect(CONTRACT_STANDARD.hero.h1BFontSize).toBe("25px");
     expect(CONTRACT_STANDARD.hero.subtitleFontSize).toBe("16.5px");
     expect(CONTRACT_STANDARD.builderHead.eyebrowFontSize).toBe("16px");
     expect(CONTRACT_STANDARD.builderHead.titleFontSize).toBe("24px");
     expect(CONTRACT_STANDARD.builderHead.descriptionFontSize).toBe("16.5px");
-    expect(CONTRACT_STANDARD.stepLabels.labelBFontSize).toBe("17px");
-    expect(CONTRACT_STANDARD.stepLabels.labelSmallFontSize).toBe("16px");
-    expect(CONTRACT_STANDARD.goals.labelFontSize).toBe("16px");
-    expect(CONTRACT_STANDARD.networks.labelFontSize).toBe("15px");
-    expect(CONTRACT_STANDARD.inputs.fieldLabelFontSize).toBe("16px");
-    expect(CONTRACT_STANDARD.inputs.inputTextFontSize).toBe("14.5px");
-    expect(CONTRACT_STANDARD.inputs.privacyFontSize).toBe("15px");
+    expect(CONTRACT_STANDARD.stepLabels.labelBFontSize).toBe("16px");
+    expect(CONTRACT_STANDARD.stepLabels.labelSmallFontSize).toBe("15px");
+    expect(CONTRACT_STANDARD.goals.labelFontSize).toBe("15px");
+    expect(CONTRACT_STANDARD.networks.labelFontSize).toBe("14px");
+    expect(CONTRACT_STANDARD.inputs.fieldLabelFontSize).toBe("15px");
+    expect(CONTRACT_STANDARD.inputs.inputTextFontSize).toBe("14px");
+    expect(CONTRACT_STANDARD.inputs.privacyFontSize).toBe("14px");
     expect(CONTRACT_STANDARD.analyzeCta.textFontSize).toBe("16.5px");
     expect(CONTRACT_STANDARD.pwaBanner.titleFontSize).toBe("16px");
     expect(CONTRACT_STANDARD.pwaBanner.subtitleFontSize).toBe("14.5px");

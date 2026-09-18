@@ -9,8 +9,8 @@ describe("iOS Standard Normalization to Large Regression Suite", () => {
   const canonicalCssPath = path.resolve(__dirname, "../platform/ios-storefront.css");
   const canonicalCss = fs.readFileSync(canonicalCssPath, "utf-8");
 
-  it("1. Verifies that 375, 390, 393, 402, 413 match Standard normalized values", () => {
-    // Both STANDARD and LARGE share the normalized visual tokens
+  it("1. Verifies that 375, 390, 393, 402, 413 match Standard calibrated values", () => {
+    // Both STANDARD and LARGE share hero, header, and analyze tokens
     expect(CONTRACT_STANDARD.hero.h1SpanFontSize).toBe("25px");
     expect(CONTRACT_STANDARD.hero.h1BFontSize).toBe("25px");
     expect(CONTRACT_STANDARD.hero.subtitleFontSize).toBe("16.5px");
@@ -18,14 +18,15 @@ describe("iOS Standard Normalization to Large Regression Suite", () => {
     expect(CONTRACT_STANDARD.header.taglineFontSize).toBe("15.5px");
     expect(CONTRACT_STANDARD.geometry.pageGutter).toBe("8px");
     expect(CONTRACT_STANDARD.geometry.builderPadding).toBe("8px");
-    expect(CONTRACT_STANDARD.goals.labelFontSize).toBe("16px");
-    expect(CONTRACT_STANDARD.goals.buttonHeight).toBe("64px");
-    expect(CONTRACT_STANDARD.networks.labelFontSize).toBe("15px");
-    expect(CONTRACT_STANDARD.networks.buttonHeight).toBe("84px");
-    expect(CONTRACT_STANDARD.inputs.fieldLabelFontSize).toBe("16px");
+    // Standard internal builder controls density calibrated
+    expect(CONTRACT_STANDARD.goals.labelFontSize).toBe("15px");
+    expect(CONTRACT_STANDARD.goals.buttonHeight).toBe("60px");
+    expect(CONTRACT_STANDARD.networks.labelFontSize).toBe("14px");
+    expect(CONTRACT_STANDARD.networks.buttonHeight).toBe("78px");
+    expect(CONTRACT_STANDARD.inputs.fieldLabelFontSize).toBe("15px");
     expect(CONTRACT_STANDARD.inputs.inputHeight).toBe("45px");
-    expect(CONTRACT_STANDARD.inputs.inputTextFontSize).toBe("14.5px");
-    expect(CONTRACT_STANDARD.inputs.privacyFontSize).toBe("15px");
+    expect(CONTRACT_STANDARD.inputs.inputTextFontSize).toBe("14px");
+    expect(CONTRACT_STANDARD.inputs.privacyFontSize).toBe("14px");
     expect(CONTRACT_STANDARD.analyzeCta.buttonHeight).toBe("49px");
     expect(CONTRACT_STANDARD.analyzeCta.textFontSize).toBe("16.5px");
     expect(CONTRACT_STANDARD.pwaBanner.titleFontSize).toBe("16px");

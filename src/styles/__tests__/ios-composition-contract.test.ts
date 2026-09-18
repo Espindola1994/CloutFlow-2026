@@ -64,24 +64,24 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
   const canonicalCssPath = path.resolve(__dirname, "../platform/ios-storefront.css");
   const canonicalCss = fs.readFileSync(canonicalCssPath, "utf-8");
 
-  it("1. Standard is Normalized: reflects Large scale in 375-413px", () => {
+  it("1. Standard is Density Calibrated: reflects calibrated scale in 375-413px", () => {
     const std = CONTRACT_STANDARD;
     expect(std.hero.subtitleFontSize).toBe("16.5px");
     expect(std.builderHead.eyebrowFontSize).toBe("16px");
     expect(std.builderHead.descriptionFontSize).toBe("16.5px");
     expect(std.builderHead.titleFontSize).toBe("24px");
-    expect(std.stepLabels.labelBFontSize).toBe("17px");
-    expect(std.stepLabels.labelSmallFontSize).toBe("16px");
-    expect(std.goals.labelFontSize).toBe("16px");
-    expect(std.goals.serviceIconSize).toBe("45px");
-    expect(std.goals.glyphSize).toBe("33px");
-    expect(std.networks.labelFontSize).toBe("15px");
-    expect(std.networks.platformImageSize).toBe("44px");
-    expect(std.networks.buttonHeight).toBe("84px");
-    expect(std.inputs.fieldLabelFontSize).toBe("16px");
-    expect(std.inputs.inputTextFontSize).toBe("14.5px");
+    expect(std.stepLabels.labelBFontSize).toBe("16px");
+    expect(std.stepLabels.labelSmallFontSize).toBe("15px");
+    expect(std.goals.labelFontSize).toBe("15px");
+    expect(std.goals.serviceIconSize).toBe("41px");
+    expect(std.goals.glyphSize).toBe("30px");
+    expect(std.networks.labelFontSize).toBe("14px");
+    expect(std.networks.platformImageSize).toBe("40px");
+    expect(std.networks.buttonHeight).toBe("78px");
+    expect(std.inputs.fieldLabelFontSize).toBe("15px");
+    expect(std.inputs.inputTextFontSize).toBe("14px");
     expect(std.inputs.inputHeight).toBe("45px");
-    expect(std.inputs.privacyFontSize).toBe("15px");
+    expect(std.inputs.privacyFontSize).toBe("14px");
     expect(std.analyzeCta.textFontSize).toBe("16.5px");
     expect(std.analyzeCta.buttonHeight).toBe("49px");
     expect(std.summary.titleFontSize).toBe("16px");

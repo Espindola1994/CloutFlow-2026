@@ -239,7 +239,7 @@ export const CONTRACT_COMPACT: VisualContractTokens = {
 
 export const CONTRACT_STANDARD: VisualContractTokens = {
   id: "standard",
-  name: "CONTRACT B — STANDARD (375px–413px) NORMALIZED",
+  name: "CONTRACT B — STANDARD (375px–413px) DENSITY CALIBRATED",
   minWidth: 375,
   maxWidth: 413,
   referenceWidth: 393,
@@ -279,35 +279,35 @@ export const CONTRACT_STANDARD: VisualContractTokens = {
     descriptionLineHeight: "1.4",
   },
   stepLabels: {
-    labelBFontSize: "17px",
+    labelBFontSize: "16px",
     labelBLineHeight: "1.25",
-    labelSmallFontSize: "16px",
+    labelSmallFontSize: "15px",
     labelSmallLineHeight: "1.3",
     badgeSize: "33px",
     badgeFontSize: "16.5px",
   },
   goals: {
-    labelFontSize: "16px",
-    serviceIconSize: "45px",
-    glyphSize: "33px",
+    labelFontSize: "15px",
+    serviceIconSize: "41px",
+    glyphSize: "30px",
     checkmarkSize: "24px",
-    buttonHeight: "64px",
+    buttonHeight: "60px",
     buttonGap: "6px",
     buttonPadding: "0 4px",
   },
   networks: {
-    labelFontSize: "15px",
-    platformImageSize: "44px",
+    labelFontSize: "14px",
+    platformImageSize: "40px",
     checkmarkSize: "22px",
-    buttonHeight: "84px",
+    buttonHeight: "78px",
     buttonBorderRadius: "12px",
   },
   inputs: {
-    fieldLabelFontSize: "16px",
+    fieldLabelFontSize: "15px",
     inputHeight: "45px",
-    inputTextFontSize: "14.5px",
+    inputTextFontSize: "14px",
     inputSvgSize: "31px",
-    privacyFontSize: "15px",
+    privacyFontSize: "14px",
   },
   analyzeCta: {
     buttonHeight: "49px",
@@ -732,6 +732,36 @@ export const IOS_STOREFRONT_CONTRACT = {
     builderSubtitleMaxWidth375: "250px",
     pwaPaddingHorizontal: "10px",
     pwaGap: "8px",
+  },
+  /**
+   * STANDARD DENSITY CALIBRATION
+   * 375–413 uses reduced internal control density while preserving approved hero/builder hierarchy.
+   * Internal controls are calibrated with proportional typography and heights to provide
+   * natural whitespace and breathability without feeling compressed or tiny.
+   * 414–900 retains approved LARGE scale and remains absolutely frozen.
+   */
+  standardDensityTokens: {
+    stepTitle: "16px",
+    stepSubtitle: "15px",
+    goalLabel: "15px",
+    goalIconService: "41px",
+    goalIconGlyph: "30px",
+    goalCardHeight: "60px",
+    networkLabel: "14px",
+    networkIcon: "40px",
+    networkCardHeight: "78px",
+    fieldLabel: "15px",
+    inputText: "14px",
+    privacyText: "14px",
+    // Preserved unchanged:
+    heroH1Span: "25px",
+    heroH1B: "25px",
+    heroSubtitle: "16.5px",
+    builderEyebrow: "16px",
+    builderTitle: "24px",
+    builderSubtitle: "16.5px",
+    analyzeText: "16.5px",
+    analyzeHeight: "49px",
   },
 } as const;
 

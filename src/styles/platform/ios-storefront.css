@@ -1143,34 +1143,34 @@ html.cf-platform-ios {
     --ios-builder-title-letter-spacing: -1.15px;
     --ios-type-builder-description: 16.5px;
     --ios-builder-description-line-height: 1.4;
-    --ios-type-builder-label-b: 17px;
+    --ios-type-builder-label-b: 16px;
     --ios-builder-label-b-line-height: 1.25;
-    --ios-type-builder-label-small: 16px;
+    --ios-type-builder-label-small: 15px;
     --ios-builder-label-small-line-height: 1.3;
     --ios-icon-builder-label: 33px;
     --ios-icon-builder-label-font: 16.5px;
 
     /* Goals */
-    --ios-type-goal-label: 16px;
+    --ios-type-goal-label: 15px;
     --ios-icon-goal-checkmark: 24px;
-    --ios-icon-goal-service: 45px;
-    --ios-icon-goal-glyph: 33px;
-    --ios-control-goal-height: 64px;
+    --ios-icon-goal-service: 41px;
+    --ios-icon-goal-glyph: 30px;
+    --ios-control-goal-height: 60px;
     --ios-control-goal-padding: 0 4px;
 
     /* Networks */
-    --ios-type-platform-label: 15px;
-    --ios-type-platform-label-narrow: 15px;
+    --ios-type-platform-label: 14px;
+    --ios-type-platform-label-narrow: 14px;
     --ios-icon-platform-checkmark: 22px;
-    --ios-icon-platform-image: 44px;
-    --ios-control-platform-height: 84px;
+    --ios-icon-platform-image: 40px;
+    --ios-control-platform-height: 78px;
 
     /* Inputs */
-    --ios-type-field-label: 16px;
+    --ios-type-field-label: 15px;
     --ios-icon-input-svg: 31px;
     --ios-control-input-height: 45px;
-    --ios-type-input-text: 14.5px;
-    --ios-type-privacy-text: 15px;
+    --ios-type-input-text: 14px;
+    --ios-type-privacy-text: 14px;
 
     /* Analyze CTA */
     --ios-icon-analyze-svg: 31px;
