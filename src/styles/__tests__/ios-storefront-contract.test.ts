@@ -369,4 +369,96 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
     expect(cssContent).toContain(".cf-o10-package-ref-best {\n    font-size: 15px !important;\n    height: 24px !important;");
     expect(cssContent).toContain(".cf-o10-package-ref-best svg {\n    width: 18px !important;\n    min-width: 18px !important;\n    height: 18px !important;");
   });
+
+  it("17. iOS LARGE Home Lower Sections Calibration regression guard", () => {
+    // 1. Plans section h2
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-section-title h2 {\n    letter-spacing: -.48px !important;\n    margin: 0 !important;\n    padding: 0 !important;\n    font-size: 25px !important;\n  }");
+
+    // 2. Plans section subtitle
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-section-title p {\n    color: #718097 !important;\n    margin: 1px 0 0 !important;\n    font-size: 16.5px !important;\n  }");
+
+    // 3. Review name
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-review-head b {\n    font-size: 14.5px !important;\n  }");
+
+    // 4. Review handle / small text
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-review-head small,\n  html.cf-platform-ios body .cf-universal-target-compact small {\n    font-size: 13.4px !important;\n  }");
+
+    // 5. Review verified badge SVG
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-review-head > svg {\n    color: #168cff !important;\n    fill: #168cff !important;\n    stroke: #fff !important;\n    width: 20px !important;\n    height: 20px !important;\n  }");
+
+    // 6. Review body
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-review-card p {\n    font-size: 12.5px !important;\n    line-height: 1.35 !important;\n  }");
+
+    // 7. Review tag
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-review-tag {\n    font-size: 13px !important;\n    font-weight: 650 !important;\n  }");
+
+    // 8. Trust pill text
+    expect(cssContent).toContain(".cf-trust-pill .cf-trust-excellent,\n  html.cf-platform-ios body .cf-trust-pill .cf-trust-score,\n  html.cf-platform-ios body .cf-trust-pill .cf-trust-reviews,\n  html.cf-platform-ios body .cf-trust-pill .cf-trustpilot {\n    font-size: 14.5px !important;\n  }");
+
+    // 9. Trust stars text
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-trust-stars span {\n    font-size: 11.5px !important;\n  }");
+
+    // 10. Trustpilot green star/text span
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-trustpilot > span {\n    color: #00b67a !important;\n    font-size: 14.5px !important;\n  }");
+
+    // 11. FAQ eyebrow
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-eyebrow {\n    color: #ef2f75 !important;\n    letter-spacing: .12em !important;\n    margin: 0 0 7px !important;\n    font-size: 16px !important;\n  }");
+
+    // 12. FAQ eyebrow SVG
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-eyebrow svg {\n    width: 15px !important;\n    height: 15px !important;\n  }");
+
+    // 13. FAQ title
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-head h2 {\n    font-size: 24px !important;\n  }");
+
+    // 14. FAQ header subtitle
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-head p {\n    color: #7b879e !important;\n    margin: 8px auto 0 !important;\n    font-size: 16.5px !important;\n  }");
+
+    // 15. FAQ question text
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-question-copy {\n    color: #20283b !important;\n    font-size: 15.5px !important;\n  }");
+
+    // 16. FAQ question icon container
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-icon {\n    border-radius: 9px !important;\n    width: 33px !important;\n    height: 33px !important;\n  }");
+
+    // 17. FAQ question icon SVG
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-icon svg {\n    width: 20px !important;\n    height: 20px !important;\n  }");
+
+    // 18. FAQ toggle SVG
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-toggle svg {\n    stroke-width: 2.2px !important;\n    width: 18px !important;\n    height: 18px !important;\n  }");
+
+    // 19. FAQ answer
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-home-faq-compact .cf-home-faq-answer p {\n    color: #748096 !important;\n    margin: 0 !important;\n    padding: 0 48px 12px 56px !important;\n    font-size: 14.5px !important;\n    font-weight: 410 !important;\n  }");
+
+    // 20. Final copy
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-final-copy p {\n    margin-top: -7px !important;\n    font-size: 15.5px !important;\n    font-weight: 470 !important;\n  }");
+
+    // 21. Final action button
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-final-action button {\n    border-radius: 12px !important;\n    width: 100% !important;\n    max-width: none !important;\n    height: auto !important;\n    min-height: 56px !important;\n    font-size: 16px !important;\n  }");
+
+    // 22. Final CTA rocket
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-final-cta .cf-plans-rocket-premium {\n    object-fit: contain !important;\n    width: 115px !important;\n    max-width: none !important;\n    height: auto !important;\n    max-height: none !important;\n    box-shadow: none !important;\n    filter: none !important;\n    opacity: 1 !important;\n    mix-blend-mode: normal !important;\n    clip-path: none !important;\n    background: 0 0 !important;\n    border: 0 !important;\n    border-radius: 0 !important;\n    position: absolute !important;\n    inset: 50% auto auto 65% !important;\n  }");
+
+    // 23. Final action small
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-final-action small {\n    justify-content: center !important;\n    font-size: 15.5px !important;\n  }");
+
+    // 24. Social proof verified SVG
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-social-proof-verified svg {\n    stroke-width: 2.4px !important;\n    width: 18px !important;\n    height: 18px !important;\n  }");
+
+    // 25. Customer faces
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-customer-faces img {\n    border: 2px solid #fff !important;\n    width: 31px !important;\n    height: 31px !important;\n    margin-left: -7px !important;\n    transition: transform .2s, margin .2s !important;\n  }");
+
+    // 26. Value row title
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-value-row b {\n    font-size: 15.5px !important;\n  }");
+
+    // 27. Value row small
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-value-row small {\n    font-size: 14px !important;\n  }");
+
+    // 28. Value row main SVG
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-value-row > div > svg {\n    width: 33px !important;\n    height: 33px !important;\n    padding: 5px !important;\n  }");
+
+    // 29. Value row layout
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-value-row > div {\n    border-bottom: 1px solid #edf0f4 !important;\n    border-right: 0 !important;\n    grid-template-columns: 29px minmax(0, 1fr) !important;\n    gap: 10px !important;\n  }");
+
+    // 30. Final action container
+    expect(cssContent).toContain("html.cf-platform-ios body .cf-plans-final-action {\n    grid-area: action !important;\n    gap: 11px !important;\n    width: 100% !important;\n    margin-top: 6px !important;\n  }");
+  });
 });
