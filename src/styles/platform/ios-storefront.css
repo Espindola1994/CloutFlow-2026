@@ -671,7 +671,7 @@
    Mandatory invariant: package width min(66%, 320px) !important; max-width 320px !important.
    FREEZE: Intentionally isolated and protected from Home modifications.
    ========================================================================== */
-@media (max-width: 440px) {
+@media (max-width: 900px) {
   /* Offer Header */
   html.cf-platform-ios body .cf-offer-header-clean {
     height: 56px !important;
@@ -696,10 +696,14 @@
   html.cf-platform-ios .cf-timer578 {
     position: absolute !important;
     left: auto !important;
-    right: -57px !important;
+    right: -58px !important;
     top: 50% !important;
-    transform: translateY(-50%) scale(.7436) !important;
+    transform: translateY(-60%) scale(.7436) !important;
     transform-origin: 144% !important;
+  }
+
+  html.cf-platform-ios body .cf-offer-header-clean .cf-offer-brand-logo {
+    transform: translateY(-8.4px) !important;
   }
 
   html.cf-platform-ios .cf-header-tagline589 {
@@ -712,7 +716,9 @@
     max-width: 72px !important;
     line-height: 1.15 !important;
   }
+}
 
+@media (max-width: 440px) {
   /* Offer Step 1 Prefill */
   html.cf-platform-ios body .cf-offer-main {
     padding-left: 8px !important;

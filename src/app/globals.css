@@ -30877,7 +30877,7 @@ html body .cf-o10-email-required {
   }
 }
 
-@media (max-width: 420px) {
+@media (max-width: 900px) {
   html body .cf-offer-header-clean .cf-offer-nav {
     padding-left: 10px !important;
     padding-right: 10px !important;
@@ -30889,11 +30889,19 @@ html body .cf-o10-email-required {
     height: 72px !important;
   }
 
-  html body .cf-timer578 {
+  html body.cf-offer-page .cf-timer578,
+  html body .cf-offer-header-clean .cf-timer578 {
+    position: absolute !important;
     left: auto !important;
-    right: -57px !important;
-    transform: translateY(-50%) scale(.7436) !important;
+    right: -58px !important;
+    top: 50% !important;
+    transform: translateY(-60%) scale(.7436) !important;
     transform-origin: 144% !important;
+  }
+
+  html body.cf-offer-page .cf-offer-brand-logo,
+  html body .cf-offer-header-clean .cf-offer-brand-logo {
+    transform: translateY(-8.4px) !important;
   }
 }
 
