@@ -121,6 +121,7 @@ describe("PublicPwaInstallBanner — UI 5.7.1 Dual PWA", () => {
     expect(screen.getByTestId("public-pwa-banner")).toBeDefined();
     expect(screen.getByText("CloutFlow App")).toBeDefined();
     expect(screen.getByText("Grow faster with CloutFlow")).toBeDefined();
+    expect(screen.getByText("Faster access to CloutFlow")).toBeDefined();
     expect(
       screen.queryByText("Get faster access to your profiles, plans and purchases.")
     ).toBeNull();

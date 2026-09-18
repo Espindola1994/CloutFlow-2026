@@ -297,12 +297,14 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
     expect(cssContent).toContain(".cf-pb-analyze-desc-ios-large");
     expect(cssContent).toContain(".cf-pb-privacy-desc-default");
     expect(cssContent).toContain(".cf-pb-privacy-desc-ios-large");
+    expect(cssContent).toContain(".cf-pwa-subtitle-default");
+    expect(cssContent).toContain(".cf-pwa-subtitle-ios-large");
 
     // Goal and Platform grid balance scoped to LARGE
     expect(cssContent).toContain("grid-template-columns: minmax(0, 1.14fr) minmax(0, 0.93fr) minmax(0, 0.93fr) !important;");
 
     // Network selector badge positioning scoped to LARGE
-    expect(cssContent).toContain("top: -10px !important;");
-    expect(cssContent).toContain("right: -10px !important;");
+    expect(cssContent).toContain("top: -6px !important;");
+    expect(cssContent).toContain("right: -4px !important;");
   });
 });

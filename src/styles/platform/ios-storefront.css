@@ -138,6 +138,16 @@
   html.cf-platform-ios body .cf-pb-privacy-desc-ios-large {
     display: none !important;
   }
+
+  .cf-pwa-subtitle-default,
+  html.cf-platform-ios body .cf-pwa-subtitle-default {
+    display: inline !important;
+  }
+
+  .cf-pwa-subtitle-ios-large,
+  html.cf-platform-ios body .cf-pwa-subtitle-ios-large {
+    display: none !important;
+  }
 }
 
 /* ==========================================================================
@@ -1317,6 +1327,14 @@ html.cf-platform-ios {
     display: inline !important;
   }
 
+  html.cf-platform-ios body .cf-pwa-subtitle-default {
+    display: none !important;
+  }
+
+  html.cf-platform-ios body .cf-pwa-subtitle-ios-large {
+    display: inline !important;
+  }
+
   /* Goal Cards Grid Balance for iOS LARGE:
      Followers receives a larger fraction so icon + text breath comfortably without clipping.
      Likes and Views center neatly. */
@@ -1349,8 +1367,8 @@ html.cf-platform-ios {
   }
 
   html.cf-platform-ios body .cf-pb-platforms button > svg {
-    top: -10px !important;
-    right: -10px !important;
+    top: -6px !important;
+    right: -4px !important;
     transform: none !important;
   }
 

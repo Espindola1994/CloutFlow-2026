@@ -174,9 +174,14 @@ export function PublicPwaInstallBanner() {
                 CloutFlow App
               </div>
               <div className="text-[11px] text-[#8E9BB5] truncate">
-                {isIosPlatform
-                  ? "Grow faster with CloutFlow"
-                  : "Get faster access to your profiles, plans and purchases."}
+                {isIosPlatform ? (
+                  <>
+                    <span className="cf-pwa-subtitle-default">Grow faster with CloutFlow</span>
+                    <span className="cf-pwa-subtitle-ios-large">Faster access to CloutFlow</span>
+                  </>
+                ) : (
+                  "Get faster access to your profiles, plans and purchases."
+                )}
               </div>
             </div>
           </div>
