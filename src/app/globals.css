@@ -33548,6 +33548,22 @@ html body .cf-offer-page
         display: none !important;
     }
 
+    .cf-hero-subtitle-default {
+        display: none !important;
+    }
+
+    .cf-hero-subtitle-ios-large {
+        display: inline !important;
+    }
+
+    .cf-pb-analyze-desc-default {
+        display: inline !important;
+    }
+
+    .cf-pb-analyze-desc-ios-large {
+        display: none !important;
+    }
+
     .cf-premium-builder-controls .cf-pb-goals button b {
         font-size: 12.5px !important;
         font-weight: 800 !important;
