@@ -1378,4 +1378,21 @@ html.cf-platform-ios {
     text-align: center !important;
     letter-spacing: -0.2px !important;
   }
+
+  /* Result Action Buttons for iOS LARGE:
+     Manually calibrated by user to ensure comfortable touch targets and balanced proportions. */
+  html.cf-platform-ios body .cf-pb-result-actions button {
+    border-radius: 10px !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 6px !important;
+    height: 50px !important;
+    min-height: 50px !important;
+    font-size: 15.5px !important;
+  }
+
+  html.cf-platform-ios body .cf-pb-result-actions button svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
 }

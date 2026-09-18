@@ -306,5 +306,13 @@ describe("iOS Storefront Contract V3 & Canonical Frame Invariants", () => {
     // Network selector badge positioning scoped to LARGE
     expect(cssContent).toContain("top: -6px !important;");
     expect(cssContent).toContain("right: -4px !important;");
+
+    // Result action buttons scoped to LARGE
+    expect(cssContent).toContain(".cf-pb-result-actions button");
+    expect(cssContent).toContain("height: 50px !important;");
+    expect(cssContent).toContain("min-height: 50px !important;");
+    expect(cssContent).toContain("font-size: 15.5px !important;");
+    expect(cssContent).toContain("width: 18px !important;");
+    expect(cssContent).toContain("height: 18px !important;");
   });
 });

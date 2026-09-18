@@ -349,4 +349,20 @@ describe("iOS Storefront 3 Responsive Visual Contracts (COMPACT / STANDARD / LAR
       }
     }
   });
+
+  it("11. Result Action Buttons: Large contract calibration vs non-Large isolation", () => {
+    // Verify that the canonical stylesheet defines the large override strictly within 414px-900px
+    const largeMediaBlock = canonicalCss.substring(canonicalCss.indexOf("@media (min-width: 414px) and (max-width: 900px)"));
+    expect(largeMediaBlock).toContain("html.cf-platform-ios body .cf-pb-result-actions button {");
+    expect(largeMediaBlock).toContain("border-radius: 10px !important;");
+    expect(largeMediaBlock).toContain("justify-content: center !important;");
+    expect(largeMediaBlock).toContain("align-items: center !important;");
+    expect(largeMediaBlock).toContain("gap: 6px !important;");
+    expect(largeMediaBlock).toContain("height: 50px !important;");
+    expect(largeMediaBlock).toContain("min-height: 50px !important;");
+    expect(largeMediaBlock).toContain("font-size: 15.5px !important;");
+    expect(largeMediaBlock).toContain("html.cf-platform-ios body .cf-pb-result-actions button svg {");
+    expect(largeMediaBlock).toContain("width: 18px !important;");
+    expect(largeMediaBlock).toContain("height: 18px !important;");
+  });
 });

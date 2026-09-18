@@ -89,6 +89,10 @@ describe("Computed Style & Rule Matching Smoke Tests (Canonical Frame: 430px, 39
                   </div>
                 </div>
               </div>
+            <div class="cf-premium-builder-result cf-pb-result-result">
+              <div class="cf-pb-result-actions">
+                <button id="test-btn-action"><svg></svg> Search again</button>
+              </div>
             </div>
           </div>
         </section>
@@ -205,6 +209,14 @@ describe("Computed Style & Rule Matching Smoke Tests (Canonical Frame: 430px, 39
     const pwaSubtitle = doc.querySelector('[data-testid="public-pwa-banner"] .text-\\[11px\\]')!;
     const pwaSubtitleRules = getAllMatchedRules(doc, pwaSubtitle);
     expect(pwaSubtitleRules.some((r) => r.style.fontSize === "var(--ios-type-pwa-subtitle)")).toBe(true);
+    // 8. Result Action Buttons (Large overrides)
+    const actionBtn = doc.querySelector(".cf-pb-result-actions button")!;
+    const actionBtnRules = getAllMatchedRules(doc, actionBtn);
+    expect(actionBtnRules.some((r) => r.style.height === "50px" && r.style.fontSize === "15.5px")).toBe(true);
+
+    const actionSvg = doc.querySelector(".cf-pb-result-actions button svg")!;
+    const actionSvgRules = getAllMatchedRules(doc, actionSvg);
+    expect(actionSvgRules.some((r) => r.style.width === "18px" && r.style.height === "18px")).toBe(true);
   });
 
   it("2. On Non-iOS (cf-platform-ios absent), iOS storefront rules match ZERO elements", () => {
