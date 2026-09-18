@@ -257,6 +257,7 @@ describe("iOS Storefront Contract V2 & Fluid Canonical Layer Invariants", () => 
       ...IOS_STOREFRONT_CONTRACT.fluid.typography,
       ...IOS_STOREFRONT_CONTRACT.fluid.icons,
       ...IOS_STOREFRONT_CONTRACT.fluid.controls,
+      ...IOS_STOREFRONT_CONTRACT.fluid.spacing,
     };
 
     for (const [tokenName, tokenDef] of Object.entries(allTokens)) {
@@ -288,6 +289,9 @@ describe("iOS Storefront Contract V2 & Fluid Canonical Layer Invariants", () => 
     expect(cssContent).toContain("--ios-icon-goal-service: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.icons.goalServiceIcon) + ";");
     expect(cssContent).toContain("--ios-icon-platform-image: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.icons.platformImage) + ";");
     expect(cssContent).toContain("--ios-control-platform-height: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.controls.platformButtonHeight) + ";");
+    expect(cssContent).toContain("--ios-control-input-height: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.controls.inputHeight) + ";");
+    expect(cssContent).toContain("--ios-control-analyze-height: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.controls.analyzeButtonHeight) + ";");
+    expect(cssContent).toContain("--ios-space-builder-padding: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.spacing.builderPadding) + ";");
     expect(cssContent).toContain("--ios-type-analyze-text: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.typography.analyzeText) + ";");
     expect(cssContent).toContain("--ios-icon-analyze-svg: " + buildFluidClamp(IOS_STOREFRONT_CONTRACT.fluid.icons.analyzeSvg) + ";");
   });

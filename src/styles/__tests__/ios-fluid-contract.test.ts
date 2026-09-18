@@ -83,6 +83,7 @@ describe("iOS Storefront Fluid Scaling & Platform Isolation Tests", () => {
       ...IOS_STOREFRONT_CONTRACT.fluid.typography,
       ...IOS_STOREFRONT_CONTRACT.fluid.icons,
       ...IOS_STOREFRONT_CONTRACT.fluid.controls,
+      ...IOS_STOREFRONT_CONTRACT.fluid.spacing,
     };
 
     for (const [tokenName, token] of Object.entries(allTokens)) {
@@ -93,7 +94,60 @@ describe("iOS Storefront Fluid Scaling & Platform Isolation Tests", () => {
     }
   });
 
-  it("4. Negative Test: Android (no cf-platform-ios) NEVER matches iOS fluid rules", () => {
+  it("4. Contract V2.1 Assertions: Meaningful minimum growth at 430px and 440px vs Golden (>= +7% at 430px, >= +10% at 440px)", () => {
+    const keyTokens = [
+      { name: "heroSubtitle", token: IOS_STOREFRONT_CONTRACT.fluid.typography.heroSubtitle, minDelta430: 0.07, minDelta440: 0.10 },
+      { name: "builderLabelB", token: IOS_STOREFRONT_CONTRACT.fluid.typography.builderLabelB, minDelta430: 0.07, minDelta440: 0.10 },
+      { name: "goalLabel", token: IOS_STOREFRONT_CONTRACT.fluid.typography.goalLabel, minDelta430: 0.07, minDelta440: 0.10 },
+      { name: "platformLabelNarrow", token: IOS_STOREFRONT_CONTRACT.fluid.typography.platformLabelNarrow, minDelta430: 0.07, minDelta440: 0.10 },
+      { name: "fieldLabel", token: IOS_STOREFRONT_CONTRACT.fluid.typography.fieldLabel, minDelta430: 0.07, minDelta440: 0.10 },
+      { name: "inputText", token: IOS_STOREFRONT_CONTRACT.fluid.typography.inputText, minDelta430: 0.07, minDelta440: 0.10 },
+      { name: "analyzeText", token: IOS_STOREFRONT_CONTRACT.fluid.typography.analyzeText, minDelta430: 0.07, minDelta440: 0.10 },
+      { name: "goalServiceIcon", token: IOS_STOREFRONT_CONTRACT.fluid.icons.goalServiceIcon, minDelta430: 0.07, minDelta440: 0.10 },
+      { name: "platformImage", token: IOS_STOREFRONT_CONTRACT.fluid.icons.platformImage, minDelta430: 0.07, minDelta440: 0.10 },
+      { name: "platformButtonHeight", token: IOS_STOREFRONT_CONTRACT.fluid.controls.platformButtonHeight, minDelta430: 0.07, minDelta440: 0.09 },
+      { name: "inputHeight", token: IOS_STOREFRONT_CONTRACT.fluid.controls.inputHeight, minDelta430: 0.07, minDelta440: 0.10 },
+      { name: "analyzeButtonHeight", token: IOS_STOREFRONT_CONTRACT.fluid.controls.analyzeButtonHeight, minDelta430: 0.07, minDelta440: 0.10 },
+    ];
+
+    for (const item of keyTokens) {
+      const at393 = evaluateFluidToken(item.token, 393);
+      const at430 = evaluateFluidToken(item.token, 430);
+      const at440 = evaluateFluidToken(item.token, 440);
+
+      const ratio430 = (at430 - at393) / at393;
+      const ratio440 = (at440 - at393) / at393;
+
+      expect(
+        ratio430,
+        `Token ${item.name} at 430px (${at430}px) must grow by at least ${item.minDelta430 * 100}% over Golden ${at393}px, got ${(ratio430 * 100).toFixed(2)}%`
+      ).toBeGreaterThanOrEqual(item.minDelta430);
+
+      expect(
+        ratio440,
+        `Token ${item.name} at 440px (${at440}px) must grow by at least ${item.minDelta440 * 100}% over Golden ${at393}px, got ${(ratio440 * 100).toFixed(2)}%`
+      ).toBeGreaterThanOrEqual(item.minDelta440);
+    }
+  });
+
+  it("5. Contract V2.1 Assertions: 375px preservation (must remain >= 96% of Golden reference)", () => {
+    const allTokens = {
+      ...IOS_STOREFRONT_CONTRACT.fluid.typography,
+      ...IOS_STOREFRONT_CONTRACT.fluid.icons,
+      ...IOS_STOREFRONT_CONTRACT.fluid.controls,
+    };
+
+    for (const [tokenName, token] of Object.entries(allTokens)) {
+      const at375 = evaluateFluidToken(token, 375);
+      const ratio375 = at375 / token.golden;
+      expect(
+        ratio375,
+        `Token ${tokenName} at 375px (${at375}px) must remain >= 96% of golden (${token.golden}px), got ${(ratio375 * 100).toFixed(2)}%`
+      ).toBeGreaterThanOrEqual(0.96);
+    }
+  });
+
+  it("6. Negative Test: Android (no cf-platform-ios) NEVER matches iOS fluid rules", () => {
     const html = `
       <!DOCTYPE html>
       <html lang="en" class="dark">
@@ -133,7 +187,7 @@ describe("iOS Storefront Fluid Scaling & Platform Isolation Tests", () => {
     expect(iosMatched).toBe(0);
   });
 
-  it("5. Negative Test: iPadOS (cf-platform-ipados) NEVER matches html.cf-platform-ios rules", () => {
+  it("7. Negative Test: iPadOS (cf-platform-ipados) NEVER matches html.cf-platform-ios rules", () => {
     const html = `
       <!DOCTYPE html>
       <html lang="en" class="dark cf-platform-ipados">
@@ -166,7 +220,7 @@ describe("iOS Storefront Fluid Scaling & Platform Isolation Tests", () => {
     expect(matched).toBe(0);
   });
 
-  it("6. Negative Test: Desktop Viewport (> 900px) does not apply mobile handheld media rules", () => {
+  it("8. Negative Test: Desktop Viewport (> 900px) does not apply mobile handheld media rules", () => {
     const lines = canonicalCss.split("\n");
     for (const rawLine of lines) {
       const line = rawLine.trim();

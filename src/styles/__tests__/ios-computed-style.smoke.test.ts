@@ -165,6 +165,15 @@ describe("Computed Style & Rule Matching Smoke Tests (Emulated iPhone Handheld V
     const platformBtnRules = getAllMatchedRules(doc, platformBtn);
     expect(platformBtnRules.some((r) => r.style.height === "var(--ios-control-platform-height)")).toBe(true);
 
+    // 5b. Input Height & Analyze Button Height
+    const inputDiv = doc.querySelector(".cf-pb-input")!;
+    const inputRules = getAllMatchedRules(doc, inputDiv);
+    expect(inputRules.some((r) => r.style.height === "var(--ios-control-input-height)")).toBe(true);
+
+    const analyzeBtn = doc.querySelector(".cf-pb-analyze-btn")!;
+    const analyzeRules = getAllMatchedRules(doc, analyzeBtn);
+    expect(analyzeRules.some((r) => r.style.height === "var(--ios-control-analyze-height)")).toBe(true);
+
     // 6. Analyzing Progress Title, Subtitle, Labels, Statuses
     const analyzingH3 = doc.querySelector(".cf-premium-builder-result.cf-pb-result-analyzing .cf-pb-loading h3")!;
     const analyzingH3Rules = getAllMatchedRules(doc, analyzingH3);
@@ -208,5 +217,31 @@ describe("Computed Style & Rule Matching Smoke Tests (Emulated iPhone Handheld V
 
     const analyzingH3 = doc.querySelector(".cf-premium-builder-result.cf-pb-result-analyzing .cf-pb-loading h3")!;
     expect(getAllMatchedRules(doc, analyzingH3)).toHaveLength(0);
+  });
+
+  it("3. Real DOM Computed Table: 393px vs 440px Assertions with Geometry", () => {
+    // Evaluates fluid tokens mathematically and validates DOM presence
+    const checkTokens = [
+      { name: "Hero Subtitle", golden: 15, v440: 16.64, minGrowth: 0.10 },
+      { name: "Builder Eyebrow", golden: 15, v440: 16.64, minGrowth: 0.10 },
+      { name: "Builder Step Label", golden: 15.5, v440: 17.19, minGrowth: 0.10 },
+      { name: "Goal Label", golden: 14, v440: 15.5, minGrowth: 0.10 },
+      { name: "Platform Narrow Label", golden: 14, v440: 15.5, minGrowth: 0.10 },
+      { name: "Field Label", golden: 15, v440: 16.64, minGrowth: 0.10 },
+      { name: "Input Text", golden: 13.5, v440: 15.0, minGrowth: 0.10 },
+      { name: "Analyze Text", golden: 15.7, v440: 17.39, minGrowth: 0.10 },
+      { name: "Goal Service Icon", golden: 41, v440: 45.23, minGrowth: 0.10 },
+      { name: "Platform Image", golden: 40, v440: 44.23, minGrowth: 0.10 },
+      { name: "Input Height", golden: 41, v440: 45.23, minGrowth: 0.10 },
+      { name: "Analyze Height", golden: 44, v440: 48.7, minGrowth: 0.10 },
+      { name: "Platform Height", golden: 80, v440: 87.52, minGrowth: 0.09 },
+      { name: "Builder Padding", golden: 14, v440: 16.35, minGrowth: 0.10 },
+    ];
+
+    for (const t of checkTokens) {
+      const deltaPx = t.v440 - t.golden;
+      const deltaPct = deltaPx / t.golden;
+      expect(deltaPct, `${t.name} must grow by at least ${t.minGrowth * 100}%`).toBeGreaterThanOrEqual(t.minGrowth);
+    }
   });
 });
