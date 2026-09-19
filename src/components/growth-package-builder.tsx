@@ -193,6 +193,31 @@ export default function GrowthPackageBuilder({
   const emailCompletedEmitted = useRef(false);
   const resultViewedEmitted = useRef(false);
 
+  const attachIdentifierRef = useCallback((el: HTMLInputElement | null) => {
+    if (!el || el.dataset.cfProtected) return;
+    el.dataset.cfProtected = "true";
+    const protoDesc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+    const nativeGet = protoDesc?.get;
+    const nativeSet = protoDesc?.set;
+    if (nativeGet && nativeSet) {
+      Object.defineProperty(el, "value", {
+        get() {
+          return nativeGet.call(this);
+        },
+        set(val) {
+          if (typeof val === "string" && val.trim() === "" && val.length > 0) {
+            return nativeSet.call(this, "");
+          }
+          return nativeSet.call(this, val);
+        },
+        configurable: true,
+      });
+    }
+    if (typeof el.value === "string" && el.value.trim() === "" && el.value.length > 0) {
+      el.value = "";
+    }
+  }, []);
+
   useEffect(() => setPlatformLocal(initialPlatform), [initialPlatform]);
   useEffect(() => setGoalLocal(initialGoal), [initialGoal]);
   useEffect(() => {
@@ -660,7 +685,7 @@ export default function GrowthPackageBuilder({
         <div className="cf-premium-builder-controls">
           <div className="cf-pb-step"><div className="cf-pb-label"><i>1</i><div><b>Choose your goal</b><small>What do you want to achieve?</small></div></div><div className="cf-pb-goals">{((PLATFORM_SERVICES[platform] || ["followers", "likes", "views"]) as Goal[]).map(g => <button key={g} className={goal===g?"active":""} onClick={()=>chooseGoal(g)}><GoalIcon goal={g} premium/><b>{g[0].toUpperCase()+g.slice(1)}</b>{goal===g&&<Check/>}</button>)}</div></div>
           <div className="cf-pb-step"><div className="cf-pb-label"><i>2</i><div><b>Choose the network</b><small>We support all 4 platforms below</small></div></div><div className="cf-pb-platforms">{(Object.entries(META) as [PlatformId, typeof META[PlatformId]][]).map(([id,item]) => <button key={id} className={platform===id?"active":""} style={{"--pb-accent":item.accent} as React.CSSProperties} onClick={()=>choosePlatform(id)}><PlatformIcon src={item.icon}/><b>{item.label}</b>{platform===id&&<Check/>}</button>)}</div>
-            <label className="cf-pb-field-label">{getInputLabel()}</label><div className="cf-pb-input"><ScanSearch/><input data-clarity-mask="true" className="clarity-mask" value={identifier} onFocus={()=>{
+            <label className="cf-pb-field-label">{getInputLabel()}</label><div className="cf-pb-input"><ScanSearch/><input ref={attachIdentifierRef} data-clarity-mask="true" className="clarity-mask" value={identifier} onFocus={()=>{
               if (!identifierStartedEmitted.current) {
                 identifierStartedEmitted.current = true;
                 trackAnalyticsEvent("identifier_started", { platform, service: goal });
