@@ -1,10 +1,11 @@
 name: Automatic Fulfillment Status Sync & Queue Release
 
 on:
-  schedule:
-    # Run every 10 minutes (conservative frequency)
-    - cron: '*/10 * * * *'
-  workflow_dispatch: # Allows manual trigger from GitHub UI
+  # Schedule disabled: fulfillment status synchronization and queue dispatch
+  # are fully managed by QStash hitting /api/internal/cron/peakerr-status and /api/internal/cron/peakerr-dispatch.
+  # schedule:
+  #   - cron: '*/10 * * * *'
+  workflow_dispatch: # Preserved for manual diagnostic invocation only
 
 jobs:
   sync-and-release:
